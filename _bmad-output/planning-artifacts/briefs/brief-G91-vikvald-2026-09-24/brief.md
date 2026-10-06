@@ -2,7 +2,7 @@
 title: "Produktbrief: Studiekamerat"
 status: final
 created: 2026-09-24
-updated: 2026-09-24
+updated: 2026-10-06
 ---
 
 # Produktbrief: Studiekamerat
@@ -48,6 +48,10 @@ Det finnes allerede gode verktøy som lager sammendrag, flashcards og quiz fra d
 
 Studiekamerat har ingen teknisk fordel som andre ikke kan kopiere. Styrken ligger i at Studiekamerat er tilpasset én konkret studiehverdag.
 
+## Visjon
+
+Etter IBE160 kan Studiekamerat vokse til å dekke flere emner og flere studenter på HiMolde, med spaced repetition og deling i kollokviegrupper. I dette prosjektet er visjonen kun en retning, ikke noe som skal bygges.
+
 ## Hvem er det for
 
 **Primærbruker:** en student i høyere utdanning i Norge med et teoritungt emne, der forelesningsfoilene er for tynne til å lese alene. Studenten lærer lite av å bare høre på foreleseren og mister lett oversikten i løpet av semesteret. Studenten vet at det å teste seg selv og repetere virker, men har ikke tid til å lage materialet selv.
@@ -67,9 +71,16 @@ Jeg tester Studiekamerat på ekte materiale fra emner jeg tar selv dette semeste
 - En stikkprøve av generert innhold sjekkes mot kildene, og feilene registreres: 50 flashcards, med mål om under 5 % faglige feil.
 - Kildehenvisningene peker på riktig fil og side.
 
+**Funksjonelle kriterier (testbare)**
+- En bruker ser bare sine egne emner og forelesninger etter innlogging.
+- En opplastet PDF gir flashcards der hvert kort har et kildehenvist sidetall som finnes i den opplastede filen.
+- Quizen viser forklaring først etter at studenten har svart, ikke før.
+- Et flashcard kan redigeres eller slettes av brukeren som opprettet det.
+- Appen starter lokalt etter oppskriften i README, med en testbruker og eksempelmateriale, uten at sensor trenger egne API-nøkler eller betalte kontoer.
+
 **For IBE160**
 - Målet er en brukbar MVP **i midten av november**, slik at den rekker å bli testet i eksamensforberedelser. Dette er et mål, ikke et krav.
-- Alle MVP-funksjonene virker i en publisert webapp innen IBE160-fristen i midten av desember.
+- Alle MVP-funksjonene virker og kan kjøres lokalt etter README innen IBE160-fristen i midten av desember. Publisert webapp er en bonus, ikke et krav.
 - Bruken av KI i utviklingen er dokumentert, slik emnet krever.
 
 ## Omfang (MVP)
@@ -77,11 +88,15 @@ Jeg tester Studiekamerat på ekte materiale fra emner jeg tar selv dette semeste
 MVP står for *minimum viable product*: den minste versjonen av appen som er nyttig å bruke. Rammer: én utvikler og tre måneder (IBE160, høsten 2026). Omfanget skal være håndterbart. Kvaliteten skal ligge i gjennomføringen, ikke i antall funksjoner.
 
 **Med i MVP.** Listen er foreløpig og finjusteres i PRD-en. Den følger oppgaveteksten, pluss huskeregler. Punktene står i den rekkefølgen de bygges, slik at det som står sist, er det første som kuttes hvis tiden blir knapp.
+
+*Må ha (1–5), den minste versjonen som er nyttig å bruke:*
 1. Norsk grensesnitt og norsk generert innhold. Dette gjelder hele appen.
 2. Innlogging, fordi brukerens materiale lagres.
 3. Emner og forelesninger: opprette emne og laste opp PDF eller tekst per forelesning.
 4. Flashcards med kildehenvisning. Studenten må svare før fasiten vises.
 5. Flervalgsquiz med valgbar vanskelighetsgrad og forklaring.
+
+*Bør ha (6–8), legges til hvis tiden strekker til etter at 1–5 er ferdig og stabilt:*
 6. Huskeregler: KI-en foreslår måter å huske lister og modeller på, for eksempel forkortelser av forbokstaver.
 7. Nøkkelbegreper.
 8. Sammendrag med valgbart detaljnivå.
@@ -101,8 +116,9 @@ MVP står for *minimum viable product*: den minste versjonen av appen som er nyt
 
 - **Feil i generert innhold.** En studie fra 2025 fant feil i omtrent 5 % av KI-genererte flashcards. Tiltaket er at alt innhold viser til kilden, og at studenten kan redigere eller slette kort.
 - **Opphavsrett.** Kopinor-avtalen tillater foreløpig ikke at kurslitteratur lastes opp i KI-verktøy, og foilene tilhører foreleseren. MVP-en skal derfor tydelig si at brukeren er ansvarlig for eget materiale, og være ment for egne notater og materiale brukeren har rett til å bruke. Dette ser ut til å være godt nok for et skoleprosjekt, men det må bekreftes med faglæreren.
-- **Personvern.** HiMoldes KI-retningslinjer og GDPR krever at innhold ikke brukes til å trene modeller, og at data helst lagres i EU/EØS. Dette påvirker valget av LLM-leverandør.
+- **Personvern og valg av LLM-leverandør.** HiMoldes KI-retningslinjer og GDPR krever at innhold ikke brukes til å trene modeller, og at data helst lagres i EU/EØS. Dette valget påvirker også kostnad og kjørbarhet, og tas derfor tidlig i arkitekturen, ikke utsettes til implementasjon. MVP-en skal ha en demomodus der appen kan kjøres og testes uten gruppens egen API-nøkkel, slik at sensor kan starte appen lokalt etter README.
 - **For passiv bruk.** KI-sammendrag kan gjøre studenten mer passiv. Tiltaket er at flashcards og quiz krever svar før fasiten vises. Å bare lese sammendrag er ikke hovedbruken.
 - **Omfang og tid.** Prosjektet har én utvikler, og IBE160-fristen er i midten av desember. Målet er en brukbar MVP i midten av november, slik at den kan testes på ekte materiale før fristen. Utvidelsene må vente til MVP-en er ferdig og fungerer.
 - **Formler og figurer.** Tekniske emner har ofte mange formler og diagrammer, og tolkning av figurer er utenfor MVP. Før PRD-en skrives, bør jeg sjekke to eller tre foilsett fra testemnet for å se hvor mye som går tapt når bare teksten leses. Er tapet stort, må formler i tekstform med i MVP.
 - **Åpne beslutninger fra oppgaveteksten** tas i PRD-en og arkitekturen: valg av LLM og konfidensnivå, lokal behandling eller sky, og hvor detaljerte sammendragene skal være.
+- **Ryddighet i repoet.** API-nøkler og andre hemmeligheter skal ligge i `.env`, utenfor Git. Foiler og kurslitteratur jeg ikke har rettigheter til, skal ikke legges i det offentlige repoet; testdata skal være egne notater eller fritt tilgjengelig materiale.
