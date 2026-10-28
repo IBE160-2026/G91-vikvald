@@ -7,6 +7,7 @@
 - [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — spør 3–5 medstudenter om eksamensforberedelser og KI-bruk
 - [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — juster suksesskriteriet i briefen hvis testmaterialet endres
 - [x] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — opprett Azure for Students og sjekk kvote for Data Zone EU (løst 2026-10-28: ingen EU-kvote)
-- [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — test norsk kvalitet med Azure og Gemini på åpent materiale
+- [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — test norsk kvalitet med Gemini på Vertex AI på åpent materiale
 - [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — bestem Git-arbeidsflyt (branches, PR, issues) og hvordan prompts lagres, jf. sensorveiledningen
-- [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — følg opp svaret på kvotesøknaden i Azure (sendt 2026-10-28, gpt-5.4-mini Data Zone EUR, 50 kTPM), og sett opp Gemini på Vertex AI i EU som plan B
+- [x] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — følg opp svaret på kvotesøknaden i Azure (sendt 2026-10-28, gpt-5.4-mini Data Zone EUR, 50 kTPM), og sett opp Gemini på Vertex AI i EU som plan B (løst 2026-10-28: avslått)
+- [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — sett opp Google Cloud-prøveperiode og Gemini på Vertex AI i EU (hovedvalg etter at Azure-kvoten ble avslått)
