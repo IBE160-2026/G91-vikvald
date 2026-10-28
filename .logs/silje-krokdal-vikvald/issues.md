@@ -9,4 +9,4 @@
 - [x] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — opprett Azure for Students og sjekk kvote for Data Zone EU (løst 2026-10-28: ingen EU-kvote)
 - [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — test norsk kvalitet med Azure og Gemini på åpent materiale
 - [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — bestem Git-arbeidsflyt (branches, PR, issues) og hvordan prompts lagres, jf. sensorveiledningen
-- [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — søk om Azure-kvote for Data Zone Standard, eller sett opp Gemini på Vertex AI i EU som plan B
+- [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — følg opp svaret på kvotesøknaden i Azure (sendt 2026-10-28, gpt-5.4-mini Data Zone EUR, 50 kTPM), og sett opp Gemini på Vertex AI i EU som plan B
