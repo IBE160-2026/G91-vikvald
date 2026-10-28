@@ -2,7 +2,7 @@
 title: "Produktbrief: Studiekamerat"
 status: final
 created: 2026-09-24
-updated: 2026-10-06
+updated: 2026-10-28
 ---
 
 # Produktbrief: Studiekamerat
@@ -116,9 +116,15 @@ MVP står for *minimum viable product*: den minste versjonen av appen som er nyt
 
 - **Feil i generert innhold.** En studie fra 2025 fant feil i omtrent 5 % av KI-genererte flashcards. Tiltaket er at alt innhold viser til kilden, og at studenten kan redigere eller slette kort.
 - **Opphavsrett.** Kopinor-avtalen tillater foreløpig ikke at kurslitteratur lastes opp i KI-verktøy, og foilene tilhører foreleseren. MVP-en skal derfor tydelig si at brukeren er ansvarlig for eget materiale, og være ment for egne notater og materiale brukeren har rett til å bruke. Dette ser ut til å være godt nok for et skoleprosjekt, men det må bekreftes med faglæreren.
-- **Personvern og valg av LLM-leverandør.** HiMoldes KI-retningslinjer og GDPR krever at innhold ikke brukes til å trene modeller, og at data helst lagres i EU/EØS. Dette valget påvirker også kostnad og kjørbarhet, og tas derfor tidlig i arkitekturen, ikke utsettes til implementasjon. MVP-en skal ha en demomodus der appen kan kjøres og testes uten gruppens egen API-nøkkel, slik at sensor kan starte appen lokalt etter README.
+- **Personvern og valg av LLM-leverandør.** HiMoldes KI-retningslinjer og GDPR krever at innhold ikke brukes til å trene modeller, og at data helst lagres i EU/EØS. Dette valget påvirker også kostnad og kjørbarhet, og tas derfor tidlig i arkitekturen, ikke utsettes til implementasjon. Researchen fra 2026-10-28 ([rapport](../../research/technical-valg-av-sprakmodell-og-demomodus-2026-10-28/research.md)) gir dette utgangspunktet:
+  - **Hovedvalg:** Azure OpenAI med en mini-modell i en EU-region (Data Zone EU), via Azure for Students. Det er gratis og krever ikke kredittkort.
+  - **Alternativ:** Gemini Flash på Vertex AI i en EU-region, hvis studentabonnementet ikke får kvote i EU.
+  - **Faller bort:** Anthropics eget API, Gemini via AI Studio og Sikt KI, fordi de ikke oppfyller kravene til EU/EØS eller ikke har API.
+  - **Kostnad:** under $1 per semester. Prisen avgjør derfor ikke valget.
+  - **Før valget låses:** sjekk kvoten i Azure, og test kvaliteten på norsk med begge modellene på åpent materiale.
+- **Demomodus.** MVP-en skal ha en demomodus der appen kan kjøres og testes uten min egen API-nøkkel, slik at sensor kan starte appen lokalt etter README. Demomodusen består av ferdiglaget eksempelinnhold og en mock-modell som gir faste svar. Da trengs verken nøkkel, konto eller internett, og mock-modellen kan også brukes i de automatiske testene. Appen bygges slik at leverandøren kan byttes med én innstilling (mock, lokal modell eller skytjeneste). En lokal modell via Ollama kan være et valgfritt tillegg, men er svakere på norsk.
 - **For passiv bruk.** KI-sammendrag kan gjøre studenten mer passiv. Tiltaket er at flashcards og quiz krever svar før fasiten vises. Å bare lese sammendrag er ikke hovedbruken.
 - **Omfang og tid.** Prosjektet har én utvikler, og IBE160-fristen er i midten av desember. Målet er en brukbar MVP i midten av november, slik at den kan testes på ekte materiale før fristen. Utvidelsene må vente til MVP-en er ferdig og fungerer.
 - **Formler og figurer.** Tekniske emner har ofte mange formler og diagrammer, og tolkning av figurer er utenfor MVP. Før PRD-en skrives, bør jeg sjekke to eller tre foilsett fra testemnet for å se hvor mye som går tapt når bare teksten leses. Er tapet stort, må formler i tekstform med i MVP.
-- **Åpne beslutninger fra oppgaveteksten** tas i PRD-en og arkitekturen: valg av LLM og konfidensnivå, lokal behandling eller sky, og hvor detaljerte sammendragene skal være.
+- **Åpne beslutninger fra oppgaveteksten** tas i PRD-en og arkitekturen: valg av LLM og konfidensnivå, lokal behandling eller sky, og hvor detaljerte sammendragene skal være. Valg av LLM og lokal behandling eller sky er researchet (se over); den endelige beslutningen tas i arkitekturen.
 - **Ryddighet i repoet.** API-nøkler og andre hemmeligheter skal ligge i `.env`, utenfor Git. Foiler og kurslitteratur jeg ikke har rettigheter til, skal ikke legges i det offentlige repoet; testdata skal være egne notater eller fritt tilgjengelig materiale.
