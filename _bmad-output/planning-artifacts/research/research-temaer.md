@@ -85,6 +85,5 @@ Full rapport med kilder: [technical-valg-av-sprakmodell-og-demomodus-2026-10-28/
   - gpt-5-mini med Data Zone Standard: ikke støttet i regionen.
   - gpt-4o (2024-11-20) med Standard: «insufficient quota».
 - **Konklusjon:** Studentabonnementet har ikke kvote for deployeringer som holder data i EU. Global Standard brukes ikke, fordi den kan behandle data utenfor EU.
-- **Neste steg:**
-  - Søk om kvote for Data Zone Standard.
-  - Sett opp Gemini på Vertex AI i EU som plan B.
+- **Kvotesøknad sendt 2026-10-28:** Azure OpenAI, Data Zone Standard, pool EUR, gpt-5.4-mini, 50 kTPM. Microsoft svarer vanligvis innen 1–2 virkedager, men gir ingen garanti, og kunder som allerede bruker kvoten sin, prioriteres.
+- **Neste steg:** Vent på svar, og sett opp Gemini på Vertex AI i EU som plan B.
