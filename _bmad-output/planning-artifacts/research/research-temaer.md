@@ -73,3 +73,18 @@ Full rapport med kilder: [technical-valg-av-sprakmodell-og-demomodus-2026-10-28/
 - **Neste steg:**
   - Opprett Azure for Students og sjekk kvoten for Data Zone EU.
   - Test norsk kvalitet med Azure og Gemini på åpent materiale.
+
+### 2026-10-28: Test av Azure for Students
+
+- **Tillatte regioner** i studentabonnementet (Azure Policy): polandcentral, norwayeast, germanywestcentral, italynorth og austriaeast. Sweden Central er ikke tillatt.
+- **Hvilke modeller som finnes hvor** ([Microsoft Learn, oppdatert 2026-10-19](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure-region-availability)):
+  - Data Zone Standard: gpt-5.4-mini i Norway East, Germany West Central, Poland Central og Italy North; gpt-5-mini i de tre siste.
+  - Standard (regional) i Norway East: bare gpt-4o.
+- **Forsøk på deployering i Norway East:**
+  - gpt-5.4-mini med Data Zone Standard: «insufficient quota».
+  - gpt-5-mini med Data Zone Standard: ikke støttet i regionen.
+  - gpt-4o (2024-11-20) med Standard: «insufficient quota».
+- **Konklusjon:** Studentabonnementet har ikke kvote for deployeringer som holder data i EU. Global Standard brukes ikke, fordi den kan behandle data utenfor EU.
+- **Neste steg:**
+  - Søk om kvote for Data Zone Standard.
+  - Sett opp Gemini på Vertex AI i EU som plan B.
