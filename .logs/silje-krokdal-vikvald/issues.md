@@ -11,3 +11,4 @@
 - [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — bestem Git-arbeidsflyt (branches, PR, issues) og hvordan prompts lagres, jf. sensorveiledningen
 - [x] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — følg opp svaret på kvotesøknaden i Azure (sendt 2026-10-28, gpt-5.4-mini Data Zone EUR, 50 kTPM), og sett opp Gemini på Vertex AI i EU som plan B (løst 2026-10-28: avslått)
 - [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — sett opp Google Cloud-prøveperiode og Gemini på Vertex AI i EU (hovedvalg etter at Azure-kvoten ble avslått)
+- [ ] 2026-10-29 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — bestem om appen skal publiseres på Vercel (valgfritt); hvis ja, sjekk EU-region for funksjonene på Hobby-planen
