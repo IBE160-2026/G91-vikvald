@@ -61,12 +61,12 @@ Liste over det som bør undersøkes før PRD-en skrives. Den bygger på briefen,
 Lagt til 2026-10-28 etter gjennomgang av sensorveiledningen for del 1. Vekten står i parentes. Punktene er det som bør avklares før eller i PRD-en, så det ikke må rettes i etterkant.
 
 - [x] **Arbeidsflyt i Git (prosess, 30 %).** *(Bestemt 2026-10-29: hver story bygges på egen branch og flettes via pull request. Åpne punkter føres som GitHub Issues i tillegg til `issues.md`.)* Sensor ser etter branches, pull requests og issues. Bestem om stories skal bygges på egne branches med PR, og om åpne punkter skal ligge i GitHub Issues i tillegg til `issues.md`.
-- [ ] **Lagring av prompts og KI-økter (prosess, 30 %).** Sesjonsloggen lagrer sammendrag, ikke prompts. Bestem hvordan viktige prompts og eksempler på at KI-forslag ble avvist eller rettet skal tas vare på, og koble dem til commits.
-- [ ] **Commit research-mappen (prosess, 30 %).** Research, kilder og logg er spor av prosessen og bør ligge i repoet.
+- [x] **Lagring av prompts og KI-økter (prosess, 30 %).** *(Bestemt 2026-11-05: se [docs/ki-prosess](../../../docs/ki-prosess/README.md). Fullstendige økter legges ikke i det offentlige repoet.)* Sesjonsloggen lagrer sammendrag, ikke prompts. Bestem hvordan viktige prompts og eksempler på at KI-forslag ble avvist eller rettet skal tas vare på, og koble dem til commits.
+- [x] **Commit research-mappen (prosess, 30 %).** *(Gjort, flettet inn via pull request #1.)* Research, kilder og logg er spor av prosessen og bør ligge i repoet.
 - [ ] **Teststrategi (testing, 15 %).** Velg testrammeverk, og planlegg hvilke funksjonelle kriterier fra briefen som blir automatiske tester. Mock-modellen fra demomodusen gjør KI-delen testbar. Lag en manuell testplan for stikkprøven av 50 flashcards.
 - [ ] **Designskisser (design, 10 %).** Skisser emneoversikt, flashcard-visning, quiz og hvordan kilden vises, for eksempel med `bmad-ux`.
 - [ ] **Universell utforming (design, 10 %).** Kontrast, tastaturnavigasjon, alternativtekst og skjemaetiketter. Sett dette som krav i PRD-en.
-- [x] **Skjermstørrelser (design, 10 %).** *(Bestemt 2026-10-29: bare PC i MVP. Mobil er en mulig utvidelse.)* Bestem om appen skal fungere på mobil, eller bare på PC.
+- [x] **Skjermstørrelser (design, 10 %).** *(Bestemt 2026-10-29: bare PC i MVP, men appen bør tåle ulike vindusstørrelser. Mobil er en mulig utvidelse.)* Bestem om appen skal fungere på mobil, eller bare på PC.
 - [ ] **README-krav (kjørbarhet, 10 %).** Versjoner av forutsetninger, kommandoer som kan kopieres, `.env.example`, testbruker og eksempeldata, hvordan testene kjøres, og lenker til planleggingsdokumentene.
 - [ ] **`.gitignore` og testdata (ryddighet, 5 %).** Sjekk at `.env`, avhengigheter og byggefiler holdes ute. Foiler og sensorveiledningen skal ikke i repoet.
 
