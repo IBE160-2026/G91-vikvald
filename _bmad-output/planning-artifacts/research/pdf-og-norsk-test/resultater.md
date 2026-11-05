@@ -53,7 +53,7 @@ Markedsføringsboka, side 170–172, bare tekst. Alle kort hadde gyldig sidetall
 
 Tiden er fra én kjøring og kan variere.
 
-## Foreløpig anbefaling
+## Beslutning og anbefaling
 
-- **PDF-lesing:** Bruk teksten som standard, og send bilde av siden når siden ser ut til å ha formler som ikke er med i teksten, for eksempel mange vektortegninger. Reglene for å oppdage slike sider er ikke testet.
-- **Modell:** Bruk `gemini-3.5-flash` videre, og vurder valget når stikkprøven er gjort.
+- **PDF-lesing (bestemt 2026-11-05):** MVP-en bruker teksten som standard, og sender bilde av siden når siden ser ut til å ha formler som ikke er med i teksten, for eksempel mange vektortegninger. Reglene for å oppdage slike sider er ikke testet.
+- **Modell (foreløpig anbefaling):** Bruk `gemini-3.5-flash` videre, og vurder valget når stikkprøven er gjort.
