@@ -2,7 +2,7 @@
 
 - [x] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — send e-post til faglærer om opphavsrett og testmateriale (løst 2026-11-05)
 - [x] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — research på valg av språkmodell (EU/EØS, ingen trening) og demomodus for sensor (løst 2026-10-28)
-- [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — velg testemne og finn åpent testmateriale med formler
+- [x] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — velg testemne og finn åpent testmateriale med formler (løst 2026-11-05)
 - [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — prøv NotebookLM og StuderSmartere.no med åpent materiale
 - [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — spør 3–5 medstudenter om eksamensforberedelser og KI-bruk
 - [x] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — juster suksesskriteriet i briefen hvis testmaterialet endres (løst 2026-11-05)
@@ -14,6 +14,9 @@
 - [ ] 2026-10-29 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — bestem om appen skal publiseres på Vercel (valgfritt); hvis ja, sjekk EU-region for funksjonene på Hobby-planen
 - [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — følg opp svaret fra faglærer om brukeransvar (plan: vilkårstekst i appen)
 - [x] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — oppdater del B i research-temaer.md: e-post sendt, foiler brukes ikke som testmateriale (løst 2026-11-05)
-- [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — velg endepunkt og modell for Vertex AI (europe-west4 svarte ikke for de testede modellene, anbefaling: eu)
-- [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — oppdater brief og research-temaer.md med funnene om endepunkt og misbrukslogging
+- [x] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — velg endepunkt og modell for Vertex AI (europe-west4 svarte ikke for de testede modellene, anbefaling: eu) (løst 2026-11-05)
+- [x] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — oppdater brief og research-temaer.md med funnene om endepunkt og misbrukslogging (løst 2026-11-05)
 - [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — sjekk i Billing at Vertex-kall trekkes fra prøvekreditten, og at budsjettvarsel er satt
+- [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — finn åpent testmateriale i markedsføring og økonomi (formler i økonomistoffet)
+- [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — velg Gemini-modell etter kvalitetstesten (endepunkt: eu)
+- [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — vurder misbrukslogging hos Google opp mot personvernkravene
