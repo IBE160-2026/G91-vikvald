@@ -26,8 +26,8 @@ Liste over det som bør undersøkes før PRD-en skrives. Den bygger på briefen,
 - [x] **Spør faglærer** *(E-post sendt 2026-11-05, venter på svar. Planen er vilkårstekst i appen til noe annet er avklart.)* om det holder at brukeren selv er ansvarlig for materialet sitt. E-posten opplyser at appen bare testes på egne notater og åpent materiale.
 - [x] **Spør foreleseren i testemnet** *(Faller bort 2026-11-05: foiler brukes ikke som testmateriale.)* om foilene kan brukes i appen, hvis faglærer mener det er nødvendig.
 - [x] **Juster suksesskriteriet** *(Gjort 2026-11-05.)* i briefen hvis testmaterialet endres: «ekte materiale fra emner jeg tar» → «egne notater og åpent lisensiert materiale».
-- [ ] **Finn åpent testmateriale** som ligner testemnet, gjerne med formler (OpenStax, NDLA eller Wikipedia).
-- [ ] **Velg testemne.**
+- [ ] **Finn åpent testmateriale** i markedsføring og økonomi, med formler i økonomistoffet (OpenStax, NDLA eller Wikipedia).
+- [x] **Velg testemne.** *(Bestemt 2026-11-05: markedsføring som hovedemne, og en mindre test på økonomifag for formler. Ingen emner dette semesteret passer, så repetisjonen simuleres.)*
 
 ## C. Ting jeg tester selv
 
@@ -92,4 +92,12 @@ Full rapport med kilder: [technical-valg-av-sprakmodell-og-demomodus-2026-10-28/
 - **Kvotesøknad sendt 2026-10-28:** Azure OpenAI, Data Zone Standard, pool EUR, gpt-5.4-mini, 50 kTPM. Microsoft svarer vanligvis innen 1–2 virkedager, men gir ingen garanti, og kunder som allerede bruker kvoten sin, prioriteres.
 - **Kvotesøknaden ble avslått 2026-10-28:** «At this time your quota increase request cannot be processed.»
 - **Konklusjon:** Azure for Students kan ikke brukes med data i EU. Gemini Flash på Vertex AI i en EU-region er nå hovedvalget.
-- **Neste steg:** Sett opp Google Cloud-prøveperiode og Vertex AI i EU (for eksempel europe-west4 eller europe-west3).
+- **Neste steg:** Sett opp Google Cloud-prøveperiode og Vertex AI i EU (for eksempel europe-west4 eller europe-west3). *(Gjort 2026-11-05.)*
+- **Oppsett av Vertex AI 2026-11-05:** Mellomlagring er slått av for prosjektet (`disableCache: true`). Innlogging skjer med `gcloud` uten nøkkelfil.
+- **Modeller som svarte på ekte kall 2026-11-05:**
+  - `eu`: `gemini-3.8-flash`, `3.7-flash`, `3.6-flash`, `3.5-flash`, `3.5-flash-lite` og `3.1-flash-lite`.
+  - `europe-west3`: bare `gemini-3.5-flash`.
+  - `europe-west4`: ingen av de testede.
+  - `gemini-2.5-flash` og `2.5-flash-lite` ga 404 i alle tre.
+- **Personvern:** Google oppgir at maskinlæringsbehandlingen på `eu` skjer i EU, og at dataene ikke brukes til trening. Google kan likevel logge prompts for å oppdage misbruk, så «mellomlagring av» betyr ikke at ingenting lagres.
+- **Ikke bekreftet:** at kallene trekkes fra prøvekreditten.
