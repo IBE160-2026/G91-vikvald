@@ -1,6 +1,6 @@
 # Åpne punkter
 
-- [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — send e-post til faglærer om opphavsrett og testmateriale
+- [x] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — send e-post til faglærer om opphavsrett og testmateriale (løst 2026-11-05)
 - [x] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — research på valg av språkmodell (EU/EØS, ingen trening) og demomodus for sensor (løst 2026-10-28)
 - [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — velg testemne og finn åpent testmateriale med formler
 - [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — prøv NotebookLM og StuderSmartere.no med åpent materiale
@@ -12,3 +12,5 @@
 - [x] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — følg opp svaret på kvotesøknaden i Azure (sendt 2026-10-28, gpt-5.4-mini Data Zone EUR, 50 kTPM), og sett opp Gemini på Vertex AI i EU som plan B (løst 2026-10-28: avslått)
 - [ ] 2026-10-28 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — sett opp Google Cloud-prøveperiode og Gemini på Vertex AI i EU (hovedvalg etter at Azure-kvoten ble avslått)
 - [ ] 2026-10-29 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — bestem om appen skal publiseres på Vercel (valgfritt); hvis ja, sjekk EU-region for funksjonene på Hobby-planen
+- [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — følg opp svaret fra faglærer om brukeransvar (plan: vilkårstekst i appen)
+- [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — oppdater del B i research-temaer.md: e-post sendt, foiler brukes ikke som testmateriale
