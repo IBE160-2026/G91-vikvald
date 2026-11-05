@@ -2,7 +2,7 @@
 title: "Produktbrief: Studiekamerat"
 status: final
 created: 2026-09-24
-updated: 2026-10-28
+updated: 2026-11-05
 ---
 
 # Produktbrief: Studiekamerat
@@ -13,7 +13,7 @@ Studiekamerat er en norskspråklig webapp som hjelper studenter med å gjøre fo
 
 Mange studenter bruker eksamensperioden på å rydde i et semester med rotete notater og tynne foiler, i stedet for å repetere. Det er repetisjonen som gir læring. Studiekamerat følger studenten fra første forelesning. Stoffet legges inn fortløpende per emne og forelesning, slik at studenten går inn i eksamensperioden klar til å teste seg selv.
 
-Studiekamerat er et soloprosjekt i IBE160 høsten 2026. Omfanget er bevisst holdt nøkternt, og kvaliteten skal ligge i gjennomføringen. Appen testes i praksis ved at jeg bruker den selv i et emne jeg tar dette semesteret.
+Studiekamerat er et soloprosjekt i IBE160 høsten 2026. Omfanget er bevisst holdt nøkternt, og kvaliteten skal ligge i gjennomføringen. Appen testes ved at jeg bruker den selv på markedsføring, med en simulert repetisjon, fordi jeg ikke har et emne dette semesteret der den passer å bruke.
 
 ## Problemet
 
@@ -60,12 +60,12 @@ Suksess for denne studenten er å gå inn i eksamensperioden med oversikt over s
 
 ## Suksesskriterier
 
-Jeg tester Studiekamerat på ekte materiale fra emner jeg tar selv dette semesteret. Hvilke emner det er, kan jeg dokumentere senere. Emnet er testarenaen for appen. Det er appen som måles, ikke meg: karakteren min i emnet er ikke et suksesskriterium.
+Jeg tester Studiekamerat på markedsføring, der jeg kan vurdere innholdet faglig, og gjør en mindre test på økonomifag for å se hvordan formler håndteres. Jeg har ikke et emne dette semesteret der appen passer å bruke, fordi ingen av dem krever mye pugging. Testen bruker derfor egne notater, der kopiert innhold fra foiler og lærebøker er fjernet, og åpent lisensiert materiale. Forelesningsfoiler brukes ikke som testmateriale. Det er appen som måles, ikke meg. Testen viser ikke om appen hjelper en student som faktisk forbereder seg til eksamen, fordi repetisjonen er simulert.
 
-**I bruk (eget emne som testarena)**
-- Forelesningene i testemnet legges inn i Studiekamerat fortløpende.
-- Mesteparten av eksamensforberedelsene går til flashcards, quiz og huskeregler, ikke til å rydde og sette meg inn i stoffet på nytt.
-- Appen gjør det lettere å få oversikt over pensum. Dette vurderes i en kort egenrefleksjon om hvordan appen fungerte i eksamensforberedelsene: hva som hjalp, og hva som manglet.
+**I bruk (simulert repetisjon)**
+- Stoffet i testemnet legges inn forelesning for forelesning, slik en student ville gjort gjennom et semester.
+- Jeg gjennomfører en repetisjonsøkt med flashcards, quiz og huskeregler, som om det var før en eksamen.
+- En kort egenrefleksjon vurderer om appen ga oversikt over stoffet: hva som hjalp, og hva som manglet.
 
 **For kvaliteten**
 - En stikkprøve av generert innhold sjekkes mot kildene, og feilene registreres: 50 flashcards, med mål om under 5 % faglige feil.
@@ -79,8 +79,8 @@ Jeg tester Studiekamerat på ekte materiale fra emner jeg tar selv dette semeste
 - Appen starter lokalt etter oppskriften i README, med en testbruker og eksempelmateriale, uten at sensor trenger egne API-nøkler eller betalte kontoer.
 
 **For IBE160**
-- Målet er en brukbar MVP **i midten av november**, slik at den rekker å bli testet i eksamensforberedelser. Dette er et mål, ikke et krav.
-- Alle MVP-funksjonene virker og kan kjøres lokalt etter README innen IBE160-fristen i midten av desember. Publisert webapp er en bonus, ikke et krav.
+- Målet er at appen er ferdig **4. desember**, slik at det er tid til den egne rapporten, som teller 30 % av karakteren. Dette er et mål, ikke et krav.
+- Må ha-funksjonene (1–5) og det som er med av bør ha-funksjonene, virker og kan kjøres lokalt etter README innen innleveringsfristen **15. desember 2026**. Publisert webapp er en bonus, ikke et krav.
 - Bruken av KI i utviklingen er dokumentert, slik emnet krever.
 
 ## Omfang (MVP)
@@ -110,21 +110,26 @@ MVP står for *minimum viable product*: den minste versjonen av appen som er nyt
 - Deling og quizzing mellom studenter.
 - Mobilapp.
 - Integrasjon med Canvas.
-- Tolkning av tabeller og figurer. Bare tekst i MVP.
+- Tolkning av tabeller og figurer. Bilde av siden brukes bare for å få med formler som mangler i teksten.
 
 ## Risiko og åpne spørsmål
 
 - **Feil i generert innhold.** En studie fra 2025 fant feil i omtrent 5 % av KI-genererte flashcards. Tiltaket er at alt innhold viser til kilden, og at studenten kan redigere eller slette kort.
-- **Opphavsrett.** Kopinor-avtalen tillater foreløpig ikke at kurslitteratur lastes opp i KI-verktøy, og foilene tilhører foreleseren. MVP-en skal derfor tydelig si at brukeren er ansvarlig for eget materiale, og være ment for egne notater og materiale brukeren har rett til å bruke. Dette ser ut til å være godt nok for et skoleprosjekt, men det må bekreftes med faglæreren.
+- **Opphavsrett.** Kopinor-avtalen tillater foreløpig ikke at kurslitteratur lastes opp i KI-verktøy, og foilene tilhører foreleseren. MVP-en skal derfor tydelig si at brukeren er ansvarlig for eget materiale, og være ment for egne notater og materiale brukeren har rett til å bruke. Dette ser ut til å være godt nok for et skoleprosjekt. Faglæreren ble spurt om dette 2026-11-05, og svaret er ikke kommet ennå.
 - **Personvern og valg av LLM-leverandør.** HiMoldes KI-retningslinjer og GDPR krever at innhold ikke brukes til å trene modeller, og at data helst lagres i EU/EØS. Dette valget påvirker også kostnad og kjørbarhet, og tas derfor tidlig i arkitekturen, ikke utsettes til implementasjon. Researchen fra 2026-10-28 ([rapport](../../research/technical-valg-av-sprakmodell-og-demomodus-2026-10-28/research.md)) gir dette utgangspunktet:
-  - **Hovedvalg:** Gemini Flash på Vertex AI i en EU-region (for eksempel europe-west4 eller europe-west3), med regionalt endepunkt og mellomlagring slått av. Google Clouds prøveperiode gir $300 i 90 dager, men krever kredittkort.
+  - **Hovedvalg:** Gemini Flash på Vertex AI via EU-endepunktet `eu`, med mellomlagring slått av. Test 2026-11-05: `eu` svarte for flest modeller, `europe-west3` bare for `gemini-3.5-flash`, og `europe-west4` for ingen av de testede. Google trener ikke på dataene, men kan logge prompts for å oppdage misbruk. Dette må vurderes opp mot personvernkravene. Google Clouds prøveperiode gir $300 i 90 dager, men krever kredittkort.
   - **Azure OpenAI forsøkt og forkastet:** Azure for Students tillater bare noen EU-regioner, og abonnementet har ikke kvote for deployeringer som holder data i EU. Søknad om kvote ble avslått 2026-10-28. Global Standard brukes ikke, fordi data da kan behandles utenfor EU.
   - **Faller bort:** Anthropics eget API, Gemini via AI Studio og Sikt KI, fordi de ikke oppfyller kravene til EU/EØS eller ikke har API.
   - **Kostnad:** under $1 per semester. Prisen avgjør derfor ikke valget.
-  - **Før valget låses:** sett opp Vertex AI i EU, og test kvaliteten på norsk med åpent materiale.
+  - **Før valget låses:** test kvaliteten på norsk med åpent materiale. Vertex AI ble satt opp 2026-11-05.
 - **Demomodus.** MVP-en skal ha en demomodus der appen kan kjøres og testes uten min egen API-nøkkel, slik at sensor kan starte appen lokalt etter README. Demomodusen består av ferdiglaget eksempelinnhold og en mock-modell som gir faste svar. Da trengs verken nøkkel, konto eller internett, og mock-modellen kan også brukes i de automatiske testene. Appen bygges slik at leverandøren kan byttes med én innstilling (mock, lokal modell eller skytjeneste). En lokal modell via Ollama kan være et valgfritt tillegg, men er svakere på norsk.
 - **For passiv bruk.** KI-sammendrag kan gjøre studenten mer passiv. Tiltaket er at flashcards og quiz krever svar før fasiten vises. Å bare lese sammendrag er ikke hovedbruken.
-- **Omfang og tid.** Prosjektet har én utvikler, og IBE160-fristen er i midten av desember. Målet er en brukbar MVP i midten av november, slik at den kan testes på ekte materiale før fristen. Utvidelsene må vente til MVP-en er ferdig og fungerer.
-- **Formler og figurer.** Tekniske emner har ofte mange formler og diagrammer, og tolkning av figurer er utenfor MVP. Før PRD-en skrives, bør jeg sjekke to eller tre foilsett fra testemnet for å se hvor mye som går tapt når bare teksten leses. Er tapet stort, må formler i tekstform med i MVP.
+- **Omfang og tid.** Prosjektet har én utvikler, og både appen og rapporten skal leveres 15. desember 2026. Prosjektet er vurdert som enkelt, så karakteren avhenger særlig av design, testing, dokumentert prosess og en README som virker. Når tiden blir knapp, kuttes derfor funksjoner før kvalitet. Utvidelsene må vente til MVP-en er ferdig og fungerer. Planen er:
+  - **5.–13. november:** Kort test av huskeregler og quiz, teknologistakk, PRD, designskisser og arkitektur.
+  - **14.–25. november:** Må ha-funksjonene (1–5) og demomodus, med tester underveis. Virker ikke hovedflyten 25. november, kuttes bør ha-funksjonene.
+  - **26. november–4. desember:** Huskeregler, og nøkkelbegreper og sammendrag bare hvis tiden strekker til. Deretter design, universell utforming, simulert repetisjon, stikkprøve, feilretting og README testet fra en ren klone. Etter 4. desember rettes bare feil som stopper appen.
+  - **5.–13. desember:** Rapporten.
+  - **14.–15. desember:** Buffer og innlevering.
+- **Formler og figurer.** Tekniske emner har ofte mange formler og diagrammer, og tolkning av figurer er utenfor MVP. En test 2026-11-05 viste at formler tegnet som vektorgrafikk forsvinner når bare teksten leses, men at de ble lest riktig fra bilde av siden. Bestemt: MVP-en bruker teksten som standard, og sender bilde av siden når siden ser ut til å ha formler som ikke er med i teksten. Reglene for å oppdage slike sider må testes.
 - **Åpne beslutninger fra oppgaveteksten** tas i PRD-en og arkitekturen: valg av LLM og konfidensnivå, lokal behandling eller sky, og hvor detaljerte sammendragene skal være. Valg av LLM og lokal behandling eller sky er researchet (se over); den endelige beslutningen tas i arkitekturen.
 - **Ryddighet i repoet.** API-nøkler og andre hemmeligheter skal ligge i `.env`, utenfor Git. Foiler og kurslitteratur jeg ikke har rettigheter til, skal ikke legges i det offentlige repoet; testdata skal være egne notater eller fritt tilgjengelig materiale.
