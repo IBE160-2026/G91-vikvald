@@ -110,7 +110,7 @@ MVP står for *minimum viable product*: den minste versjonen av appen som er nyt
 - Deling og quizzing mellom studenter.
 - Mobilapp.
 - Integrasjon med Canvas.
-- Tolkning av tabeller og figurer. Bare tekst i MVP.
+- Tolkning av tabeller og figurer. Bilde av siden brukes bare for å få med formler som mangler i teksten.
 
 ## Risiko og åpne spørsmål
 
