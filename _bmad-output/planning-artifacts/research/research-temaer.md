@@ -36,8 +36,8 @@ Liste over det som bør undersøkes før PRD-en skrives. Den bygger på briefen,
 ## C. Ting jeg tester selv
 
 - [ ] **Prøv konkurrentene med samme åpne materiale.** NotebookLM og StuderSmartere.no: hva er bra, hva mangler, og hvordan vises kildene?
-- [ ] **Huskeregler.** Hvor gode er språkmodeller til å lage huskeregler på norsk? Rask prøve med noen lister og modeller. Dette er det som skiller appen fra de andre.
-- [ ] **Kvalitet på quiz.** Er feilsvarene troverdige? Gir vanskelighetsgradene merkbart forskjellige spørsmål?
+- [x] **Huskeregler.** *(Testet 2026-11-05, se [resultater](pdf-og-norsk-test/resultater.md): Brukbare, men av varierende verdi, og fagbegreper må sjekkes.)* Hvor gode er språkmodeller til å lage huskeregler på norsk? Rask prøve med noen lister og modeller. Dette er det som skiller appen fra de andre.
+- [x] **Kvalitet på quiz.** *(Testet 2026-11-05, se [resultater](pdf-og-norsk-test/resultater.md): Nivåene skiller seg, men flere feilsvar er ikke troverdige, og det riktige svaret er ofte lengst.)* Er feilsvarene troverdige? Gir vanskelighetsgradene merkbart forskjellige spørsmål?
 
 ## D. Brukerbehov
 
