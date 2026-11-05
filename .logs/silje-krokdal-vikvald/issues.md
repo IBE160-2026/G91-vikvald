@@ -25,3 +25,5 @@
 - [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — vurder de norske testkortene faglig (markedsføring)
 - [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — test reglene for å oppdage sider med formler som mangler i teksten
 - [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — få kravene til rapporten fra faglærer (30 % av karakteren, frist 15. desember)
+- [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — ta i bruk GitHub Issues, slik det ble bestemt 2026-10-29
+- [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — gjør meldingene på logg-commits mer beskrivende (sensor ser etter beskrivende commit-meldinger)
