@@ -67,7 +67,7 @@ Markedsføringsboka, side 170–172 og 32–35, med `gemini-3.5-flash`. Fem husk
 
 - **Bokstaver:** De fire setningene stemmer med forbokstavene. Dette kan også sjekkes automatisk i appen.
 - **Avslag:** Modellen laget ingen huskeregel for en lang liste med demografiske faktorer, og meldte fra i stedet.
-- **Fagbegreper:** Modellen brukte «Promotering» om den fjerde P-en. Så vidt jeg vet er «Påvirkning» vanlig på norsk, men det må jeg sjekke. Dette kan være et svakt punkt når kilden er engelsk.
+- **Fagbegreper:** Modellen brukte «Promotering» om den fjerde P-en, men riktig norsk begrep er «Påvirkning» (bekreftet av meg 2026-11-05). Dette er et svakt punkt når kilden er engelsk. Kortene må derfor kunne rettes, og testen må også kjøres på norske notater.
 
 ## Quiz
 
