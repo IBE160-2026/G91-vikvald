@@ -21,5 +21,6 @@
 - [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — velg Gemini-modell etter kvalitetstesten (endepunkt: eu)
 - [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — vurder misbrukslogging hos Google opp mot personvernkravene
 - [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — skriv begrensningen om manglende intervjuer inn i PRD-en
-- [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — bestem om bilde av siden skal med i MVP (formler forsvinner fra tekstuttrekket)
+- [x] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — bestem om bilde av siden skal med i MVP (formler forsvinner fra tekstuttrekket) (løst 2026-11-05)
 - [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — vurder de norske testkortene faglig (markedsføring)
+- [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — test reglene for å oppdage sider med formler som mangler i teksten
