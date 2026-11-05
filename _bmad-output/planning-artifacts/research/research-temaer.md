@@ -26,7 +26,11 @@ Liste over det som bør undersøkes før PRD-en skrives. Den bygger på briefen,
 - [x] **Spør faglærer** *(E-post sendt 2026-11-05, venter på svar. Planen er vilkårstekst i appen til noe annet er avklart.)* om det holder at brukeren selv er ansvarlig for materialet sitt. E-posten opplyser at appen bare testes på egne notater og åpent materiale.
 - [x] **Spør foreleseren i testemnet** *(Faller bort 2026-11-05: foiler brukes ikke som testmateriale.)* om foilene kan brukes i appen, hvis faglærer mener det er nødvendig.
 - [x] **Juster suksesskriteriet** *(Gjort 2026-11-05.)* i briefen hvis testmaterialet endres: «ekte materiale fra emner jeg tar» → «egne notater og åpent lisensiert materiale».
-- [ ] **Finn åpent testmateriale** i markedsføring og økonomi, med formler i økonomistoffet (OpenStax, NDLA eller Wikipedia).
+- [x] **Finn åpent testmateriale** i markedsføring og økonomi, med formler i økonomistoffet (OpenStax, NDLA eller Wikipedia). *(2026-11-05: se under.)*
+  - **Valgt:** [Principles of Marketing](https://openstax.org/books/principles-marketing/pages/preface) og [Principles of Economics 3e](https://openstax.org/books/principles-economics-3e/pages/preface) fra OpenStax. Begge er gratis som PDF, på engelsk og lisensiert CC BY-NC-SA 4.0. Hvilke kapitler i økonomiboka som har formler, er ikke sjekket.
+  - **Lisensen:** Den tillater ikke kommersiell bruk og krever kreditering. PDF-ene legges ikke i repoet, og generert innhold fra bøkene som legges i repoet, må krediteres og deles under samme lisens.
+  - **NDLA:** [Markedsføring og ledelse 1](https://ndla.no/subject:1:433559e2-5bf4-4ba1-a592-24fa4057ec01) er merket som utgått. Lisens må sjekkes per artikkel, så NDLA er ikke førstevalg.
+  - **Norsk kildetekst:** Egne notater i markedsføring blir den norske kildeteksten.
 - [x] **Velg testemne.** *(Bestemt 2026-11-05: markedsføring som hovedemne, og en mindre test på økonomifag for formler. Ingen emner dette semesteret passer, så repetisjonen simuleres.)*
 
 ## C. Ting jeg tester selv
@@ -37,10 +41,13 @@ Liste over det som bør undersøkes før PRD-en skrives. Den bygger på briefen,
 
 ## D. Brukerbehov
 
-- [ ] **Spør 3–5 medstudenter:**
-  - Hvordan forbereder du deg til eksamen?
-  - Bruker du KI-verktøy til det? Hvilke?
-  - Ville du stolt på flashcards laget av KI hvis de viste hvor i materialet svaret står?
+- [x] **Spør 3–5 medstudenter.** *(Faller bort 2026-11-05: jeg kjenner ingen med puggefag, og det blir ingen spørreundersøkelse. Erstattet av offentlige kilder under. Dette må stå som en begrensning i PRD-en.)*
+- **Offentlige erfaringer (2026-11-05, svakt grunnlag):** Funnene er enkeltutsagn og egne påstander fra leverandører, ikke målinger. De viser ikke hvor utbredt problemene er.
+  - **Riktighet og tillit:** I en tråd på r/notebooklm klager brukere på oppdiktet innhold og feil i kort. Én skriver at verktøyet er ubrukelig for dem hvis 1 av 15 kort er feil. [Reddit](https://reddit.sentinel-team.org/posts/1rhjbsw/snapshots/2026-03-02T19%3A23%3A45.392683Z)
+  - **Kildehenvisning:** I samme tråd trekkes muligheten til å sjekke kilden fram som det som gjør verktøyet nyttig. Dette støtter kildehenvisningen i Studiekamerat, men bygger på bare to innlegg.
+  - **Grenser i quizen:** Brukere klager på tak på 25 spørsmål, manglende forklaringer og manglende spørsmål eller svar i NotebookLM.
+  - **Passivitet:** Brainscape oppgir at studenter som masselaget KI-kort, studerte mindre og falt fra tidligere. Brainscape selger selv slike verktøy, så dette må leses med forbehold. [Brainscape](https://m.brainscape.com/academy/flashcard-copilot-ai-generator)
+  - **Gjenstår:** Jeg fant ingen måling av hvor ofte KI-kort er feil, og ingen direkte tråder fra r/Anki eller r/GetStudying.
 
 ## E. Brainstorming-temaer
 
