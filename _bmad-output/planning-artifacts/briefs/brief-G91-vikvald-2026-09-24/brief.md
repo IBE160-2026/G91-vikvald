@@ -79,8 +79,8 @@ Jeg tester Studiekamerat på markedsføring, der jeg kan vurdere innholdet fagli
 - Appen starter lokalt etter oppskriften i README, med en testbruker og eksempelmateriale, uten at sensor trenger egne API-nøkler eller betalte kontoer.
 
 **For IBE160**
-- Målet er en brukbar MVP **i midten av november**, slik at den rekker å bli testet i en simulert repetisjon. Dette er et mål, ikke et krav.
-- Alle MVP-funksjonene virker og kan kjøres lokalt etter README innen IBE160-fristen i midten av desember. Publisert webapp er en bonus, ikke et krav.
+- Målet er at appen er ferdig **4. desember**, slik at det er tid til den egne rapporten, som teller 30 % av karakteren. Dette er et mål, ikke et krav.
+- Må ha-funksjonene (1–5) og det som er med av bør ha-funksjonene, virker og kan kjøres lokalt etter README innen innleveringsfristen **15. desember 2026**. Publisert webapp er en bonus, ikke et krav.
 - Bruken av KI i utviklingen er dokumentert, slik emnet krever.
 
 ## Omfang (MVP)
@@ -124,7 +124,12 @@ MVP står for *minimum viable product*: den minste versjonen av appen som er nyt
   - **Før valget låses:** test kvaliteten på norsk med åpent materiale. Vertex AI ble satt opp 2026-11-05.
 - **Demomodus.** MVP-en skal ha en demomodus der appen kan kjøres og testes uten min egen API-nøkkel, slik at sensor kan starte appen lokalt etter README. Demomodusen består av ferdiglaget eksempelinnhold og en mock-modell som gir faste svar. Da trengs verken nøkkel, konto eller internett, og mock-modellen kan også brukes i de automatiske testene. Appen bygges slik at leverandøren kan byttes med én innstilling (mock, lokal modell eller skytjeneste). En lokal modell via Ollama kan være et valgfritt tillegg, men er svakere på norsk.
 - **For passiv bruk.** KI-sammendrag kan gjøre studenten mer passiv. Tiltaket er at flashcards og quiz krever svar før fasiten vises. Å bare lese sammendrag er ikke hovedbruken.
-- **Omfang og tid.** Prosjektet har én utvikler, og IBE160-fristen er i midten av desember. Målet er en brukbar MVP i midten av november, slik at den kan testes på egne notater og åpent lisensiert materiale før fristen. Utvidelsene må vente til MVP-en er ferdig og fungerer.
+- **Omfang og tid.** Prosjektet har én utvikler, og både appen og rapporten skal leveres 15. desember 2026. Prosjektet er vurdert som enkelt, så karakteren avhenger særlig av design, testing, dokumentert prosess og en README som virker. Når tiden blir knapp, kuttes derfor funksjoner før kvalitet. Utvidelsene må vente til MVP-en er ferdig og fungerer. Planen er:
+  - **5.–13. november:** Kort test av huskeregler og quiz, teknologistakk, PRD, designskisser og arkitektur.
+  - **14.–25. november:** Må ha-funksjonene (1–5) og demomodus, med tester underveis. Virker ikke hovedflyten 25. november, kuttes bør ha-funksjonene.
+  - **26. november–4. desember:** Huskeregler, og nøkkelbegreper og sammendrag bare hvis tiden strekker til. Deretter design, universell utforming, simulert repetisjon, stikkprøve, feilretting og README testet fra en ren klone. Etter 4. desember rettes bare feil som stopper appen.
+  - **5.–13. desember:** Rapporten.
+  - **14.–15. desember:** Buffer og innlevering.
 - **Formler og figurer.** Tekniske emner har ofte mange formler og diagrammer, og tolkning av figurer er utenfor MVP. En test 2026-11-05 viste at formler tegnet som vektorgrafikk forsvinner når bare teksten leses, men at de ble lest riktig fra bilde av siden. Bestemt: MVP-en bruker teksten som standard, og sender bilde av siden når siden ser ut til å ha formler som ikke er med i teksten. Reglene for å oppdage slike sider må testes.
 - **Åpne beslutninger fra oppgaveteksten** tas i PRD-en og arkitekturen: valg av LLM og konfidensnivå, lokal behandling eller sky, og hvor detaljerte sammendragene skal være. Valg av LLM og lokal behandling eller sky er researchet (se over); den endelige beslutningen tas i arkitekturen.
 - **Ryddighet i repoet.** API-nøkler og andre hemmeligheter skal ligge i `.env`, utenfor Git. Foiler og kurslitteratur jeg ikke har rettigheter til, skal ikke legges i det offentlige repoet; testdata skal være egne notater eller fritt tilgjengelig materiale.
