@@ -190,6 +190,73 @@ Appen skal kunne brukes av alle, også med tastatur eller skjermleser. Kravene b
 
 ### Grenser og ytelse
 
-- **NFR-15** En opplastet fil kan være på inntil [ANTAGELSE: 30] sider. Er filen større, avvises den med en beskjed om grensen.
+- **NFR-15** En opplastet fil kan være på inntil 50 sider. Er filen større, avvises den med en beskjed om grensen.
 - **NFR-16** Med ekte språkmodell tar det normalt under [ANTAGELSE: ett minutt] å lage en vanlig gjennomgang (inntil 20 flashcards) fra én forelesning. I demomodus tar det under fem sekunder.
 - **NFR-17** Appen fungerer i siste versjon av Chrome, Safari og Edge. [ANTAGELSE]
+
+## Suksesskriterier
+
+Kriteriene står i den rekkefølgen sensor kan etterprøve dem: først det som kan kjøres som tester, så manuelle kvalitetsmålinger, og til slutt bruk som grunnlag for rapporten.
+
+### Automatiske tester
+
+Kjøres med mock-modellen, slik at sensor kan kjøre dem uten nøkkel.
+
+- En student ser og kan endre bare sitt eget innhold (FR-35).
+- Alle sidetall i kildene finnes i den opplastede filen (FR-15, FR-26, FR-38).
+- Forklaringen i quizen vises først etter at svaret er bekreftet (FR-29).
+- Et flashcard kan redigeres og slettes av studenten som eier det (FR-22), og sletting av en fil krever bekreftelse (FR-7).
+- Huskeregelen stemmer med forbokstavene i punktene (FR-42).
+- Universell utforming kontrolleres automatisk på alle sider (NFR-13).
+- Appen starter etter README fra en ren kopi av repoet, uten nøkler eller kontoer (NFR-1, NFR-2). Kontrolleres manuelt før innlevering.
+
+### Kvalitet med ekte språkmodell
+
+Måles manuelt med Gemini på eksempelnotater og åpent lisensiert materiale.
+
+- **Faglige feil:** En stikkprøve på 50 flashcards fra markedsføring har under 5 % faglige feil.
+- **Riktige kilder:** Minst 95 % av kortene i stikkprøven viser til en side der innholdet faktisk står.
+- **Formler:** Kort laget fra sider med formler i økonomistoff gjengir formlene riktig.
+- **Motvekt:** Stikkprøven sjekker også at kortene dekker hovedpunktene i notatene, slik at lav feilprosent ikke skyldes at det bare lages enkle kort.
+
+### Bruk (grunnlag for rapporten)
+
+- Stoffet i markedsføring legges inn forelesning for forelesning, og en repetisjonsøkt med flashcards, quiz og huskeregler gjennomføres som før en eksamen.
+- En kort egenrefleksjon vurderer om appen ga oversikt over stoffet. Dette er ikke bevis for at appen virker for andre, se Begrensninger.
+
+## Omfang
+
+### Kjerneflyt
+
+Kjerneflyten er det som må virke og være stabilt først, både i demomodus og med Gemini: logge inn → opprette emne og forelesning → laste opp PDF → lage og øve på flashcards → lage og ta quiz. Virker ikke kjerneflyten 25. november, kuttes bør ha-funksjonene. Målet er at appen er ferdig 4. desember. Innleveringsfristen er 15. desember 2026.
+
+### Prioritering
+
+- **Må ha:** 1 Norsk språk · 2 Innlogging og egne data · 3 Emner, forelesninger og opplasting · 4 Flashcards · 5 Flervalgsquiz, med kravene i «Felles for alt generert innhold». Krav merket «kan kuttes» går først hvis tiden blir knapp.
+- **Bør ha, i byggerekkefølge:** 6 Huskeregler · 7 Fritekstspørsmål med selvvurdering · 8 Sammendrag.
+
+### Mulige utvidelser
+
+Bygges bare hvis MVP-en er ferdig og stabil. Den første er den mest aktuelle.
+
+1. KI-tilbakemelding på fritekstsvar.
+2. Spaced repetition, der appen husker «Kunne» og «Kunne ikke» og velger hvilke kort som skal øves.
+3. Opplasting av Word-filer, med overskrift som kilde.
+4. Valgbart detaljnivå på sammendrag, andre typer huskeregler og en samlet ordliste med norske og engelske begreper.
+
+### Utenfor
+
+- Transkribering av lyd- og videoopptak.
+- Deling og quizzing mellom studenter.
+- Mobilapp og tilpasning til mobilskjerm.
+- Integrasjon med Canvas.
+- Publisering på nett. Appen kjøres lokalt.
+- Tolkning av tabeller og figurer. Bilde av siden brukes bare for å få med formler (FR-37).
+- E-postbekreftelse og «glemt passord» (se FR-34).
+
+## Begrensninger
+
+- **Ingen intervjuer med brukere (issue #6).** Planen var å intervjue 3–5 medstudenter om eksamensforberedelser og KI-bruk. Det ble ikke gjort, fordi jeg ikke kjenner studenter med emner som krever mye pugging. Behovet bygger i stedet på egen erfaring og offentlige kilder om læring og konkurrerende verktøy (se addendum til briefen). Grunnlaget er derfor svakere: vi vet ikke om andre studenter har det samme problemet eller ville brukt appen på samme måte.
+- **Én brukers erfaring.** Brukerreisene og valg som type huskeregel bygger på hvordan jeg selv lærer. Andre studenter kan foretrekke andre metoder.
+- **Simulert bruk.** Appen testes på markedsføring med en simulert repetisjon, fordi jeg ikke har et emne dette semesteret der den passer. Testen viser ikke om appen hjelper en student som faktisk forbereder seg til eksamen.
+- **Testmateriale.** Testene bruker eksempelnotater skrevet med egne ord og åpent lisensiert materiale fra OpenStax, som er på engelsk. Ekte forelesningsfoiler brukes ikke, av hensyn til opphavsretten.
