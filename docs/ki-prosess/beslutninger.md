@@ -4,6 +4,15 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
+| 2026-11-09 | Konfidensnivå: appen viser ikke språkmodellens egen sikkerhet, men bygger på kontroller som kan sjekkes (kilde, kontroll før lagring, stikkprøver). | Språkmodeller vurderer ikke sin egen sikkerhet pålitelig. Faglærer ba om en beslutning. | `b3c1e24` |
+| 2026-11-09 | Ett detaljnivå på sammendrag. | Lavest prioritet, og tre nivåer gir tre varianter å teste. Faglærer ba om en beslutning. | `b3c1e24` |
+| 2026-11-09 | Googles logging av forespørsler godtas med tiltak: vilkårstekst og ingen personopplysninger (#2). | Studienotater er lite sensitive, dataene behandles i EU, og demomodus sender ingenting ut. | `62a095c` |
+| 2026-11-09 | Universell utforming etter WCAG 2.1 nivå AA, PC ned til 768 piksler. | Standarden norsk regelverk bruker. Teller i designkriteriet. | `62a095c` |
+| 2026-11-09 | Sky i EU, ikke lokal modell. Konkret Gemini-modell velges i arkitekturen. | Ollama er svakere på norsk. Demomodus dekker kjøring uten skytjeneste. | `8dac0a2` |
+| 2026-11-09 | Huskeregler er forbokstavregel på modellkort, en type flashcard. Ingen regel når alle punktene har samme forbokstav. | Min egen læringsmetode, og aktiv øving. «PPPP» hjelper ikke. | `8dac0a2` |
+| 2026-11-09 | Studenten kan slette kontoen og alt innhold. Ingen e-postbekreftelse eller «glemt passord». | Rett til sletting etter GDPR. E-post krever en tjeneste med nøkkel, som sensor ikke skal trenge. | `d7bd827` |
+| 2026-11-09 | Nøkkelbegreper blir begrepskort, og fritekst med selvvurdering blir bør ha nr. 7. | Aktiv øving, mindre å bygge. KI-vurdering av fritekst har usikker kvalitet og er første utvidelse. | `69e4340` |
+| 2026-11-09 | Bare PDF i MVP. Word avvises med beskjed om å lagre som PDF. | Kilden skal vise side, og Word-filer har ikke faste sider. | `69e4340` |
 | 2026-11-09 | Appen får en vilkårstekst der brukeren tar ansvar for materialet de laster opp. | Faglærer bekreftet at dette er greit, og at appen ikke er ansvarlig for brukerens opplastinger. Blir et krav i PRD-en. | Issue #7 |
 | 2026-11-05 | Prompts og korrigeringer lagres i denne mappen. Åpne punkter føres også i GitHub Issues. | Sensorveiledningen ser etter sporbar KI-bruk og organisert arbeid. | Denne mappen |
 | 2026-11-05 | Foreslått stakk: Next.js med TypeScript, Auth.js, SQLite via Prisma, Vitest og Playwright. | Vanlig og godt dokumentert, og kan kjøres lokalt uten betalte kontoer. Valgt av KI fordi jeg ikke har forkunnskaper, og skal begrunnes nærmere i arkitekturen. | Se `.logs/` |
