@@ -2,6 +2,40 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-09: Fullføre PRD-en etter gjennomgang
+
+Fire KI-assistenter gikk uavhengig gjennom PRD-en mot briefen, sensorveiledningen, researchen og en sjekkliste for PRD-er. Jeg tok de fire beslutningene de reiste:
+
+> a. ja, b. uten huskeregel, ja, c. ja, d. ja
+
+**Resultat:** Formelkravene kan kuttes, modellkort lages uten huskeregel når alle punktene har samme forbokstav, og ventetiden er satt til under to minutter. Commit `8dac0a2`.
+
+## 2026-11-09: Velge eksempelmateriale til sensor
+
+> har egne notater, men mye kan være kopiert fra foiler, så vet ikke om brukbarheten av det
+
+**Resultat:** Eksempelemnet blir korte notater skrevet med egne ord, basert på OpenStax (NFR-3). Commit `62a095c`.
+
+## 2026-11-09: Sjekke PRD-en mot faglærers tilbakemelding underveis
+
+> ja, men stopp opp og tenk på tilbakemeldingene på product brief, er det vi holder på nå tråd med det faglærer ga tilbakemelding på?
+
+> ja, er det ikke noe annet vi bør ta hensyn til? basert på sensorveiledning og tilbakemelding
+
+**Resultat:** Krav som kan kuttes ble merket, PRD-en fikk en del om endringer fra briefen, og ti manglende punkter ble lagt til planen, blant annet formler, konfidensnivå, universell utforming og sletting av konto. Commit `d7bd827`.
+
+## 2026-11-09: Brukerreisen PRD-en bygger på
+
+> Klara har hatt en forelesning i markedsføring, hvor hun har lagd egne notater. Etter forelesningen åpner hun studiekamerat, laster opp sine egne notater fra forelesningen. Hun velger da noen dager senere å teste hvor mye av det hun lærte som sitter … Noen uker før eksamen, så samler hun alle flashcardene fra alle forelesningene og går gjennom alle sammen.
+
+**Resultat:** Brukerreisene UJ-1 og UJ-2. De viste at quizen var glemt, og at fritekst og sammendrag måtte avklares. Commit `69e4340`.
+
+## 2026-11-09: Regel for arbeidet
+
+> bare pass på å alltid ta hensyn til sensorveiledningen i alle valg og ting vi gjør og gjerne forklar hva som skjer underveis
+
+**Resultat:** PRD-en ble skrevet veiledet, del for del, med kobling til sensorveiledningen for hvert valg.
+
 ## 2026-11-05: Sjekke arbeidet mot sensorveiledningen
 
 > er ting gjort i tråd med sensorveiledning og tilbakemelding på brief?
