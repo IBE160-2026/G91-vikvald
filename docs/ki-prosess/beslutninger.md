@@ -4,6 +4,7 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
+| 2026-11-09 | Ny tidsplan: kjerneflyten virker 27. november, og appen er ferdig 5. desember. Rapporten skrives 6.–13. desember. | Justert tidsplan. Funksjoner kuttes fortsatt før kvalitet. | Brief og PRD |
 | 2026-11-09 | Konfidensnivå: appen viser ikke språkmodellens egen sikkerhet, men bygger på kontroller som kan sjekkes (kilde, kontroll før lagring, stikkprøver). | Språkmodeller vurderer ikke sin egen sikkerhet pålitelig. Faglærer ba om en beslutning. | `b3c1e24` |
 | 2026-11-09 | Ett detaljnivå på sammendrag. | Lavest prioritet, og tre nivåer gir tre varianter å teste. Faglærer ba om en beslutning. | `b3c1e24` |
 | 2026-11-09 | Googles logging av forespørsler godtas med tiltak: vilkårstekst og ingen personopplysninger (#2). | Studienotater er lite sensitive, dataene behandles i EU, og demomodus sender ingenting ut. | `62a095c` |
