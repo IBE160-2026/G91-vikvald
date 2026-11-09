@@ -95,6 +95,7 @@ Briefen ([brief.md](../../briefs/brief-G91-vikvald-2026-09-24/brief.md)) var utg
 | Opplasting av PDF eller tekst | Bare PDF (FR-3, FR-4) | Kilden skal vise fil og side. Word-filer og innlimt tekst har ikke faste sidetall. Notatene skrives i Word og kan lagres som PDF med ett klikk. |
 | Nøkkelbegreper som egen bør ha-funksjon (nr. 7) | Begrepskort som en type flashcard (FR-14) | Brukes ikke i brukerreisene som egen visning. Som flashcard blir begrepene aktiv øving, og funksjonen krever nesten ikke ekstra arbeid. Datamodellen blir enklere. |
 | Fritekstsvar med KI-tilbakemelding som første utvidelse | Fritekstspørsmål med selvvurdering som bør ha nr. 7. KI-tilbakemelding er fortsatt første utvidelse. | Brukerreisen før eksamen (UJ-2) har kortsvar, langsvar og forklaring av modeller. Selvvurdering er enkel å bygge og teste, mens KI-vurdering har usikker kvalitet. |
+| Sammendrag med valgbart detaljnivå (kort, middels, detaljert) | Ett detaljnivå: hovedpunktene med en kort forklaring (FR-50). Valgbart nivå er en mulig utvidelse. | Sammendrag er den bør ha-funksjonen som kuttes først. Tre nivåer betyr tre varianter å lage og teste, og sensorveiledningen vurderer at det som er bygd, virker, ikke antall valg. |
 
 ### 1. Norsk språk
 
@@ -110,3 +111,45 @@ Innlogging trengs fordi studentens materiale lagres.
 - **FR-34** Studenten kan opprette en konto med e-postadresse og passord, logge inn og logge ut. E-postadressen bekreftes ikke, og det finnes ingen «glemt passord»-funksjon.
 - **FR-35** En innlogget student ser og kan endre bare sine egne emner, forelesninger, filer og genererte innhold. Forsøk på å åpne andres innhold, for eksempel ved å endre adressen i nettleseren, gir ingen tilgang.
 - **FR-36** Studenten kan slette kontoen sin. Før kontoen slettes, får hun en bekreftelse som sier at alle emner, filer og alt generert innhold slettes for godt. Etter sletting finnes ingen av dataene hennes i appen.
+
+### Felles for alt generert innhold
+
+Disse kravene gjelder flashcards, quiz og bør ha-funksjonene.
+
+- **FR-37** Når en side ser ut til å ha formler som ikke kommer med i teksten fra PDF-en, får språkmodellen også et bilde av siden, slik at formlene kommer med i det som lages.
+- **FR-38** Appen kontrollerer alt språkmodellen lager før det lagres: sidetallet i kilden finnes i filen, et quizspørsmål har nøyaktig fire alternativer der ett er riktig, og ingen påkrevde felt er tomme. Det som ikke består kontrollen, forkastes og regnes med i beskjeden om at det ble laget færre enn valgt (FR-13).
+- **FR-39** Innhold laget fra en side med formler er merket «Inneholder formel – sjekk mot kilden».
+
+**Konfidensnivå.** Faglæreren ba om en beslutning om konfidensnivå, det vil si hvordan appen håndterer at språkmodellen kan ta feil. Appen viser ikke språkmodellens egen vurdering av hvor sikker den er, fordi språkmodeller ikke vurderer sin egen sikkerhet pålitelig. I stedet bygger appen på kontroller som faktisk kan sjekkes: innholdet lages bare fra notatene (FR-13, FR-24), alt kontrolleres før lagring (FR-38), alt viser kilde (FR-15, FR-26), innhold fra sider med formler er merket (FR-39), og studenten kan slette det som er feil (FR-22, FR-31). Hvor godt dette virker, måles med stikkprøven under Suksesskriterier.
+
+## Bør ha-funksjoner
+
+Bygges bare når må ha-funksjonene (1–5) virker og er stabile, i denne rekkefølgen. Det som står sist, kuttes først.
+
+### 6. Huskeregler
+
+Studenten bruker huskeregler for å lære modeller og lister som må pugges (UJ-2).
+
+- **FR-40** Studenten kan be om huskeregler for en forelesning. Appen finner modeller og lister i notatene, for eksempel de fire P-ene i markedsmiksen, og lager et modellkort for hver: forsiden ber studenten forklare modellen, og baksiden viser punktene og huskeregelen. Modellkort er en type flashcard og øves og redigeres som andre flashcards (FR-18–FR-22).
+- **FR-41** Huskeregelen består av forbokstaven i hvert punkt satt sammen, i den rekkefølgen punktene står i notatene.
+- **FR-42** Før et modellkort lagres, kontrollerer appen at bokstavene i huskeregelen stemmer med forbokstavene i punktene (i tillegg til kontrollene i FR-38).
+- **FR-43** Studenten kan erstatte huskeregelen med sin egen.
+- **FR-44** Finner appen ingen modeller eller lister i forelesningen, får studenten beskjed om det.
+
+### 7. Fritekstspørsmål med selvvurdering
+
+Studenten øver på eksamenslignende spørsmål der hun må formulere svaret selv (UJ-2). Modeller øves med modellkort (FR-40), ikke her.
+
+- **FR-45** Studenten kan be om fritekstspørsmål for en forelesning. Det finnes to typer: kortsvar og langsvar. Hun velger omfang: rask (inntil 5 spørsmål), vanlig (inntil 10) eller dyp (inntil 15). Reglene i FR-13, FR-16, FR-17 og FR-38 gjelder.
+- **FR-46** Hvert spørsmål har et modellsvar og viser kilden: filnavn og sidetall.
+- **FR-47** Studenten kan øve på spørsmålene fra én forelesning eller fra hele emnet. Hun skriver svaret sitt i et tekstfelt. Modellsvaret vises først når hun har skrevet noe og valgt å se det.
+- **FR-48** Etter at modellsvaret er vist, vurderer studenten svaret sitt som «Riktig», «Delvis riktig» eller «Feil». Når økten er ferdig, ser hun hvor mange hun hadde av hver. Svarene hennes lagres ikke. [ANTAGELSE]
+- **FR-49** Studenten kan slette enkeltspørsmål.
+
+### 8. Sammendrag
+
+Studenten leser et sammendrag av forelesningen som repetisjon (UJ-1). Faglæreren ba om en beslutning om detaljnivå. Svaret er ett nivå, se «Endringer fra briefen».
+
+- **FR-50** Studenten kan be om et sammendrag av en forelesning. Sammendraget har hovedpunktene fra notatene med en setning eller to om hvert, ordnet etter tema. Reglene i FR-16 og FR-38 gjelder.
+- **FR-51** Hvert punkt i sammendraget viser hvilken fil og side det kommer fra.
+- **FR-52** Ber studenten om et nytt sammendrag, erstatter det det gamle. [ANTAGELSE]
