@@ -1,6 +1,6 @@
 ---
 title: "PRD: Studiekamerat"
-status: draft
+status: final
 created: 2026-11-09
 updated: 2026-11-09
 ---
@@ -9,17 +9,17 @@ updated: 2026-11-09
 
 ## Sammendrag
 
-Studiekamerat er en norskspråklig webapp som gjør studentens egne forelesningsnotater om til materiell hun kan øve på: flashcards, flervalgsquiz, huskeregler, fritekstspørsmål og sammendrag. Alt viser til kilden i notatene, med fil og side.
+Studiekamerat er en norskspråklig webapp som gjør studentens egne forelesningsnotater om til materiale hun kan øve på: flashcards, flervalgsquiz, huskeregler, fritekstspørsmål og sammendrag. Alt viser til kilden i notatene, med fil og side.
 
-**Problemet.** Mange studenter går inn i eksamensperioden med et semester med rotete notater og bruker tiden på å rydde i stoffet i stedet for å repetere. Det er repetisjon og det å teste seg selv som gir læring, ikke å lese det samme om igjen. Studiekamerat følger studenten gjennom semesteret: notatene legges inn per emne og forelesning, slik at hun er klar til å teste seg selv når eksamen nærmer seg.
+**Problemet.** Mange studenter går inn i eksamensperioden med rotete notater fra et helt semester og bruker tiden på å rydde i stoffet i stedet for å repetere. Det er repetisjon og det å teste seg selv som gir læring, ikke å lese det samme om igjen. Studiekamerat følger studenten gjennom semesteret: notatene legges inn per emne og forelesning, slik at hun er klar til å teste seg selv når eksamen nærmer seg.
 
-**For hvem.** En student i høyere utdanning i Norge med et teoritungt emne, som vet at det virker å teste seg selv, men ikke har tid til å lage materialet selv.
+**For hvem.** En student i høyere utdanning i Norge med et teoritungt emne, som vet at det virker å teste seg selv, men ikke har tid til å lage øvingsmaterialet.
 
 **Hva som skiller Studiekamerat fra verktøy som NotebookLM, Quizlet og Knowt:**
 1. **Bygd for semesteret.** Stoffet organiseres per emne og forelesning mens semesteret pågår.
 2. **Huskeregler** for modeller og lister som må pugges.
 3. **Norsk fra grunnen av**, med norske fagbegreper.
-4. **Kilde på alt**, slik at studenten kan oppdage feil i det KI-en har laget.
+4. **Kilde på alt**, slik at studenten kan oppdage feil i det språkmodellen har laget.
 
 **Rammer.** Soloprosjekt i IBE160 høsten 2026. Appen kjøres lokalt og skal være ferdig 4. desember. Innleveringsfristen er 15. desember 2026. Faglæreren har vurdert prosjektet som enkelt, så kvaliteten skal ligge i gjennomføringen: design, testing, dokumentert prosess og en README som virker.
 
@@ -31,7 +31,7 @@ Grunnlaget er [produktbriefen](../../briefs/brief-G91-vikvald-2026-09-24/brief.m
 
 Klara studerer markedsføring og skriver egne notater i forelesningene. Hun gjentar dette hver uke gjennom semesteret.
 
-1. Etter forelesningen åpner Klara Studiekamerat og laster opp notatene sine til forelesningen i emnet Markedsføring. Mer orker hun ikke akkurat da.
+1. Etter forelesningen åpner Klara Studiekamerat og laster opp notatene sine fra forelesningen i emnet Markedsføring. Mer orker hun ikke akkurat da.
 2. Noen dager senere lager hun flashcards og en flervalgsquiz fra forelesningen. Hun svarer før fasiten vises, og ser hva som sitter og hva hun har glemt. Å vente noen dager gir bedre læring enn å øve med en gang.
 3. Hun leser sammendraget som er laget ut fra notatene.
 
@@ -45,7 +45,7 @@ Noen uker før eksamen har Klara lastet opp notater fra alle forelesningene.
 
 ## Må ha-funksjoner
 
-Funksjon 1–5 og kravene under «Felles for alt generert innhold» er den minste versjonen av appen som er nyttig å bruke. Krav merket *(Kan kuttes)* går først hvis tiden blir knapp.
+Funksjon 1–5 og kravene under «Felles for alt generert innhold» er MVP-en: den minste versjonen av appen som er nyttig å bruke. Krav merket *(Kan kuttes)* går først hvis tiden blir knapp.
 
 ### 1. Norsk språk
 
@@ -60,7 +60,7 @@ Innlogging trengs fordi studentens materiale lagres.
 
 - **FR-3** Studenten kan opprette en konto med e-postadresse og passord, logge inn og logge ut. E-postadressen bekreftes ikke, og det finnes ingen «glemt passord»-funksjon, fordi begge deler krever en e-posttjeneste med egen konto og nøkkel (se NFR-2).
 - **FR-4** En innlogget student ser og kan endre bare sine egne emner, forelesninger, filer og genererte innhold. Forsøk på å åpne andres innhold, for eksempel ved å endre adressen i nettleseren, gir ingen tilgang.
-- **FR-5** Studenten kan slette kontoen sin. Før kontoen slettes, får hun en bekreftelse som sier at alle emner, filer og alt generert innhold slettes for godt. Etter sletting finnes ingen av dataene hennes i appen.
+- **FR-5** Studenten kan slette kontoen sin. Før kontoen slettes, får hun en bekreftelse som sier at alle emner, filer og alt generert innhold slettes for godt. Avbryter hun, slettes ingenting. Etter sletting finnes ingen av dataene hennes i appen.
 
 ### 3. Emner, forelesninger og opplasting
 
@@ -74,7 +74,7 @@ Studenten organiserer stoffet per emne og forelesning, slik at det er samlet nå
 - **FR-11** Før studenten laster opp sin første fil, må hun godta en vilkårstekst om at hun er ansvarlig for materialet hun laster opp, og at det skal være egne notater eller materiale hun har rett til å bruke. Vilkårsteksten har også innholdet i NFR-6.
 - **FR-12** Studenten kan slette en fil. Før filen slettes, får hun en bekreftelse som sier hvor mye generert innhold (flashcards, quizspørsmål og annet) som slettes sammen med filen. Avbryter hun, slettes ingenting.
 - **FR-13** Studenten kan erstatte en fil med en ny. Innhold generert fra den gamle filen slettes etter samme bekreftelse som i FR-12.
-- **FR-14** Sletter studenten en forelesning eller et emne, slettes alle filer og alt generert innhold under, etter en bekreftelse som i FR-12.
+- **FR-14** Sletter studenten en forelesning eller et emne, slettes alle filer og alt generert innhold som hører til, etter en bekreftelse som i FR-12.
 - **FR-15** En forelesning har et navn og en dato. Datoen er dagens dato som standard og kan endres. Forelesningene i et emne vises sortert etter dato.
 - **FR-16** For hver forelesning ser studenten antall filer og hvor mye som er generert, for eksempel antall flashcards og quizspørsmål, slik at hun ser hvilke forelesninger hun ikke har øvd på ennå. *(Kan kuttes.)*
 
@@ -101,14 +101,14 @@ Studenten tester seg selv på stoffet fra én forelesning (UJ-1) eller hele emne
 
 ### 5. Flervalgsquiz
 
-Quizen lages og brukes på samme måte som flashcardene, men studenten velger blant fire svar og får en forklaring etterpå.
+Quizen lages og brukes på samme måte som flashcardene, men studenten velger blant fire svaralternativer og får en forklaring etterpå.
 
 *Lage quiz*
 - **FR-28** Studenten kan lage quizspørsmål fra en forelesning. Hun velger omfang som for flashcards (inntil 10, 20 eller 30 spørsmål) og vanskelighetsgrad:
   - *Lett:* kjenne igjen en definisjon.
   - *Middels:* forstå sammenhenger mellom begreper.
   - *Vanskelig:* bruke stoffet på et eksempel.
-- **FR-29** Spørsmålene lages bare fra stoffet i forelesningens filer, med samme regel for for lite stoff som i FR-18, og samme håndtering av venting og feil som i FR-21.
+- **FR-29** Spørsmålene lages bare fra stoffet i forelesningens filer, med samme regel som i FR-18 når det er for lite stoff, og samme håndtering av venting og feil som i FR-21.
 - **FR-30** Hvert spørsmål har fire svaralternativer, der nøyaktig ett er riktig. Plasseringen av det riktige svaret varierer.
 - **FR-31** Alternativene er omtrent like lange, og feilalternativene er troverdige for en som ikke kan stoffet. Det riktige svaret skal ikke kunne gjettes fordi det er det lengste eller det eneste som høres riktig ut. Måles i SK-15.
 - **FR-32** Hvert spørsmål viser kilden: filnavn og sidetall (se FR-39).
@@ -135,7 +135,7 @@ Gjelder flashcards, quiz og bør ha-funksjonene.
 
 ## Bør ha-funksjoner
 
-Bygges bare når må ha-funksjonene virker og er stabile, i denne rekkefølgen. Det som står sist, kuttes først.
+Bygges i denne rekkefølgen, og bare når må ha-funksjonene virker og er stabile. Det som står sist, kuttes først.
 
 ### 6. Huskeregler
 
@@ -164,11 +164,11 @@ Studenten leser et sammendrag av forelesningen som repetisjon (UJ-1). Faglærere
 
 - **FR-53** Studenten kan be om et sammendrag av en forelesning. Sammendraget har hovedpunktene fra notatene med en setning eller to om hvert, ordnet etter tema. Reglene i FR-21 og FR-38 gjelder.
 - **FR-54** Hvert punkt i sammendraget viser hvilken fil og side det kommer fra.
-- **FR-55** Ber studenten om et nytt sammendrag, erstatter det det gamle.
+- **FR-55** Ber studenten om et nytt sammendrag, erstatter det nye sammendraget det gamle.
 
 ## Ikke-funksjonelle krav
 
-Alle de ikke-funksjonelle kravene gjelder MVP-en, på samme måte som må ha-funksjonene.
+Alle de ikke-funksjonelle kravene er en del av MVP-en, på samme måte som må ha-funksjonene.
 
 ### Kjørbarhet og demomodus
 
@@ -177,7 +177,7 @@ Sensor skal kunne starte og teste appen uten studentens nøkler, kontoer eller t
 - **NFR-1** Appen kan startes lokalt på en PC ved å følge README, med kommandoer som kan kopieres direkte. README oppgir hvilke versjoner av programmer som trengs, hvordan testene kjøres, og lenker til planleggingsdokumentene.
 - **NFR-2** Demomodus er standard. I demomodus lager en mock-modell innhold ut fra teksten i den opplastede filen, med sidetall som finnes i filen, og gir samme svar hver gang for samme fil. Appen trenger da verken nøkkel, konto eller internett, og alle funksjoner kan prøves, også med en PDF sensor laster opp selv.
 - **NFR-3** Appen leveres med en testbruker og et eksempelemne med forelesninger, filer og ferdig generert innhold. Eksempelmaterialet er skrevet med egne ord eller er åpent lisensiert. Materiale basert på OpenStax krediteres og deles under samme lisens (CC BY-NC-SA 4.0). PDF-er fra OpenStax legges ikke i repoet; README forklarer hvor de lastes ned.
-- **NFR-4** Språkmodell velges med én innstilling (mock eller Gemini), uten endringer i koden. Språkmodellen kalles bare fra serveren, og nøkler eller tilgang til modellen sendes aldri til nettleseren. Hemmeligheter ligger i en `.env`-fil utenfor Git, og repoet har en `.env.example` som viser hvilke innstillinger som finnes.
+- **NFR-4** Språkmodellen velges med én innstilling (mock eller Gemini), uten endringer i koden. Språkmodellen kalles bare fra serveren, og nøkler eller tilgang til språkmodellen sendes aldri til nettleseren. Hemmeligheter ligger i en `.env`-fil utenfor Git, og repoet har en `.env.example` som viser hvilke innstillinger som finnes.
 
 ### Personvern og datasikkerhet
 
@@ -200,7 +200,7 @@ Appen skal kunne brukes av alle, også med tastatur eller skjermleser. Kravene b
 
 ### Skjermstørrelser og nettlesere
 
-- **NFR-14** Appen er laget for PC. Den skal fungere uten vannrett rulling i vinduer ned til 768 piksler brede, og når teksten er forstørret til 200 %. Mobil er ikke med i MVP.
+- **NFR-14** Appen er laget for PC. Den skal fungere uten vannrett rulling i vinduer som er ned til 768 piksler brede, og når teksten er forstørret til 200 %. Mobil er ikke med i MVP.
 - **NFR-15** Appen fungerer i siste versjon av Chrome, Safari og Edge.
 
 ### Grenser og ventetid
@@ -215,7 +215,7 @@ Faglæreren ba om beslutninger om valg av språkmodell og om behandlingen skal s
 - **Sky, i EU.** Gemini på Vertex AI med behandling i EU er hovedvalget ([research 2026-10-28](../../research/technical-valg-av-sprakmodell-og-demomodus-2026-10-28/research.md), [funn i research-temaer](../../research/research-temaer.md)). Azure OpenAI ble forsøkt, men studentabonnementet fikk ikke kvote i EU. Anthropics API, Gemini via AI Studio og Sikt KI oppfyller ikke kravene til EU/EØS eller har ikke API.
 - **Ikke lokal modell.** En lokal modell via Ollama er valgt bort fordi den er svakere på norsk og har begrenset plass til lange PDF-er. Demomodusen (NFR-2) dekker behovet for å kjøre appen uten skytjeneste.
 - **Konkret modell** velges i arkitekturen etter en kvalitetstest på norsk (issue #3 og #4).
-- **Kostnad.** Anslått til under noen kroner per semester. Ekte modell krever et eget Google Cloud-prosjekt med kredittkort, og det er ikke bekreftet at bruken trekkes fra prøvekreditten (issue #8). Sensor trenger ikke dette, fordi demomodus er standard.
+- **Kostnad.** Anslått til høyst noen få kroner per semester. En ekte språkmodell krever et eget Google Cloud-prosjekt med kredittkort, og det er ikke bekreftet at bruken trekkes fra prøvekreditten (issue #8). Sensor trenger ikke dette, fordi demomodus er standard.
 
 ## Suksesskriterier
 
@@ -225,16 +225,16 @@ Kriteriene står i den rekkefølgen sensor kan etterprøve dem: først det som k
 
 Kjøres med mock-modellen, slik at sensor kan kjøre dem uten nøkkel.
 
-- **SK-1** Hvert må ha-krav (FR-1 til FR-41) har minst én automatisk test, med mindre kravet bare kan kontrolleres manuelt. Da står det i testplanen hvorfor.
+- **SK-1** Hvert funksjonelt må ha-krav (FR-1 til FR-41) har minst én automatisk test, med mindre kravet bare kan kontrolleres manuelt. Da står det i testplanen hvorfor.
 - **SK-2** En student ser og kan endre bare sitt eget innhold (FR-4).
 - **SK-3** Alle sidetall i kildene finnes i den opplastede filen (FR-20, FR-32, FR-39).
-- **SK-4** Ugyldig innhold fra språkmodellen forkastes, og studenten får beskjed om at det ble laget færre (FR-38, FR-18). Testes med en mock som med vilje gir ugyldige svar.
+- **SK-4** Ugyldig innhold fra språkmodellen forkastes, og studenten får beskjed om at det ble laget færre (FR-38, FR-18). Testes med en mock-modell som med vilje gir ugyldige svar.
 - **SK-5** Forklaringen i quizen vises først etter at svaret er bekreftet (FR-35).
 - **SK-6** Kort kan redigeres og slettes av eieren (FR-27). Sletting av fil, forelesning, emne og konto krever bekreftelse, og avbrudd sletter ingenting (FR-5, FR-12, FR-14).
 - **SK-7** Word-filer, for store filer og PDF-er uten tekst avvises med riktig beskjed (FR-9, FR-10, NFR-16).
 - **SK-8** Feiler genereringen, lagres ingenting halvferdig (FR-21).
 - **SK-9** Universell utforming kontrolleres automatisk på alle sider (NFR-13).
-- **SK-10** Huskeregelen stemmer med forbokstavene, og modellkort uten nyttig huskeregel lages uten (FR-44, FR-45). Gjelder hvis huskeregler bygges.
+- **SK-10** Huskeregelen stemmer med forbokstavene, og modellkort der alle punktene har samme forbokstav, lages uten huskeregel (FR-44, FR-45). Gjelder hvis huskeregler bygges.
 
 ### Manuelle kontroller før innlevering
 
@@ -274,14 +274,14 @@ Faglæreren advarte om at MVP-en i briefen var større enn prosjektforslaget den
 Bygges bare hvis MVP-en er ferdig og stabil. Den første er den mest aktuelle.
 
 1. KI-tilbakemelding på fritekstsvar.
-2. Spaced repetition, der appen husker «Kunne» og «Kunne ikke» og velger hvilke kort som skal øves.
+2. Spredt repetisjon (spaced repetition), der appen husker «Kunne» og «Kunne ikke» og velger hvilke kort som skal øves.
 3. Opplasting av Word-filer, med overskrift som kilde.
 4. Mindre tillegg: valgbart detaljnivå på sammendrag, andre typer huskeregler, en samlet ordliste med norske og engelske begreper, og kilde som åpner PDF-en på riktig side.
 
 ### Utenfor
 
 - Transkribering av lyd- og videoopptak.
-- Deling og quizzing mellom studenter.
+- Deling av innhold og quiz mellom studenter.
 - Mobilapp og tilpasning til mobilskjerm.
 - Integrasjon med Canvas.
 - Publisering på nett. Appen kjøres lokalt. Publiseres den senere, må også serveren kjøre i EU for å oppfylle NFR-5.
@@ -296,9 +296,9 @@ Briefen ([brief.md](../../briefs/brief-G91-vikvald-2026-09-24/brief.md)) var utg
 |---|---|---|
 | Studenten laster opp foiler eller notater | Studentens egne notater, eller materiale hun har rett til å bruke (FR-11) | Opphavsrett: foilene tilhører foreleseren, og Kopinor-avtalen tillater ikke opplasting av kurslitteratur i KI-verktøy. Faglæreren bekreftet 2026-11-09 at en vilkårstekst er nok. |
 | Opplasting av PDF eller tekst | Bare PDF (FR-8, FR-9) | Kilden skal vise fil og side. Word-filer og innlimt tekst har ikke faste sidetall. Notatene skrives i Word og kan lagres som PDF med ett klikk. |
-| Nøkkelbegreper som egen bør ha-funksjon (nr. 7) | Begrepskort som en type flashcard (FR-19) | Brukes ikke i brukerreisene som egen visning. Som flashcard blir begrepene aktiv øving, og funksjonen krever nesten ikke ekstra arbeid. Datamodellen blir enklere. |
+| Nøkkelbegreper som egen bør ha-funksjon (nr. 7) | Begrepskort som en type flashcard (FR-19) | Nøkkelbegreper brukes ikke som egen visning i brukerreisene. Som flashcard blir begrepene aktiv øving, og funksjonen krever nesten ikke ekstra arbeid. Datamodellen blir enklere. |
 | Huskeregler: KI-en foreslår måter å huske lister og modeller på | Forbokstavregel på modellkort, som en type flashcard. Ingen huskeregel når alle punktene har samme forbokstav (FR-42 til FR-44). | Forbokstavregelen er den metoden som har virket for meg. Som flashcard blir det aktiv øving. Testen 2026-11-05 viste at forbokstavene kan bli «PPPP», som ikke hjelper. |
-| Fritekstsvar med KI-tilbakemelding som første utvidelse | Fritekstspørsmål med selvvurdering som bør ha nr. 7. KI-tilbakemelding er fortsatt første utvidelse. | Brukerreisen før eksamen (UJ-2) har kortsvar og langsvar. Selvvurdering er enkel å bygge og teste, mens KI-vurdering har usikker kvalitet. |
+| Fritekstsvar med KI-tilbakemelding som første utvidelse | Fritekstspørsmål med selvvurdering som bør ha nr. 7. KI-tilbakemelding er fortsatt første utvidelse. | Brukerreisen før eksamen (UJ-2) har kortsvar og langsvar. Selvvurdering er enkel å bygge og teste, mens KI-tilbakemelding har usikker kvalitet. |
 | Sammendrag med valgbart detaljnivå (kort, middels, detaljert) | Ett detaljnivå: hovedpunktene med en kort forklaring (FR-53). Valgbart nivå er en mulig utvidelse. | Sammendrag er den bør ha-funksjonen som kuttes først. Tre nivåer betyr tre varianter å lage og teste, og sensorveiledningen vurderer at det som er bygd, virker, ikke antall valg. |
 | Publisert webapp som en bonus | Publisering er utenfor | Lokal kjøring er det som kreves, og publisering ville krevd at også serveren kjører i EU. |
 
@@ -306,18 +306,18 @@ Briefen ([brief.md](../../briefs/brief-G91-vikvald-2026-09-24/brief.md)) var utg
 
 ### Begrensninger
 
-- **Ingen intervjuer med brukere (issue #6).** Planen var å intervjue 3–5 medstudenter om eksamensforberedelser og KI-bruk. Det ble ikke gjort, fordi jeg ikke kjenner studenter med emner som krever mye pugging. Behovet bygger i stedet på egen erfaring og offentlige kilder om læring og konkurrerende verktøy (se addendum til briefen). Grunnlaget er derfor svakere: vi vet ikke om andre studenter har det samme problemet eller ville brukt appen på samme måte.
-- **Én brukers erfaring.** Brukerreisene og valg som type huskeregel bygger på hvordan jeg selv lærer. Andre studenter kan foretrekke andre metoder.
+- **Ingen intervjuer med brukere (issue #6).** Planen var å intervjue 3–5 medstudenter om eksamensforberedelser og KI-bruk. Det ble ikke gjort, fordi jeg ikke kjenner studenter med emner som krever mye pugging. Behovet bygger i stedet på egen erfaring og offentlige kilder om læring og konkurrerende verktøy (se [addendum til briefen](../../briefs/brief-G91-vikvald-2026-09-24/addendum.md)). Grunnlaget er derfor svakere: jeg vet ikke om andre studenter har det samme problemet eller ville brukt appen på samme måte.
+- **Én brukers erfaring.** Brukerreisene og valg som typen huskeregel bygger på hvordan jeg selv lærer. Andre studenter kan foretrekke andre metoder.
 - **Simulert bruk.** Appen testes på markedsføring med en simulert repetisjon, fordi jeg ikke har et emne dette semesteret der den passer. Testen viser ikke om appen hjelper en student som faktisk forbereder seg til eksamen.
 - **Testmateriale.** Testene bruker eksempelnotater skrevet med egne ord og åpent lisensiert materiale fra OpenStax, som er på engelsk. Ekte forelesningsfoiler brukes ikke, av hensyn til opphavsretten.
 
 ### Kjente risikoer
 
 - **Feil i generert innhold.** En studie fra 2025 fant feil i omtrent 5 % av KI-genererte flashcards. Tiltak: kilde på alt, kontroll før lagring, sletting og redigering, og stikkprøvene i SK-13 til SK-17.
-- **Passiv bruk.** Sammendrag kan gjøre studenten mer passiv. Tiltak: flashcards, quiz og fritekst krever svar før fasiten vises, og sammendrag har lavest prioritet.
+- **Passiv bruk.** Sammendrag kan gjøre studenten mer passiv. Tiltak: flashcards krever at studenten tenker ut svaret før kortet snus, quiz og fritekst krever svar før fasiten vises, og sammendrag har lavest prioritet.
 - **Dubletter.** Når nye kort legges til de gamle (FR-22, FR-33), kan språkmodellen lage kort som ligner de gamle. Studenten kan slette dem selv.
-- **Formelregelen er ikke testet (issue #9).** Bommer regelen i FR-40, kan formler mangle uten varsel. Tiltak: hellere en side for mye som bilde enn for lite, og merking når modellen melder at noe mangler (FR-41).
-- **Ventetid.** I testen tok 9 quizspørsmål fra 3 sider 53 sekunder. Tiltak: studenten kan bruke appen mens hun venter (NFR-17).
+- **Formelregelen er ikke testet (issue #9).** Bommer regelen i FR-40, kan formler mangle uten varsel. Tiltak: hellere en side for mye som bilde enn en for lite, og merking når modellen melder at noe mangler (FR-41).
+- **Ventetid.** I testen tok det 53 sekunder å lage 9 quizspørsmål fra 3 sider. Tiltak: studenten kan bruke appen mens hun venter (NFR-17).
 
 ## Åpne punkter
 
@@ -336,4 +336,4 @@ Disse avklares før eller under arkitektur og implementering, og følges opp som
 - **Modellkort:** Flashcard som ber studenten forklare en modell eller liste, med punktene og eventuell huskeregel på baksiden.
 - **Kilde:** Filnavn og sidetall i PDF-filen som innholdet er laget fra.
 - **Stikkprøve:** Manuell kontroll av et utvalg kort eller spørsmål mot kilden.
-- **Kjerneflyt:** Den delen av appen som må virke først: innlogging, opplasting, flashcards og quiz.
+- **Kjerneflyt:** Den delen av appen som må virke først: innlogging, emner og forelesninger, opplasting, flashcards og quiz.
