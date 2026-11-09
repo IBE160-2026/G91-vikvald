@@ -153,3 +153,43 @@ Studenten leser et sammendrag av forelesningen som repetisjon (UJ-1). Faglærere
 - **FR-50** Studenten kan be om et sammendrag av en forelesning. Sammendraget har hovedpunktene fra notatene med en setning eller to om hvert, ordnet etter tema. Reglene i FR-16 og FR-38 gjelder.
 - **FR-51** Hvert punkt i sammendraget viser hvilken fil og side det kommer fra.
 - **FR-52** Ber studenten om et nytt sammendrag, erstatter det det gamle. [ANTAGELSE]
+
+## Ikke-funksjonelle krav
+
+### Kjørbarhet og demomodus
+
+Sensor skal kunne starte og teste appen uten studentens nøkler, kontoer eller tjenester.
+
+- **NFR-1** Appen kan startes lokalt på en PC ved å følge README, med kommandoer som kan kopieres direkte. README oppgir hvilke versjoner av programmer som trengs, hvordan testene kjøres, og lenker til planleggingsdokumentene.
+- **NFR-2** Demomodus er standard. I demomodus gir en mock-modell faste svar, så appen trenger verken nøkkel, konto eller internett. Alle funksjoner kan prøves i demomodus.
+- **NFR-3** Appen leveres med en testbruker og et eksempelemne med forelesninger, filer og ferdig generert innhold. Eksempelmaterialet er skrevet med egne ord eller er åpent lisensiert, og er kreditert der lisensen krever det.
+- **NFR-4** Språkmodell velges med én innstilling (mock eller Gemini), uten endringer i koden. Hemmeligheter ligger i en `.env`-fil utenfor Git, og repoet har en `.env.example` som viser hvilke innstillinger som finnes.
+
+### Personvern og datasikkerhet
+
+- **NFR-5** Når appen bruker en ekte språkmodell, behandles dataene i EU/EØS hos en leverandør som ikke trener modeller på dem. Mellomlagring hos leverandøren er slått av.
+- **NFR-6** Vilkårsteksten (FR-6) sier at notatene sendes til språkmodellen hos Google i EU, at Google kan logge forespørsler en periode for å oppdage misbruk, og at studenten ikke skal laste opp personopplysninger, for eksempel navn på medstudenter.
+- **NFR-7** Passord lagres aldri i klartekst.
+
+**Vurdering av Googles logging (issue #2).** Google bruker ikke dataene til trening, men kan logge forespørsler for å oppdage misbruk. Det betyr at notater kan bli lagret hos Google en periode selv om mellomlagring er slått av. Dette godtas fordi innholdet er studienotater, ikke sensitive opplysninger, dataene behandles i EU, og studenten får beskjed og blir bedt om ikke å laste opp personopplysninger (NFR-6). I demomodus sendes ingenting ut av maskinen. Et alternativ var å søke Google om unntak fra loggingen, men det er usikkert om et studentprosjekt får det, og det ville tatt tid.
+
+### Universell utforming
+
+Appen skal kunne brukes av alle, også med tastatur eller skjermleser. Kravene bygger på WCAG 2.1 nivå AA, som er standarden norsk regelverk bruker for nettløsninger.
+
+- **NFR-8** Alle funksjoner kan brukes med bare tastatur, også å snu et flashcard, velge et svaralternativ og bekrefte en sletting. Det er alltid synlig hvilket element som har fokus.
+- **NFR-9** Tekst har en kontrast på minst 4,5:1 mot bakgrunnen.
+- **NFR-10** Riktig og feil svar vises med tekst eller symbol i tillegg til farge, slik at det kan forstås uten å skille rødt fra grønt.
+- **NFR-11** Alle skjemafelt har en synlig etikett, og feilmeldinger forklarer i tekst hva som er feil og hvordan det rettes.
+- **NFR-12** Statusmeldinger, for eksempel at innhold lages eller at det ble laget færre kort enn valgt, leses opp av skjermlesere. Sidene har norsk som språk, slik at skjermlesere uttaler teksten riktig.
+- **NFR-13** Universell utforming kontrolleres med automatiske tester i tillegg til en manuell gjennomgang med bare tastatur.
+
+### Skjermstørrelser
+
+- **NFR-14** Appen er laget for PC. Den skal fungere uten vannrett rulling i vinduer ned til 768 piksler brede, og når teksten er forstørret til 200 %. Mobil er ikke med i MVP.
+
+### Grenser og ytelse
+
+- **NFR-15** En opplastet fil kan være på inntil [ANTAGELSE: 30] sider. Er filen større, avvises den med en beskjed om grensen.
+- **NFR-16** Med ekte språkmodell tar det normalt under [ANTAGELSE: ett minutt] å lage en vanlig gjennomgang (inntil 20 flashcards) fra én forelesning. I demomodus tar det under fem sekunder.
+- **NFR-17** Appen fungerer i siste versjon av Chrome, Safari og Edge. [ANTAGELSE]
