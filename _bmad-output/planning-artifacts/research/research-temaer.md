@@ -23,7 +23,7 @@ Liste over det som bør undersøkes før PRD-en skrives. Den bygger på briefen,
 
 ## B. Opphavsrett og testmateriale
 
-- [x] **Spør faglærer** *(E-post sendt 2026-11-05, venter på svar. Planen er vilkårstekst i appen til noe annet er avklart.)* om det holder at brukeren selv er ansvarlig for materialet sitt. E-posten opplyser at appen bare testes på egne notater og åpent materiale.
+- [x] **Spør faglærer** *(E-post sendt 2026-11-05. Svar 2026-11-09: vilkårstekst i appen er greit, og appen er ikke ansvarlig for det brukeren laster opp.)* om det holder at brukeren selv er ansvarlig for materialet sitt. E-posten opplyser at appen bare testes på egne notater og åpent materiale.
 - [x] **Spør foreleseren i testemnet** *(Faller bort 2026-11-05: foiler brukes ikke som testmateriale.)* om foilene kan brukes i appen, hvis faglærer mener det er nødvendig.
 - [x] **Juster suksesskriteriet** *(Gjort 2026-11-05.)* i briefen hvis testmaterialet endres: «ekte materiale fra emner jeg tar» → «egne notater og åpent lisensiert materiale».
 - [x] **Finn åpent testmateriale** i markedsføring og økonomi, med formler i økonomistoffet (OpenStax, NDLA eller Wikipedia). *(2026-11-05: se under.)*

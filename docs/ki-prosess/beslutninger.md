@@ -4,6 +4,7 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
+| 2026-11-09 | Appen får en vilkårstekst der brukeren tar ansvar for materialet de laster opp. | Faglærer bekreftet at dette er greit, og at appen ikke er ansvarlig for brukerens opplastinger. Blir et krav i PRD-en. | Issue #7 |
 | 2026-11-05 | Prompts og korrigeringer lagres i denne mappen. Åpne punkter føres også i GitHub Issues. | Sensorveiledningen ser etter sporbar KI-bruk og organisert arbeid. | Denne mappen |
 | 2026-11-05 | Foreslått stakk: Next.js med TypeScript, Auth.js, SQLite via Prisma, Vitest og Playwright. | Vanlig og godt dokumentert, og kan kjøres lokalt uten betalte kontoer. Valgt av KI fordi jeg ikke har forkunnskaper, og skal begrunnes nærmere i arkitekturen. | Se `.logs/` |
 | 2026-11-05 | Appen er ferdig 4. desember. Funksjoner kuttes før kvalitet. | Del 2 teller 30 %. Prosjektet er vurdert som enkelt, så gjennomføringen teller mye. | `99f4ecd` |
