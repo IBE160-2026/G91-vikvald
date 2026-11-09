@@ -21,7 +21,7 @@ Studiekamerat er en norskspråklig webapp som gjør studentens egne forelesnings
 3. **Norsk fra grunnen av**, med norske fagbegreper.
 4. **Kilde på alt**, slik at studenten kan oppdage feil i det språkmodellen har laget.
 
-**Rammer.** Soloprosjekt i IBE160 høsten 2026. Appen kjøres lokalt og skal være ferdig 4. desember. Innleveringsfristen er 15. desember 2026. Faglæreren har vurdert prosjektet som enkelt, så kvaliteten skal ligge i gjennomføringen: design, testing, dokumentert prosess og en README som virker.
+**Rammer.** Soloprosjekt i IBE160 høsten 2026. Appen kjøres lokalt og skal være ferdig 5. desember. Innleveringsfristen er 15. desember 2026. Faglæreren har vurdert prosjektet som enkelt, så kvaliteten skal ligge i gjennomføringen: design, testing, dokumentert prosess og en README som virker.
 
 Grunnlaget er [produktbriefen](../../briefs/brief-G91-vikvald-2026-09-24/brief.md), [faglærers tilbakemelding](../../briefs/brief-G91-vikvald-2026-09-24/tilbakemelding-product-brief.md) og [researchen](../../research/research-temaer.md). Tekniske detaljer som hører hjemme i arkitekturen, står i [addendum.md](addendum.md).
 
@@ -260,7 +260,7 @@ Måles manuelt med Gemini på eksempelnotatene og åpent lisensiert materiale. H
 
 ### Kjerneflyt
 
-Kjerneflyten er det som må virke og være stabilt først, både i demomodus og med Gemini: logge inn → opprette emne og forelesning → laste opp PDF → lage og øve på flashcards → lage og ta quiz. Virker ikke kjerneflyten 25. november, kuttes bør ha-funksjonene. Målet er at appen er ferdig 4. desember. Innleveringsfristen er 15. desember 2026.
+Kjerneflyten er det som må virke og være stabilt først, både i demomodus og med Gemini: logge inn → opprette emne og forelesning → laste opp PDF → lage og øve på flashcards → lage og ta quiz. Virker ikke kjerneflyten 27. november, kuttes bør ha-funksjonene. Målet er at appen er ferdig 5. desember. Innleveringsfristen er 15. desember 2026.
 
 ### Prioritering
 
