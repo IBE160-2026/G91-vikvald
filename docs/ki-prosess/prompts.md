@@ -2,6 +2,16 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-10: Fra hybrid til valgt retning
+
+Jeg forkastet hybrid D («for rotete og visuelt dårlig») og ga presise ønsker for E:
+
+> ikke ha sidemeny på første side, gjør første side lik som første side på orginal semesterlinje, ha samme sidemeny som på tastaturet først, inkludert økt, men i farger som passer semesterlinje. ikke ha semesterlinje i sidemeny. […] rotet kom med sidemenyen
+
+Om E spurte jeg «noe du ville endret?», og godtok KIs sju forslag til opprydding.
+
+**Resultat:** Hybrid F er valgt som designretning. Commit `2c00ce9`.
+
 ## 2026-11-10: Tre forslag ut fra mine favoritter
 
 > likte at semesterlinjen var oversiktlig, likte linjen som visste hvor lenge det var igjen til eksamen, samt hvor mange forelesninger som har vært, likte at fargene var rolig, men med farger på linjene, den føltes premium og oversiktiglig. Med tastaturet først likte jeg sidemenyene på hver side.
