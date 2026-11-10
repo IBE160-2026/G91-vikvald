@@ -4,6 +4,7 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
+| 2026-11-10 | UX starter med ti vidt forskjellige designkonsepter for alle sidene, før én retning velges og detaljeres. | Jeg vil se reelle alternativer før jeg velger, slik at jeg kan begrunne designvalget (design teller 10 %). | `44a7164` |
 | 2026-11-09 | Ny tidsplan: kjerneflyten virker 27. november, og appen er ferdig 5. desember. Rapporten skrives 6.–13. desember. | Justert tidsplan. Funksjoner kuttes fortsatt før kvalitet. | Brief og PRD |
 | 2026-11-09 | Konfidensnivå: appen viser ikke språkmodellens egen sikkerhet, men bygger på kontroller som kan sjekkes (kilde, kontroll før lagring, stikkprøver). | Språkmodeller vurderer ikke sin egen sikkerhet pålitelig. Faglærer ba om en beslutning. | `b3c1e24` |
 | 2026-11-09 | Ett detaljnivå på sammendrag. | Lavest prioritet, og tre nivåer gir tre varianter å teste. Faglærer ba om en beslutning. | `b3c1e24` |

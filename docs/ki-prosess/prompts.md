@@ -2,6 +2,14 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-10: Ti designkonsepter før detaljene
+
+> jeg ønsker at du skisserer alle sidene for applikasjonen. jeg ønsker at du lager 10 forskjellige designkonsept. Jeg vil se svg baserte design konsept. Kjør ganske bred variasjon i kreativitet. […] Ikke spør meg nå. Jeg vil vurdere de 10 konseptene, før vi driller inn i detaljenene. Bruk 10 subagenter og sett alt sammen.
+
+KI skrev en felles brief med de 15 sidene og innholdet fra PRD-en, og ga hver subagent en egen retning. Briefen ligger i [brief-konsepter.md](../../_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/.working/brief-konsepter.md).
+
+**Resultat:** Ti konsepter med 15 SVG-skisser hver, samlet i et galleri. Commit `44a7164`.
+
 ## 2026-11-09: Fullføre PRD-en etter gjennomgang
 
 Fire KI-assistenter gikk uavhengig gjennom PRD-en mot briefen, sensorveiledningen, researchen og en sjekkliste for PRD-er. Jeg tok de fire beslutningene de reiste:

@@ -4,6 +4,7 @@ Eksempler på at KI-forslag er avvist eller rettet, og på feil KI gjorde. Nyest
 
 | Dato | Hva KI gjorde | Hvem oppdaget det | Hva som ble gjort | Spor |
 |---|---|---|---|---|
+| 2026-11-10 | Ble bedt om å bruke skillen /impeccable:impeccable, men den er ikke installert. | KI, da den lette etter skillen | Skrev egne designprinsipper inn i briefen til subagentene i stedet, og sa fra om det. | `44a7164` |
 | 2026-11-09 | Satte ventetiden til under ett minutt, selv om testen fra 2026-11-05 brukte 53 sekunder på bare 9 spørsmål. | KI, i gjennomgangen mot researchen | Endret til under to minutter, og appen låses ikke mens den venter. | `8dac0a2` |
 | 2026-11-09 | Skrev at huskeregelen alltid er forbokstavene, uten å sjekke at de fire P-ene da blir «PPPP». | KI, i gjennomgangen mot researchen | Modellkort lages uten huskeregel når alle punktene har samme forbokstav. | `8dac0a2` |
 | 2026-11-09 | Skrev at mock-modellen gir faste svar. Da ville kontrollen av sidetall forkastet alt når sensor laster opp en egen PDF. | KI, i tre av fire uavhengige gjennomganger | Mock-modellen lager innhold ut fra den opplastede fila. | `8dac0a2` |
