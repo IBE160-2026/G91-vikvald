@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" role="img" aria-label="Studiekamerat – konto">
+<title>Studiekamerat – konto</title>
+<rect x="0" y="0" width="1440" height="900" fill="#F3EFE4"/>
+<rect x="0" y="0" width="1440" height="76" fill="#FFFFFF"/>
+<rect x="0" y="0" width="320" height="76" fill="#FFD60A"/>
+<text x="28" y="49" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="900" fill="#000000" letter-spacing="0.5">STUDIEKAMERAT</text>
+<line x1="320" y1="0" x2="320" y2="76" stroke="#000000" stroke-width="4"/>
+<text x="352" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000" text-decoration="underline">EMNER</text>
+<text x="412.0" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">/</text>
+<text x="436.0" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">KONTO</text>
+<text x="1008" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">klara@student.no</text>
+<rect x="1186" y="22" width="104" height="40" fill="#000000"/>
+<rect x="1182" y="18" width="104" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1234.0" y="43.4" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">KONTO</text>
+<rect x="1306" y="22" width="112" height="40" fill="#000000"/>
+<rect x="1302" y="18" width="112" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1358.0" y="43.4" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">LOGG UT</text>
+<line x1="0" y1="76" x2="1440" y2="76" stroke="#000000" stroke-width="4"/>
+<rect x="0" y="80" width="1440" height="52" fill="#FFD60A"/>
+<line x1="0" y1="132" x2="1440" y2="132" stroke="#000000" stroke-width="4"/>
+<rect x="40" y="92" width="130" height="30" fill="#000000"/>
+<text x="52" y="113" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#FFD60A">DEMOMODUS</text>
+<text x="190" y="113" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#000000">Innholdet lages av en testmodell, ikke av en ekte språkmodell.</text>
+<text x="40" y="246" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="88" font-weight="900" fill="#000000" letter-spacing="-1">KONTO</text>
+<rect x="48" y="298" width="640" height="260" fill="#000000"/>
+<rect x="40" y="290" width="640" height="260" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="72" y="340" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">E-POST</text>
+<text x="72" y="380" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="24" font-weight="700" fill="#000000">klara@student.no</text>
+<text x="72" y="420" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">Konto opprettet 18.08.2026</text>
+<rect x="78" y="462" width="200" height="60" fill="#000000"/>
+<rect x="72" y="456" width="200" height="60" fill="#1D3FD8" stroke="#000000" stroke-width="4"/>
+<text x="172.0" y="492.48" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">LOGG UT</text>
+<rect x="48" y="608" width="640" height="220" fill="#000000"/>
+<rect x="40" y="600" width="640" height="220" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="72" y="650" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">DINE DATA</text>
+<text x="72" y="690" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#000000">3 emner · 15 forelesninger · 21 PDF-filer</text>
+<text x="72" y="724" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#000000">Alt dette slettes hvis du sletter kontoen.</text>
+<rect x="768" y="298" width="640" height="530" fill="#000000"/>
+<rect x="760" y="290" width="640" height="530" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<rect x="760" y="290" width="640" height="70" fill="#FF5A4E" stroke="#000000" stroke-width="4"/>
+<text x="792" y="336" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="900" fill="#000000">FARESONE</text>
+<text x="792" y="410" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="900" fill="#000000">Slett kontoen</text>
+<text x="792" y="450" font-family="'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="400" fill="#000000"><tspan x="792" dy="0">Alle emner, filer og alt generert innhold – flashcards,</tspan><tspan x="792" dy="30">quiz, huskeregler, fritekstspørsmål og sammendrag –</tspan><tspan x="792" dy="30">slettes for godt.</tspan></text>
+<rect x="792" y="570" width="576" height="48" fill="#FFD60A"/>
+<text x="808" y="601" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="900" fill="#000000">Det kan ikke angres.</text>
+<text x="792" y="668" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">Du får et ekstra bekreftelsessteg før noe slettes.</text>
+<rect x="798" y="706" width="300" height="64" fill="#000000"/>
+<rect x="792" y="700" width="300" height="64" fill="#FF5A4E" stroke="#000000" stroke-width="4"/>
+<text x="942.0" y="739.2" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">SLETT KONTOEN</text>
+</svg>

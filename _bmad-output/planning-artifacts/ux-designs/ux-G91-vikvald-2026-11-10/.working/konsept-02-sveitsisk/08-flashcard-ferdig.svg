@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif">
+<title>Studiekamerat – Økt ferdig</title>
+<rect width="1440" height="900" fill="#FFFFFF"/>
+<text x="72" y="50" font-size="22" font-weight="700" fill="#000000">Studiekamerat</text><text x="512" y="50" font-size="18" font-weight="400" fill="#000000">Uke 37: Merkevare — Flashcards</text><rect x="1168" y="16" width="200" height="48" fill="#FFFFFF" stroke="#000000" stroke-width="2"/><text x="1188" y="45.6" font-size="16" font-weight="700" fill="#000000">Til forelesningen</text><rect x="0" y="80" width="1440" height="1" fill="#000000"/>
+<rect x="72.0" y="104" width="50.17" height="8" fill="#000000"/><rect x="126.17" y="104" width="50.17" height="8" fill="#000000"/><rect x="180.33" y="104" width="50.17" height="8" fill="#000000"/><rect x="234.5" y="104" width="50.17" height="8" fill="#000000"/><rect x="288.67" y="104" width="50.17" height="8" fill="#000000"/><rect x="342.83" y="104" width="50.17" height="8" fill="#000000"/><rect x="397.0" y="104" width="50.17" height="8" fill="#000000"/><rect x="451.17" y="104" width="50.17" height="8" fill="#000000"/><rect x="505.33" y="104" width="50.17" height="8" fill="#000000"/><rect x="559.5" y="104" width="50.17" height="8" fill="#000000"/><rect x="613.67" y="104" width="50.17" height="8" fill="#000000"/><rect x="667.83" y="104" width="50.17" height="8" fill="#000000"/><rect x="722.0" y="104" width="50.17" height="8" fill="#000000"/><rect x="776.17" y="104" width="50.17" height="8" fill="#000000"/><rect x="830.33" y="104" width="50.17" height="8" fill="#000000"/><rect x="884.5" y="104" width="50.17" height="8" fill="#000000"/><rect x="938.67" y="104" width="50.17" height="8" fill="#000000"/><rect x="992.83" y="104" width="50.17" height="8" fill="#000000"/><rect x="1047.0" y="104" width="50.17" height="8" fill="#000000"/><rect x="1101.17" y="104" width="50.17" height="8" fill="#000000"/><rect x="1155.33" y="104" width="50.17" height="8" fill="#000000"/><rect x="1209.5" y="104" width="50.17" height="8" fill="#000000"/><rect x="1263.67" y="104" width="50.17" height="8" fill="#000000"/><rect x="1317.83" y="104" width="50.17" height="8" fill="#000000"/><text x="72" y="142" font-size="16" font-weight="700" fill="#000000">24 av 24 kort</text><text x="1368" y="142" font-size="16" font-weight="400" fill="#555555" text-anchor="end">Økta er fullført</text>
+<text x="66" y="250" font-size="96" font-weight="700" fill="#000000" letter-spacing="-3">Økt ferdig</text>
+<text x="72" y="296" font-size="20" font-weight="400" fill="#555555">Uke 37: Merkevare · 24 flashcards gjennomgått</text>
+<rect x="72" y="340" width="1296" height="2" fill="#000000"/>
+<text x="60" y="590" font-size="260" font-weight="700" fill="#000000" letter-spacing="-12">19</text>
+<text x="72" y="642" font-size="26" font-weight="700" fill="#000000">✓ Kunne</text>
+<text x="506" y="590" font-size="260" font-weight="700" fill="#E2001A" letter-spacing="-12">5</text>
+<text x="512" y="642" font-size="26" font-weight="700" fill="#E2001A">✗ Kunne ikke</text>
+<text x="512" y="672" font-size="16" font-weight="400" fill="#555555">Disse 5 ble repetert til slutt i økta.</text>
+<rect x="940" y="360" width="1" height="340" fill="#000000"/>
+<text x="962" y="390" font-size="16" font-weight="700" fill="#000000" letter-spacing="1.2">HVERT KORT I ØKTA</text>
+<rect x="962" y="414" width="40" height="40" fill="#000000"/>
+<text x="982.0" y="441" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1010" y="414" width="40" height="40" fill="#000000"/>
+<text x="1030.0" y="441" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1058" y="414" width="40" height="40" fill="#000000"/>
+<text x="1078.0" y="441" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1106" y="414" width="40" height="40" fill="#000000"/>
+<text x="1126.0" y="441" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1154" y="414" width="40" height="40" fill="#000000"/>
+<text x="1174.0" y="441" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1202" y="414" width="40" height="40" fill="#E2001A"/>
+<text x="1222.0" y="441" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✗</text>
+<rect x="962" y="462" width="40" height="40" fill="#000000"/>
+<text x="982.0" y="489" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1010" y="462" width="40" height="40" fill="#000000"/>
+<text x="1030.0" y="489" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1058" y="462" width="40" height="40" fill="#000000"/>
+<text x="1078.0" y="489" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1106" y="462" width="40" height="40" fill="#E2001A"/>
+<text x="1126.0" y="489" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✗</text>
+<rect x="1154" y="462" width="40" height="40" fill="#000000"/>
+<text x="1174.0" y="489" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1202" y="462" width="40" height="40" fill="#000000"/>
+<text x="1222.0" y="489" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="962" y="510" width="40" height="40" fill="#000000"/>
+<text x="982.0" y="537" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1010" y="510" width="40" height="40" fill="#000000"/>
+<text x="1030.0" y="537" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1058" y="510" width="40" height="40" fill="#E2001A"/>
+<text x="1078.0" y="537" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✗</text>
+<rect x="1106" y="510" width="40" height="40" fill="#000000"/>
+<text x="1126.0" y="537" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1154" y="510" width="40" height="40" fill="#000000"/>
+<text x="1174.0" y="537" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1202" y="510" width="40" height="40" fill="#000000"/>
+<text x="1222.0" y="537" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="962" y="558" width="40" height="40" fill="#000000"/>
+<text x="982.0" y="585" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1010" y="558" width="40" height="40" fill="#E2001A"/>
+<text x="1030.0" y="585" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✗</text>
+<rect x="1058" y="558" width="40" height="40" fill="#000000"/>
+<text x="1078.0" y="585" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1106" y="558" width="40" height="40" fill="#000000"/>
+<text x="1126.0" y="585" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<rect x="1154" y="558" width="40" height="40" fill="#E2001A"/>
+<text x="1174.0" y="585" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✗</text>
+<rect x="1202" y="558" width="40" height="40" fill="#000000"/>
+<text x="1222.0" y="585" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<text x="962" y="632" font-size="16" font-weight="400" fill="#555555">Svart ✓ = kunne · rød ✗ = kunne ikke</text>
+<rect x="72" y="760" width="306" height="64" fill="#000000"/><text x="92" y="799.0" font-size="20" font-weight="700" fill="#FFFFFF">Øv igjen</text><text x="358" y="799.0" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="end">→</text>
+<rect x="402" y="760" width="416" height="64" fill="#FFFFFF" stroke="#000000" stroke-width="2"/><text x="422" y="799.0" font-size="20" font-weight="700" fill="#000000">Tilbake til forelesningen</text>
+</svg>

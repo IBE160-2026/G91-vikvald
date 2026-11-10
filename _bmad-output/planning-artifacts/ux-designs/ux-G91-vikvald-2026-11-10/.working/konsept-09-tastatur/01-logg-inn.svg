@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" role="img" aria-labelledby="title">
+<title id="title">Studiekamerat – logg inn</title>
+<rect x="0" y="0" width="1440" height="900" fill="#15171C" stroke="none" stroke-width="1" rx="0" />
+<rect x="0" y="0" width="1440" height="44" fill="#0F1115" stroke="none" stroke-width="1" rx="0" />
+<rect x="20" y="13" width="10" height="18" fill="#F5B942" stroke="none" stroke-width="1" rx="1" />
+<text x="40" y="28" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >studiekamerat</text>
+<line x1="0" y1="44" x2="1440" y2="44" stroke="#3A4150" stroke-width="1" />
+<text x="120" y="170" font-size="40" fill="#E8EBF0" font-weight="700" text-anchor="start" >Notatene dine,</text>
+<text x="120" y="220" font-size="40" fill="#F5B942" font-weight="700" text-anchor="start" >øvd på tastaturet.</text>
+<text x="120" y="270" font-size="17" fill="#AEB6C4" font-weight="400" text-anchor="start" >Last opp PDF-notater fra forelesningen.</text>
+<text x="120" y="297" font-size="17" fill="#AEB6C4" font-weight="400" text-anchor="start" >Studiekamerat lager flashcards, quiz, huskeregler</text>
+<text x="120" y="324" font-size="17" fill="#AEB6C4" font-weight="400" text-anchor="start" >og sammendrag – alltid med fil og sidetall som</text>
+<text x="120" y="351" font-size="17" fill="#AEB6C4" font-weight="400" text-anchor="start" >kilde.</text>
+<text x="120" y="420" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">SLIK STYRER DU</text>
+<line x1="277.99199999999996" y1="415" x2="640" y2="415" stroke="#3A4150" stroke-width="1" />
+<rect x="120" y="444" width="95.27" height="24" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="122" y1="467" x2="213.26999999999998" y2="467" stroke="#AEB6C4" stroke-width="2" />
+<text x="167.635" y="461" font-size="15" fill="#E8EBF0" font-weight="700" text-anchor="middle" >Mellomrom</text>
+<text x="250" y="462" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >snu kortet</text>
+<rect x="120" y="486" width="26" height="24" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="122" y1="509" x2="144" y2="509" stroke="#AEB6C4" stroke-width="2" />
+<text x="133.0" y="503" font-size="15" fill="#E8EBF0" font-weight="700" text-anchor="middle" >1</text>
+<text x="250" y="504" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >Kunne</text>
+<rect x="120" y="528" width="26" height="24" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="122" y1="551" x2="144" y2="551" stroke="#AEB6C4" stroke-width="2" />
+<text x="133.0" y="545" font-size="15" fill="#E8EBF0" font-weight="700" text-anchor="middle" >2</text>
+<text x="250" y="546" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >Kunne ikke</text>
+<rect x="120" y="570" width="41.09" height="24" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="122" y1="593" x2="159.09" y2="593" stroke="#AEB6C4" stroke-width="2" />
+<text x="140.54500000000002" y="587" font-size="15" fill="#E8EBF0" font-weight="700" text-anchor="middle" >A–D</text>
+<text x="250" y="588" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >velg svaralternativ</text>
+<rect x="120" y="612" width="26" height="24" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="122" y1="635" x2="144" y2="635" stroke="#AEB6C4" stroke-width="2" />
+<text x="133.0" y="629" font-size="15" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⏎</text>
+<text x="250" y="630" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >bekreft</text>
+<rect x="120" y="654" width="32.06" height="24" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="122" y1="677" x2="150.06" y2="677" stroke="#AEB6C4" stroke-width="2" />
+<text x="136.03" y="671" font-size="15" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⌘K</text>
+<text x="250" y="672" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >kommandopalett – alt er ett søk unna</text>
+<rect x="800" y="120" width="520" height="620" fill="#1C1F26" stroke="#3A4150" stroke-width="1" rx="4" />
+<rect x="800" y="120" width="520" height="44" fill="#252933" stroke="none" stroke-width="1" rx="4" />
+<rect x="800" y="150" width="520" height="14" fill="#252933" stroke="none" stroke-width="1" rx="0" />
+<text x="824" y="148" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >logg-inn</text>
+<text x="1296" y="148" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >Tab = neste felt</text>
+<text x="840" y="220" font-size="30" fill="#E8EBF0" font-weight="700" text-anchor="start" >Logg inn</text>
+<text x="840" y="270" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >E-post</text>
+<rect x="840" y="282" width="440" height="46" fill="#15171C" stroke="#FF8F87" stroke-width="2" rx="3" />
+<text x="856" y="312" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >klara.student</text>
+<text x="840" y="354" font-size="16" fill="#FF8F87" font-weight="400" text-anchor="start" >✗ Feil: E-postadressen mangler @ og domene,</text>
+<text x="840" y="378" font-size="16" fill="#FF8F87" font-weight="400" text-anchor="start" >  f.eks. klara@student.no</text>
+<text x="840" y="420" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >Passord</text>
+<rect x="836" y="428" width="448" height="54" fill="none" stroke="#79C6EA" stroke-width="3" rx="5" />
+<rect x="840" y="432" width="440" height="46" fill="#15171C" stroke="#79C6EA" stroke-width="1" rx="3" />
+<text x="856" y="463" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >••••••••••</text>
+<rect x="960.34" y="444" width="2" height="22" fill="#F5B942" stroke="none" stroke-width="1" rx="0" />
+<text x="1264" y="462" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >vis ⌥V</text>
+<rect x="840" y="520" width="440" height="44" fill="#F5B942" stroke="#F5B942" stroke-width="1" rx="3" />
+<text x="856" y="548" font-size="16" fill="#15171C" font-weight="700" text-anchor="start" >Logg inn</text>
+<rect x="1242" y="531" width="26" height="23" fill="#15171C" stroke="#15171C" stroke-width="1" rx="3" />
+<text x="1255.0" y="548" font-size="14" fill="#F5B942" font-weight="700" text-anchor="middle" >⏎</text>
+<text x="840" y="604" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Har du ikke konto?</text>
+<text x="1023.008" y="604" font-size="16" fill="#79C6EA" font-weight="700" text-anchor="start" text-decoration="underline">Opprett konto</text>
+<rect x="1230" y="587" width="30.855999999999998" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1232" y1="609" x2="1258.856" y2="609" stroke="#AEB6C4" stroke-width="2" />
+<text x="1245.428" y="603" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⌘N</text>
+<rect x="0" y="866" width="1440" height="34" fill="#0F1115" stroke="none" stroke-width="1" rx="0" />
+<line x1="0" y1="866" x2="1440" y2="866" stroke="#3A4150" stroke-width="1" />
+<rect x="0" y="866" width="160" height="34" fill="#F5B942" stroke="none" stroke-width="1" rx="0" />
+<text x="80" y="888" font-size="14" fill="#15171C" font-weight="700" text-anchor="middle" >LOGG INN</text>
+<text x="176" y="888" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >ikke innlogget</text>
+<text x="1420" y="888" font-size="15" fill="#FF8F87" font-weight="400" text-anchor="end" >1 feil i skjemaet · rettes før innlogging</text>
+</svg>

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" role="img" aria-label="Studiekamerat – logg inn">
+<title>Studiekamerat – logg inn</title>
+<rect x="0" y="0" width="1440" height="900" fill="#F5F0E6"/>
+<text x="80" y="40" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#4E473F" font-weight="bold" letter-spacing="1.6">TIRSDAG 10. NOVEMBER 2026</text>
+<text x="1360" y="40" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#4E473F" font-weight="bold" text-anchor="end" letter-spacing="1.6">NORSK · FOR STUDENTER</text>
+<line x1="80" y1="54" x2="1360" y2="54" stroke="#161311" stroke-width="0.75"/>
+<text x="720" y="150" font-family="Georgia, 'Times New Roman', serif" font-size="96" fill="#161311" font-weight="bold" text-anchor="middle" letter-spacing="-1">Studiekamerat</text>
+<text x="720" y="192" font-family="Georgia, 'Times New Roman', serif" font-size="22" fill="#4E473F" text-anchor="middle" font-style="italic">Øvingsstoff fra dine egne forelesningsnotater</text>
+<line x1="80" y1="216" x2="1360" y2="216" stroke="#161311" stroke-width="3"/>
+<line x1="80" y1="222" x2="1360" y2="222" stroke="#161311" stroke-width="0.75"/>
+<text x="80" y="280" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#7B1E17" font-weight="bold" letter-spacing="1.6">OM TJENESTEN</text>
+<text x="80" y="336" font-family="Georgia, 'Times New Roman', serif" font-size="46" fill="#161311" font-weight="bold">Notatene dine, gjort</text>
+<text x="80" y="390" font-family="Georgia, 'Times New Roman', serif" font-size="46" fill="#161311" font-weight="bold">om til øvingsstoff</text>
+<text x="80" y="446" font-family="Georgia, 'Times New Roman', serif" font-size="21" fill="#161311">Last opp forelesningsnotatene dine som PDF.</text>
+<text x="80" y="479" font-family="Georgia, 'Times New Roman', serif" font-size="21" fill="#161311">Studiekamerat lager flashcards, quiz, huskeregler,</text>
+<text x="80" y="512" font-family="Georgia, 'Times New Roman', serif" font-size="21" fill="#161311">fritekstspørsmål og sammendrag – og viser alltid</text>
+<text x="80" y="545" font-family="Georgia, 'Times New Roman', serif" font-size="21" fill="#161311">hvilken side i notatene svaret kommer fra.</text>
+<line x1="80" y1="585" x2="200" y2="585" stroke="#161311" stroke-width="0.75"/>
+<text x="80" y="617" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#4E473F" font-weight="bold" letter-spacing="1.6">SLIK SER EN KILDE UT</text>
+<text x="80" y="653" font-family="Georgia, 'Times New Roman', serif" font-size="20" fill="#161311" font-style="italic">«Merkevareekvitet er merverdien et merke gir et produkt,</text>
+<text x="80" y="683" font-family="Georgia, 'Times New Roman', serif" font-size="20" fill="#161311" font-style="italic">ut over de funksjonelle egenskapene.»<tspan font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="bold" fill="#7B1E17" dy="-8"> 1</tspan></text>
+<text x="80" y="723" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" fill="#4E473F"><tspan fill="#7B1E17" font-weight="bold">1</tspan> merkevare-notater.pdf, side 4</text>
+<line x1="720" y1="262" x2="720" y2="860" stroke="#161311" stroke-width="0.75"/>
+<text x="800" y="280" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#7B1E17" font-weight="bold" letter-spacing="1.6">LOGG INN</text>
+<text x="800" y="336" font-family="Georgia, 'Times New Roman', serif" font-size="40" fill="#161311" font-weight="bold">Velkommen tilbake</text>
+<text x="800" y="374" font-family="Georgia, 'Times New Roman', serif" font-size="18" fill="#4E473F" font-style="italic">Logg inn for å øve på emnene dine.</text>
+<text x="800" y="430" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" fill="#161311" font-weight="bold">E-postadresse</text>
+<rect x="800" y="442" width="480" height="52" fill="#FFFDF8" stroke="#161311" stroke-width="1.5"/>
+<text x="816" y="475" font-family="Georgia, 'Times New Roman', serif" font-size="18" fill="#161311">klara@eksempel.no</text>
+<text x="800" y="540" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" fill="#161311" font-weight="bold">Passord</text>
+<rect x="800" y="552" width="480" height="52" fill="#FFFDF8" stroke="#7B1E17" stroke-width="2.5"/>
+<circle cx="822" cy="578" r="5" fill="#161311"/>
+<circle cx="838" cy="578" r="5" fill="#161311"/>
+<circle cx="854" cy="578" r="5" fill="#161311"/>
+<circle cx="870" cy="578" r="5" fill="#161311"/>
+<circle cx="886" cy="578" r="5" fill="#161311"/>
+<circle cx="902" cy="578" r="5" fill="#161311"/>
+<circle cx="918" cy="578" r="5" fill="#161311"/>
+<circle cx="934" cy="578" r="5" fill="#161311"/>
+<circle cx="950" cy="578" r="5" fill="#161311"/>
+<rect x="795" y="547" width="490" height="62" fill="none" stroke="#7B1E17" stroke-width="3"/>
+<text x="800" y="634" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" fill="#7B1E17" font-weight="bold">✗ Feil e-post eller passord. Prøv igjen.</text>
+<rect x="800" y="680" width="480" height="56" fill="#161311"/>
+<text x="1040.0" y="714.3" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" fill="#F5F0E6" font-weight="bold" text-anchor="middle">Logg inn</text>
+<line x1="800" y1="774" x2="1280" y2="774" stroke="#161311" stroke-width="0.75"/>
+<text x="800" y="810" font-family="Georgia, 'Times New Roman', serif" font-size="18" fill="#161311">Ny her?</text>
+<text x="872" y="810" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" fill="#7B1E17" font-weight="bold" text-decoration="underline">Opprett konto</text>
+<text x="800" y="846" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" fill="#4E473F">Du lager konto med e-post og passord.</text>
+</svg>

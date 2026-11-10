@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" role="img" aria-labelledby="title">
+<title id="title">Studiekamerat – fritekstspørsmål 2 av 10 med modellsvar</title>
+<rect x="0" y="0" width="1440" height="900" fill="#15171C" stroke="none" stroke-width="1" rx="0" />
+<rect x="0" y="0" width="1440" height="44" fill="#0F1115" stroke="none" stroke-width="1" rx="0" />
+<rect x="20" y="13" width="10" height="18" fill="#F5B942" stroke="none" stroke-width="1" rx="1" />
+<text x="40" y="28" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >studiekamerat</text>
+<text x="196" y="28" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >~/markedsføring/uke-37-merkevare/fritekst</text>
+<rect x="810" y="8" width="380" height="28" fill="#252933" stroke="#3A4150" stroke-width="1" rx="3" />
+<text x="824" y="27" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Søk eller kjør kommando …</text>
+<rect x="1140" y="11" width="29.652" height="22" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1142" y1="32" x2="1167.652" y2="32" stroke="#AEB6C4" stroke-width="2" />
+<text x="1154.826" y="26" font-size="13" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⌘K</text>
+<text x="1218" y="28" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Konto</text>
+<text x="1294" y="28" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Logg ut</text>
+<line x1="0" y1="44" x2="1440" y2="44" stroke="#3A4150" stroke-width="1" />
+<rect x="0" y="44" width="300" height="822" fill="#1C1F26" stroke="none" stroke-width="1" rx="2" />
+<line x1="300" y1="44" x2="300" y2="866" stroke="#3A4150" stroke-width="1" />
+<text x="24" y="80" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">ØKT</text>
+<text x="24" y="112" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >Fritekst</text>
+<text x="24" y="138" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 37: Merkevare</text>
+<text x="24" y="186" font-size="34" fill="#F5B942" font-weight="700" text-anchor="start" >2 / 10</text>
+<rect x="24" y="204" width="252" height="8" fill="#252933" stroke="none" stroke-width="1" rx="1" />
+<rect x="24" y="204" width="25.2" height="8" fill="#F5B942" stroke="none" stroke-width="1" rx="1" />
+<rect x="24" y="250" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="42" y="274" font-size="16" fill="#AEB6C4" font-weight="700" text-anchor="middle" >◐</text>
+<rect x="63" y="247" width="42" height="42" fill="none" stroke="#79C6EA" stroke-width="2" rx="4" />
+<rect x="66" y="250" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="84" y="274" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="middle" >2</text>
+<rect x="108" y="250" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="126" y="274" font-size="16" fill="#AEB6C4" font-weight="700" text-anchor="middle" >·</text>
+<rect x="150" y="250" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="168" y="274" font-size="16" fill="#AEB6C4" font-weight="700" text-anchor="middle" >·</text>
+<rect x="192" y="250" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="210" y="274" font-size="16" fill="#AEB6C4" font-weight="700" text-anchor="middle" >·</text>
+<rect x="234" y="250" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="252" y="274" font-size="16" fill="#AEB6C4" font-weight="700" text-anchor="middle" >·</text>
+<rect x="24" y="292" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="42" y="316" font-size="16" fill="#AEB6C4" font-weight="700" text-anchor="middle" >·</text>
+<rect x="66" y="292" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="84" y="316" font-size="16" fill="#AEB6C4" font-weight="700" text-anchor="middle" >·</text>
+<rect x="108" y="292" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="126" y="316" font-size="16" fill="#AEB6C4" font-weight="700" text-anchor="middle" >·</text>
+<rect x="150" y="292" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="168" y="316" font-size="16" fill="#AEB6C4" font-weight="700" text-anchor="middle" >·</text>
+<text x="24" y="364" font-size="16" fill="#6FD39A" font-weight="700" text-anchor="start" >✓</text>
+<text x="50" y="364" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Riktig</text>
+<text x="24" y="392" font-size="16" fill="#F5B942" font-weight="700" text-anchor="start" >◐</text>
+<text x="50" y="392" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Delvis riktig</text>
+<text x="24" y="420" font-size="16" fill="#FF8F87" font-weight="700" text-anchor="start" >✗</text>
+<text x="50" y="420" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Feil</text>
+<line x1="24" y1="790" x2="276" y2="790" stroke="#3A4150" stroke-width="1" />
+<rect x="24" y="815" width="39.284" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="26" y1="837" x2="61.284" y2="837" stroke="#AEB6C4" stroke-width="2" />
+<text x="43.641999999999996" y="831" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >Esc</text>
+<text x="72" y="832" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Avslutt økt</text>
+<text x="360" y="96" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">FRITEKST · SPØRSMÅL 2 AV 10</text>
+<text x="360" y="136" font-size="24" fill="#E8EBF0" font-weight="700" text-anchor="start" >Forklar forskjellen på segmentering og posisjonering, og gi et</text>
+<text x="360" y="170" font-size="24" fill="#E8EBF0" font-weight="700" text-anchor="start" >eksempel.</text>
+<text x="360" y="222" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >Ditt svar</text>
+<rect x="360" y="236" width="490" height="354" fill="#15171C" stroke="#79C6EA" stroke-width="1.5" rx="3" />
+<rect x="360" y="236" width="40" height="354" fill="#1C1F26" stroke="none" stroke-width="1" rx="0" />
+<text x="390" y="266" font-size="14" fill="#AEB6C4" font-weight="400" text-anchor="end" >1</text>
+<text x="414" y="266" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Segmentering er å dele markedet i grupper</text>
+<text x="390" y="292" font-size="14" fill="#AEB6C4" font-weight="400" text-anchor="end" >2</text>
+<text x="414" y="292" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >med like behov, f.eks. etter alder eller</text>
+<text x="390" y="318" font-size="14" fill="#AEB6C4" font-weight="400" text-anchor="end" >3</text>
+<text x="414" y="318" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >livsstil. Posisjonering er hvordan merket</text>
+<text x="390" y="344" font-size="14" fill="#AEB6C4" font-weight="400" text-anchor="end" >4</text>
+<text x="414" y="344" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >skal oppfattes i hodet til gruppen man har</text>
+<text x="390" y="370" font-size="14" fill="#AEB6C4" font-weight="400" text-anchor="end" >5</text>
+<text x="414" y="370" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >valgt. Eksempel: Tesla velger kjøpesterke</text>
+<text x="390" y="396" font-size="14" fill="#AEB6C4" font-weight="400" text-anchor="end" >6</text>
+<text x="414" y="396" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >som bryr seg om miljø og posisjonerer seg</text>
+<text x="390" y="422" font-size="14" fill="#AEB6C4" font-weight="400" text-anchor="end" >7</text>
+<text x="414" y="422" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >som teknologisk og grønn.</text>
+<rect x="656.8" y="404" width="2" height="22" fill="#F5B942" stroke="none" stroke-width="1" rx="0" />
+<text x="360" y="616" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >44 ord · lagres automatisk</text>
+<text x="890" y="222" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >Modellsvar</text>
+<rect x="890" y="236" width="490" height="354" fill="#252933" stroke="#3A4150" stroke-width="1" rx="3" />
+<text x="910" y="268" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Segmentering deler markedet inn i grupper med</text>
+<text x="910" y="293" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >like behov og kjennetegn. Posisjonering er å</text>
+<text x="910" y="318" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >skape et tydelig og ønsket bilde av merket i</text>
+<text x="910" y="343" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >bevisstheten til det valgte segmentet.</text>
+<text x="910" y="378" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Eksempel: Volvo retter seg mot barnefamilier</text>
+<text x="910" y="403" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >(segment) og posisjonerer seg på sikkerhet.</text>
+<text x="910" y="568" font-size="15" fill="#79C6EA" font-weight="400" text-anchor="start" >kilde: merkevare-notater.pdf, side 6–7</text>
+<text x="360" y="666" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >Selvvurdering – hvor godt traff svaret ditt?</text>
+<rect x="360" y="686" width="260" height="44" fill="#1C1F26" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="376" y="714" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >✓ Riktig</text>
+<rect x="582" y="697" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="595.0" y="714" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >1</text>
+<rect x="635" y="681" width="270" height="54" fill="none" stroke="#79C6EA" stroke-width="3" rx="5" />
+<rect x="640" y="686" width="260" height="44" fill="#1C1F26" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="656" y="714" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >◐ Delvis riktig</text>
+<rect x="862" y="697" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="875.0" y="714" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >2</text>
+<rect x="920" y="686" width="260" height="44" fill="#1C1F26" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="936" y="714" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >✗ Feil</text>
+<rect x="1142" y="697" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="1155.0" y="714" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >3</text>
+<rect x="360" y="773" width="30.855999999999998" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="362" y1="795" x2="388.856" y2="795" stroke="#AEB6C4" stroke-width="2" />
+<text x="375.428" y="789" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⌘⏎</text>
+<text x="398.856" y="790" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >vis modellsvar</text>
+<rect x="551.2760000000001" y="773" width="39.284" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="553.2760000000001" y1="795" x2="588.5600000000001" y2="795" stroke="#AEB6C4" stroke-width="2" />
+<text x="570.9180000000001" y="789" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >1–3</text>
+<text x="598.5600000000001" y="790" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >vurder</text>
+<rect x="678.74" y="773" width="39.284" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="680.74" y1="795" x2="716.024" y2="795" stroke="#AEB6C4" stroke-width="2" />
+<text x="698.3820000000001" y="789" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >Esc</text>
+<text x="726.024" y="790" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >avslutt</text>
+<rect x="0" y="866" width="1440" height="34" fill="#0F1115" stroke="none" stroke-width="1" rx="0" />
+<line x1="0" y1="866" x2="1440" y2="866" stroke="#3A4150" stroke-width="1" />
+<rect x="0" y="866" width="53.284" height="34" fill="#F5B942" stroke="none" stroke-width="1" rx="0" />
+<text x="26.642" y="888" font-size="14" fill="#15171C" font-weight="700" text-anchor="middle" >ØKT</text>
+<text x="69.28399999999999" y="888" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Fritekst · spørsmål 2 av 10</text>
+<text x="1420" y="888" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >demomodus av</text>
+</svg>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif">
+<title>Studiekamerat – Uke 37: Merkevare</title>
+<rect width="1440" height="900" fill="#FFFFFF"/>
+<text x="72" y="50" font-size="22" font-weight="700" fill="#000000">Studiekamerat</text><rect x="72" y="18" width="0" height="0" fill="none"/><rect x="622" y="36" width="12" height="12" fill="#E2001A"/><text x="644" y="48" font-size="16" font-weight="700" fill="#000000">1 jobb pågår</text><text x="952" y="50" font-size="18" font-weight="700" fill="#000000">Emner</text><rect x="952" y="74" width="86" height="6" fill="#E2001A"/><text x="1062" y="50" font-size="18" font-weight="400" fill="#000000">Konto</text><text x="1368" y="50" font-size="18" font-weight="400" fill="#000000" text-anchor="end">Logg ut</text><rect x="0" y="80" width="1440" height="1" fill="#000000"/>
+<text x="72" y="124" font-size="16" font-weight="400" fill="#000000">Emner</text><rect x="72" y="128" width="40" height="1" fill="#000000"/><text x="124.0" y="124" font-size="16" font-weight="400" fill="#555555">/</text><text x="146.0" y="124" font-size="16" font-weight="400" fill="#000000">Markedsføring</text><rect x="146.0" y="128" width="104" height="1" fill="#000000"/><text x="262.0" y="124" font-size="16" font-weight="400" fill="#555555">/</text><text x="284.0" y="124" font-size="16" font-weight="700" fill="#000000">Uke 37: Merkevare</text>
+<text x="72" y="172" font-size="16" font-weight="700" fill="#E2001A" letter-spacing="1.2">UKE 37 · 11.09.2026</text>
+<text x="66" y="260" font-size="96" font-weight="700" fill="#000000" letter-spacing="-3">Merkevare</text>
+<text x="72" y="330" font-size="16" font-weight="700" fill="#000000" letter-spacing="1.2">FILER</text>
+<text x="488" y="330" font-size="16" font-weight="400" fill="#555555" text-anchor="end">2 filer · 18 sider</text>
+<rect x="72" y="344" width="416" height="2" fill="#000000"/>
+<text x="72" y="380" font-size="18" font-weight="700" fill="#000000">merkevare-notater.pdf</text>
+<text x="72" y="406" font-size="16" font-weight="400" fill="#555555">12 sider</text>
+<text x="488" y="406" font-size="16" font-weight="400" fill="#000000" text-anchor="end">Slett</text>
+<rect x="450" y="410" width="38" height="1" fill="#000000"/>
+<text x="430" y="406" font-size="16" font-weight="400" fill="#000000" text-anchor="end">Erstatt</text>
+<rect x="376" y="410" width="54" height="1" fill="#000000"/>
+<rect x="72" y="425" width="416" height="1" fill="#000000"/>
+<text x="72" y="460" font-size="18" font-weight="700" fill="#000000">merkevare-forelesning2.pdf</text>
+<text x="72" y="486" font-size="16" font-weight="400" fill="#555555">6 sider</text>
+<text x="488" y="486" font-size="16" font-weight="400" fill="#000000" text-anchor="end">Slett</text>
+<rect x="450" y="490" width="38" height="1" fill="#000000"/>
+<text x="430" y="486" font-size="16" font-weight="400" fill="#000000" text-anchor="end">Erstatt</text>
+<rect x="376" y="490" width="54" height="1" fill="#000000"/>
+<rect x="72" y="505" width="416" height="1" fill="#000000"/>
+<rect x="72" y="530" width="416" height="210" fill="#FFFFFF" stroke="#000000" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="100" y="588" font-size="26" font-weight="700" fill="#000000" letter-spacing="-0.5">Dra og slipp PDF her</text>
+<text x="100" y="618" font-size="16" font-weight="400" fill="#555555">Bare PDF. Inntil 20 MB per fil.</text>
+<rect x="100" y="648" width="200" height="56" fill="#FFFFFF" stroke="#000000" stroke-width="2"/><text x="120" y="682.3" font-size="18" font-weight="700" fill="#000000">Velg PDF</text>
+<text x="622" y="330" font-size="16" font-weight="700" fill="#000000" letter-spacing="1.2">LAG INNHOLD</text>
+<text x="1368" y="330" font-size="16" font-weight="400" fill="#555555" text-anchor="end">Alt innhold viser kilde: fil og side</text>
+<rect x="622" y="344" width="746" height="2" fill="#000000"/>
+<text x="708" y="416" font-size="64" font-weight="700" fill="#000000" text-anchor="end" letter-spacing="-2">24</text>
+<text x="742" y="390" font-size="24" font-weight="700" fill="#000000">Flashcards</text>
+<text x="742" y="418" font-size="16" font-weight="400" fill="#555555">24 kort fra 2 filer</text>
+<rect x="1062" y="372" width="145" height="48" fill="#FFFFFF" stroke="#000000" stroke-width="2"/><text x="1082" y="401.6" font-size="16" font-weight="700" fill="#000000">Lag nye</text>
+<rect x="1223" y="372" width="145" height="48" fill="#000000"/><text x="1243" y="401.6" font-size="16" font-weight="700" fill="#FFFFFF">Øv</text><text x="1348" y="401.6" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="end">→</text>
+<rect x="622" y="445" width="746" height="1" fill="#000000"/>
+<text x="708" y="516" font-size="64" font-weight="700" fill="#000000" text-anchor="end" letter-spacing="-2">15</text>
+<text x="742" y="490" font-size="24" font-weight="700" fill="#000000">Quiz</text>
+<text x="742" y="518" font-size="16" font-weight="400" fill="#555555">15 spørsmål</text>
+<rect x="1048" y="447" width="4" height="98" fill="#E2001A"/>
+<text x="1062" y="480" font-size="16" font-weight="700" fill="#000000">Lager quizspørsmål …</text>
+<text x="1062" y="502" font-size="16" font-weight="400" fill="#000000">du kan bruke resten av appen imens.</text>
+<rect x="1062" y="518" width="306" height="8" fill="#D9D9D9"/>
+<rect x="1062" y="518" width="122" height="8" fill="#E2001A"/>
+<rect x="622" y="545" width="746" height="1" fill="#000000"/>
+<text x="708" y="616" font-size="64" font-weight="700" fill="#000000" text-anchor="end" letter-spacing="-2">3</text>
+<text x="742" y="590" font-size="24" font-weight="700" fill="#000000">Huskeregler</text>
+<text x="742" y="618" font-size="16" font-weight="400" fill="#555555">3 modellkort</text>
+<rect x="1062" y="572" width="145" height="48" fill="#FFFFFF" stroke="#000000" stroke-width="2"/><text x="1082" y="601.6" font-size="16" font-weight="700" fill="#000000">Lag nye</text>
+<rect x="1223" y="572" width="145" height="48" fill="#000000"/><text x="1243" y="601.6" font-size="16" font-weight="700" fill="#FFFFFF">Øv</text><text x="1348" y="601.6" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="end">→</text>
+<rect x="622" y="645" width="746" height="1" fill="#000000"/>
+<text x="708" y="716" font-size="64" font-weight="700" fill="#767676" text-anchor="end" letter-spacing="-2">0</text>
+<text x="742" y="690" font-size="24" font-weight="700" fill="#000000">Fritekstspørsmål</text>
+<text x="742" y="718" font-size="16" font-weight="400" fill="#555555">Ikke laget ennå</text>
+<rect x="1062" y="672" width="306" height="48" fill="#FFFFFF" stroke="#000000" stroke-width="2"/><text x="1082" y="701.6" font-size="16" font-weight="700" fill="#000000">Lag fritekstspørsmål</text><text x="1348" y="701.6" font-size="20" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<rect x="622" y="745" width="746" height="1" fill="#000000"/>
+<text x="708" y="816" font-size="64" font-weight="700" fill="#767676" text-anchor="end" letter-spacing="-2">–</text>
+<text x="742" y="790" font-size="24" font-weight="700" fill="#000000">Sammendrag</text>
+<text x="742" y="818" font-size="16" font-weight="400" fill="#555555">Ikke laget ennå</text>
+<rect x="1062" y="772" width="306" height="48" fill="#FFFFFF" stroke="#000000" stroke-width="2"/><text x="1082" y="801.6" font-size="16" font-weight="700" fill="#000000">Lag sammendrag</text><text x="1348" y="801.6" font-size="20" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<rect x="622" y="845" width="746" height="1" fill="#000000"/>
+</svg>

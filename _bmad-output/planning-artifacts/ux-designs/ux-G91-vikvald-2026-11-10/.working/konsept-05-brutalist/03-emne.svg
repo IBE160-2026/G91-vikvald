@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" role="img" aria-label="Studiekamerat – emnet Markedsføring">
+<title>Studiekamerat – emnet Markedsføring</title>
+<rect x="0" y="0" width="1440" height="900" fill="#F3EFE4"/>
+<rect x="0" y="0" width="1440" height="76" fill="#FFFFFF"/>
+<rect x="0" y="0" width="320" height="76" fill="#FFD60A"/>
+<text x="28" y="49" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="900" fill="#000000" letter-spacing="0.5">STUDIEKAMERAT</text>
+<line x1="320" y1="0" x2="320" y2="76" stroke="#000000" stroke-width="4"/>
+<text x="352" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000" text-decoration="underline">EMNER</text>
+<text x="412.0" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">/</text>
+<text x="436.0" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">MARKEDSFØRING</text>
+<text x="1008" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">klara@student.no</text>
+<rect x="1186" y="22" width="104" height="40" fill="#000000"/>
+<rect x="1182" y="18" width="104" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1234.0" y="43.4" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">KONTO</text>
+<rect x="1306" y="22" width="112" height="40" fill="#000000"/>
+<rect x="1302" y="18" width="112" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1358.0" y="43.4" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">LOGG UT</text>
+<line x1="0" y1="76" x2="1440" y2="76" stroke="#000000" stroke-width="4"/>
+<text x="40" y="170" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="72" font-weight="900" fill="#000000" letter-spacing="-1">MARKEDSFØRING</text>
+<text x="44" y="208" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">8 FORELESNINGER · SORTERT ETTER DATO, ELDST FØRST</text>
+<rect x="786" y="134" width="220" height="56" fill="#000000"/>
+<rect x="780" y="128" width="220" height="56" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="890.0" y="162.12" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">+ NY FORELESNING</text>
+<rect x="50" y="250" width="960" height="560" fill="#000000"/>
+<rect x="40" y="240" width="960" height="560" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<rect x="40" y="240" width="960" height="48" fill="#000000" stroke="#000000" stroke-width="4"/>
+<text x="60" y="271" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="15" font-weight="700" fill="#FFD60A">DATO</text>
+<text x="160" y="271" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="15" font-weight="700" fill="#FFD60A">FORELESNING</text>
+<text x="600" y="271" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="15" font-weight="700" fill="#FFD60A">FILER</text>
+<text x="690" y="271" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="15" font-weight="700" fill="#FFD60A">KORT</text>
+<text x="780" y="271" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="15" font-weight="700" fill="#FFD60A">QUIZ</text>
+<text x="870" y="271" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="15" font-weight="700" fill="#FFD60A">STATUS</text>
+<text x="60" y="327" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">21.08</text>
+<text x="160" y="327" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#000000" text-decoration="underline">Uke 34: Hva er markedsføring?</text>
+<text x="600" y="327" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">2</text>
+<text x="690" y="327" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">20</text>
+<text x="780" y="327" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">12</text>
+<text x="870" y="327" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">✓ klar</text>
+<line x1="40" y1="352" x2="1000" y2="352" stroke="#000000" stroke-width="2"/>
+<text x="60" y="391" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">28.08</text>
+<text x="160" y="391" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#000000" text-decoration="underline">Uke 35: Kjøpsatferd</text>
+<text x="600" y="391" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">1</text>
+<text x="690" y="391" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">18</text>
+<text x="780" y="391" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">10</text>
+<text x="870" y="391" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">✓ klar</text>
+<line x1="40" y1="416" x2="1000" y2="416" stroke="#000000" stroke-width="2"/>
+<text x="60" y="455" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">04.09</text>
+<text x="160" y="455" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#000000" text-decoration="underline">Uke 36: Segmentering og posisjonering</text>
+<text x="600" y="455" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">2</text>
+<text x="690" y="455" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">26</text>
+<text x="780" y="455" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">15</text>
+<text x="870" y="455" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">✓ klar</text>
+<line x1="40" y1="480" x2="1000" y2="480" stroke="#000000" stroke-width="2"/>
+<rect x="42" y="482" width="956" height="60" fill="#FFD60A"/>
+<text x="60" y="519" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">11.09</text>
+<text x="160" y="519" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#000000" text-decoration="underline">Uke 37: Merkevare</text>
+<text x="600" y="519" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">2</text>
+<text x="690" y="519" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">24</text>
+<text x="780" y="519" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">15</text>
+<text x="870" y="519" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">✓ klar</text>
+<line x1="40" y1="544" x2="1000" y2="544" stroke="#000000" stroke-width="2"/>
+<text x="60" y="583" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">18.09</text>
+<text x="160" y="583" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#000000" text-decoration="underline">Uke 38: Markedsmiksen</text>
+<text x="600" y="583" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">1</text>
+<text x="690" y="583" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">22</text>
+<text x="780" y="583" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">14</text>
+<text x="870" y="583" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">✓ klar</text>
+<line x1="40" y1="608" x2="1000" y2="608" stroke="#000000" stroke-width="2"/>
+<text x="60" y="647" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">25.09</text>
+<text x="160" y="647" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#000000" text-decoration="underline">Uke 39: Prising</text>
+<text x="600" y="647" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">1</text>
+<text x="690" y="647" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">16</text>
+<text x="780" y="647" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">12</text>
+<text x="870" y="647" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">✓ klar</text>
+<line x1="40" y1="672" x2="1000" y2="672" stroke="#000000" stroke-width="2"/>
+<text x="60" y="711" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">02.10</text>
+<text x="160" y="711" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#000000" text-decoration="underline">Uke 40: Distribusjon</text>
+<text x="600" y="711" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">1</text>
+<text x="690" y="711" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">0</text>
+<text x="780" y="711" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">0</text>
+<rect x="870" y="689" width="87" height="28" fill="#FFD60A" stroke="#000000" stroke-width="3"/>
+<text x="880" y="708.04" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="14" font-weight="700" fill="#000000">IKKE ØVD</text>
+<line x1="40" y1="736" x2="1000" y2="736" stroke="#000000" stroke-width="2"/>
+<text x="60" y="775" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">09.10</text>
+<text x="160" y="775" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#000000" text-decoration="underline">Uke 41: Markedskommunikasjon</text>
+<text x="600" y="775" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">0</text>
+<text x="690" y="775" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">0</text>
+<text x="780" y="775" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">0</text>
+<rect x="870" y="753" width="112" height="28" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+<text x="880" y="772.04" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="14" font-weight="700" fill="#000000">INGEN FILER</text>
+<text x="44" y="844" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">«Ikke øvd ennå»: last opp en PDF og lag innhold på forelesningssiden.</text>
+<rect x="1058" y="138" width="352" height="712" fill="#000000"/>
+<rect x="1048" y="128" width="352" height="712" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<rect x="1048" y="128" width="352" height="72" fill="#000000" stroke="#000000" stroke-width="4"/>
+<text x="1072" y="174" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="900" fill="#FFD60A">ØV PÅ HELE EMNET</text>
+<text x="1072" y="236" font-family="'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="400" fill="#000000"><tspan x="1072" dy="0">Blander stoff fra alle</tspan><tspan x="1072" dy="24">forelesninger med innhold.</tspan></text>
+<text x="1072" y="300" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">FLASHCARDS</text>
+<text x="1072" y="330" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#000000">126 kort fra 6 forelesninger</text>
+<rect x="1078" y="358" width="296" height="56" fill="#000000"/>
+<rect x="1072" y="352" width="296" height="56" fill="#1D3FD8" stroke="#000000" stroke-width="4"/>
+<text x="1220.0" y="386.12" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">ØV PÅ FLASHCARDS →</text>
+<line x1="1072" y1="440" x2="1376" y2="440" stroke="#000000" stroke-width="2" stroke-dasharray="6 6"/>
+<text x="1072" y="476" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">QUIZ</text>
+<text x="1072" y="506" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#000000">78 spørsmål fra 6 forelesninger</text>
+<rect x="1078" y="534" width="296" height="56" fill="#000000"/>
+<rect x="1072" y="528" width="296" height="56" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="1220.0" y="562.12" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">TA QUIZ →</text>
+<line x1="1072" y1="616" x2="1376" y2="616" stroke="#000000" stroke-width="2" stroke-dasharray="6 6"/>
+<text x="1072" y="652" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">FRITEKST</text>
+<text x="1072" y="682" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#000000">Langsvar med modellsvar</text>
+<rect x="1078" y="710" width="296" height="56" fill="#000000"/>
+<rect x="1072" y="704" width="296" height="56" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1220.0" y="738.12" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">SVAR MED FRITEKST →</text>
+<text x="1072" y="816" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">(hele emnet)</text>
+</svg>

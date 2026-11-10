@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" role="img" aria-label="Studiekamerat – modellkort AIDA, snudd">
+<title>Studiekamerat – modellkort AIDA, snudd</title>
+<rect x="0" y="0" width="1440" height="900" fill="#F3EFE4"/>
+<rect x="0" y="0" width="1440" height="76" fill="#000000"/>
+<rect x="24" y="16" width="200" height="44" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="124.0" y="43.76" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">✕ AVSLUTT ØKT</text>
+<text x="256" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#FFFFFF">HUSKEREGLER · MARKEDSFØRING / UKE 37: MERKEVARE</text>
+<text x="1416" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#FFD60A" text-anchor="end">MODELLKORT 2 / 3</text>
+<rect x="0" y="76" width="1440" height="16" fill="#FFFFFF"/>
+<rect x="0" y="76" width="480" height="16" fill="#FFD60A" stroke="#000000" stroke-width="2"/>
+<rect x="480" y="76" width="480" height="16" fill="#1D3FD8" stroke="#000000" stroke-width="2"/>
+<rect x="960" y="76" width="480" height="16" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
+<line x1="0" y1="93" x2="1440" y2="93" stroke="#000000" stroke-width="4"/>
+<rect x="176" y="152" width="1120" height="640" fill="#000000"/>
+<rect x="160" y="136" width="1120" height="640" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<rect x="160" y="136" width="1120" height="96" fill="#F3EFE4" stroke="#000000" stroke-width="4"/>
+<text x="192" y="174" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">FORSIDE</text>
+<text x="192" y="212" font-family="'Helvetica Neue', Arial, sans-serif" font-size="28" font-weight="700" fill="#000000">Forklar AIDA-modellen</text>
+<rect x="160" y="232" width="150" height="36" fill="#000000"/>
+<text x="180" y="257" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#FFD60A">BAKSIDE</text>
+<rect x="192" y="296" width="68" height="68" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="226" y="346" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="900" fill="#000000" text-anchor="middle">A</text>
+<text x="284" y="340" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="28" font-weight="900" fill="#000000">Attention</text>
+<text x="500" y="340" font-family="'Helvetica Neue', Arial, sans-serif" font-size="24" font-weight="400" fill="#000000">(oppmerksomhet)</text>
+<text x="226" y="374" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="14" font-weight="700" fill="#000000" text-anchor="middle">↓</text>
+<rect x="192" y="376" width="68" height="68" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="226" y="426" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="900" fill="#000000" text-anchor="middle">I</text>
+<text x="284" y="420" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="28" font-weight="900" fill="#000000">Interest</text>
+<text x="500" y="420" font-family="'Helvetica Neue', Arial, sans-serif" font-size="24" font-weight="400" fill="#000000">(interesse)</text>
+<text x="226" y="454" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="14" font-weight="700" fill="#000000" text-anchor="middle">↓</text>
+<rect x="192" y="456" width="68" height="68" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="226" y="506" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="900" fill="#000000" text-anchor="middle">D</text>
+<text x="284" y="500" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="28" font-weight="900" fill="#000000">Desire</text>
+<text x="500" y="500" font-family="'Helvetica Neue', Arial, sans-serif" font-size="24" font-weight="400" fill="#000000">(ønske)</text>
+<text x="226" y="534" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="14" font-weight="700" fill="#000000" text-anchor="middle">↓</text>
+<rect x="192" y="536" width="68" height="68" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="226" y="586" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="900" fill="#000000" text-anchor="middle">A</text>
+<text x="284" y="580" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="28" font-weight="900" fill="#000000">Action</text>
+<text x="500" y="580" font-family="'Helvetica Neue', Arial, sans-serif" font-size="24" font-weight="400" fill="#000000">(handling)</text>
+<rect x="800" y="296" width="448" height="308" fill="#000000"/>
+<text x="828" y="340" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#FFD60A">HUSKEREGEL</text>
+<text x="828" y="456" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="110" font-weight="900" fill="#FFD60A" letter-spacing="4">AIDA</text>
+<text x="828" y="516" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#FFFFFF"><tspan x="828" dy="0">Første bokstav i hvert steg: fra å bli</tspan><tspan x="828" dy="27">lagt merke til, til å kjøpe.</tspan></text>
+<rect x="192" y="710" width="370" height="32" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+<rect x="192" y="710" width="68" height="32" fill="#000000" stroke="#000000" stroke-width="3"/>
+<text x="202" y="731.76" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#FFD60A">KILDE</text>
+<text x="272" y="731.76" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">merkevare-notater.pdf, side 9</text>
+<rect x="973" y="705" width="280" height="52" fill="#000000"/>
+<rect x="968" y="700" width="280" height="52" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1108.0" y="732.12" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">✎ ENDRE HUSKEREGEL</text>
+<rect x="166" y="818" width="220" height="60" fill="#000000"/>
+<rect x="160" y="812" width="220" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="270.0" y="848.48" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">← FORRIGE</text>
+<rect x="1066" y="818" width="220" height="60" fill="#000000"/>
+<rect x="1060" y="812" width="220" height="60" fill="#1D3FD8" stroke="#000000" stroke-width="4"/>
+<text x="1170.0" y="848.48" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">NESTE →</text>
+<text x="720" y="850" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000" text-anchor="middle">Huskeregelen er laget av KI – sjekk mot kilden.</text>
+</svg>

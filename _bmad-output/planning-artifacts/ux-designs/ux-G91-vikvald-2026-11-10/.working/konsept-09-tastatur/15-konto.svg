@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" role="img" aria-labelledby="title">
+<title id="title">Studiekamerat – konto</title>
+<rect x="0" y="0" width="1440" height="900" fill="#15171C" stroke="none" stroke-width="1" rx="0" />
+<rect x="0" y="0" width="1440" height="44" fill="#0F1115" stroke="none" stroke-width="1" rx="0" />
+<rect x="20" y="13" width="10" height="18" fill="#F5B942" stroke="none" stroke-width="1" rx="1" />
+<text x="40" y="28" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >studiekamerat</text>
+<text x="196" y="28" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >~/konto</text>
+<rect x="810" y="8" width="380" height="28" fill="#252933" stroke="#3A4150" stroke-width="1" rx="3" />
+<text x="824" y="27" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Søk eller kjør kommando …</text>
+<rect x="1140" y="11" width="29.652" height="22" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1142" y1="32" x2="1167.652" y2="32" stroke="#AEB6C4" stroke-width="2" />
+<text x="1154.826" y="26" font-size="13" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⌘K</text>
+<text x="1218" y="28" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Konto</text>
+<text x="1294" y="28" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Logg ut</text>
+<line x1="0" y1="44" x2="1440" y2="44" stroke="#3A4150" stroke-width="1" />
+<rect x="0" y="44" width="300" height="822" fill="#1C1F26" stroke="none" stroke-width="1" rx="2" />
+<line x1="300" y1="44" x2="300" y2="866" stroke="#3A4150" stroke-width="1" />
+<text x="24" y="80" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">EMNER</text>
+<text x="24" y="114" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >▾ Markedsføring</text>
+<text x="276" y="114" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >8</text>
+<line x1="34" y1="127" x2="34" y2="159" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="148" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 34: Hva er markeds…</text>
+<line x1="34" y1="161" x2="34" y2="193" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="182" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 35: Kjøpsatferd</text>
+<line x1="34" y1="195" x2="34" y2="227" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="216" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 36: Segmentering o…</text>
+<line x1="34" y1="229" x2="34" y2="261" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="250" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 37: Merkevare</text>
+<line x1="34" y1="263" x2="34" y2="295" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="284" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 38: Markedsmiksen</text>
+<line x1="34" y1="297" x2="34" y2="329" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="318" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 39: Prising</text>
+<line x1="34" y1="331" x2="34" y2="363" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="352" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 40: Distribusjon</text>
+<line x1="34" y1="365" x2="34" y2="397" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="386" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 41: Markedskommuni…</text>
+<text x="24" y="420" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >▸ Samfunnsøkonomi</text>
+<text x="276" y="420" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >5</text>
+<text x="24" y="454" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >▸ Organisasjon og le…</text>
+<text x="276" y="454" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >2</text>
+<line x1="24" y1="508" x2="276" y2="508" stroke="#3A4150" stroke-width="1" />
+<text x="24" y="542" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">HURTIGTASTER</text>
+<rect x="24" y="557" width="30.855999999999998" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="26" y1="579" x2="52.855999999999995" y2="579" stroke="#AEB6C4" stroke-width="2" />
+<text x="39.428" y="573" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⌘K</text>
+<text x="80" y="574" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >kommandopalett</text>
+<rect x="24" y="589" width="30.855999999999998" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="26" y1="611" x2="52.855999999999995" y2="611" stroke="#AEB6C4" stroke-width="2" />
+<text x="39.428" y="605" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >↑↓</text>
+<text x="80" y="606" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >flytt markør</text>
+<rect x="24" y="621" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="26" y1="643" x2="48" y2="643" stroke="#AEB6C4" stroke-width="2" />
+<text x="37.0" y="637" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⏎</text>
+<text x="80" y="638" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >åpne / bekreft</text>
+<rect x="24" y="653" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="26" y1="675" x2="48" y2="675" stroke="#AEB6C4" stroke-width="2" />
+<text x="37.0" y="669" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >?</text>
+<text x="80" y="670" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >alle hurtigtaster</text>
+<text x="340" y="104" font-size="30" fill="#E8EBF0" font-weight="700" text-anchor="start" >Konto</text>
+<text x="340" y="134" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Innstillinger for kontoen din</text>
+<rect x="1170" y="74" width="230" height="36" fill="#252933" stroke="#F5B942" stroke-width="1" rx="3" />
+<text x="1285" y="98" font-size="16" fill="#F5B942" font-weight="700" text-anchor="middle" >● Demomodus</text>
+<text x="1170" y="136" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Innholdet lages av en</text>
+<text x="1170" y="158" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >testmodell.</text>
+<text x="340" y="200" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">KONTO</text>
+<line x1="404.14" y1="195" x2="1400" y2="195" stroke="#3A4150" stroke-width="1" />
+<text x="340" y="244" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >E-post</text>
+<text x="540" y="244" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >klara@student.no</text>
+<text x="340" y="284" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Emner</text>
+<text x="540" y="284" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >3 emner · 15 forelesninger · 21 filer</text>
+<rect x="340" y="324" width="150.708" height="44" fill="#1C1F26" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="356" y="352" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >Logg ut</text>
+<rect x="439.424" y="335" width="39.284" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="459.066" y="352" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⌘⇧Q</text>
+<text x="340" y="434" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">FARESONE</text>
+<line x1="435.424" y1="429" x2="1400" y2="429" stroke="#3A4150" stroke-width="1" />
+<rect x="340" y="458" width="1060" height="250" fill="#1C1F26" stroke="#FF8F87" stroke-width="1.5" rx="4" />
+<text x="368" y="504" font-size="22" fill="#FF8F87" font-weight="700" text-anchor="start" >Slett kontoen</text>
+<text x="368" y="542" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >Alle emner, forelesninger, opplastede filer og alt generert innhold</text>
+<text x="368" y="569" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >– flashcards, quiz, huskeregler, fritekstspørsmål og sammendrag –</text>
+<text x="368" y="596" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >slettes for godt. Det kan ikke angres.</text>
+<rect x="368" y="636" width="260" height="44" fill="#1C1F26" stroke="#FF8F87" stroke-width="1.5" rx="3" />
+<text x="384" y="664" font-size="16" fill="#FF8F87" font-weight="700" text-anchor="start" >Slett kontoen …</text>
+<text x="644" y="664" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >du må skrive e-posten din for å bekrefte</text>
+<rect x="340" y="803" width="39.284" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="342" y1="825" x2="377.284" y2="825" stroke="#AEB6C4" stroke-width="2" />
+<text x="359.642" y="819" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >Tab</text>
+<text x="387.284" y="820" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >neste</text>
+<rect x="458.43399999999997" y="803" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="460.43399999999997" y1="825" x2="482.43399999999997" y2="825" stroke="#AEB6C4" stroke-width="2" />
+<text x="471.43399999999997" y="819" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⏎</text>
+<text x="492.43399999999997" y="820" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >velg</text>
+<rect x="554.554" y="803" width="39.284" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="556.554" y1="825" x2="591.838" y2="825" stroke="#AEB6C4" stroke-width="2" />
+<text x="574.196" y="819" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >Esc</text>
+<text x="601.838" y="820" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >tilbake til emner</text>
+<rect x="0" y="866" width="1440" height="34" fill="#0F1115" stroke="none" stroke-width="1" rx="0" />
+<line x1="0" y1="866" x2="1440" y2="866" stroke="#3A4150" stroke-width="1" />
+<rect x="0" y="866" width="70.14" height="34" fill="#F5B942" stroke="none" stroke-width="1" rx="0" />
+<text x="35.07" y="888" font-size="14" fill="#15171C" font-weight="700" text-anchor="middle" >KONTO</text>
+<text x="86.14" y="888" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >klara@student.no</text>
+<text x="1420" y="888" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >● demomodus på · testmodell</text>
+</svg>
