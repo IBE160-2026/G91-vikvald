@@ -2,6 +2,14 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-10: Tre forslag ut fra mine favoritter
+
+> likte at semesterlinjen var oversiktlig, likte linjen som visste hvor lenge det var igjen til eksamen, samt hvor mange forelesninger som har vært, likte at fargene var rolig, men med farger på linjene, den føltes premium og oversiktiglig. Med tastaturet først likte jeg sidemenyene på hver side.
+
+Jeg avbrøt et spørreskjema fra KI og forklarte heller med egne ord. KI lagde så tre forslag som skiller seg på farger, sidemeny og hva menyen gjør under øving.
+
+**Resultat:** Hybrid A, B og C på fem sider, samlet i et galleri. Commit `06730a5`.
+
 ## 2026-11-10: Ti designkonsepter før detaljene
 
 > jeg ønsker at du skisserer alle sidene for applikasjonen. jeg ønsker at du lager 10 forskjellige designkonsept. Jeg vil se svg baserte design konsept. Kjør ganske bred variasjon i kreativitet. […] Ikke spør meg nå. Jeg vil vurdere de 10 konseptene, før vi driller inn i detaljenene. Bruk 10 subagenter og sett alt sammen.
