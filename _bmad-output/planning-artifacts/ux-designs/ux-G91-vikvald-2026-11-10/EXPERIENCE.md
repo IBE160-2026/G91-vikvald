@@ -1,6 +1,6 @@
 ---
 title: "EXPERIENCE: Studiekamerat"
-status: draft
+status: final
 created: 2026-11-10
 updated: 2026-11-11
 sources:
@@ -11,7 +11,7 @@ sources:
 
 Dette dokumentet sier hvordan Studiekamerat er bygd opp og oppfører seg. Hvordan den ser ut, står i [DESIGN.md](DESIGN.md). Krav fra PRD-en er henvist med ID (FR-, NFR-, UJ-) og ikke gjentatt her.
 
-Skissene ligger i [`.working/hybrid-f2-v1/`](.working/hybrid-f2-v1/) og flyttes senere til `mockups/`. **Dokumentene vinner ved konflikt med skissene.** Tekst i skissene som forelesningsnavn i andre emner, spørsmål, svar, filnavn og sidetall er eksempelinnhold, ikke krav.
+Skissene ligger i [`mockups/`](mockups/). **Dokumentene vinner ved konflikt med skissene.** Tekst i skissene som forelesningsnavn i andre emner, spørsmål, svar, filnavn og sidetall er eksempelinnhold, ikke krav.
 
 ## Grunnlag (Foundation)
 
@@ -28,21 +28,21 @@ Skissene ligger i [`.working/hybrid-f2-v1/`](.working/hybrid-f2-v1/) og flyttes 
 
 | # | Flate | Type | Nås fra | Venstre side | Skisse |
 |---|---|---|---|---|---|
-| 01 | Logg inn / Opprett konto | Side | Appstart uten innlogging, «Logg ut» | Ingen | [01-logg-inn.svg](.working/hybrid-f2-v1/01-logg-inn.svg) |
-| 02 | Dine emner (forsiden) | Side | Etter innlogging, logoen | Ingen sidemeny | [02-emner.svg](.working/hybrid-f2-v1/02-emner.svg) |
-| 03 | Emneside | Side | «Åpne» på emnekort, emne i sidemenyen | Sidemeny | [03-emne.svg](.working/hybrid-f2-v1/03-emne.svg) |
-| 04 | Forelesningsside | Side | Rad i forelesningstabellen, forelesning i sidemenyen | Sidemeny | [04-forelesning.svg](.working/hybrid-f2-v1/04-forelesning.svg) |
-| 05 | Vilkår | Dialog over 04 | Første opplasting (FR-11, innhold etter NFR-6) | – | [05-vilkar.svg](.working/hybrid-f2-v1/05-vilkar.svg) |
-| 06 | Lag quiz | Dialog over 04 | «Lag flere» på Quiz-raden (FR-28) | – | [06-lag-innhold.svg](.working/hybrid-f2-v1/06-lag-innhold.svg) |
-| 07 | Flashcard-økt | Øving | «Øv nå» (02, 04), «Øv på flashcards» (03) | Øktpanel | [07-flashcard.svg](.working/hybrid-f2-v1/07-flashcard.svg) |
-| 08 | Flashcards ferdig | Øving | Siste kort i 07 | Øktpanel, ferdig | [08-flashcard-ferdig.svg](.working/hybrid-f2-v1/08-flashcard-ferdig.svg) |
-| 09 | Quiz | Øving | «Start» Quiz (03), «Øv nå» på Quiz-raden (04) | Øktpanel | [09-quiz.svg](.working/hybrid-f2-v1/09-quiz.svg) |
-| 10 | Quizresultat | Øving | Siste spørsmål i 09 | Øktpanel, ferdig | [10-quiz-resultat.svg](.working/hybrid-f2-v1/10-quiz-resultat.svg) |
-| 11 | Modellkort-økt | Øving | «Øv nå» på Huskeregler-raden (04) | Øktpanel | [11-modellkort.svg](.working/hybrid-f2-v1/11-modellkort.svg) |
-| 12 | Fritekst-økt | Øving | «Start» Fritekstspørsmål (03), «Øv nå» på Fritekst-raden (04) | Øktpanel | [12-fritekst.svg](.working/hybrid-f2-v1/12-fritekst.svg) |
-| 13 | Sammendrag | Side | Sammendrag-raden (04) | Sidemeny, forelesningen valgt | [13-sammendrag.svg](.working/hybrid-f2-v1/13-sammendrag.svg) |
-| 14 | Slett fil | Dialog over 04 | «Slett» på filrad | – | [14-slett-bekreft.svg](.working/hybrid-f2-v1/14-slett-bekreft.svg) |
-| 15 | Konto | Side | «Konto» i toppfeltet | Sidemeny, ingen forelesning valgt | [15-konto.svg](.working/hybrid-f2-v1/15-konto.svg) |
+| 01 | Logg inn / Opprett konto | Side | Appstart uten innlogging, «Logg ut» | Ingen | [01-logg-inn.svg](mockups/01-logg-inn.svg) |
+| 02 | Dine emner (forsiden) | Side | Etter innlogging, logoen | Ingen sidemeny | [02-emner.svg](mockups/02-emner.svg) |
+| 03 | Emneside | Side | «Åpne» på emnekort, emne i sidemenyen | Sidemeny | [03-emne.svg](mockups/03-emne.svg) |
+| 04 | Forelesningsside | Side | Rad i forelesningstabellen, forelesning i sidemenyen | Sidemeny | [04-forelesning.svg](mockups/04-forelesning.svg) |
+| 05 | Vilkår | Dialog over 04 | Første opplasting (FR-11, innhold etter NFR-6) | – | [05-vilkar.svg](mockups/05-vilkar.svg) |
+| 06 | Lag quiz | Dialog over 04 | «Lag flere» på Quiz-raden (FR-28) | – | [06-lag-innhold.svg](mockups/06-lag-innhold.svg) |
+| 07 | Flashcard-økt | Øving | «Øv nå» (02, 04), «Øv på flashcards» (03) | Øktpanel | [07-flashcard.svg](mockups/07-flashcard.svg) |
+| 08 | Flashcards ferdig | Øving | Siste kort i 07 | Øktpanel, ferdig | [08-flashcard-ferdig.svg](mockups/08-flashcard-ferdig.svg) |
+| 09 | Quiz | Øving | «Start» Quiz (03), «Øv nå» på Quiz-raden (04) | Øktpanel | [09-quiz.svg](mockups/09-quiz.svg) |
+| 10 | Quizresultat | Øving | Siste spørsmål i 09 | Øktpanel, ferdig | [10-quiz-resultat.svg](mockups/10-quiz-resultat.svg) |
+| 11 | Modellkort-økt | Øving | «Øv nå» på Huskeregler-raden (04) | Øktpanel | [11-modellkort.svg](mockups/11-modellkort.svg) |
+| 12 | Fritekst-økt | Øving | «Start» Fritekstspørsmål (03), «Øv nå» på Fritekst-raden (04) | Øktpanel | [12-fritekst.svg](mockups/12-fritekst.svg) |
+| 13 | Sammendrag | Side | Sammendrag-raden (04) | Sidemeny, forelesningen valgt | [13-sammendrag.svg](mockups/13-sammendrag.svg) |
+| 14 | Slett fil | Dialog over 04 | «Slett» på filrad | – | [14-slett-bekreft.svg](mockups/14-slett-bekreft.svg) |
+| 15 | Konto | Side | «Konto» i toppfeltet | Sidemeny, ingen forelesning valgt | [15-konto.svg](mockups/15-konto.svg) |
 
 ### Flater som bare beskrives her (ikke skissert)
 
@@ -115,7 +115,7 @@ Oppførsel. Visuelt utseende står i DESIGN.md, «Komponenter». Navnene er de s
 | Menyrad (`menu-row`) | Sidemeny | Hele raden er klikkbar. Valgt rad er markert og har `aria-current="page"`. Lange navn kortes av med «…», og hele navnet finnes som tilgjengelig navn. |
 | Øktpanel (`session-panel`) | 07–12 | Viser hvor langt Klara er, hva hun har svart, og «Avslutt økt». Oppdateres etter hvert svar. Når økten er ferdig, byttes «Avslutt økt» med «✓ Økten er ferdig og lagret». |
 | Svarrutenett (`answer-grid-cell`) | Øktpanel | Én rute per kort eller spørsmål. Viser ✓, ✗ eller ◐ etter svar. Rutene er ikke knapper; Klara kan ikke hoppe mellom spørsmål. [ASSUMPTION] Skissene viser ikke klikk. |
-| Semesterlinje (`semester-timeline`) | 02, 03, 04 | Viser forelesninger som stasjoner (fylt = øvd), «I dag» og eksamen. Er grafikk; samme informasjon finnes i tekst ved siden av (emnenavn, antall forelesninger, «Eksamen 04.12 · om 3 uker»). |
+| Semesterlinje (`semester-timeline`) | 02, 03, 04 | Viser forelesninger som stasjoner (fylt = øvd), «I dag» og eksamen. Er grafikk; samme informasjon finnes i tekst ved siden av (emnenavn, antall forelesninger, «Eksamen 04.12 · om 3 uker»). Kan kuttes (FR-57): da vises bare teksten. |
 | Emnekort (`subject-card`) | 02 | «Åpne» → 03. Hovedknappen starter flashcards for forelesningen under NESTE Å ØVE PÅ. Har emnet ikke innhold, står NESTE STEG med «Lag flashcards» → 04 for den forelesningen. Regelen for hvilken forelesning som vises, er et åpent spørsmål. |
 | Forelesningstabell (`lecture-table`) | 03 | Sortert etter dato (FR-15). Hele raden er lenke til 04. Viser antall kort og quiz og status (FR-16). |
 | Kort «Øv på hele emnet» (`practice-all-card`) | 03 | Starter øving på alt innhold i emnet: flashcards (07), quiz (09) og fritekst (12) (FR-23, FR-34, FR-50). En rad vises bare når emnet har den typen innhold. |
@@ -333,8 +333,8 @@ Semesterlinjen må kunne vises smalere uten at etiketter kolliderer. [ASSUMPTION
 
 Disse tre var åpne spørsmål i utkastet. Silje avgjorde dem. De to første krever endring i PRD-en.
 
-1. **Øvingshistorikk lagres per økt.** For hver økt lagres dato, type (flashcards, quiz, huskeregler eller fritekst), omfang (én forelesning eller hele emnet) og poengsum. Enkeltsvar og markeringer lagres ikke. Dette gir «Øvd 03.11», «4 av 8 forelesninger øvd», «Siste økt» og fylte og hule stasjoner på semesterlinjen. *PRD: nytt krav, og FR-25 og FR-51 presiseres.*
-2. **Et emne har navn og eksamensdato.** Eksamensdatoen er påkrevd når emnet lages, og kan endres. Semesterlinjen starter ved første forelesning, så semesterstart lagres ikke. *PRD: FR-6 utvides.*
+1. **Øvingshistorikk lagres per økt.** For hver økt lagres dato, type (flashcards, quiz, huskeregler eller fritekst), omfang (én forelesning eller hele emnet) og poengsum. Enkeltsvar og markeringer lagres ikke. Dette gir «Øvd 03.11», «4 av 8 forelesninger øvd», «Siste økt» og fylte og hule stasjoner på semesterlinjen. *PRD: FR-56, og FR-25 og FR-51 er presisert.*
+2. **Et emne har navn og eksamensdato.** Eksamensdatoen er påkrevd når emnet lages, og kan endres. Semesterlinjen starter ved første forelesning, så semesterstart lagres ikke. *PRD: FR-6 er utvidet.*
 3. **Rediger og slett skjer under øving.** Hvert kort eller spørsmål har «Rediger» (flashcards og modellkort, FR-27 og FR-46) og «Slett» (alle typer, FR-27, FR-37 og FR-52) i bunnfeltet ved kilden. Sletting krever bekreftelse. Det finnes ingen egen listeside i MVP.
 
 4. **«Neste å øve på»** er den eldste forelesningen som har innhold, men ikke er øvd. Er alle øvd: den som ble øvd lengst siden.

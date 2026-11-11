@@ -1,6 +1,6 @@
 ---
 title: "DESIGN: Studiekamerat"
-status: draft
+status: final
 created: 2026-11-10
 updated: 2026-11-11
 name: Studiekamerat
@@ -276,7 +276,7 @@ components:
 
 # Studiekamerat: visuell identitet
 
-Dette dokumentet sier hvordan Studiekamerat ser ut. Hvordan appen virker, står i [EXPERIENCE.md](EXPERIENCE.md). Begge bygger på designretningen **F2-V1 «Signaturfarge»** og de 15 skissene i [`.working/hybrid-f2-v1/`](.working/hybrid-f2-v1/). Skissene flyttes senere til `mockups/`.
+Dette dokumentet sier hvordan Studiekamerat ser ut. Hvordan appen virker, står i [EXPERIENCE.md](EXPERIENCE.md). Begge bygger på designretningen **F2-V1 «Signaturfarge»** og de 15 skissene i [`mockups/`](mockups/). Skissene flyttes senere til `mockups/`.
 
 **Dokumentene vinner ved konflikt.** Står noe annet i en skisse enn her eller i EXPERIENCE.md, er det dokumentene som gjelder.
 
@@ -292,7 +292,7 @@ Tre grep bærer uttrykket:
 
 Resultater vises sakelig. «11 av 15 riktige» står uten feiring, konfetti eller strek-teller. Det er stoffet som er viktig, ikke poengene.
 
-Skisser: [02 Dine emner](.working/hybrid-f2-v1/02-emner.svg) viser hele uttrykket på forsiden, og [07 Flashcard](.working/hybrid-f2-v1/07-flashcard.svg) viser øvingsmodusen.
+Skisser: [02 Dine emner](mockups/02-emner.svg) viser hele uttrykket på forsiden, og [07 Flashcard](mockups/07-flashcard.svg) viser øvingsmodusen.
 
 ## Farger (Colors)
 
@@ -409,9 +409,9 @@ Skissene er tegnet for et vindu på 1440 × 900 px.
 
 **Tre sideoppsett:**
 
-1. **Forsiden uten sidemeny** ([02](.working/hybrid-f2-v1/02-emner.svg)). Toppfelt på `{spacing.topbar-height}`, deretter innhold med `{spacing.home-margin}` (80 px) marg på hver side. Semesterlinjen går over hele bredden. Under den står emnekortene i tre kolonner med `{spacing.card-gap}` mellom.
-2. **Sider med sidemeny** ([03](.working/hybrid-f2-v1/03-emne.svg), [04](.working/hybrid-f2-v1/04-forelesning.svg), [13](.working/hybrid-f2-v1/13-sammendrag.svg), [15](.working/hybrid-f2-v1/15-konto.svg)). Sidemenyen er `{spacing.sidebar-width}` (288 px) bred og skilt fra innholdet med en hårlinje. Innholdet starter `{spacing.content-inset}` (64 px) etter menyen og slutter `{spacing.content-margin-right}` (48 px) fra kanten. To kolonner har `{spacing.column-gap}` (32 px) mellom seg, og begge kolonnene slutter på samme høyde.
-3. **Øving** ([07](.working/hybrid-f2-v1/07-flashcard.svg), [09](.working/hybrid-f2-v1/09-quiz.svg), [11](.working/hybrid-f2-v1/11-modellkort.svg), [12](.working/hybrid-f2-v1/12-fritekst.svg)). Sidemenyen er byttet med øktpanelet i samme bredde. Innholdet står som én gruppe, sentrert både vannrett og loddrett i området til høyre: flashcard `{spacing.flashcard-width}` (768 px), quiz og fritekst `{spacing.quiz-column}` (832 px).
+1. **Forsiden uten sidemeny** ([02](mockups/02-emner.svg)). Toppfelt på `{spacing.topbar-height}`, deretter innhold med `{spacing.home-margin}` (80 px) marg på hver side. Semesterlinjen går over hele bredden. Under den står emnekortene i tre kolonner med `{spacing.card-gap}` mellom.
+2. **Sider med sidemeny** ([03](mockups/03-emne.svg), [04](mockups/04-forelesning.svg), [13](mockups/13-sammendrag.svg), [15](mockups/15-konto.svg)). Sidemenyen er `{spacing.sidebar-width}` (288 px) bred og skilt fra innholdet med en hårlinje. Innholdet starter `{spacing.content-inset}` (64 px) etter menyen og slutter `{spacing.content-margin-right}` (48 px) fra kanten. To kolonner har `{spacing.column-gap}` (32 px) mellom seg, og begge kolonnene slutter på samme høyde.
+3. **Øving** ([07](mockups/07-flashcard.svg), [09](mockups/09-quiz.svg), [11](mockups/11-modellkort.svg), [12](mockups/12-fritekst.svg)). Sidemenyen er byttet med øktpanelet i samme bredde. Innholdet står som én gruppe, sentrert både vannrett og loddrett i området til høyre: flashcard `{spacing.flashcard-width}` (768 px), quiz og fritekst `{spacing.quiz-column}` (832 px).
 
 **Felles venstrekanter.** Overskrift, kort og tabell starter på samme linje. På forsiden står emnenavn på linjen og tekst i kortene på samme kant. Emneprikken henger i margen, slik at teksten står rett.
 
@@ -456,14 +456,14 @@ Visuell beskrivelse. Hvordan komponentene oppfører seg, står i EXPERIENCE.md, 
 ### Ramme
 
 - **Toppfelt** (`top-bar`): logo til venstre (svart strek med ultramarin prikk, «Studiekamerat» i 16 px / 600). Til høyre: initialsirkel i `{colors.brand-tint}` med bokstav i `{colors.brand}`, «Konto» i blekk, en kort loddrett hårlinje, og «Logg ut» med utgangsikon i dempet grå. Ingen understreking. På innloggingen vises bare logoen. Skisse: alle sider.
-- **Sidemeny med emnetre** (`sidebar-tree`): overlinjen EMNER, deretter emnene med emneprikk, navn (15 px / 600) og antall forelesninger høyrejustert i dempet grå. Det åpne emnet viser forelesningene som menyrader. Nederst: tasten «?» og «Hurtigtaster». Ingen semesterlinje i menyen. Skisse: [03](.working/hybrid-f2-v1/03-emne.svg).
+- **Sidemeny med emnetre** (`sidebar-tree`): overlinjen EMNER, deretter emnene med emneprikk, navn (15 px / 600) og antall forelesninger høyrejustert i dempet grå. Det åpne emnet viser forelesningene som menyrader. Nederst: tasten «?» og «Hurtigtaster». Ingen semesterlinje i menyen. Skisse: [03](mockups/03-emne.svg).
 - **Menyrad** (`menu-row`): ukenummer som eget tall i dempet grå foran navnet («37 Merkevare»), statusprikk til høyre (fylt = øvd, hul = ikke øvd). Lange navn kortes av med «…». **Valgt rad** (`menu-row-selected`) har `{colors.brand-tint}` og en loddrett strek i `{colors.brand}` til venstre.
-- **Øktpanel** (`session-panel`): erstatter sidemenyen under øving. Overlinjen ØKT, øvingstype og omfang («Flashcards», «Uke 37: Merkevare»), teller («7 / 24»), fremdriftsstolpe i `{colors.brand}` på `{colors.progress-track}`, en linje med «Kunne 5 · Kunne ikke 1», svarrutenettet, symbolforklaring og omrissknappen «Avslutt økt» nederst. Ferdig økt: alle ruter fylt, «Avslutt økt» byttet med «✓ Økten er ferdig og lagret». Skisser: [07](.working/hybrid-f2-v1/07-flashcard.svg), [08](.working/hybrid-f2-v1/08-flashcard-ferdig.svg).
+- **Øktpanel** (`session-panel`): erstatter sidemenyen under øving. Overlinjen ØKT, øvingstype og omfang («Flashcards», «Uke 37: Merkevare»), teller («7 / 24»), fremdriftsstolpe i `{colors.brand}` på `{colors.progress-track}`, en linje med «Kunne 5 · Kunne ikke 1», svarrutenettet, symbolforklaring og omrissknappen «Avslutt økt» nederst. Ferdig økt: alle ruter fylt, «Avslutt økt» byttet med «✓ Økten er ferdig og lagret». Skisser: [07](mockups/07-flashcard.svg), [08](mockups/08-flashcard-ferdig.svg).
 - **Svarrutenett** (`answer-grid-cell`): seks ruter per rad. Riktig/kunne = grønn tone med ✓, feil/kunne ikke = rød tone med ✗, delvis = `{colors.surface-partial}` med ◐, gjeldende = hvit med ultramarin kant og nummer, ikke vist ennå = tom med kant og nummer.
 
 ### Oversikt
 
-- **Semesterlinje** (`semester-timeline`): et hvitt kort med symbolforklaring i toppraden (fylt prikk «Øvd», hul prikk «Ikke øvd ennå», firkant «Eksamen», stiplet «Tid igjen»). Månedene AUG–DES som overlinjer med loddrette `{colors.gridline}`. Én linje per emne i emnefargen, 4 px tykk: heltrukket fram til i dag, stiplet fram til eksamen. Stasjonene er sirkler (fylt = øvd, hul = ikke øvd). Eksamen er en svart firkant. «I dag 10.11» er en pille i `{colors.brand}` med loddrett nål. Til venstre: emnenavn, antall forelesninger og «Eksamen 04.12 · om 3 uker». På forelesningssiden viser linjen bare ett emne, og «Du er her» er en ring rundt stasjonen med en nål. Skisser: [02](.working/hybrid-f2-v1/02-emner.svg), [03](.working/hybrid-f2-v1/03-emne.svg), [04](.working/hybrid-f2-v1/04-forelesning.svg). På innloggingen står en grå, forenklet linje som bilde.
+- **Semesterlinje** (`semester-timeline`): et hvitt kort med symbolforklaring i toppraden (fylt prikk «Øvd», hul prikk «Ikke øvd ennå», firkant «Eksamen», stiplet «Tid igjen»). Månedene AUG–DES som overlinjer med loddrette `{colors.gridline}`. Én linje per emne i emnefargen, 4 px tykk: heltrukket fram til i dag, stiplet fram til eksamen. Stasjonene er sirkler (fylt = øvd, hul = ikke øvd). Eksamen er en svart firkant. «I dag 10.11» er en pille i `{colors.brand}` med loddrett nål. Til venstre: emnenavn, antall forelesninger og «Eksamen 04.12 · om 3 uker». På forelesningssiden viser linjen bare ett emne, og «Du er her» er en ring rundt stasjonen med en nål. Skisser: [02](mockups/02-emner.svg), [03](mockups/03-emne.svg), [04](mockups/04-forelesning.svg). På innloggingen står en grå, forenklet linje som bilde.
 - **Emnekort** (`subject-card`): hvitt kort, tre i bredden. Emneprikk og navn, tekstknappen «Åpne ›» øverst til høyre, antall kort og quizspørsmål, en hårlinje, overlinjen NESTE Å ØVE PÅ med forelesning og grunn («16 kort, ikke øvd ennå»), én knapp, og nederst fremdrift som små stolper («4 av 8 forelesninger øvd»). Kort uten øvingsinnhold har NESTE STEG og omrissknappen «Lag flashcards».
 - **Forelesningstabell** (`lecture-table`): kolonnene Dato, Forelesning, Kort, Quiz og Status. Tall høyrejustert. Tomme tall vises som «–». Status med fylt eller hul prikk og tekst («Øvd 03.11», «Ikke øvd ennå», «Ingen filer ennå»). Pil (›) i `{colors.icon-faint}` ytterst. Hover gir `{colors.row-hover}` og mørk pil.
 - **Kort «Øv på hele emnet»** (`practice-all-card`): hvitt kort ved siden av tabellen, med en rad per øvingstype (tittel, omfang og handling). Flashcards har hovedknappen «Øv på flashcards», de andre har tekstknappen «Start ›». Nederst SISTE ØKT.
@@ -474,7 +474,7 @@ Visuell beskrivelse. Hvordan komponentene oppfører seg, står i EXPERIENCE.md, 
 - **Opplastingsfelt** (`upload-zone`): stiplet kant i `{colors.border-control}`, opplastingsikon, «Dra og slipp PDF-filer hit», «Bare PDF. Hver fil får sin egen kilde med sidetall.» og omrissknappen «Velg PDF».
 - **Merknadsflate** (`note-surface`): `{colors.surface-note}`, lås- eller infoikon, to linjer dempet tekst. Brukes til personvernmerknaden, huskeregelen og «Sjekk viktige punkter mot kilden».
 - **Rad i «Lag og øv»** (`create-row`): type og omfang til venstre («Flashcards», «24 kort»), handling til høyre. Har typen innhold: hovedknappen «Øv nå» og tekstknappen «+ Lag flere». Har den ikke innhold: omrissknappen «Lag fritekstspørsmål» eller «Lag sammendrag». Status «Ingen ennå» eller «Ikke laget» i dempet grå.
-- **Jobbstatus** (`job-status`): erstatter handlingene i raden mens innhold lages. Boks på papir med kant, en snurr (sporring i `{colors.progress-track}`, bue i `{colors.brand}`), «Lager quizspørsmål …» og «Du kan bruke resten av appen imens.» Skisse: [04](.working/hybrid-f2-v1/04-forelesning.svg).
+- **Jobbstatus** (`job-status`): erstatter handlingene i raden mens innhold lages. Boks på papir med kant, en snurr (sporring i `{colors.progress-track}`, bue i `{colors.brand}`), «Lager quizspørsmål …» og «Du kan bruke resten av appen imens.» Skisse: [04](mockups/04-forelesning.svg).
 
 ### Knapper
 
@@ -488,29 +488,29 @@ Tre vanlige stiler og én for fare. Høyde 40 px (48 px under øving), hjørner 
 
 ### Øving
 
-- **Flashcard** (`flashcard`): hvitt kort, 768 px bredt, `{rounded.xl}` og `float`-skygge. Overlinjen SPØRSMÅL og spørsmålet i `{typography.card-question}`, en hårlinje, overlinjen SVAR og svaret i `{typography.card-answer}`. Nederst kildelenken. Under kortet: «Kunne ikke» (omriss) og «Kunne» (hovedknapp), like brede (208 px), og hurtigtasthint under. Skisse: [07](.working/hybrid-f2-v1/07-flashcard.svg).
-- **Modellkort** (`model-card`): samme kort. Svaret viser punktene som rader med en bokstavboks foran hvert (A, I, D, A) bundet sammen av en tynn loddrett linje, det engelske ordet i 600 og den norske oversettelsen i parentes. Under står huskeregelen på merknadsflaten. Nederst kilden og tekstknappen «Endre huskeregel» med blyant. Skisse: [11](.working/hybrid-f2-v1/11-modellkort.svg).
-- **Svaralternativ** (`quiz-option`): rad på 62 px med bokstavboks (A–D) og tekst. Etter bekreftet svar: riktig alternativ får grønn tone, grønn kant og «✓ Riktig svar» til høyre. Feil valgt alternativ får rød tone, rød kant og «✗ Ditt svar». De andre står uendret. Skisse: [09](.working/hybrid-f2-v1/09-quiz.svg).
+- **Flashcard** (`flashcard`): hvitt kort, 768 px bredt, `{rounded.xl}` og `float`-skygge. Overlinjen SPØRSMÅL og spørsmålet i `{typography.card-question}`, en hårlinje, overlinjen SVAR og svaret i `{typography.card-answer}`. Nederst kildelenken. Under kortet: «Kunne ikke» (omriss) og «Kunne» (hovedknapp), like brede (208 px), og hurtigtasthint under. Skisse: [07](mockups/07-flashcard.svg).
+- **Modellkort** (`model-card`): samme kort. Svaret viser punktene som rader med en bokstavboks foran hvert (A, I, D, A) bundet sammen av en tynn loddrett linje, det engelske ordet i 600 og den norske oversettelsen i parentes. Under står huskeregelen på merknadsflaten. Nederst kilden og tekstknappen «Endre huskeregel» med blyant. Skisse: [11](mockups/11-modellkort.svg).
+- **Svaralternativ** (`quiz-option`): rad på 62 px med bokstavboks (A–D) og tekst. Etter bekreftet svar: riktig alternativ får grønn tone, grønn kant og «✓ Riktig svar» til høyre. Feil valgt alternativ får rød tone, rød kant og «✗ Ditt svar». De andre står uendret. Skisse: [09](mockups/09-quiz.svg).
 - **Forklaringskort** (`explanation-card`): hvitt kort under alternativene med «Forklaring», brødtekst og kilde med forelesning og emneprikk.
-- **Tekstfelt for svar** (`text-field`): synlig etikett «Ditt svar» over, hvit flate med kant i `{colors.border-control}`. Etter levering står «Levert · 37 ord» til høyre for etiketten. Skisse: [12](.working/hybrid-f2-v1/12-fritekst.svg).
+- **Tekstfelt for svar** (`text-field`): synlig etikett «Ditt svar» over, hvit flate med kant i `{colors.border-control}`. Etter levering står «Levert · 37 ord» til høyre for etiketten. Skisse: [12](mockups/12-fritekst.svg).
 - **Modellsvar** (`model-answer`): hvitt kort med overskrift, brødtekst og kilde.
 - **Selvvurdering** (`self-assessment`): «Hvordan gikk det?», «Vurder selv mot modellsvaret.» og tre like omrissknapper «✗ Feil», «◐ Delvis riktig», «✓ Riktig». Ingen hovedknapp.
 - **Hurtigtasthint** (`kbd`): små hvite taster med kant og tekst i dempet grå etter («Mellomrom snu kortet», «Esc avslutt»). Står sentrert under knappene, eller til venstre på samme linje som hovedknappen i quizen.
 
 ### Resultat
 
-- **Resultatsammendrag** (`result-summary`): overlinje («ØKT FERDIG», «QUIZ FERDIG»), tittel i `{typography.result-title}` eller `{typography.page-title}`, og en forklarende undertekst. Flashcards: et kort med to felt, «Kunne 19» og «Kunne ikke 5», med prosent i dempet grå. Ingen feiring. Skisser: [08](.working/hybrid-f2-v1/08-flashcard-ferdig.svg), [10](.working/hybrid-f2-v1/10-quiz-resultat.svg).
+- **Resultatsammendrag** (`result-summary`): overlinje («ØKT FERDIG», «QUIZ FERDIG»), tittel i `{typography.result-title}` eller `{typography.page-title}`, og en forklarende undertekst. Flashcards: et kort med to felt, «Kunne 19» og «Kunne ikke 5», med prosent i dempet grå. Ingen feiring. Skisser: [08](mockups/08-flashcard-ferdig.svg), [10](mockups/10-quiz-resultat.svg).
 - **Liste over feil** (`missed-list`): ett kort med en rad per kort eller spørsmål: nummer, spørsmål, kilde, og for quiz «✗ Ditt svar», «✓ Riktig svar» og en kort forklaring.
 - Knapper nederst: tilbakevalget som omrissknapp og «Øv igjen» / «Ta quizen igjen» som hovedknapp.
 
 ### Skjema og dialoger
 
-- **Dialog** (`dialog`): hvit, `{rounded.xl}`, tynn kant, `float`-skygge, over sløret. Tittel i `{typography.dialog-title}` og lukkekryss øverst, innhold, en skillelinje og knappene nederst til høyre i rekkefølgen «Avbryt», hovedhandling. Bredde etter innhold: 560 px (slett), 640 px (vilkår), 720 px (lag quiz). Skisser: [05](.working/hybrid-f2-v1/05-vilkar.svg), [06](.working/hybrid-f2-v1/06-lag-innhold.svg), [14](.working/hybrid-f2-v1/14-slett-bekreft.svg).
+- **Dialog** (`dialog`): hvit, `{rounded.xl}`, tynn kant, `float`-skygge, over sløret. Tittel i `{typography.dialog-title}` og lukkekryss øverst, innhold, en skillelinje og knappene nederst til høyre i rekkefølgen «Avbryt», hovedhandling. Bredde etter innhold: 560 px (slett), 640 px (vilkår), 720 px (lag quiz). Skisser: [05](mockups/05-vilkar.svg), [06](mockups/06-lag-innhold.svg), [14](mockups/14-slett-bekreft.svg).
 - **Valgkort** (`choice-option`): hvitt kort med radioknapp, tittel og forklaring. Omfang står som tre kort ved siden av hverandre, vanskelighetsgrad som tre rader. Valgt: `{colors.brand-tint}`, 1,5 px kant i `{colors.brand}` og fylt ultramarin radioknapp.
 - **Avkrysning** (`checkbox`): 20 px, `{rounded.kbd}`. Avkrysset: fylt `{colors.brand}` med hvit hake.
-- **Skjemafelt** (`text-field`): etikett over feltet (15 px / 600), felt på 48 px med kant i `{colors.border-control}`. Feil: 1,5 px kant i `{colors.danger}`, og under feltet et ikon og teksten i rødt. Passordfeltet har tekstknappen «Vis». Skisse: [01](.working/hybrid-f2-v1/01-logg-inn.svg).
+- **Skjemafelt** (`text-field`): etikett over feltet (15 px / 600), felt på 48 px med kant i `{colors.border-control}`. Feil: 1,5 px kant i `{colors.danger}`, og under feltet et ikon og teksten i rødt. Passordfeltet har tekstknappen «Vis». Skisse: [01](mockups/01-logg-inn.svg).
 - **Kildelenke** (`source-link`): filikon, «merkevare-notater.pdf, side 4» i `{typography.caption}` med en svak strek under i `{colors.border-card}`. Det er den eneste understrekede teksten i appen.
-- **Demomerke** (`demo-badge`): pille på `{colors.surface-note}` med dempet tekst «Demomodus: innholdet lages av en testmodell». Skisse: [15](.working/hybrid-f2-v1/15-konto.svg).
+- **Demomerke** (`demo-badge`): pille på `{colors.surface-note}` med dempet tekst «Demomodus: innholdet lages av en testmodell». Skisse: [15](mockups/15-konto.svg).
 - **Kontokort** (`account-card`): tre hvite kort (Innlogging, Vilkår og personvern, Slett kontoen) med rader som filkortet på forelesningssiden.
 
 ### Ikke skissert
