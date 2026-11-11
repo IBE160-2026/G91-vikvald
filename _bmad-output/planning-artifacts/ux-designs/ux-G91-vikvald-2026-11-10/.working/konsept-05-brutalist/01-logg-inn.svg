@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" role="img" aria-label="Studiekamerat – logg inn">
+<title>Studiekamerat – logg inn</title>
+<rect x="0" y="0" width="1440" height="900" fill="#F3EFE4"/>
+<rect x="0" y="0" width="720" height="900" fill="#FFD60A"/>
+<line x1="720" y1="0" x2="720" y2="900" stroke="#000000" stroke-width="6"/>
+<text x="64" y="110" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="30" font-weight="900" fill="#000000" letter-spacing="0.5">STUDIEKAMERAT</text>
+<line x1="64" y1="132" x2="360" y2="132" stroke="#000000" stroke-width="6"/>
+<text x="64" y="300" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="92" font-weight="900" fill="#000000" letter-spacing="-3">NOTATENE</text>
+<text x="64" y="400" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="92" font-weight="900" fill="#000000" letter-spacing="-3">DINE.</text>
+<text x="64" y="500" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="92" font-weight="900" fill="#000000" letter-spacing="-3">ØVINGEN</text>
+<text x="64" y="600" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="92" font-weight="900" fill="#000000" letter-spacing="-3">DIN.</text>
+<text x="64" y="690" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">PDF  →  FLASHCARDS</text>
+<text x="64" y="724" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">PDF  →  QUIZ</text>
+<text x="64" y="758" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">PDF  →  HUSKEREGLER</text>
+<text x="64" y="792" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">PDF  →  SAMMENDRAG</text>
+<text x="64" y="850" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">Alt som lages viser kilden: fil + side.</text>
+<rect x="828" y="132" width="560" height="660" fill="#000000"/>
+<rect x="816" y="120" width="560" height="660" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<rect x="816" y="120" width="280" height="64" fill="#000000" stroke="#000000" stroke-width="4"/>
+<text x="956" y="160" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="900" fill="#FFD60A" text-anchor="middle">LOGG INN</text>
+<rect x="1096" y="120" width="280" height="64" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1236" y="160" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="900" fill="#000000" text-anchor="middle">OPPRETT KONTO</text>
+<text x="856" y="250" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="900" fill="#000000" letter-spacing="-0.5">Velkommen tilbake.</text>
+<text x="856" y="284" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#4A4A4A">Logg inn for å øve på notatene dine.</text>
+<text x="856" y="340" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#000000">E-post</text>
+<rect x="856" y="352" width="480" height="56" fill="#FFFFFF" stroke="#B3140C" stroke-width="4"/>
+<text x="876" y="388" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="400" fill="#000000">klara@student</text>
+<rect x="856" y="418" width="30" height="30" fill="#B3140C"/>
+<text x="871" y="439" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">✗</text>
+<text x="898" y="439" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="700" fill="#B3140C">Skriv en gyldig e-postadresse, f.eks. navn@skole.no</text>
+<text x="856" y="500" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#000000">Passord</text>
+<rect x="850" y="506" width="492" height="68" fill="none" stroke="#1D3FD8" stroke-width="4"/>
+<rect x="856" y="512" width="480" height="56" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="876" y="548" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="20" font-weight="400" fill="#000000">••••••••••</text>
+<line x1="988" y1="528" x2="988" y2="552" stroke="#000000" stroke-width="2"/>
+<text x="1316" y="547" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000" text-anchor="end" text-decoration="underline">VIS</text>
+<rect x="864" y="618" width="480" height="64" fill="#000000"/>
+<rect x="856" y="610" width="480" height="64" fill="#1D3FD8" stroke="#000000" stroke-width="4"/>
+<text x="1096.0" y="649.92" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">LOGG INN →</text>
+<text x="856" y="732" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#000000">Ny her?</text>
+<text x="924" y="732" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#1D3FD8" text-decoration="underline">Opprett konto</text>
+<text x="816" y="840" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">Demomodus: innholdet lages av en testmodell.</text>
+</svg>

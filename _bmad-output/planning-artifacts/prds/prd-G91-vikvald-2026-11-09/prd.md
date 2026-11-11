@@ -2,7 +2,7 @@
 title: "PRD: Studiekamerat"
 status: final
 created: 2026-11-09
-updated: 2026-11-09
+updated: 2026-11-11
 ---
 
 # PRD: Studiekamerat
@@ -45,7 +45,7 @@ Noen uker før eksamen har Klara lastet opp notater fra alle forelesningene.
 
 ## Må ha-funksjoner
 
-Funksjon 1–5 og kravene under «Felles for alt generert innhold» er MVP-en: den minste versjonen av appen som er nyttig å bruke. Krav merket *(Kan kuttes)* går først hvis tiden blir knapp.
+Funksjon 1–5 og kravene under «Oversikt fram mot eksamen» og «Felles for alt generert innhold» er MVP-en: den minste versjonen av appen som er nyttig å bruke. Krav merket *(Kan kuttes)* går først hvis tiden blir knapp.
 
 ### 1. Norsk språk
 
@@ -66,7 +66,7 @@ Innlogging trengs fordi studentens materiale lagres.
 
 Studenten organiserer stoffet per emne og forelesning, slik at det er samlet når eksamen nærmer seg (UJ-1, UJ-2).
 
-- **FR-6** Studenten kan opprette, gi nytt navn til og slette emner.
+- **FR-6** Studenten kan opprette, gi nytt navn til og slette emner. Et emne har et navn og en eksamensdato. Eksamensdatoen må fylles ut når emnet opprettes, og kan endres.
 - **FR-7** Studenten kan opprette, gi nytt navn til og slette forelesninger i et emne.
 - **FR-8** Studenten kan laste opp én eller flere PDF-filer til en forelesning.
 - **FR-9** Laster studenten opp en Word-fil eller en annen filtype som ikke støttes, avvises filen med en beskjed om hvilke formater som støttes og hvordan et Word-dokument lagres som PDF.
@@ -76,7 +76,7 @@ Studenten organiserer stoffet per emne og forelesning, slik at det er samlet nå
 - **FR-13** Studenten kan erstatte en fil med en ny. Innhold generert fra den gamle filen slettes etter samme bekreftelse som i FR-12.
 - **FR-14** Sletter studenten en forelesning eller et emne, slettes alle filer og alt generert innhold som hører til, etter en bekreftelse som i FR-12.
 - **FR-15** En forelesning har et navn og en dato. Datoen er dagens dato som standard og kan endres. Forelesningene i et emne vises sortert etter dato.
-- **FR-16** For hver forelesning ser studenten antall filer og hvor mye som er generert, for eksempel antall flashcards og quizspørsmål, slik at hun ser hvilke forelesninger hun ikke har øvd på ennå. *(Kan kuttes.)*
+- **FR-16** For hver forelesning ser studenten antall filer, hvor mye som er generert, for eksempel antall flashcards og quizspørsmål, og når hun sist øvde (FR-56), slik at hun ser hvilke forelesninger hun ikke har øvd på ennå. *(Kan kuttes.)*
 
 ### 4. Flashcards
 
@@ -93,11 +93,11 @@ Studenten tester seg selv på stoffet fra én forelesning (UJ-1) eller hele emne
 *Øve*
 - **FR-23** Studenten kan øve på kortene fra én forelesning eller fra alle forelesningene i et emne. Kortene vises i tilfeldig rekkefølge.
 - **FR-24** Forsiden vises først. Baksiden vises først når studenten velger å snu kortet.
-- **FR-25** Etter at kortet er snudd, markerer studenten «Kunne» eller «Kunne ikke». Kort markert «Kunne ikke» vises igjen senere i samme økt, til hun har markert dem «Kunne» eller avslutter økten. Markeringene lagres ikke mellom øktene.
+- **FR-25** Etter at kortet er snudd, markerer studenten «Kunne» eller «Kunne ikke». Kort markert «Kunne ikke» vises igjen senere i samme økt, til hun har markert dem «Kunne» eller avslutter økten. Markeringene for enkeltkort lagres ikke mellom øktene; bare resultatet av økten lagres (FR-56).
 - **FR-26** Når økten er ferdig, ser studenten hvor mange kort hun kunne og ikke kunne. *(Kan kuttes.)*
 
 *Rette opp*
-- **FR-27** Studenten kan redigere og slette enkeltkort hun selv har laget.
+- **FR-27** Studenten kan redigere og slette enkeltkort hun selv har laget, direkte fra kortet mens hun øver. Sletting krever bekreftelse.
 
 ### 5. Flervalgsquiz
 
@@ -120,7 +120,15 @@ Quizen lages og brukes på samme måte som flashcardene, men studenten velger bl
 - **FR-36** Når quizen er ferdig, ser studenten poengsummen og en liste over spørsmålene hun svarte feil på, med riktig svar, forklaring og kilde. *(Listen kan kuttes; poengsummen beholdes.)*
 
 *Rette opp*
-- **FR-37** Studenten kan slette enkeltspørsmål hun selv har laget. Spørsmål kan ikke redigeres; et dårlig spørsmål slettes, og hun kan lage nye.
+- **FR-37** Studenten kan slette enkeltspørsmål hun selv har laget, direkte fra spørsmålet mens hun tar quizen. Sletting krever bekreftelse. Spørsmål kan ikke redigeres; et dårlig spørsmål slettes, og hun kan lage nye.
+
+### Oversikt fram mot eksamen
+
+Studenten ser hvor hun står i semesteret og hva hun bør øve på (UJ-2). Lagt til etter UX-arbeidet, se «Endringer etter UX-arbeidet».
+
+- **FR-56** Når en øvingsøkt avsluttes, enten den er gjennomført eller avbrutt, lagres dato, type (flashcards, quiz, huskeregler eller fritekst), omfang (én forelesning eller hele emnet) og resultat for det som ble gjort. Enkeltsvar og markeringer lagres ikke. En forelesning regnes som øvd når den har minst én lagret økt.
+- **FR-57** Emnesiden viser forelesningene på en semesterlinje etter dato, fra første forelesning til eksamen, med øvd og ikke øvd, dagens dato og hvor mange uker det er til eksamen. Forsiden viser det samme for alle emnene. *(Kan kuttes: da vises samme informasjon som tekst, for eksempel «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd».)*
+- **FR-58** Forsiden viser «Neste å øve på» for hvert emne: den eldste forelesningen som har innhold, men ikke er øvd. Er alle øvd, vises den som ble øvd lengst siden. *(Kan kuttes.)*
 
 ### Felles for alt generert innhold
 
@@ -155,8 +163,8 @@ Studenten øver på eksamenslignende spørsmål der hun må formulere svaret sel
 - **FR-48** Studenten kan be om fritekstspørsmål for en forelesning. Det finnes to typer: kortsvar og langsvar. Hun velger omfang: rask (inntil 5 spørsmål), vanlig (inntil 10) eller dyp (inntil 15). Reglene i FR-18, FR-21, FR-22 og FR-38 gjelder.
 - **FR-49** Hvert spørsmål har et modellsvar og viser kilden: filnavn og sidetall.
 - **FR-50** Studenten kan øve på spørsmålene fra én forelesning eller fra hele emnet. Hun skriver svaret sitt i et tekstfelt. Modellsvaret vises først når hun har skrevet noe og valgt å se det.
-- **FR-51** Etter at modellsvaret er vist, vurderer studenten svaret sitt som «Riktig», «Delvis riktig» eller «Feil». Når økten er ferdig, ser hun hvor mange hun hadde av hver. Svarene hennes lagres ikke.
-- **FR-52** Studenten kan slette enkeltspørsmål.
+- **FR-51** Etter at modellsvaret er vist, vurderer studenten svaret sitt som «Riktig», «Delvis riktig» eller «Feil». Når økten er ferdig, ser hun hvor mange hun hadde av hver. Svarene hennes lagres ikke, men resultatet av økten lagres (FR-56).
+- **FR-52** Studenten kan slette enkeltspørsmål, direkte fra spørsmålet mens hun øver. Sletting krever bekreftelse.
 
 ### 8. Sammendrag
 
@@ -191,7 +199,7 @@ Sensor skal kunne starte og teste appen uten studentens nøkler, kontoer eller t
 
 Appen skal kunne brukes av alle, også med tastatur eller skjermleser. Kravene bygger på WCAG 2.1 nivå AA, som er standarden norsk regelverk bruker for nettløsninger.
 
-- **NFR-8** Alle funksjoner kan brukes med bare tastatur, også å snu et flashcard, velge et svaralternativ og bekrefte en sletting. Det er alltid synlig hvilket element som har fokus.
+- **NFR-8** Alle funksjoner kan brukes med bare tastatur, også å snu et flashcard, velge et svaralternativ og bekrefte en sletting. Det er alltid synlig hvilket element som har fokus. Hurtigtaster med én tast virker bare under øving, og aldri når fokus står i et tekstfelt. En oversikt over hurtigtastene for siden vises med «?». *(Oversikten kan kuttes.)*
 - **NFR-9** Tekst har en kontrast på minst 4,5:1 mot bakgrunnen.
 - **NFR-10** Riktig og feil svar vises med tekst eller symbol i tillegg til farge, slik at det kan forstås uten å skille rødt fra grønt.
 - **NFR-11** Alle skjemafelt har en synlig etikett, og feilmeldinger forklarer i tekst hva som er feil og hvordan det rettes.
@@ -206,7 +214,7 @@ Appen skal kunne brukes av alle, også med tastatur eller skjermleser. Kravene b
 ### Grenser og ventetid
 
 - **NFR-16** En opplastet fil kan være på inntil 50 sider. Er filen større, avvises den med en beskjed om grensen.
-- **NFR-17** Med ekte språkmodell tar det normalt under to minutter å lage en vanlig gjennomgang (inntil 20 flashcards) fra én forelesning. I demomodus tar det under fem sekunder. Mens innholdet lages, kan studenten bruke resten av appen, og hun ser når det er ferdig.
+- **NFR-17** Med ekte språkmodell tar det normalt under to minutter å lage en vanlig gjennomgang (inntil 20 flashcards) fra én forelesning. I demomodus tar det under fem sekunder. Mens innholdet lages, kan studenten bruke resten av appen, og hun ser når det er ferdig. Det kan gå én jobb om gangen per forelesning. Blir jobben ferdig mens hun er på en annen side, vises en kort melding der. *(Meldingen på andre sider kan kuttes: da vises status bare på forelesningssiden.)*
 
 ### Valg av språkmodell
 
@@ -234,6 +242,7 @@ Kjøres med mock-modellen, slik at sensor kan kjøre dem uten nøkkel.
 - **SK-7** Word-filer, for store filer og PDF-er uten tekst avvises med riktig beskjed (FR-9, FR-10, NFR-16).
 - **SK-8** Feiler genereringen, lagres ingenting halvferdig (FR-21).
 - **SK-9** Universell utforming kontrolleres automatisk på alle sider (NFR-13).
+- **SK-20** Resultatet av en økt lagres når økten avsluttes, også når den avbrytes, mens enkeltsvar ikke lagres. «Neste å øve på» følger regelen i FR-58 (FR-56, FR-58).
 - **SK-10** Huskeregelen stemmer med forbokstavene, og modellkort der alle punktene har samme forbokstav, lages uten huskeregel (FR-44, FR-45). Gjelder hvis huskeregler bygges.
 
 ### Manuelle kontroller før innlevering
@@ -264,7 +273,7 @@ Kjerneflyten er det som må virke og være stabilt først, både i demomodus og 
 
 ### Prioritering
 
-- **Må ha:** 1 Norsk språk · 2 Innlogging og egne data · 3 Emner, forelesninger og opplasting · 4 Flashcards · 5 Flervalgsquiz, med kravene i «Felles for alt generert innhold» og alle ikke-funksjonelle krav.
+- **Må ha:** 1 Norsk språk · 2 Innlogging og egne data · 3 Emner, forelesninger og opplasting · 4 Flashcards · 5 Flervalgsquiz, med «Oversikt fram mot eksamen», kravene i «Felles for alt generert innhold» og alle ikke-funksjonelle krav. Krav merket *(Kan kuttes)* går først.
 - **Bør ha, i byggerekkefølge:** 6 Huskeregler · 7 Fritekstspørsmål med selvvurdering · 8 Sammendrag.
 
 Faglæreren advarte om at MVP-en i briefen var større enn prosjektforslaget den bygger på. Må ha er derfor holdt til de fem punktene faglæreren foreslo, nøkkelbegreper er slått sammen med flashcards, og krav som kan kuttes, er merket. Huskeregler er ett av de fire særtrekkene, men står som bør ha slik faglæreren foreslo. Kuttes de, faller SK-10 bort.
@@ -302,6 +311,20 @@ Briefen ([brief.md](../../briefs/brief-G91-vikvald-2026-09-24/brief.md)) var utg
 | Sammendrag med valgbart detaljnivå (kort, middels, detaljert) | Ett detaljnivå: hovedpunktene med en kort forklaring (FR-53). Valgbart nivå er en mulig utvidelse. | Sammendrag er den bør ha-funksjonen som kuttes først. Tre nivåer betyr tre varianter å lage og teste, og sensorveiledningen vurderer at det som er bygd, virker, ikke antall valg. |
 | Publisert webapp som en bonus | Publisering er utenfor | Lokal kjøring er det som kreves, og publisering ville krevd at også serveren kjører i EU. |
 
+## Endringer etter UX-arbeidet
+
+UX-arbeidet 10.–11. november 2026 ([EXPERIENCE.md](../../ux-designs/ux-G91-vikvald-2026-11-10/EXPERIENCE.md), [DESIGN.md](../../ux-designs/ux-G91-vikvald-2026-11-10/DESIGN.md)) viste at semesterlinjen, som jeg likte best av designkonseptene, trenger data PRD-en ikke hadde. Disse endringene ble gjort 11. november:
+
+| PRD-en sa | PRD-en sier nå | Begrunnelse |
+|---|---|---|
+| Et emne har et navn (FR-6) | Et emne har navn og eksamensdato (FR-6) | Semesterlinjen viser tiden til eksamen. Det var det jeg likte best i designet. |
+| Markeringer og fritekstsvar lagres ikke (FR-25, FR-51) | Enkeltsvar lagres fortsatt ikke, men resultatet av hver økt lagres (FR-56) | Uten lagring kan appen ikke vise hva som er øvd. Det er bare dato, type og resultat, ikke svarene. |
+| Ingen oversikt over semesteret | Semesterlinje og «Neste å øve på» (FR-57, FR-58), begge *(Kan kuttes)* | Gir oversikten fram mot eksamen (UJ-2). Kan kuttes fordi kjerneflyten virker uten dem; reserven for semesterlinjen er tekst. |
+| Kort og spørsmål kan redigeres og slettes (FR-27, FR-37, FR-52) | Det skjer direkte fra kortet eller spørsmålet under øving, med bekreftelse | Feil oppdages mens studenten øver og sjekker kilden. Det trengs ingen egen listeside. |
+| Tastatur og ventetid (NFR-8, NFR-17) | Hurtigtaster og oversikt med «?», én jobb per forelesning og ferdigmelding på andre sider. Oversikten og meldingen *(Kan kuttes)* | Gjør tastaturbruk og venting tydeligere. Faglæreren advarte mot omfang, så tilleggene er merket. |
+
+Faglæreren advarte om at omfanget kunne bli for stort. Bare FR-56 og eksamensdatoen er nye må ha-krav, og begge er små. Resten er merket *(Kan kuttes)*.
+
 ## Begrensninger og risikoer
 
 ### Begrensninger
@@ -337,3 +360,5 @@ Disse avklares før eller under arkitektur og implementering, og følges opp som
 - **Kilde:** Filnavn og sidetall i PDF-filen som innholdet er laget fra.
 - **Stikkprøve:** Manuell kontroll av et utvalg kort eller spørsmål mot kilden.
 - **Kjerneflyt:** Den delen av appen som må virke først: innlogging, emner og forelesninger, opplasting, flashcards og quiz.
+- **Økt:** Én gjennomgang av flashcards, quiz, huskeregler eller fritekst, fra start til den avsluttes.
+- **Semesterlinje:** Tidslinje som viser forelesningene i et emne etter dato, fram til eksamen.

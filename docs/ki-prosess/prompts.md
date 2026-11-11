@@ -2,6 +2,52 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-11: Sjekke UX-arbeidet mot sensorveiledningen
+
+> godkjenner, men er det vi har gjort i tråd med sensorveiledning og tilbakemelding?
+
+KI fant at designet dekker det faglærer ba om, men at omfanget hadde vokst, og at PRD-en ikke hadde de nye kravene. Jeg svarte «ta begge nå».
+
+**Resultat:** PRD-en fikk FR-56 til FR-58, og fire tillegg er merket «kan kuttes». Commit `2ff0218`.
+
+## 2026-11-11: Fra «førsteutkast» til valgt retning
+
+> ja, det ser ut som noe som var et førsteutkast og at man ikke orket å gjøre mer
+
+KI lagde tre ferdigstilte varianter av F. Jeg likte F2 best, men:
+
+> liker designet veldig godt og oppleves som ryddig og oversiktlig, men alt er i samme tone fargemessig, vet ikke hva som ville gjort det bedre
+
+KI viste fire fargevarianter i stedet for å spørre mer. Jeg valgte: «velg f2 og gå videre», og presiserte «mente f2-v1:signaturfarge».
+
+**Resultat:** Designretning F2-V1. Commits `b04c0de` og `790efa7`.
+
+## 2026-11-10: Fra hybrid til valgt retning
+
+Jeg forkastet hybrid D («for rotete og visuelt dårlig») og ga presise ønsker for E:
+
+> ikke ha sidemeny på første side, gjør første side lik som første side på orginal semesterlinje, ha samme sidemeny som på tastaturet først, inkludert økt, men i farger som passer semesterlinje. ikke ha semesterlinje i sidemeny. […] rotet kom med sidemenyen
+
+Om E spurte jeg «noe du ville endret?», og godtok KIs sju forslag til opprydding.
+
+**Resultat:** Hybrid F, som jeg liker best så langt. Den er ikke valgt som endelig retning. Commit `2c00ce9`.
+
+## 2026-11-10: Tre forslag ut fra mine favoritter
+
+> likte at semesterlinjen var oversiktlig, likte linjen som visste hvor lenge det var igjen til eksamen, samt hvor mange forelesninger som har vært, likte at fargene var rolig, men med farger på linjene, den føltes premium og oversiktiglig. Med tastaturet først likte jeg sidemenyene på hver side.
+
+Jeg avbrøt et spørreskjema fra KI og forklarte heller med egne ord. KI lagde så tre forslag som skiller seg på farger, sidemeny og hva menyen gjør under øving.
+
+**Resultat:** Hybrid A, B og C på fem sider, samlet i et galleri. Commit `06730a5`.
+
+## 2026-11-10: Ti designkonsepter før detaljene
+
+> jeg ønsker at du skisserer alle sidene for applikasjonen. jeg ønsker at du lager 10 forskjellige designkonsept. Jeg vil se svg baserte design konsept. Kjør ganske bred variasjon i kreativitet. […] Ikke spør meg nå. Jeg vil vurdere de 10 konseptene, før vi driller inn i detaljenene. Bruk 10 subagenter og sett alt sammen.
+
+KI skrev en felles brief med de 15 sidene og innholdet fra PRD-en, og ga hver subagent en egen retning. Briefen ligger i [brief-konsepter.md](../../_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/.working/brief-konsepter.md).
+
+**Resultat:** Ti konsepter med 15 SVG-skisser hver, samlet i et galleri. Commit `44a7164`.
+
 ## 2026-11-09: Fullføre PRD-en etter gjennomgang
 
 Fire KI-assistenter gikk uavhengig gjennom PRD-en mot briefen, sensorveiledningen, researchen og en sjekkliste for PRD-er. Jeg tok de fire beslutningene de reiste:

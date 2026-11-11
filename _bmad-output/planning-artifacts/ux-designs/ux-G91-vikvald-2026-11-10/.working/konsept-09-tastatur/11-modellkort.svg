@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" role="img" aria-labelledby="title">
+<title id="title">Studiekamerat – modellkort AIDA, snudd</title>
+<rect x="0" y="0" width="1440" height="900" fill="#15171C" stroke="none" stroke-width="1" rx="0" />
+<rect x="0" y="0" width="1440" height="44" fill="#0F1115" stroke="none" stroke-width="1" rx="0" />
+<rect x="20" y="13" width="10" height="18" fill="#F5B942" stroke="none" stroke-width="1" rx="1" />
+<text x="40" y="28" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >studiekamerat</text>
+<text x="196" y="28" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >~/markedsføring/uke-37-merkevare/huskeregler</text>
+<rect x="810" y="8" width="380" height="28" fill="#252933" stroke="#3A4150" stroke-width="1" rx="3" />
+<text x="824" y="27" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Søk eller kjør kommando …</text>
+<rect x="1140" y="11" width="29.652" height="22" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1142" y1="32" x2="1167.652" y2="32" stroke="#AEB6C4" stroke-width="2" />
+<text x="1154.826" y="26" font-size="13" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⌘K</text>
+<text x="1218" y="28" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Konto</text>
+<text x="1294" y="28" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Logg ut</text>
+<line x1="0" y1="44" x2="1440" y2="44" stroke="#3A4150" stroke-width="1" />
+<rect x="0" y="44" width="300" height="822" fill="#1C1F26" stroke="none" stroke-width="1" rx="2" />
+<line x1="300" y1="44" x2="300" y2="866" stroke="#3A4150" stroke-width="1" />
+<text x="24" y="80" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">ØKT</text>
+<text x="24" y="112" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >Huskeregler</text>
+<text x="24" y="138" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 37: Merkevare</text>
+<text x="24" y="186" font-size="34" fill="#F5B942" font-weight="700" text-anchor="start" >3 / 3</text>
+<rect x="24" y="204" width="252" height="8" fill="#252933" stroke="none" stroke-width="1" rx="1" />
+<rect x="24" y="204" width="168.0" height="8" fill="#F5B942" stroke="none" stroke-width="1" rx="1" />
+<rect x="24" y="250" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="42" y="274" font-size="16" fill="#6FD39A" font-weight="700" text-anchor="middle" >✓</text>
+<rect x="66" y="250" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="84" y="274" font-size="16" fill="#6FD39A" font-weight="700" text-anchor="middle" >✓</text>
+<rect x="105" y="247" width="42" height="42" fill="none" stroke="#79C6EA" stroke-width="2" rx="4" />
+<rect x="108" y="250" width="36" height="36" fill="#252933" stroke="#3A4150" stroke-width="1" rx="2" />
+<text x="126" y="274" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="middle" >3</text>
+<text x="24" y="322" font-size="16" fill="#6FD39A" font-weight="700" text-anchor="start" >✓</text>
+<text x="50" y="322" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Kunne</text>
+<text x="24" y="350" font-size="16" fill="#FF8F87" font-weight="700" text-anchor="start" >✗</text>
+<text x="50" y="350" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Kunne ikke – repeteres</text>
+<text x="24" y="378" font-size="16" fill="#AEB6C4" font-weight="700" text-anchor="start" >·</text>
+<text x="50" y="378" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >ikke vist ennå</text>
+<line x1="24" y1="790" x2="276" y2="790" stroke="#3A4150" stroke-width="1" />
+<rect x="24" y="815" width="39.284" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="26" y1="837" x2="61.284" y2="837" stroke="#AEB6C4" stroke-width="2" />
+<text x="43.641999999999996" y="831" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >Esc</text>
+<text x="72" y="832" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Avslutt økt</text>
+<text x="360" y="96" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">FORSIDE  · modellkort 3 av 3</text>
+<rect x="360" y="112" width="1020" height="130" fill="#1C1F26" stroke="#3A4150" stroke-width="1" rx="4" />
+<text x="392" y="186" font-size="26" fill="#E8EBF0" font-weight="700" text-anchor="start" >Forklar AIDA-modellen</text>
+<text x="360" y="286" font-size="14" fill="#F5B942" font-weight="700" text-anchor="start" letter-spacing="2">BAKSIDE  · snudd med Mellomrom</text>
+<rect x="360" y="302" width="1020" height="330" fill="#252933" stroke="#F5B942" stroke-width="1.5" rx="4" />
+<rect x="392" y="324" width="36" height="38" fill="#F5B942" stroke="none" stroke-width="1" rx="3" />
+<text x="410" y="352" font-size="24" fill="#15171C" font-weight="700" text-anchor="middle" >A</text>
+<text x="444" y="352" font-size="22" fill="#E8EBF0" font-weight="700" text-anchor="start" >Attention</text>
+<text x="579.196" y="352" font-size="20" fill="#AEB6C4" font-weight="400" text-anchor="start" >(oppmerksomhet)</text>
+<rect x="392" y="370" width="36" height="38" fill="#F5B942" stroke="none" stroke-width="1" rx="3" />
+<text x="410" y="398" font-size="24" fill="#15171C" font-weight="700" text-anchor="middle" >I</text>
+<text x="444" y="398" font-size="22" fill="#E8EBF0" font-weight="700" text-anchor="start" >Interest</text>
+<text x="565.952" y="398" font-size="20" fill="#AEB6C4" font-weight="400" text-anchor="start" >(interesse)</text>
+<rect x="392" y="416" width="36" height="38" fill="#F5B942" stroke="none" stroke-width="1" rx="3" />
+<text x="410" y="444" font-size="24" fill="#15171C" font-weight="700" text-anchor="middle" >D</text>
+<text x="444" y="444" font-size="22" fill="#E8EBF0" font-weight="700" text-anchor="start" >Desire</text>
+<text x="539.4639999999999" y="444" font-size="20" fill="#AEB6C4" font-weight="400" text-anchor="start" >(ønske)</text>
+<rect x="392" y="462" width="36" height="38" fill="#F5B942" stroke="none" stroke-width="1" rx="3" />
+<text x="410" y="490" font-size="24" fill="#15171C" font-weight="700" text-anchor="middle" >A</text>
+<text x="444" y="490" font-size="22" fill="#E8EBF0" font-weight="700" text-anchor="start" >Action</text>
+<text x="539.4639999999999" y="490" font-size="20" fill="#AEB6C4" font-weight="400" text-anchor="start" >(handling)</text>
+<text x="952" y="352" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">HUSKEREGEL</text>
+<text x="952" y="422" font-size="64" fill="#F5B942" font-weight="700" text-anchor="start" letter-spacing="10">AIDA</text>
+<text x="952" y="462" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Fra å legge merke til</text>
+<text x="952" y="486" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >– til å handle.</text>
+<line x1="392" y1="584" x2="1348" y2="584" stroke="#3A4150" stroke-width="1" />
+<text x="392" y="614" font-size="16" fill="#79C6EA" font-weight="400" text-anchor="start" >kilde: merkevare-notater.pdf, side 9</text>
+<text x="1348" y="614" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >åpne kilden  O</text>
+<rect x="360" y="672" width="230" height="44" fill="#F5B942" stroke="#F5B942" stroke-width="1" rx="3" />
+<text x="376" y="700" font-size="16" fill="#15171C" font-weight="700" text-anchor="start" >Kunne</text>
+<rect x="552" y="683" width="26" height="23" fill="#15171C" stroke="#15171C" stroke-width="1" rx="3" />
+<text x="565.0" y="700" font-size="14" fill="#F5B942" font-weight="700" text-anchor="middle" >1</text>
+<rect x="606" y="672" width="230" height="44" fill="#1C1F26" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="622" y="700" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >Kunne ikke</text>
+<rect x="798" y="683" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="811.0" y="700" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >2</text>
+<rect x="852" y="672" width="230" height="44" fill="#1C1F26" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="868" y="700" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >Endre huskeregel</text>
+<rect x="1044" y="683" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="1057.0" y="700" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >E</text>
+<rect x="360" y="773" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="362" y1="795" x2="384" y2="795" stroke="#AEB6C4" stroke-width="2" />
+<text x="373.0" y="789" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >1</text>
+<text x="394" y="790" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Kunne</text>
+<rect x="465.15" y="773" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="467.15" y1="795" x2="489.15" y2="795" stroke="#AEB6C4" stroke-width="2" />
+<text x="478.15" y="789" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >2</text>
+<text x="499.15" y="790" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Kunne ikke</text>
+<rect x="615.4499999999999" y="773" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="617.4499999999999" y1="795" x2="639.4499999999999" y2="795" stroke="#AEB6C4" stroke-width="2" />
+<text x="628.4499999999999" y="789" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >E</text>
+<text x="649.4499999999999" y="790" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >endre</text>
+<rect x="720.5999999999999" y="773" width="89.852" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="722.5999999999999" y1="795" x2="808.4519999999999" y2="795" stroke="#AEB6C4" stroke-width="2" />
+<text x="765.526" y="789" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >Mellomrom</text>
+<text x="818.4519999999999" y="790" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >snu</text>
+<rect x="871.5419999999999" y="773" width="39.284" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="873.5419999999999" y1="795" x2="908.8259999999999" y2="795" stroke="#AEB6C4" stroke-width="2" />
+<text x="891.184" y="789" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >Esc</text>
+<text x="918.8259999999999" y="790" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >avslutt</text>
+<rect x="0" y="866" width="1440" height="34" fill="#0F1115" stroke="none" stroke-width="1" rx="0" />
+<line x1="0" y1="866" x2="1440" y2="866" stroke="#3A4150" stroke-width="1" />
+<rect x="0" y="866" width="53.284" height="34" fill="#F5B942" stroke="none" stroke-width="1" rx="0" />
+<text x="26.642" y="888" font-size="14" fill="#15171C" font-weight="700" text-anchor="middle" >ØKT</text>
+<text x="69.28399999999999" y="888" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Huskeregler · kort 3 av 3</text>
+<text x="1420" y="888" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >demomodus av</text>
+</svg>

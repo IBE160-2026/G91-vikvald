@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" role="img" aria-label="Studiekamerat – emner">
+<title>Studiekamerat – emner</title>
+<rect x="0" y="0" width="1440" height="900" fill="#F3EFE4"/>
+<rect x="0" y="0" width="1440" height="76" fill="#FFFFFF"/>
+<rect x="0" y="0" width="320" height="76" fill="#FFD60A"/>
+<text x="28" y="49" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="900" fill="#000000" letter-spacing="0.5">STUDIEKAMERAT</text>
+<line x1="320" y1="0" x2="320" y2="76" stroke="#000000" stroke-width="4"/>
+<text x="352" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">EMNER</text>
+<text x="1008" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">klara@student.no</text>
+<rect x="1186" y="22" width="104" height="40" fill="#000000"/>
+<rect x="1182" y="18" width="104" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1234.0" y="43.4" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">KONTO</text>
+<rect x="1306" y="22" width="112" height="40" fill="#000000"/>
+<rect x="1302" y="18" width="112" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1358.0" y="43.4" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">LOGG UT</text>
+<line x1="0" y1="76" x2="1440" y2="76" stroke="#000000" stroke-width="4"/>
+<text x="40" y="180" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="88" font-weight="900" fill="#000000" letter-spacing="-1">EMNER</text>
+<text x="44" y="220" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">3 EMNER · SIST ØVD 09.11.2026</text>
+<rect x="1188" y="128" width="220" height="64" fill="#000000"/>
+<rect x="1180" y="120" width="220" height="64" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="1290.0" y="159.2" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">+ NYTT EMNE</text>
+<rect x="50" y="280" width="420" height="380" fill="#000000"/>
+<rect x="40" y="270" width="420" height="380" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<rect x="40" y="270" width="420" height="64" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="64" y="312" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="22" font-weight="700" fill="#000000">01</text>
+<text x="436" y="312" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000" text-anchor="end">8 FORELESNINGER</text>
+<text x="64" y="396" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="900" fill="#000000" letter-spacing="-0.5">MARKEDSFØRING</text>
+<line x1="40" y1="480" x2="460" y2="480" stroke="#000000" stroke-width="3"/>
+<text x="64" y="520" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#000000">142 flashcards · 96 quizspm.</text>
+<text x="64" y="556" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">Sist øvd 09.11</text>
+<rect x="69" y="587" width="372" height="48" fill="#000000"/>
+<rect x="64" y="582" width="372" height="48" fill="#1D3FD8" stroke="#000000" stroke-width="4"/>
+<text x="250.0" y="612.12" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">ÅPNE EMNET →</text>
+<rect x="506" y="280" width="420" height="380" fill="#000000"/>
+<rect x="496" y="270" width="420" height="380" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<rect x="496" y="270" width="420" height="64" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="520" y="312" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="22" font-weight="700" fill="#000000">02</text>
+<text x="892" y="312" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000" text-anchor="end">5 FORELESNINGER</text>
+<text x="520" y="396" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="900" fill="#000000" letter-spacing="-0.5">SAMFUNNSØKONOMI</text>
+<line x1="496" y1="480" x2="916" y2="480" stroke="#000000" stroke-width="3"/>
+<text x="520" y="520" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#000000">61 flashcards · 40 quizspm.</text>
+<text x="520" y="556" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">Sist øvd 03.11</text>
+<rect x="525" y="587" width="372" height="48" fill="#000000"/>
+<rect x="520" y="582" width="372" height="48" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="706.0" y="612.12" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">ÅPNE EMNET →</text>
+<rect x="962" y="280" width="420" height="380" fill="#000000"/>
+<rect x="952" y="270" width="420" height="380" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<rect x="952" y="270" width="420" height="64" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="976" y="312" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="22" font-weight="700" fill="#000000">03</text>
+<text x="1348" y="312" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000" text-anchor="end">2 FORELESNINGER</text>
+<text x="976" y="396" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="900" fill="#000000" letter-spacing="-0.5">ORGANISASJON OG</text>
+<text x="976" y="436" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="900" fill="#000000" letter-spacing="-0.5">LEDELSE</text>
+<line x1="952" y1="480" x2="1372" y2="480" stroke="#000000" stroke-width="3"/>
+<text x="976" y="520" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#000000">0 flashcards · 0 quizspm.</text>
+<rect x="976" y="538" width="137" height="29" fill="#FFD60A" stroke="#000000" stroke-width="3"/>
+<text x="986" y="557.9" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="15" font-weight="700" fill="#000000">IKKE ØVD ENNÅ</text>
+<rect x="981" y="587" width="372" height="48" fill="#000000"/>
+<rect x="976" y="582" width="372" height="48" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1162.0" y="612.12" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">ÅPNE EMNET →</text>
+<rect x="40" y="720" width="1360" height="120" fill="#000000"/>
+<text x="72" y="762" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#FFD60A">FORTSETT DER DU SLAPP</text>
+<text x="72" y="806" font-family="'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Markedsføring / Uke 37: Merkevare – 24 flashcards, 15 quizspørsmål</text>
+<rect x="1124" y="748" width="248" height="60" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="1248.0" y="785.2" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">ØV NÅ →</text>
+</svg>

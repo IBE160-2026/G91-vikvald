@@ -1,0 +1,189 @@
+<title>Studiekamerat F2-V1</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap">
+<style>
+/* Layout: et lysbord / kontaktark. Skissene er innholdet, rammen holder seg nøytral og stille. */
+:root {
+  --bg: #eef0f2; --flate: #ffffff; --fg: #1b1f24; --dempet: #545c66; --linje: #d3d8de;
+  --aksent: #1f5fbf; --aksent-fg: #ffffff; --fokus: #1f5fbf;
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --tekst: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15181c; --flate: #1f2329; --fg: #e8ebef; --dempet: #a3acb7; --linje: #343a42;
+  --aksent: #8db8ff; --aksent-fg: #0e1a2e; --fokus: #8db8ff; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #15181c; --flate: #1f2329; --fg: #e8ebef; --dempet: #a3acb7; --linje: #343a42;
+  --aksent: #8db8ff; --aksent-fg: #0e1a2e; --fokus: #8db8ff; color-scheme: dark }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--tekst);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.ramme { max-width: 1320px; margin: 0 auto; padding-block: 32px 64px; display: grid; gap: 28px; }
+header { display: grid; gap: 10px; }
+.merke { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--dempet); }
+h1 { font: 600 clamp(28px, 4vw, 44px)/1.1 var(--display); margin: 0; text-wrap: balance; }
+.ingress { margin: 0; max-width: 68ch; color: var(--dempet); }
+:focus-visible { outline: 3px solid var(--fokus); outline-offset: 2px; }
+
+.faner { display: flex; gap: 4px; border-bottom: 1px solid var(--linje); flex-wrap: wrap; }
+.fane { font: 500 15px var(--tekst); color: var(--dempet); background: none; border: 0; padding: 10px 14px;
+  border-bottom: 3px solid transparent; cursor: pointer; margin-bottom: -1px; }
+.fane[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--aksent); }
+
+.brikker { display: flex; flex-wrap: wrap; gap: 6px; }
+.brikke { font: 500 13px var(--tekst); color: var(--fg); background: var(--flate); border: 1px solid var(--linje);
+  border-radius: 999px; padding: 6px 12px; cursor: pointer; text-decoration: none; }
+.brikke .nr { font-family: var(--mono); color: var(--dempet); margin-right: 6px; }
+.brikke[aria-pressed="true"] { background: var(--aksent); color: var(--aksent-fg); border-color: var(--aksent); }
+.brikke[aria-pressed="true"] .nr { color: inherit; }
+
+.konsept { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 28px;
+  padding-block: 28px; border-top: 1px solid var(--linje); scroll-margin-top: 16px; }
+.konsept:first-child { border-top: 0; }
+.om { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.om .nr { font: 500 13px var(--mono); color: var(--dempet); }
+.om h2 { font: 600 28px/1.15 var(--display); margin: 0; text-wrap: balance; }
+details { border-top: 1px solid var(--linje); padding-top: 8px; }
+summary { cursor: pointer; font-weight: 500; color: var(--aksent); }
+.md { font-size: 14.5px; color: var(--fg); min-width: 0; overflow-wrap: anywhere; }
+.md h3, .md h4, .md h5 { font: 600 14px var(--tekst); margin: 14px 0 4px; }
+.md p, .md ul { margin: 6px 0; } .md ul { padding-left: 18px; }
+.md code { font: 12.5px var(--mono); }
+.md .rad { display: flex; gap: 8px; font-size: 13px; border-bottom: 1px solid var(--linje); padding: 3px 0; }
+.md .rad span { flex: 1; min-width: 0; }
+
+.rutenett { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; min-width: 0; }
+.sammenlign .rutenett { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 22px; }
+figure { margin: 0; display: grid; gap: 6px; }
+.miniatyr { display: block; padding: 0; border: 1px solid var(--linje); background: var(--flate); border-radius: 4px;
+  cursor: zoom-in; overflow: hidden; aspect-ratio: 1440 / 900; width: 100%; max-width: 100%; }
+.miniatyr img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.miniatyr:hover { border-color: var(--aksent); }
+figcaption { font-size: 13px; color: var(--dempet); display: flex; gap: 8px; }
+figcaption .kode { font-family: var(--mono); }
+figcaption strong { color: var(--fg); font-weight: 500; }
+
+dialog { border: 0; padding: 0; background: var(--bg); color: var(--fg); width: 100vw; height: 100vh; max-width: none; max-height: none; }
+dialog::backdrop { background: rgb(0 0 0 / .6); }
+.lys { display: grid; grid-template-rows: auto 1fr; height: 100%; padding: 12px max(16px, env(safe-area-inset-left, 0px)); gap: 10px; }
+.lys-topp { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lys-topp .tittel { flex: 1; min-width: 0; font-weight: 500; }
+.lys-topp button { font: 500 14px var(--tekst); background: var(--flate); color: var(--fg); border: 1px solid var(--linje);
+  border-radius: 6px; padding: 7px 12px; cursor: pointer; }
+.lys-bilde { min-height: 0; display: grid; place-items: center; }
+.lys-bilde img { max-width: 100%; max-height: 100%; background: var(--flate); box-shadow: 0 4px 24px rgb(0 0 0 / .25); }
+.tom { color: var(--dempet); font-style: italic; }
+@media (max-width: 760px) { .konsept { grid-template-columns: minmax(0, 1fr); } .sammenlign .rutenett { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<div class="ramme">
+  <header>
+    <span class="merke">Studiekamerat · UX · 10. november 2026</span>
+    <h1>F2-V1: alle femten sider</h1>
+    <p class="ingress">Den valgte designretningen: utformingen fra F2 med én egen merkefarge (ultramarin). Alle 15 sidene i appen, med Klara som øver på Markedsføring.</p>
+  </header>
+
+  <div class="faner" role="tablist">
+    <button class="fane" role="tab" id="fane-konsept" aria-selected="true" aria-controls="visning-konsept">Per variant</button>
+    <button class="fane" role="tab" id="fane-sammenlign" aria-selected="false" aria-controls="visning-sammenlign">Sammenlign én side</button>
+  </div>
+
+  <section id="visning-konsept" role="tabpanel" aria-labelledby="fane-konsept">
+    <nav class="brikker" id="konsept-nav" aria-label="Hopp til konsept"></nav>
+    <div id="konsept-liste"></div>
+  </section>
+
+  <section id="visning-sammenlign" class="sammenlign" role="tabpanel" aria-labelledby="fane-sammenlign" hidden>
+    <div class="brikker" id="skjerm-valg" role="group" aria-label="Velg side"></div>
+    <div class="rutenett" id="sammenlign-rutenett" style="margin-top:20px"></div>
+  </section>
+</div>
+
+<dialog id="lysbord" aria-label="Skisse i full størrelse">
+  <div class="lys">
+    <div class="lys-topp">
+      <button type="button" id="forrige" aria-label="Forrige skisse">← Forrige</button>
+      <button type="button" id="neste" aria-label="Neste skisse">Neste →</button>
+      <span class="tittel" id="lys-tittel" aria-live="polite"></span>
+      <button type="button" id="lukk">Lukk (Esc)</button>
+    </div>
+    <div class="lys-bilde"><img id="lys-img" alt=""></div>
+  </div>
+</dialog>
+
+<script>
+const DATA = {"konsepter": [{"id": "hybrid-f2-v1", "nr": "f2", "navn": "F2-V1: Signaturfarge", "skjermer": [{"fil": "hybrid-f2-v1/01-logg-inn.svg", "tittel": "Logg inn", "kode": "01-logg-inn"}, {"fil": "hybrid-f2-v1/02-emner.svg", "tittel": "Emner", "kode": "02-emner"}, {"fil": "hybrid-f2-v1/03-emne.svg", "tittel": "Emneside", "kode": "03-emne"}, {"fil": "hybrid-f2-v1/04-forelesning.svg", "tittel": "Forelesning", "kode": "04-forelesning"}, {"fil": "hybrid-f2-v1/05-vilkar.svg", "tittel": "Vilkår", "kode": "05-vilkar"}, {"fil": "hybrid-f2-v1/06-lag-innhold.svg", "tittel": "Lag quiz", "kode": "06-lag-innhold"}, {"fil": "hybrid-f2-v1/07-flashcard.svg", "tittel": "Flashcard", "kode": "07-flashcard"}, {"fil": "hybrid-f2-v1/08-flashcard-ferdig.svg", "tittel": "Flashcards ferdig", "kode": "08-flashcard-ferdig"}, {"fil": "hybrid-f2-v1/09-quiz.svg", "tittel": "Quiz", "kode": "09-quiz"}, {"fil": "hybrid-f2-v1/10-quiz-resultat.svg", "tittel": "Quizresultat", "kode": "10-quiz-resultat"}, {"fil": "hybrid-f2-v1/11-modellkort.svg", "tittel": "Modellkort", "kode": "11-modellkort"}, {"fil": "hybrid-f2-v1/12-fritekst.svg", "tittel": "Fritekst", "kode": "12-fritekst"}, {"fil": "hybrid-f2-v1/13-sammendrag.svg", "tittel": "Sammendrag", "kode": "13-sammendrag"}, {"fil": "hybrid-f2-v1/14-slett-bekreft.svg", "tittel": "Slett fil", "kode": "14-slett-bekreft"}, {"fil": "hybrid-f2-v1/15-konto.svg", "tittel": "Konto", "kode": "15-konto"}], "md": "<h3>F2-V1: Signaturfarge</h3>\n<p><strong>Idé:</strong> Studiekamerat får én egen merkefarge, en dyp ultramarin. Den brukes bare der Klara kan gjøre noe eller der appen viser «hvor du er». Resten er F2 som før.</p>\n<p>Layout, skrift, tekst og innhold er helt likt F2. Bare fargene er endret.</p>\n<h4>Hva er endret og hvorfor</h4>\n<ul>\n<li><strong>Hovedknapper</strong> («Øv nå», «Øv på flashcards», «Kunne», «Neste spørsmål») er ultramarine i stedet for svarte. Da skiller de seg fra teksten, og siden får ett tydelig fargepunkt.</li>\n<li><strong>Handlinger i tekst</strong> («Åpne», «Start», «Lag flere», «Erstatt») er også ultramarine. Fargen betyr altså «dette kan du trykke på».</li>\n<li><strong>Valgt rad i menyen</strong> har en svak ultramarin tone og en loddrett strek til venstre.</li>\n<li><strong>«I dag»</strong> og <strong>«Du er her»</strong> på tidslinjen, fremdriften på emnekortene og i øktpanelet, gjeldende rute i rutenettet og <strong>logo-prikken</strong> er ultramarine.</li>\n<li><strong>Papiret</strong> er litt varmere (#F8F7F3). En varm bakgrunn får den kjølige blåfargen til å virke klarere.</li>\n<li><strong>Fokusringen</strong> er svart (blekk) i stedet for blå, slik at den ikke forveksles med merkefargen.</li>\n<li>Ultramarin ligger langt nok fra emnefargene (oransje, petrol, grønn) til at den ikke leses som et emne. Den er mer fiolett enn petrol-blåen til Samfunnsøkonomi.</li>\n</ul>\n<h4>Palett (målt kontrast, WCAG)</h4>\n<div class='rad'><span>Hex</span><span>Rolle</span><span>Kontrast</span></div>\n<div class='rad'><span><code>#3A3FB0</code></span><span>Merkefarge: hovedknapper, handlinger, «I dag», fremdrift, logo-prikk</span><span>8,3:1 på hvitt, 7,8:1 på papir, 7,1:1 på valgt rad</span></div>\n<div class='rad'><span><code>#EBEBF8</code></span><span>Merketone: valgt menyrad, hover på tekstknapp, filflis, initialsirkel</span><span>Blekk 15,0:1, grå 5,3:1</span></div>\n<div class='rad'><span><code>#FFFFFF</code> på <code>#3A3FB0</code></span><span>Tekst på hovedknapper</span><span>8,3:1</span></div>\n<div class='rad'><span><code>#F8F7F3</code></span><span>Papir (litt varmere enn F2)</span><span>–</span></div>\n<div class='rad'><span><code>#FFFFFF</code></span><span>Flater: kort, paneler</span><span>–</span></div>\n<div class='rad'><span><code>#15181F</code></span><span>Blekk: tekst og fokusring</span><span>16,6:1 på papir, 17,8:1 på hvitt</span></div>\n<div class='rad'><span><code>#5A6070</code></span><span>Sekundær grå</span><span>5,9:1 på papir, 5,5:1 på merknadsflaten</span></div>\n<div class='rad'><span><code>#858B96</code></span><span>Kant på omrissknapper og opplastingsfelt</span><span>3,2:1 på papir</span></div>\n<div class='rad'><span><code>#DDDCD5</code> / <code>#EAE9E3</code></span><span>Kortkant og skillelinjer</span><span>–</span></div>\n<div class='rad'><span><code>#B83E0C</code> / <code>#0B6585</code> / <code>#2D6A3B</code></span><span>Emnefarger, uendret fra F2</span><span>5,3–6,5:1</span></div>\n<div class='rad'><span><code>#1C6E36</code> / <code>#E8F3EB</code>, <code>#B42318</code> / <code>#FCEBE9</code></span><span>Riktig og feil, uendret</span><span>5,5:1 og 5,7:1</span></div>\n<h4>Styrker</h4>\n<ul>\n<li>Minst mulig endring for størst mulig effekt. Appen får en identitet uten at noe annet flytter seg.</li>\n<li>Fargen har én tydelig betydning: handling og posisjon. Det gjør siden lettere å skanne.</li>\n<li>Lett å bygge: én ny farge og én lys tone.</li>\n</ul>\n<h4>Svakheter og risiko</h4>\n<ul>\n<li>Blåfiolett er en vanlig farge for apper og kan virke litt «generisk SaaS» hvis den brukes for mye.</li>\n<li>Den svarte fokusringen er tydelig, men mindre «vennlig» enn en farget ring.</li>\n<li>Når både knapper og tekstlenker er ultramarine, må fargen ikke brukes til pynt noe sted, ellers mister den betydningen.</li>\n<li>Med tre emnefarger og en merkefarge er det fire farger på forsiden. Det fungerer fordi merkefargen bare sitter på knapper og «I dag».</li>\n</ul>\n<p>Generator: <code>scratchpad/hf/genF2farge.py v1 &lt;utmappe&gt;</code> (kopi av genF2.py med styrbare farger; <code>f2</code> gir filer identiske med hybrid-f2).</p>"}], "skjermer": [{"kode": "01-logg-inn", "tittel": "Logg inn"}, {"kode": "02-emner", "tittel": "Emner"}, {"kode": "03-emne", "tittel": "Emneside"}, {"kode": "04-forelesning", "tittel": "Forelesning"}, {"kode": "05-vilkar", "tittel": "Vilkår"}, {"kode": "06-lag-innhold", "tittel": "Lag quiz"}, {"kode": "07-flashcard", "tittel": "Flashcard"}, {"kode": "08-flashcard-ferdig", "tittel": "Flashcards ferdig"}, {"kode": "09-quiz", "tittel": "Quiz"}, {"kode": "10-quiz-resultat", "tittel": "Quizresultat"}, {"kode": "11-modellkort", "tittel": "Modellkort"}, {"kode": "12-fritekst", "tittel": "Fritekst"}, {"kode": "13-sammendrag", "tittel": "Sammendrag"}, {"kode": "14-slett-bekreft", "tittel": "Slett fil"}, {"kode": "15-konto", "tittel": "Konto"}]};
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let rekke = [], pos = 0;
+
+function figur(sk, etikett, kode, liste, i) {
+  return `<figure><button class="miniatyr" type="button" data-liste="${liste}" data-i="${i}" aria-label="Åpne ${esc(etikett)}">
+    <img src="${esc(sk.fil)}" alt="${esc(etikett)}" loading="lazy"></button>
+    <figcaption><span class="kode">${esc(kode)}</span><strong>${esc(etikett.split(" – ").pop())}</strong></figcaption></figure>`;
+}
+const lister = {};
+
+function byggKonsepter() {
+  $("#konsept-nav").innerHTML = DATA.konsepter.map((k) =>
+    `<a class="brikke" href="#${esc(k.id)}"><span class="nr">${esc(k.nr)}</span>${esc(k.navn)}</a>`).join("");
+  $("#konsept-liste").innerHTML = DATA.konsepter.map((k) => {
+    lister[k.id] = k.skjermer.map((s) => ({ fil: s.fil, tittel: `${k.nr} ${k.navn} – ${s.tittel}` }));
+    const figurer = k.skjermer.map((s, i) => figur(s, `${k.navn} – ${s.tittel}`, s.kode.slice(0, 2), k.id, i)).join("");
+    return `<article class="konsept" id="${esc(k.id)}">
+      <div class="om"><span class="nr">F2-V1</span><h2>${esc(k.navn)}</h2>
+        <details><summary>Om varianten</summary><div class="md">${k.md || "<p class='tom'>Ingen beskrivelse.</p>"}</div></details></div>
+      <div class="rutenett">${figurer || "<p class='tom'>Ingen skisser ennå.</p>"}</div></article>`;
+  }).join("");
+}
+
+function velgSkjerm(kode) {
+  document.querySelectorAll("#skjerm-valg .brikke").forEach((b) => b.setAttribute("aria-pressed", b.dataset.kode === kode));
+  const ut = [];
+  DATA.konsepter.forEach((k) => { const s = k.skjermer.find((x) => x.kode === kode); if (s) ut.push({ s, k }); });
+  lister.sammenlign = ut.map(({ s, k }) => ({ fil: s.fil, tittel: `${k.nr} ${k.navn} – ${s.tittel}` }));
+  $("#sammenlign-rutenett").innerHTML = ut.map(({ s, k }, i) => figur(s, `${k.navn} – ${s.tittel}`, k.nr, "sammenlign", i)).join("")
+    || "<p class='tom'>Ingen skisser for denne siden.</p>";
+  try { localStorage.setItem("skjerm", kode); } catch (e) {}
+}
+
+function byggSammenlign() {
+  $("#skjerm-valg").innerHTML = DATA.skjermer.map((s) =>
+    `<button class="brikke" type="button" aria-pressed="false" data-kode="${s.kode}"><span class="nr">${s.kode.slice(0, 2)}</span>${esc(s.tittel)}</button>`).join("");
+  $("#skjerm-valg").addEventListener("click", (e) => { const b = e.target.closest(".brikke"); if (b) velgSkjerm(b.dataset.kode); });
+  let start = DATA.skjermer[1].kode; try { start = localStorage.getItem("skjerm") || start; } catch (e) {}
+  velgSkjerm(start);
+}
+
+function visFane(navn) {
+  const s = navn === "sammenlign";
+  $("#fane-konsept").setAttribute("aria-selected", !s); $("#fane-sammenlign").setAttribute("aria-selected", s);
+  $("#visning-konsept").hidden = s; $("#visning-sammenlign").hidden = !s;
+}
+$("#fane-konsept").onclick = () => { history.replaceState(null, "", " "); visFane("konsept"); };
+$("#fane-sammenlign").onclick = () => { location.hash = "sammenlign"; visFane("sammenlign"); };
+function fraHash() {
+  const h = location.hash.slice(1);
+  if (h === "sammenlign") return visFane("sammenlign");
+  visFane("konsept");
+  if (h) { const el = document.getElementById(h); if (el) el.scrollIntoView(); }
+}
+window.addEventListener("hashchange", fraHash);
+
+const dlg = $("#lysbord");
+function vis() { const x = rekke[pos]; $("#lys-img").src = x.fil; $("#lys-img").alt = x.tittel; $("#lys-tittel").textContent = `${x.tittel} (${pos + 1}/${rekke.length})`; }
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".miniatyr"); if (!b) return;
+  rekke = lister[b.dataset.liste]; pos = +b.dataset.i; vis();
+  if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+});
+$("#forrige").onclick = () => { pos = (pos - 1 + rekke.length) % rekke.length; vis(); };
+$("#neste").onclick = () => { pos = (pos + 1) % rekke.length; vis(); };
+$("#lukk").onclick = () => dlg.close();
+dlg.addEventListener("keydown", (e) => { if (e.key === "ArrowLeft") $("#forrige").click(); if (e.key === "ArrowRight") $("#neste").click(); });
+
+byggKonsepter(); byggSammenlign(); fraHash();
+</script>

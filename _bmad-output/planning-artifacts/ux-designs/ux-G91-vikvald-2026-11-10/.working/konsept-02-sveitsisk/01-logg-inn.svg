@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif">
+<title>Studiekamerat – Logg inn</title>
+<rect width="1440" height="900" fill="#FFFFFF"/>
+<rect x="72" y="64" width="32" height="32" fill="#E2001A"/>
+<text x="66" y="300" font-size="120" font-weight="700" fill="#000000" letter-spacing="-4">Studie-</text>
+<text x="66" y="420" font-size="120" font-weight="700" fill="#000000" letter-spacing="-4">kamerat</text>
+<text x="72" y="500" font-size="26" font-weight="400" fill="#000000"><tspan x="72" dy="0">Gjør dine egne forelesningsnotater om</tspan><tspan x="72" dy="36">til flashcards, quiz og sammendrag – med</tspan><tspan x="72" dy="36">kilde til hver side.</tspan></text>
+<rect x="72" y="660" width="196" height="2" fill="#000000"/>
+<text x="72" y="712" font-size="40" font-weight="700" fill="#E2001A">01</text>
+<text x="72" y="748" font-size="18" font-weight="700" fill="#000000">Last opp</text>
+<text x="72" y="774" font-size="16" font-weight="400" fill="#555555"><tspan x="72" dy="0">PDF-notater per</tspan><tspan x="72" dy="22">forelesning</tspan></text>
+<rect x="292" y="660" width="196" height="2" fill="#000000"/>
+<text x="292" y="712" font-size="40" font-weight="700" fill="#000000">02</text>
+<text x="292" y="748" font-size="18" font-weight="700" fill="#000000">Lag</text>
+<text x="292" y="774" font-size="16" font-weight="400" fill="#555555"><tspan x="292" dy="0">flashcards, quiz og</tspan><tspan x="292" dy="22">huskeregler</tspan></text>
+<rect x="512" y="660" width="196" height="2" fill="#000000"/>
+<text x="512" y="712" font-size="40" font-weight="700" fill="#000000">03</text>
+<text x="512" y="748" font-size="18" font-weight="700" fill="#000000">Øv</text>
+<text x="512" y="774" font-size="16" font-weight="400" fill="#555555"><tspan x="512" dy="0">på én forelesning eller</tspan><tspan x="512" dy="22">hele emnet</tspan></text>
+<rect x="720" y="64" width="1" height="772" fill="#000000"/>
+<text x="842" y="200" font-size="56" font-weight="700" fill="#000000" letter-spacing="-1.5">Logg inn</text>
+<text x="842" y="244" font-size="18" font-weight="400" fill="#555555">Ny her?</text>
+<text x="914" y="244" font-size="18" font-weight="700" fill="#000000">Opprett konto</text>
+<rect x="914" y="249" width="124" height="2" fill="#000000"/>
+<text x="842" y="316" font-size="16" font-weight="700" fill="#000000">E-post</text>
+<rect x="842" y="330" width="526" height="56" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<text x="862" y="366" font-size="18" font-weight="400" fill="#000000">klara@student.no</text>
+<text x="842" y="436" font-size="16" font-weight="700" fill="#000000">Passord</text>
+<text x="1368" y="436" font-size="16" font-weight="400" fill="#000000" text-anchor="end">Vis passord</text>
+<rect x="1282" y="441" width="86" height="1" fill="#000000"/>
+<rect x="842" y="450" width="526" height="56" fill="#FFFFFF" stroke="#E2001A" stroke-width="3"/>
+<text x="862" y="486" font-size="18" font-weight="400" fill="#000000">••••••</text>
+<rect x="842" y="520" width="4" height="24" fill="#E2001A"/>
+<text x="858" y="538" font-size="16" font-weight="700" fill="#E2001A">✗ Feil e-post eller passord. Prøv igjen.</text>
+<rect x="842" y="588" width="526" height="64" fill="#000000"/><text x="862" y="627.0" font-size="20" font-weight="700" fill="#FFFFFF">Logg inn</text><text x="1348" y="627.0" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="end">→</text>
+<rect x="842" y="700" width="526" height="1" fill="#000000"/>
+<text x="842" y="736" font-size="16" font-weight="400" fill="#555555"><tspan x="842" dy="0">Notatene dine er bare synlige for deg. Du kan slette kontoen og</tspan><tspan x="842" dy="24">alt innhold når som helst.</tspan></text>
+<text x="72" y="868" font-size="16" font-weight="400" fill="#555555">Studiekamerat · studentprosjekt IBE160 · 2026</text>
+</svg>

@@ -1,0 +1,217 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" role="img" aria-labelledby="title">
+<title id="title">Studiekamerat – vilkår før første opplasting</title>
+<rect x="0" y="0" width="1440" height="900" fill="#15171C" stroke="none" stroke-width="1" rx="0" />
+<rect x="0" y="0" width="1440" height="44" fill="#0F1115" stroke="none" stroke-width="1" rx="0" />
+<rect x="20" y="13" width="10" height="18" fill="#F5B942" stroke="none" stroke-width="1" rx="1" />
+<text x="40" y="28" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >studiekamerat</text>
+<text x="196" y="28" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >~/markedsføring/uke-37-merkevare</text>
+<rect x="810" y="8" width="380" height="28" fill="#252933" stroke="#3A4150" stroke-width="1" rx="3" />
+<text x="824" y="27" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Søk eller kjør kommando …</text>
+<rect x="1140" y="11" width="29.652" height="22" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1142" y1="32" x2="1167.652" y2="32" stroke="#AEB6C4" stroke-width="2" />
+<text x="1154.826" y="26" font-size="13" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⌘K</text>
+<text x="1218" y="28" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Konto</text>
+<text x="1294" y="28" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Logg ut</text>
+<line x1="0" y1="44" x2="1440" y2="44" stroke="#3A4150" stroke-width="1" />
+<rect x="0" y="44" width="300" height="822" fill="#1C1F26" stroke="none" stroke-width="1" rx="2" />
+<line x1="300" y1="44" x2="300" y2="866" stroke="#3A4150" stroke-width="1" />
+<text x="24" y="80" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">EMNER</text>
+<text x="24" y="114" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >▾ Markedsføring</text>
+<text x="276" y="114" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >8</text>
+<line x1="34" y1="127" x2="34" y2="159" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="148" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 34: Hva er markeds…</text>
+<line x1="34" y1="161" x2="34" y2="193" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="182" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 35: Kjøpsatferd</text>
+<line x1="34" y1="195" x2="34" y2="227" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="216" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 36: Segmentering o…</text>
+<rect x="8" y="229" width="284" height="32" fill="#2E3442" stroke="none" stroke-width="1" rx="2" />
+<rect x="8" y="229" width="3" height="32" fill="#F5B942" stroke="none" stroke-width="1" rx="0" />
+<line x1="34" y1="229" x2="34" y2="261" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="250" font-size="16" fill="#E8EBF0" font-weight="400" text-anchor="start" >Uke 37: Merkevare</text>
+<line x1="34" y1="263" x2="34" y2="295" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="284" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 38: Markedsmiksen</text>
+<line x1="34" y1="297" x2="34" y2="329" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="318" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 39: Prising</text>
+<line x1="34" y1="331" x2="34" y2="363" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="352" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 40: Distribusjon</text>
+<line x1="34" y1="365" x2="34" y2="397" stroke="#3A4150" stroke-width="1" />
+<text x="46" y="386" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >Uke 41: Markedskommuni…</text>
+<text x="24" y="420" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >▸ Samfunnsøkonomi</text>
+<text x="276" y="420" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >5</text>
+<text x="24" y="454" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >▸ Organisasjon og le…</text>
+<text x="276" y="454" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >2</text>
+<line x1="24" y1="508" x2="276" y2="508" stroke="#3A4150" stroke-width="1" />
+<text x="24" y="542" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">HURTIGTASTER</text>
+<rect x="24" y="557" width="30.855999999999998" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="26" y1="579" x2="52.855999999999995" y2="579" stroke="#AEB6C4" stroke-width="2" />
+<text x="39.428" y="573" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⌘K</text>
+<text x="80" y="574" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >kommandopalett</text>
+<rect x="24" y="589" width="30.855999999999998" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="26" y1="611" x2="52.855999999999995" y2="611" stroke="#AEB6C4" stroke-width="2" />
+<text x="39.428" y="605" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >↑↓</text>
+<text x="80" y="606" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >flytt markør</text>
+<rect x="24" y="621" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="26" y1="643" x2="48" y2="643" stroke="#AEB6C4" stroke-width="2" />
+<text x="37.0" y="637" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⏎</text>
+<text x="80" y="638" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >åpne / bekreft</text>
+<rect x="24" y="653" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="26" y1="675" x2="48" y2="675" stroke="#AEB6C4" stroke-width="2" />
+<text x="37.0" y="669" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >?</text>
+<text x="80" y="670" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >alle hurtigtaster</text>
+<text x="340" y="104" font-size="30" fill="#E8EBF0" font-weight="700" text-anchor="start" >Uke 37: Merkevare</text>
+<text x="340" y="134" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >11.09.2026 · Markedsføring</text>
+<text x="340" y="176" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">FILER  2</text>
+<line x1="435.424" y1="171" x2="840" y2="171" stroke="#3A4150" stroke-width="1" />
+<rect x="340" y="206" width="500" height="64" fill="#1C1F26" stroke="#3A4150" stroke-width="1" rx="3" />
+<text x="356" y="233" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >merkevare-notater.pdf</text>
+<text x="356" y="257" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >12 sider · PDF</text>
+<rect x="644" y="227" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="646" y1="249" x2="668" y2="249" stroke="#AEB6C4" stroke-width="2" />
+<text x="657.0" y="243" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >R</text>
+<text x="676" y="244" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >erstatt</text>
+<rect x="754" y="227" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="756" y1="249" x2="778" y2="249" stroke="#AEB6C4" stroke-width="2" />
+<text x="767.0" y="243" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⌫</text>
+<text x="786" y="244" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >slett</text>
+<rect x="340" y="282" width="500" height="64" fill="#1C1F26" stroke="#3A4150" stroke-width="1" rx="3" />
+<text x="356" y="309" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >merkevare-forelesning2.pdf</text>
+<text x="356" y="333" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >6 sider · PDF</text>
+<rect x="644" y="303" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="646" y1="325" x2="668" y2="325" stroke="#AEB6C4" stroke-width="2" />
+<text x="657.0" y="319" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >R</text>
+<text x="676" y="320" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >erstatt</text>
+<rect x="754" y="303" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="756" y1="325" x2="778" y2="325" stroke="#AEB6C4" stroke-width="2" />
+<text x="767.0" y="319" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⌫</text>
+<text x="786" y="320" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >slett</text>
+<rect x="340" y="366" width="500" height="140" fill="#15171C" stroke="#AEB6C4" stroke-width="1.5" rx="3" stroke-dasharray="6 5"/>
+<text x="590.0" y="418" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="middle" >Dra og slipp PDF-er hit</text>
+<text x="441.784" y="450" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >eller trykk</text>
+<rect x="557.736" y="433" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="559.736" y1="455" x2="581.736" y2="455" stroke="#AEB6C4" stroke-width="2" />
+<text x="570.736" y="449" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >U</text>
+<text x="593.736" y="450" font-size="16" fill="#AEB6C4" font-weight="400" text-anchor="start" >for å velge fil</text>
+<text x="590.0" y="484" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="middle" >bare PDF · maks 20 MB per fil</text>
+<text x="880" y="176" font-size="14" fill="#AEB6C4" font-weight="700" text-anchor="start" letter-spacing="2">LAG INNHOLD</text>
+<line x1="1006.708" y1="171" x2="1400" y2="171" stroke="#3A4150" stroke-width="1" />
+<rect x="880" y="206" width="520" height="64" fill="#1C1F26" stroke="#3A4150" stroke-width="1" rx="3" />
+<rect x="896" y="227" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="898" y1="249" x2="920" y2="249" stroke="#AEB6C4" stroke-width="2" />
+<text x="909.0" y="243" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >1</text>
+<text x="938" y="233" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >Flashcards</text>
+<text x="938" y="257" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >24 kort</text>
+<rect x="1204" y="227" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1206" y1="249" x2="1228" y2="249" stroke="#AEB6C4" stroke-width="2" />
+<text x="1217.0" y="243" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⏎</text>
+<text x="1238" y="244" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >øv</text>
+<rect x="1282.06" y="227" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1284.06" y1="249" x2="1306.06" y2="249" stroke="#AEB6C4" stroke-width="2" />
+<text x="1295.06" y="243" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >G</text>
+<text x="1316.06" y="244" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >lag nye</text>
+<rect x="880" y="282" width="520" height="64" fill="#1C1F26" stroke="#3A4150" stroke-width="1" rx="3" />
+<rect x="896" y="303" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="898" y1="325" x2="920" y2="325" stroke="#AEB6C4" stroke-width="2" />
+<text x="909.0" y="319" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >2</text>
+<text x="938" y="309" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >Quiz</text>
+<text x="938" y="333" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >15 spørsmål</text>
+<rect x="1204" y="303" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1206" y1="325" x2="1228" y2="325" stroke="#AEB6C4" stroke-width="2" />
+<text x="1217.0" y="319" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⏎</text>
+<text x="1238" y="320" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >øv</text>
+<rect x="1282.06" y="303" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1284.06" y1="325" x2="1306.06" y2="325" stroke="#AEB6C4" stroke-width="2" />
+<text x="1295.06" y="319" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >G</text>
+<text x="1316.06" y="320" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >lag nye</text>
+<rect x="880" y="358" width="520" height="64" fill="#1C1F26" stroke="#3A4150" stroke-width="1" rx="3" />
+<rect x="896" y="379" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="898" y1="401" x2="920" y2="401" stroke="#AEB6C4" stroke-width="2" />
+<text x="909.0" y="395" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >3</text>
+<text x="938" y="385" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >Huskeregler</text>
+<text x="938" y="409" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >3 modellkort</text>
+<rect x="1204" y="379" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1206" y1="401" x2="1228" y2="401" stroke="#AEB6C4" stroke-width="2" />
+<text x="1217.0" y="395" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >⏎</text>
+<text x="1238" y="396" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >øv</text>
+<rect x="1282.06" y="379" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1284.06" y1="401" x2="1306.06" y2="401" stroke="#AEB6C4" stroke-width="2" />
+<text x="1295.06" y="395" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >G</text>
+<text x="1316.06" y="396" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >lag nye</text>
+<rect x="880" y="434" width="520" height="64" fill="#1C1F26" stroke="#3A4150" stroke-width="1" rx="3" />
+<rect x="896" y="455" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="898" y1="477" x2="920" y2="477" stroke="#AEB6C4" stroke-width="2" />
+<text x="909.0" y="471" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >4</text>
+<text x="938" y="461" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >Fritekstspørsmål</text>
+<text x="938" y="485" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >0 – ikke laget ennå</text>
+<rect x="1300" y="455" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1302" y1="477" x2="1324" y2="477" stroke="#AEB6C4" stroke-width="2" />
+<text x="1313.0" y="471" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >G</text>
+<text x="1334" y="472" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >lag</text>
+<rect x="880" y="510" width="520" height="64" fill="#1C1F26" stroke="#3A4150" stroke-width="1" rx="3" />
+<rect x="896" y="531" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="898" y1="553" x2="920" y2="553" stroke="#AEB6C4" stroke-width="2" />
+<text x="909.0" y="547" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >5</text>
+<text x="938" y="537" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >Sammendrag</text>
+<text x="938" y="561" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >ikke laget</text>
+<rect x="1300" y="531" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="1302" y1="553" x2="1324" y2="553" stroke="#AEB6C4" stroke-width="2" />
+<text x="1313.0" y="547" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >G</text>
+<text x="1334" y="548" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >lag</text>
+<rect x="340" y="803" width="39.284" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="342" y1="825" x2="377.284" y2="825" stroke="#AEB6C4" stroke-width="2" />
+<text x="359.642" y="819" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >1–5</text>
+<text x="387.284" y="820" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >velg innholdstype</text>
+<rect x="566.794" y="803" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="568.794" y1="825" x2="590.794" y2="825" stroke="#AEB6C4" stroke-width="2" />
+<text x="579.794" y="819" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >G</text>
+<text x="600.794" y="820" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >lag</text>
+<rect x="653.884" y="803" width="26" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="655.884" y1="825" x2="677.884" y2="825" stroke="#AEB6C4" stroke-width="2" />
+<text x="666.884" y="819" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >U</text>
+<text x="687.884" y="820" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >last opp</text>
+<rect x="786.124" y="803" width="39.284" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="788.124" y1="825" x2="823.408" y2="825" stroke="#AEB6C4" stroke-width="2" />
+<text x="805.7660000000001" y="819" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >Esc</text>
+<text x="833.408" y="820" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >tilbake til emnet</text>
+<rect x="0" y="866" width="1440" height="34" fill="#0F1115" stroke="none" stroke-width="1" rx="0" />
+<line x1="0" y1="866" x2="1440" y2="866" stroke="#3A4150" stroke-width="1" />
+<rect x="0" y="866" width="78.568" height="34" fill="#F5B942" stroke="none" stroke-width="1" rx="0" />
+<text x="39.284" y="888" font-size="14" fill="#15171C" font-weight="700" text-anchor="middle" >DIALOG</text>
+<text x="94.568" y="888" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >Vilkår må godtas før opplasting</text>
+<text x="1420" y="888" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >demomodus av</text>
+<rect x="0" y="0" width="1440" height="900" fill="#0A0B0E" stroke="none" stroke-width="1" rx="0" fill-opacity="0.72"/>
+<rect x="330" y="70" width="780" height="596" fill="#1C1F26" stroke="#F5B942" stroke-width="2" rx="6" />
+<rect x="332" y="72" width="776" height="50" fill="#252933" stroke="none" stroke-width="1" rx="4" />
+<text x="358" y="104" font-size="18" fill="#E8EBF0" font-weight="700" text-anchor="start" >Før første opplasting</text>
+<text x="1082" y="104" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="end" >Esc lukker</text>
+<text x="366" y="170" font-size="24" fill="#E8EBF0" font-weight="700" text-anchor="start" >Les dette før du laster opp notater</text>
+<text x="366" y="214" font-size="16" fill="#F5B942" font-weight="700" text-anchor="start" >01</text>
+<text x="410" y="214" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >Du er selv ansvarlig for materialet du laster opp.</text>
+<text x="366" y="254" font-size="16" fill="#F5B942" font-weight="700" text-anchor="start" >02</text>
+<text x="410" y="254" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >Last bare opp egne notater eller materiale du har rett til å</text>
+<text x="410" y="280" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >bruke.</text>
+<text x="366" y="320" font-size="16" fill="#F5B942" font-weight="700" text-anchor="start" >03</text>
+<text x="410" y="320" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >Notatene sendes til språkmodellen hos Google, i EU, for å lage</text>
+<text x="410" y="346" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >øvingsinnhold.</text>
+<text x="366" y="386" font-size="16" fill="#F5B942" font-weight="700" text-anchor="start" >04</text>
+<text x="410" y="386" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >Google kan logge forespørslene en periode for å oppdage misbruk.</text>
+<text x="366" y="426" font-size="16" fill="#F5B942" font-weight="700" text-anchor="start" >05</text>
+<text x="410" y="426" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >Ikke last opp personopplysninger, for eksempel navn på</text>
+<text x="410" y="452" font-size="17" fill="#E8EBF0" font-weight="400" text-anchor="start" >medstudenter.</text>
+<rect x="360" y="496" width="720" height="56" fill="none" stroke="#79C6EA" stroke-width="3" rx="5" />
+<rect x="366" y="502" width="708" height="44" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<rect x="380" y="513" width="22" height="22" fill="#F5B942" stroke="#F5B942" stroke-width="1" rx="2" />
+<text x="391" y="530" font-size="16" fill="#15171C" font-weight="700" text-anchor="middle" >✓</text>
+<text x="416" y="530" font-size="17" fill="#E8EBF0" font-weight="700" text-anchor="start" >Jeg har lest og godtar vilkårene</text>
+<rect x="946" y="514" width="84.434" height="22" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<line x1="948" y1="535" x2="1028.434" y2="535" stroke="#AEB6C4" stroke-width="2" />
+<text x="988.217" y="529" font-size="13" fill="#E8EBF0" font-weight="700" text-anchor="middle" >Mellomrom</text>
+<rect x="794" y="586" width="280" height="44" fill="#F5B942" stroke="#F5B942" stroke-width="1" rx="3" />
+<text x="810" y="614" font-size="16" fill="#15171C" font-weight="700" text-anchor="start" >Godta og last opp</text>
+<rect x="1036" y="597" width="26" height="23" fill="#15171C" stroke="#15171C" stroke-width="1" rx="3" />
+<text x="1049.0" y="614" font-size="14" fill="#F5B942" font-weight="700" text-anchor="middle" >⏎</text>
+<rect x="608" y="586" width="170" height="44" fill="#1C1F26" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="624" y="614" font-size="16" fill="#E8EBF0" font-weight="700" text-anchor="start" >Avbryt</text>
+<rect x="726.716" y="597" width="39.284" height="23" fill="#252933" stroke="#AEB6C4" stroke-width="1" rx="3" />
+<text x="746.3580000000001" y="614" font-size="14" fill="#E8EBF0" font-weight="700" text-anchor="middle" >Esc</text>
+<text x="366" y="614" font-size="15" fill="#AEB6C4" font-weight="400" text-anchor="start" >2 filer venter.</text>
+</svg>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif">
+<title>Studiekamerat – Markedsføring</title>
+<rect width="1440" height="900" fill="#FFFFFF"/>
+<text x="72" y="50" font-size="22" font-weight="700" fill="#000000">Studiekamerat</text><rect x="72" y="18" width="0" height="0" fill="none"/><text x="952" y="50" font-size="18" font-weight="700" fill="#000000">Emner</text><rect x="952" y="74" width="86" height="6" fill="#E2001A"/><text x="1062" y="50" font-size="18" font-weight="400" fill="#000000">Konto</text><text x="1368" y="50" font-size="18" font-weight="400" fill="#000000" text-anchor="end">Logg ut</text><rect x="0" y="80" width="1440" height="1" fill="#000000"/>
+<text x="72" y="124" font-size="16" font-weight="400" fill="#000000">Emner</text><rect x="72" y="128" width="40" height="1" fill="#000000"/><text x="124.0" y="124" font-size="16" font-weight="400" fill="#555555">/</text><text x="146.0" y="124" font-size="16" font-weight="700" fill="#000000">Markedsføring</text>
+<text x="66" y="220" font-size="88" font-weight="700" fill="#000000" letter-spacing="-3">Markedsføring</text>
+<rect x="1062" y="150" width="306" height="56" fill="#FFFFFF" stroke="#000000" stroke-width="2"/><text x="1082" y="184.3" font-size="18" font-weight="700" fill="#000000">Ny forelesning</text><text x="1348" y="184.3" font-size="22" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<text x="72" y="300" font-size="16" font-weight="700" fill="#000000" letter-spacing="1.2">ØV PÅ HELE EMNET</text>
+<rect x="72" y="314" width="306" height="2" fill="#000000"/>
+<rect x="72" y="334" width="306" height="56" fill="#000000"/><text x="92" y="368.3" font-size="18" font-weight="700" fill="#FFFFFF">Øv på flashcards</text><text x="358" y="368.3" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="end">→</text>
+<text x="72" y="414" font-size="16" font-weight="400" fill="#555555">Hele emnet · 136 kort</text>
+<rect x="72" y="436" width="306" height="56" fill="#FFFFFF" stroke="#000000" stroke-width="2"/><text x="92" y="470.3" font-size="18" font-weight="700" fill="#000000">Ta quiz</text><text x="358" y="470.3" font-size="22" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<text x="72" y="516" font-size="16" font-weight="400" fill="#555555">Hele emnet · 78 spørsmål</text>
+<rect x="72" y="538" width="306" height="56" fill="#FFFFFF" stroke="#000000" stroke-width="2"/><text x="92" y="572.3" font-size="18" font-weight="700" fill="#000000">Fritekstspørsmål</text><text x="358" y="572.3" font-size="22" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<text x="72" y="618" font-size="16" font-weight="400" fill="#555555">Hele emnet · 30 spørsmål</text>
+<text x="66" y="760" font-size="88" font-weight="700" fill="#000000" letter-spacing="-3">136</text>
+<text x="72" y="790" font-size="16" font-weight="400" fill="#555555">flashcards totalt</text>
+<text x="268" y="760" font-size="88" font-weight="700" fill="#000000" letter-spacing="-3">78</text>
+<text x="274" y="790" font-size="16" font-weight="400" fill="#555555">quizspørsmål</text>
+<text x="402" y="300" font-size="16" font-weight="700" fill="#000000" letter-spacing="1.2">DATO</text>
+<text x="512" y="300" font-size="16" font-weight="700" fill="#000000" letter-spacing="1.2">FORELESNING</text>
+<text x="1038" y="300" font-size="16" font-weight="700" fill="#000000" text-anchor="end" letter-spacing="1.2">FILER</text>
+<text x="1172" y="300" font-size="16" font-weight="700" fill="#000000" text-anchor="end" letter-spacing="1.2">FLASHCARDS</text>
+<text x="1282" y="300" font-size="16" font-weight="700" fill="#000000" text-anchor="end" letter-spacing="1.2">QUIZ</text>
+<rect x="402" y="314" width="966" height="2" fill="#000000"/>
+<text x="402" y="358" font-size="22" font-weight="700" fill="#000000">21.08</text>
+<text x="512" y="357" font-size="19" font-weight="400" fill="#000000">Uke 34: Hva er markedsføring?</text>
+<text x="1038" y="358" font-size="22" font-weight="700" fill="#000000" text-anchor="end">1</text>
+<text x="1172" y="358" font-size="22" font-weight="700" fill="#000000" text-anchor="end">20</text>
+<text x="1282" y="358" font-size="22" font-weight="700" fill="#000000" text-anchor="end">12</text>
+<text x="1368" y="358" font-size="22" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<rect x="402" y="381" width="966" height="1" fill="#000000"/>
+<text x="402" y="424" font-size="22" font-weight="700" fill="#000000">28.08</text>
+<text x="512" y="423" font-size="19" font-weight="400" fill="#000000">Uke 35: Kjøpsatferd</text>
+<text x="1038" y="424" font-size="22" font-weight="700" fill="#000000" text-anchor="end">2</text>
+<text x="1172" y="424" font-size="22" font-weight="700" fill="#000000" text-anchor="end">22</text>
+<text x="1282" y="424" font-size="22" font-weight="700" fill="#000000" text-anchor="end">14</text>
+<text x="1368" y="424" font-size="22" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<rect x="402" y="447" width="966" height="1" fill="#000000"/>
+<text x="402" y="490" font-size="22" font-weight="700" fill="#000000">04.09</text>
+<text x="512" y="489" font-size="19" font-weight="400" fill="#000000">Uke 36: Segmentering og posisjonering</text>
+<text x="1038" y="490" font-size="22" font-weight="700" fill="#000000" text-anchor="end">1</text>
+<text x="1172" y="490" font-size="22" font-weight="700" fill="#000000" text-anchor="end">26</text>
+<text x="1282" y="490" font-size="22" font-weight="700" fill="#000000" text-anchor="end">15</text>
+<text x="1368" y="490" font-size="22" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<rect x="402" y="513" width="966" height="1" fill="#000000"/>
+<text x="402" y="556" font-size="22" font-weight="700" fill="#000000">11.09</text>
+<text x="512" y="555" font-size="19" font-weight="400" fill="#000000">Uke 37: Merkevare</text>
+<text x="1038" y="556" font-size="22" font-weight="700" fill="#000000" text-anchor="end">2</text>
+<text x="1172" y="556" font-size="22" font-weight="700" fill="#000000" text-anchor="end">24</text>
+<text x="1282" y="556" font-size="22" font-weight="700" fill="#000000" text-anchor="end">15</text>
+<text x="1368" y="556" font-size="22" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<rect x="402" y="579" width="966" height="1" fill="#000000"/>
+<text x="402" y="622" font-size="22" font-weight="700" fill="#000000">18.09</text>
+<text x="512" y="621" font-size="19" font-weight="400" fill="#000000">Uke 38: Markedsmiksen</text>
+<text x="1038" y="622" font-size="22" font-weight="700" fill="#000000" text-anchor="end">1</text>
+<text x="1172" y="622" font-size="22" font-weight="700" fill="#000000" text-anchor="end">22</text>
+<text x="1282" y="622" font-size="22" font-weight="700" fill="#000000" text-anchor="end">12</text>
+<text x="1368" y="622" font-size="22" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<rect x="402" y="645" width="966" height="1" fill="#000000"/>
+<text x="402" y="688" font-size="22" font-weight="700" fill="#000000">25.09</text>
+<text x="512" y="687" font-size="19" font-weight="400" fill="#000000">Uke 39: Prising</text>
+<text x="1038" y="688" font-size="22" font-weight="700" fill="#000000" text-anchor="end">1</text>
+<text x="1172" y="688" font-size="22" font-weight="700" fill="#000000" text-anchor="end">22</text>
+<text x="1282" y="688" font-size="22" font-weight="700" fill="#000000" text-anchor="end">10</text>
+<text x="1368" y="688" font-size="22" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<rect x="402" y="711" width="966" height="1" fill="#000000"/>
+<text x="402" y="754" font-size="22" font-weight="700" fill="#000000">02.10</text>
+<text x="512" y="753" font-size="19" font-weight="400" fill="#000000">Uke 40: Markedskommunikasjon</text>
+<text x="1038" y="754" font-size="22" font-weight="700" fill="#000000" text-anchor="end">1</text>
+<text x="1282" y="753" font-size="16" font-weight="400" fill="#555555" text-anchor="end">Ikke øvd ennå</text>
+<text x="1368" y="754" font-size="22" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<rect x="402" y="777" width="966" height="1" fill="#000000"/>
+<text x="402" y="820" font-size="22" font-weight="700" fill="#000000">09.10</text>
+<text x="512" y="819" font-size="19" font-weight="400" fill="#000000">Uke 41: Digital markedsføring</text>
+<text x="1038" y="820" font-size="22" font-weight="700" fill="#767676" text-anchor="end">0</text>
+<text x="1282" y="819" font-size="16" font-weight="400" fill="#555555" text-anchor="end">Ingen filer ennå</text>
+<text x="1368" y="820" font-size="22" font-weight="700" fill="#000000" text-anchor="end">→</text>
+<rect x="402" y="843" width="966" height="1" fill="#000000"/>
+</svg>

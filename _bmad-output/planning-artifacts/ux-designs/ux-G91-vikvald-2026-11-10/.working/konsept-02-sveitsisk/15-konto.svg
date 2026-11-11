@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif">
+<title>Studiekamerat – Konto</title>
+<rect width="1440" height="900" fill="#FFFFFF"/>
+<text x="72" y="50" font-size="22" font-weight="700" fill="#000000">Studiekamerat</text><rect x="72" y="18" width="0" height="0" fill="none"/><text x="952" y="50" font-size="18" font-weight="400" fill="#000000">Emner</text><text x="1062" y="50" font-size="18" font-weight="700" fill="#000000">Konto</text><rect x="1062" y="74" width="86" height="6" fill="#E2001A"/><text x="1368" y="50" font-size="18" font-weight="400" fill="#000000" text-anchor="end">Logg ut</text><rect x="0" y="80" width="1440" height="1" fill="#000000"/>
+<text x="66" y="220" font-size="96" font-weight="700" fill="#000000" letter-spacing="-3">Konto</text>
+<rect x="512" y="176" width="150" height="44" fill="#000000"/>
+<text x="530" y="205" font-size="16" font-weight="700" fill="#FFFFFF" letter-spacing="1.2">DEMOMODUS</text>
+<rect x="662" y="176" width="706" height="44" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<text x="684" y="205" font-size="16" font-weight="400" fill="#000000">Innholdet lages av en testmodell, ikke av språkmodellen. Fint til testing.</text>
+<rect x="72" y="300" width="1296" height="2" fill="#000000"/>
+<text x="72" y="350" font-size="24" font-weight="700" fill="#000000">E-post</text>
+<text x="512" y="350" font-size="24" font-weight="400" fill="#000000">klara@student.no</text>
+<text x="512" y="382" font-size="16" font-weight="400" fill="#555555">Brukes til å logge inn. Vi sender ingen reklame.</text>
+<rect x="72" y="430" width="1296" height="1" fill="#000000"/>
+<text x="72" y="480" font-size="24" font-weight="700" fill="#000000">Logg ut</text>
+<text x="512" y="480" font-size="18" font-weight="400" fill="#000000">Du er logget inn i denne nettleseren.</text>
+<rect x="512" y="506" width="200" height="56" fill="#FFFFFF" stroke="#000000" stroke-width="2"/><text x="532" y="540.3" font-size="18" font-weight="700" fill="#000000">Logg ut</text>
+<rect x="72" y="610" width="1296" height="1" fill="#000000"/>
+<rect x="72" y="642" width="10" height="10" fill="#E2001A"/>
+<text x="96" y="660" font-size="24" font-weight="700" fill="#000000">Slett kontoen</text>
+<text x="512" y="660" font-size="18" font-weight="400" fill="#000000"><tspan x="512" dy="0">Alle emner, filer og alt generert innhold slettes for godt: 3 emner, 15</tspan><tspan x="512" dy="28">forelesninger, flashcards, quiz, huskeregler og sammendrag. Det kan ikke angres.</tspan></text>
+<rect x="512" y="720" width="240" height="56" fill="#FFFFFF" stroke="#E2001A" stroke-width="2"/><text x="532" y="754.3" font-size="18" font-weight="700" fill="#E2001A">Slett kontoen</text>
+<text x="776" y="754" font-size="16" font-weight="400" fill="#555555">Du må bekrefte i neste steg.</text>
+<rect x="72" y="860" width="1296" height="2" fill="#000000"/>
+</svg>

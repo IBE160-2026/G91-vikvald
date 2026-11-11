@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" lang="nb" viewBox="0 0 1440 900" width="1440" height="900" role="img" aria-label="Studiekamerat – vilkår før første opplasting">
+<title>Studiekamerat – vilkår før første opplasting</title>
+<rect x="0" y="0" width="1440" height="900" fill="#F3EFE4"/>
+<rect x="0" y="0" width="1440" height="76" fill="#FFFFFF"/>
+<rect x="0" y="0" width="320" height="76" fill="#FFD60A"/>
+<text x="28" y="49" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="900" fill="#000000" letter-spacing="0.5">STUDIEKAMERAT</text>
+<line x1="320" y1="0" x2="320" y2="76" stroke="#000000" stroke-width="4"/>
+<text x="352" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000" text-decoration="underline">EMNER</text>
+<text x="412.0" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">/</text>
+<text x="436.0" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000" text-decoration="underline">MARKEDSFØRING</text>
+<text x="572.8" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">/</text>
+<text x="596.8" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">UKE 37: MERKEVARE</text>
+<text x="1008" y="46" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">klara@student.no</text>
+<rect x="1186" y="22" width="104" height="40" fill="#000000"/>
+<rect x="1182" y="18" width="104" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1234.0" y="43.4" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">KONTO</text>
+<rect x="1306" y="22" width="112" height="40" fill="#000000"/>
+<rect x="1302" y="18" width="112" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1358.0" y="43.4" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">LOGG UT</text>
+<line x1="0" y1="76" x2="1440" y2="76" stroke="#000000" stroke-width="4"/>
+<text x="40" y="166" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="64" font-weight="900" fill="#000000" letter-spacing="-1">UKE 37: MERKEVARE</text>
+<rect x="44" y="188" width="250" height="30" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+<text x="54" y="208.76" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">FORELESNING · 11.09.2026</text>
+<rect x="40" y="250" width="110" height="30" fill="#000000"/>
+<text x="52" y="271" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#FFFFFF">FILER (2)</text>
+<rect x="46" y="298" width="640" height="76" fill="#000000"/>
+<rect x="40" y="292" width="640" height="76" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<rect x="40" y="292" width="56" height="76" fill="#000000" stroke="#000000" stroke-width="4"/>
+<text x="68" y="338" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="15" font-weight="700" fill="#FFD60A" text-anchor="middle">PDF</text>
+<text x="116" y="326" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">merkevare-notater.pdf</text>
+<text x="116" y="352" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="15" font-weight="400" fill="#000000">12 SIDER</text>
+<rect x="452" y="314" width="104" height="40" fill="#000000"/>
+<rect x="448" y="310" width="104" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="500.0" y="335.04" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">ERSTATT</text>
+<rect x="568" y="314" width="96" height="40" fill="#000000"/>
+<rect x="564" y="310" width="96" height="40" fill="#FF5A4E" stroke="#000000" stroke-width="4"/>
+<text x="612.0" y="335.04" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">SLETT</text>
+<rect x="46" y="390" width="640" height="76" fill="#000000"/>
+<rect x="40" y="384" width="640" height="76" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<rect x="40" y="384" width="56" height="76" fill="#000000" stroke="#000000" stroke-width="4"/>
+<text x="68" y="430" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="15" font-weight="700" fill="#FFD60A" text-anchor="middle">PDF</text>
+<text x="116" y="418" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#000000">merkevare-forelesning2.pdf</text>
+<text x="116" y="444" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="15" font-weight="400" fill="#000000">6 SIDER</text>
+<rect x="452" y="406" width="104" height="40" fill="#000000"/>
+<rect x="448" y="402" width="104" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="500.0" y="427.04" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">ERSTATT</text>
+<rect x="568" y="406" width="96" height="40" fill="#000000"/>
+<rect x="564" y="402" width="96" height="40" fill="#FF5A4E" stroke="#000000" stroke-width="4"/>
+<text x="612.0" y="427.04" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">SLETT</text>
+<rect x="40" y="500" width="640" height="200" fill="#FFFFFF" stroke="#000000" stroke-width="4" stroke-dasharray="16 10"/>
+<text x="360" y="572" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="900" fill="#000000" text-anchor="middle">DRA OG SLIPP PDF HER</text>
+<text x="360" y="606" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#000000" text-anchor="middle">eller</text>
+<rect x="275" y="631" width="180" height="48" fill="#000000"/>
+<rect x="270" y="626" width="180" height="48" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="360.0" y="656.12" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">VELG PDF</text>
+<text x="40" y="736" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">Bare PDF. Tekst må kunne markeres (ikke skannet bilde).</text>
+<rect x="740" y="250" width="235" height="30" fill="#000000"/>
+<text x="752" y="271" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#FFFFFF">LAG INNHOLD FRA FILENE</text>
+<rect x="746" y="298" width="660" height="76" fill="#000000"/>
+<rect x="740" y="292" width="660" height="76" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="764" y="326" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="900" fill="#000000">FLASHCARDS</text>
+<text x="764" y="352" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">24 kort</text>
+<rect x="1256" y="314" width="128" height="40" fill="#000000"/>
+<rect x="1252" y="310" width="128" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1316.0" y="335.04" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">LAG FLERE</text>
+<rect x="1190" y="314" width="54" height="40" fill="#000000"/>
+<rect x="1186" y="310" width="54" height="40" fill="#1D3FD8" stroke="#000000" stroke-width="4"/>
+<text x="1213.0" y="335.04" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">ØV</text>
+<rect x="746" y="390" width="660" height="76" fill="#000000"/>
+<rect x="740" y="384" width="660" height="76" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="764" y="418" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="900" fill="#000000">QUIZ</text>
+<text x="764" y="444" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">15 spørsmål</text>
+<rect x="1270" y="406" width="114" height="40" fill="#000000"/>
+<rect x="1266" y="402" width="114" height="40" fill="#1D3FD8" stroke="#000000" stroke-width="4"/>
+<text x="1323.0" y="427.04" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">TA QUIZ</text>
+<rect x="746" y="482" width="660" height="76" fill="#000000"/>
+<rect x="740" y="476" width="660" height="76" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="764" y="510" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="900" fill="#000000">HUSKEREGLER</text>
+<text x="764" y="536" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="400" fill="#000000">3 modellkort</text>
+<rect x="1256" y="498" width="128" height="40" fill="#000000"/>
+<rect x="1252" y="494" width="128" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="1316.0" y="519.04" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">LAG FLERE</text>
+<rect x="1190" y="498" width="54" height="40" fill="#000000"/>
+<rect x="1186" y="494" width="54" height="40" fill="#1D3FD8" stroke="#000000" stroke-width="4"/>
+<text x="1213.0" y="519.04" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">ØV</text>
+<rect x="746" y="574" width="660" height="76" fill="#000000"/>
+<rect x="740" y="568" width="660" height="76" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="764" y="602" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="900" fill="#000000">FRITEKSTSPØRSMÅL</text>
+<text x="764" y="628" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">0 – ikke laget ennå</text>
+<rect x="1328" y="590" width="56" height="40" fill="#000000"/>
+<rect x="1324" y="586" width="56" height="40" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="1352.0" y="611.04" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">LAG</text>
+<rect x="746" y="666" width="660" height="76" fill="#000000"/>
+<rect x="740" y="660" width="660" height="76" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="764" y="694" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="900" fill="#000000">SAMMENDRAG</text>
+<text x="764" y="720" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000">Ikke laget</text>
+<rect x="1328" y="682" width="56" height="40" fill="#000000"/>
+<rect x="1324" y="678" width="56" height="40" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="1352.0" y="703.04" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">LAG</text>
+<rect x="0" y="0" width="1440" height="900" fill="#000000" fill-opacity="0.62"/>
+<rect x="314" y="84" width="840" height="780" fill="#000000"/>
+<rect x="300" y="70" width="840" height="780" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<rect x="300" y="70" width="840" height="80" fill="#FFD60A" stroke="#000000" stroke-width="4"/>
+<text x="332" y="122" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="900" fill="#000000" letter-spacing="-0.5">FØR DU LASTER OPP</text>
+<text x="1108" y="120" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="16" font-weight="700" fill="#000000" text-anchor="end">1 GANG</text>
+<rect x="332" y="196" width="48" height="48" fill="#000000"/>
+<text x="356" y="228" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#FFD60A" text-anchor="middle">01</text>
+<text x="400" y="226" font-family="'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="400" fill="#000000"><tspan x="400" dy="0">Du er selv ansvarlig for materialet du laster opp.</tspan></text>
+<rect x="332" y="274" width="48" height="48" fill="#000000"/>
+<text x="356" y="306" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#FFD60A" text-anchor="middle">02</text>
+<text x="400" y="304" font-family="'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="400" fill="#000000"><tspan x="400" dy="0">Last bare opp egne notater eller materiale du har rett til å bruke.</tspan></text>
+<rect x="332" y="352" width="48" height="48" fill="#000000"/>
+<text x="356" y="384" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#FFD60A" text-anchor="middle">03</text>
+<text x="400" y="382" font-family="'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="400" fill="#000000"><tspan x="400" dy="0">Notatene sendes til språkmodellen hos Google, behandlet i EU.</tspan></text>
+<rect x="332" y="430" width="48" height="48" fill="#000000"/>
+<text x="356" y="462" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#FFD60A" text-anchor="middle">04</text>
+<text x="400" y="460" font-family="'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="400" fill="#000000"><tspan x="400" dy="0">Google kan logge forespørsler en periode for å oppdage misbruk.</tspan></text>
+<rect x="332" y="508" width="48" height="48" fill="#000000"/>
+<text x="356" y="540" font-family="ui-monospace, Menlo, 'Courier New', monospace" font-size="18" font-weight="700" fill="#FFD60A" text-anchor="middle">05</text>
+<text x="400" y="538" font-family="'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="400" fill="#000000"><tspan x="400" dy="0">Ikke last opp personopplysninger, f.eks. navn på medstudenter.</tspan></text>
+<line x1="300" y1="592" x2="1140" y2="592" stroke="#000000" stroke-width="4"/>
+<rect x="326" y="624" width="532" height="52" fill="none" stroke="#1D3FD8" stroke-width="4"/>
+<rect x="332" y="634" width="32" height="32" fill="#000000"/>
+<text x="348" y="658" font-family="'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">✓</text>
+<text x="380" y="658" font-family="'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="700" fill="#000000">Jeg har lest og godtar vilkårene</text>
+<rect x="338" y="760" width="200" height="60" fill="#000000"/>
+<rect x="332" y="754" width="200" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+<text x="432.0" y="790.48" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="900" fill="#000000" text-anchor="middle" letter-spacing="0.5">AVBRYT</text>
+<rect x="774" y="760" width="340" height="60" fill="#000000"/>
+<rect x="768" y="754" width="340" height="60" fill="#1D3FD8" stroke="#000000" stroke-width="4"/>
+<text x="938.0" y="790.48" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">GODTA OG LAST OPP →</text>
+</svg>
