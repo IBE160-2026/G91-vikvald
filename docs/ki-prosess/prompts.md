@@ -10,7 +10,7 @@ Jeg forkastet hybrid D («for rotete og visuelt dårlig») og ga presise ønsker
 
 Om E spurte jeg «noe du ville endret?», og godtok KIs sju forslag til opprydding.
 
-**Resultat:** Hybrid F er valgt som designretning. Commit `2c00ce9`.
+**Resultat:** Hybrid F, som jeg liker best så langt. Den er ikke valgt som endelig retning. Commit `2c00ce9`.
 
 ## 2026-11-10: Tre forslag ut fra mine favoritter
 

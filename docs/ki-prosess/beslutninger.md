@@ -4,7 +4,8 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
-| 2026-11-10 | Designretning: hybrid F. Forsiden som Semesterlinjen uten meny, ellers en enkel lys sidemeny med øktpanel under øving. Oransje bare på emnelinjen og få knappetyper. | Oversiktlig og rolig. Tidslinjen viser tiden til eksamen. Sidemenyen gjorde tidligere forslag rotete, så den ble forenklet. | `2c00ce9` |
+| 2026-11-11 | «Lag fritekstspørsmål» og «Lag sammendrag» blir omrissknapper. Bare «Øv nå» er svart på forelesningssiden. | Svart knapp bare for det Klara gjør oftest, så siden blir roligere. | Hybrid F, side 04 |
+| 2026-11-10 | Hybrid F er det forslaget jeg liker best så langt. Det er ikke valgt som endelig designretning. | Oversiktlig og rolig, og tidslinjen viser tiden til eksamen. Rettet 2026-11-11: KI hadde ført dette opp som et endelig valg. | `2c00ce9` |
 | 2026-11-10 | UX starter med ti vidt forskjellige designkonsepter for alle sidene, før én retning velges og detaljeres. | Jeg vil se reelle alternativer før jeg velger, slik at jeg kan begrunne designvalget (design teller 10 %). | `44a7164` |
 | 2026-11-09 | Ny tidsplan: kjerneflyten virker 27. november, og appen er ferdig 5. desember. Rapporten skrives 6.–13. desember. | Justert tidsplan. Funksjoner kuttes fortsatt før kvalitet. | Brief og PRD |
 | 2026-11-09 | Konfidensnivå: appen viser ikke språkmodellens egen sikkerhet, men bygger på kontroller som kan sjekkes (kilde, kontroll før lagring, stikkprøver). | Språkmodeller vurderer ikke sin egen sikkerhet pålitelig. Faglærer ba om en beslutning. | `b3c1e24` |

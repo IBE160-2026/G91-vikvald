@@ -4,6 +4,7 @@ Eksempler på at KI-forslag er avvist eller rettet, og på feil KI gjorde. Nyest
 
 | Dato | Hva KI gjorde | Hvem oppdaget det | Hva som ble gjort | Spor |
 |---|---|---|---|---|
+| 2026-11-11 | Tolket «ja liker» om hybrid F som et endelig valg. Førte det opp som beslutning og satte i gang skisser av de ti siste sidene. | Jeg («har ikke sagt at du skal velge f og gå videre») | Stoppet subagentene, holdt de halvferdige sidene utenfor repoet og rettet beslutningsloggen. | Denne økten |
 | 2026-11-10 | Lagde hybrid D ved å bare bytte farger og skrift i B, uten ny vurdering av helheten. | Jeg («for rotete og visuelt dårlig») | Forkastet D. Nye forslag ble sett over i nettleser før levering. | `e404712` |
 | 2026-11-10 | Ble bedt om å bruke skillen /impeccable:impeccable, men den er ikke installert. | KI, da den lette etter skillen | Skrev egne designprinsipper inn i briefen til subagentene i stedet, og sa fra om det. | `44a7164` |
 | 2026-11-09 | Satte ventetiden til under ett minutt, selv om testen fra 2026-11-05 brukte 53 sekunder på bare 9 spørsmål. | KI, i gjennomgangen mot researchen | Endret til under to minutter, og appen låses ikke mens den venter. | `8dac0a2` |
