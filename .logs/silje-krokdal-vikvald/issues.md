@@ -31,3 +31,4 @@
 - [ ] 2026-11-09 [prd](998-2026-11-09-12-49-06-prd.md) — skriv 2–3 eksempelnotater på norsk med egne ord, basert på OpenStax (#13)
 - [ ] 2026-11-10 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — avgjør designretningen (F er favoritt, ikke valgt), skisser så de ti resterende sidene og fullfør DESIGN.md og EXPERIENCE.md (#17)
 - [x] 2026-11-10 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — vurder om «Lag fritekstspørsmål» og «Lag sammendrag» skal være omrissknapper (#17) (løst 2026-11-11)
+- [ ] 2026-11-11 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — hvis «Neste å øve på» på forsidekortene beholdes: lag en regel for hva som er «neste» (#17)
