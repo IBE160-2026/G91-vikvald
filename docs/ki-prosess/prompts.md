@@ -2,6 +2,18 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-11: Fra «førsteutkast» til valgt retning
+
+> ja, det ser ut som noe som var et førsteutkast og at man ikke orket å gjøre mer
+
+KI lagde tre ferdigstilte varianter av F. Jeg likte F2 best, men:
+
+> liker designet veldig godt og oppleves som ryddig og oversiktlig, men alt er i samme tone fargemessig, vet ikke hva som ville gjort det bedre
+
+KI viste fire fargevarianter i stedet for å spørre mer. Jeg valgte: «velg f2 og gå videre», og presiserte «mente f2-v1:signaturfarge».
+
+**Resultat:** Designretning F2-V1. Commits `b04c0de` og `790efa7`.
+
 ## 2026-11-10: Fra hybrid til valgt retning
 
 Jeg forkastet hybrid D («for rotete og visuelt dårlig») og ga presise ønsker for E:
