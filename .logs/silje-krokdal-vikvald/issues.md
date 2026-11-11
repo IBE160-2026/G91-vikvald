@@ -29,5 +29,5 @@
 - [x] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — gjør meldingene på logg-commits mer beskrivende (sensor ser etter beskrivende commit-meldinger) (løst 2026-11-05)
 - [ ] 2026-11-05 [research-for-prd](999-2026-10-28-21-29-02-research-for-prd.md) — flytt prosjekt-ID ut av testskriptet (#10)
 - [ ] 2026-11-09 [prd](998-2026-11-09-12-49-06-prd.md) — skriv 2–3 eksempelnotater på norsk med egne ord, basert på OpenStax (#13)
-- [ ] 2026-11-10 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — skisser de ti resterende sidene i stilen til hybrid F, og fullfør DESIGN.md og EXPERIENCE.md (#17)
-- [ ] 2026-11-10 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — vurder om «Lag fritekstspørsmål» og «Lag sammendrag» skal være omrissknapper (#17)
+- [ ] 2026-11-10 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — avgjør designretningen (F er favoritt, ikke valgt), skisser så de ti resterende sidene og fullfør DESIGN.md og EXPERIENCE.md (#17)
+- [x] 2026-11-10 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — vurder om «Lag fritekstspørsmål» og «Lag sammendrag» skal være omrissknapper (#17) (løst 2026-11-11)
