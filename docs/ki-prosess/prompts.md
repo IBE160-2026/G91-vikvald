@@ -2,6 +2,14 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-11: Sjekke UX-arbeidet mot sensorveiledningen
+
+> godkjenner, men er det vi har gjort i tråd med sensorveiledning og tilbakemelding?
+
+KI fant at designet dekker det faglærer ba om, men at omfanget hadde vokst, og at PRD-en ikke hadde de nye kravene. Jeg svarte «ta begge nå».
+
+**Resultat:** PRD-en fikk FR-56 til FR-58, og fire tillegg er merket «kan kuttes». Commit `2ff0218`.
+
 ## 2026-11-11: Fra «førsteutkast» til valgt retning
 
 > ja, det ser ut som noe som var et førsteutkast og at man ikke orket å gjøre mer

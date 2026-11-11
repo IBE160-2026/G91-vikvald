@@ -4,6 +4,10 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
+| 2026-11-11 | Semesterlinje, «Neste å øve på», hurtigtastoversikt og ferdigmelding på andre sider er merket «kan kuttes» i PRD-en. | Faglærer advarte mot omfang. Kjerneflyten virker uten dem, og semesterlinjen har tekst som reserve. | `2ff0218` |
+| 2026-11-11 | Rediger og slett kort og spørsmål skjer under øving, uten egen listeside. | Feil oppdages mens jeg øver og sjekker kilden. Én side mindre å bygge. | `2ff0218` |
+| 2026-11-11 | Et emne har eksamensdato (påkrevd). | Semesterlinjen viser tiden til eksamen, som var det jeg likte best. | `2ff0218` |
+| 2026-11-11 | Appen lagrer dato, type og resultat for hver øvingsøkt, men ikke enkeltsvar. | Uten det kan appen ikke vise hva som er øvd. PRD-en sa før at ingenting lagres. | `2ff0218` |
 | 2026-11-11 | Designretning: F2-V1 «Signaturfarge». Utformingen fra F2 (ryddig, presis, SF Pro/Inter) med én egen merkefarge (ultramarin) på hovedknapper, handlinger, valgt rad og «I dag». | Ryddig og oversiktlig, og merkefargen løser at alt var «i samme tone». Valgt etter ti konsepter, seks hybrider, tre ferdigstilte varianter og fire fargevarianter. | `790efa7` |
 | 2026-11-11 | «Lag fritekstspørsmål» og «Lag sammendrag» blir omrissknapper. Bare «Øv nå» er svart på forelesningssiden. | Svart knapp bare for det Klara gjør oftest, så siden blir roligere. | Hybrid F, side 04 |
 | 2026-11-10 | Hybrid F er det forslaget jeg liker best så langt. Det er ikke valgt som endelig designretning. | Oversiktlig og rolig, og tidslinjen viser tiden til eksamen. Rettet 2026-11-11: KI hadde ført dette opp som et endelig valg. | `2c00ce9` |

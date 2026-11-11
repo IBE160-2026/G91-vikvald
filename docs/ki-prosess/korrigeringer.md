@@ -4,6 +4,7 @@ Eksempler på at KI-forslag er avvist eller rettet, og på feil KI gjorde. Nyest
 
 | Dato | Hva KI gjorde | Hvem oppdaget det | Hva som ble gjort | Spor |
 |---|---|---|---|---|
+| 2026-11-11 | Subagenter tegnet funksjoner som ikke er i PRD-en («Glemt passordet?», «Endre e-post», «Endre passord») og skrev «under ett minutt» der PRD-en sier under to. | KI, ved gjennomgang av skissene mot PRD-en | Fjernet funksjonene og rettet ventetiden i skissene. | `ddba22a` |
 | 2026-11-11 | Tolket «ja liker» om hybrid F som et endelig valg. Førte det opp som beslutning og satte i gang skisser av de ti siste sidene. | Jeg («har ikke sagt at du skal velge f og gå videre») | Stoppet subagentene, holdt de halvferdige sidene utenfor repoet og rettet beslutningsloggen. | Denne økten |
 | 2026-11-10 | Lagde hybrid D ved å bare bytte farger og skrift i B, uten ny vurdering av helheten. | Jeg («for rotete og visuelt dårlig») | Forkastet D. Nye forslag ble sett over i nettleser før levering. | `e404712` |
 | 2026-11-10 | Ble bedt om å bruke skillen /impeccable:impeccable, men den er ikke installert. | KI, da den lette etter skillen | Skrev egne designprinsipper inn i briefen til subagentene i stedet, og sa fra om det. | `44a7164` |
