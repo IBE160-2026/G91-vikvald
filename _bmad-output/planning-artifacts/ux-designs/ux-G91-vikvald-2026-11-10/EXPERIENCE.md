@@ -329,20 +329,26 @@ Semesterlinjen må kunne vises smalere uten at etiketter kolliderer. [ASSUMPTION
 - **Valgt bort: feiring av resultater.** Resultatet er sakelig.
 - **Valgt bort: «Glemt passord»** (FR-3) og endring av e-post og passord, som ikke er i PRD-en.
 
+## Avgjort i gjennomgangen 11.11.2026
+
+Disse tre var åpne spørsmål i utkastet. Silje avgjorde dem. De to første krever endring i PRD-en.
+
+1. **Øvingshistorikk lagres per økt.** For hver økt lagres dato, type (flashcards, quiz, huskeregler eller fritekst), omfang (én forelesning eller hele emnet) og poengsum. Enkeltsvar og markeringer lagres ikke. Dette gir «Øvd 03.11», «4 av 8 forelesninger øvd», «Siste økt» og fylte og hule stasjoner på semesterlinjen. *PRD: nytt krav, og FR-25 og FR-51 presiseres.*
+2. **Et emne har navn og eksamensdato.** Eksamensdatoen er påkrevd når emnet lages, og kan endres. Semesterlinjen starter ved første forelesning, så semesterstart lagres ikke. *PRD: FR-6 utvides.*
+3. **Rediger og slett skjer under øving.** Hvert kort eller spørsmål har «Rediger» (flashcards og modellkort, FR-27 og FR-46) og «Slett» (alle typer, FR-27, FR-37 og FR-52) i bunnfeltet ved kilden. Sletting krever bekreftelse. Det finnes ingen egen listeside i MVP.
+
+4. **«Neste å øve på»** er den eldste forelesningen som har innhold, men ikke er øvd. Er alle øvd: den som ble øvd lengst siden.
+5. **Smal skjerm (≤ 768 px og 200 % tekst):** sidemenyen og øktpanelet skjules bak en menyknapp i toppfeltet og legger seg over innholdet når de åpnes.
+6. **Hurtigtastdialogen («?»)** viser tastene for siden Klara er på. Enkelttaster virker bare under øving, aldri når fokus står i et tekstfelt (WCAG 2.1.4).
+7. **Ny bruker uten emner:** forsiden viser «Lag ditt første emne» og én setning om hva appen gjør. Testbrukeren har eksempelemnet.
+8. **Feilmeldinger** (FR-9, FR-10, FR-18, FR-21, FR-47, NFR-16): ordlyden i «Stemme og tone» gjelder. Meldingen vises ved fila eller jobben, ikke som egen side.
+9. **Huskeregler for hele emnet** får egen rad i «Øv på hele emnet» (03).
+10. **«Avslutt økt»** krever ingen bekreftelse. Resultatet for det som er gjort, vises og lagres.
+11. **Fritekst:** Klara velger kortsvar eller langsvar i dialogen, sammen med omfang (FR-48).
+12. **Kildehenvisningen** er tekst i MVP, ikke en lenke. Å åpne PDF-en på riktig side er en mulig utvidelse.
+13. **Demomodus:** personverntekst og ventetid tilpasses modusen. I demomodus står det at ingenting sendes ut, og at innholdet tar noen sekunder (NFR-2, NFR-17).
+14. **Jobber:** én jobb per forelesning om gangen. Når en jobb er ferdig, vises en kort melding som skjermlesere leser opp (NFR-12), uansett hvilken side Klara er på.
+
 ## Åpne spørsmål
 
-1. **«Neste å øve på» på forsidekortene.** Regelen er ikke i PRD-en. Forslag fra F2: den eldste forelesningen med innhold som ikke er øvd. Må bestemmes, eller kortet må forenkles.
-2. **Øvingshistorikk mot PRD-en.** Skissene viser «Øvd 03.11», «4 av 8 forelesninger øvd», «Siste økt: 12 av 15 riktige» og «Økten er ferdig og lagret». Det krever at appen lagrer at og når en økt ble gjort, og poengsummen. PRD-en sier at markeringer (FR-25) og fritekstsvar (FR-51) ikke lagres, og FR-16 teller bare generert innhold. Må avklares: lagres øktdato og resultat, eller skal status bygge på FR-16 alene?
-3. **Eksamensdato og semester.** Semesterlinjen trenger eksamensdato per emne og start på semesteret. PRD-en har ikke slike felt (FR-6 har bare navn). Må legges til i PRD-en eller i dialogen for nytt emne.
-4. **Sidemenyen ved ≤ 768 px og 200 % tekst** (NFR-14). Skjules den bak en knapp, legges den over innholdet, eller blir den smalere? Gjelder også øktpanelet.
-5. **Hurtigtastdialogen («?»).** Hva den viser: bare tastene for siden Klara er på, eller alle? Og hvor enkelttaster skrus av (WCAG 2.1.4)?
-6. **Tom tilstand for ny bruker** uten emner (02). Ikke skissert.
-7. **Feil ved generering** (FR-21), **skannet PDF** (FR-10), **Word-fil** (FR-9), **fil over 50 sider** (NFR-16) og **færre enn valgt** (FR-18) er ikke skissert. Ordlyden i «Stemme og tone» er forslag.
-8. **Redigere og slette kort og spørsmål** (FR-27, FR-37, FR-52). Ingen flate viser lister over kort eller spørsmål. Skal det skje under øving, eller trengs en egen liste per forelesning?
-9. **Huskeregler for hele emnet.** UJ-2 bruker huskeregler før eksamen, og FR-42 sier at modellkort øves som flashcards (FR-23 gjelder hele emnet). Kortet «Øv på hele emnet» på 03 har ingen rad for huskeregler. Skal modellkort blandes inn i flashcards for hele emnet, eller få egen rad?
-10. **Avslutt økt.** Hva skjer med «Kunne ikke»-kort som ikke er repetert, og vises resultatet for den delen som er gjort? Trengs bekreftelse?
-11. **Fritekst: kortsvar og langsvar** (FR-48). Velger Klara type, eller lages begge? Dialogen er ikke skissert.
-12. **Kildelenken.** Den ser ut som en lenke, men å åpne PDF-en på riktig side er en mulig utvidelse i PRD-en. Er den tekst eller lenke i MVP?
-13. **Personvernmerknaden på 04** sier at notatene sendes til Google, også i demomodus der ingenting sendes ut (NFR-2). Skal teksten tilpasses modusen?
-14. **«Tar vanligvis under to minutter»** i 06 gjelder ekte språkmodell (NFR-17). I demomodus tar det under fem sekunder. Skal teksten tilpasses?
-15. **Hvor mange jobber samtidig**, og hvordan Klara får beskjed når en jobb blir ferdig mens hun er på en annen side (NFR-17).
+Ingen. Svarene på 4–14 er Siljes godkjenning av forslag 11.11.2026. Skissene er ikke oppdatert for 3, 7–11 og 13; dokumentet vinner.
