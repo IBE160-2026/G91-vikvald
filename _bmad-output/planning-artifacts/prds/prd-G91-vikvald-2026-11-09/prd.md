@@ -2,7 +2,7 @@
 title: "PRD: Studiekamerat"
 status: final
 created: 2026-11-09
-updated: 2026-11-11
+updated: 2026-11-12
 ---
 
 # PRD: Studiekamerat
@@ -122,6 +122,17 @@ Quizen lages og brukes på samme måte som flashcardene, men studenten velger bl
 *Rette opp*
 - **FR-37** Studenten kan slette enkeltspørsmål hun selv har laget, direkte fra spørsmålet mens hun tar quizen. Sletting krever bekreftelse. Spørsmål kan ikke redigeres; et dårlig spørsmål slettes, og hun kan lage nye.
 
+### Felles for alt generert innhold
+
+Gjelder flashcards, quiz og bør ha-funksjonene.
+
+- **FR-38** Appen kontrollerer alt språkmodellen lager før det lagres: sidetallet i kilden finnes i filen, et quizspørsmål har nøyaktig fire alternativer der ett er riktig, og ingen påkrevde felt er tomme. Det som ikke består kontrollen, forkastes og regnes med i beskjeden om at det ble laget færre enn valgt (FR-18).
+- **FR-39** Sidetall i kilder er sidenummeret i PDF-filen, telt fra første side i filen, ikke sidetallet som eventuelt er trykt på siden.
+- **FR-40** Sider der teksten fra PDF-en mangler formler, sendes også som bilde til språkmodellen, slik at formlene kommer med. Det er bedre å sende en side for mye som bilde enn en for lite. Regelen kontrolleres på kjente testsider der formlene er tegnet som grafikk (*Principles of Economics 3e*, PDF-side 127–128). *(Kan kuttes.)*
+- **FR-41** Innhold laget fra en side som er sendt som bilde, er merket «Inneholder formel – sjekk mot kilden». Det samme gjelder når språkmodellen melder at noe ser ut til å mangle på siden. *(Kan kuttes sammen med FR-40.)*
+
+**Konfidensnivå.** Faglæreren ba om en beslutning om konfidensnivå, det vil si hvordan appen håndterer at språkmodellen kan ta feil. Appen viser ikke språkmodellens egen vurdering av hvor sikker den er, fordi språkmodeller ikke vurderer sin egen sikkerhet pålitelig. I stedet bygger appen på kontroller som faktisk kan sjekkes: innholdet lages bare fra notatene (FR-18, FR-29), alt kontrolleres før lagring (FR-38), alt viser kilde (FR-20, FR-32), innhold fra sider med formler er merket (FR-41), og studenten kan slette det som er feil (FR-27, FR-37). Hvor godt dette virker, måles med stikkprøvene i SK-13 til SK-17.
+
 ### Oversikt fram mot eksamen
 
 Studenten ser hvor hun står i semesteret og hva hun bør øve på (UJ-2). Lagt til etter UX-arbeidet, se «Endringer etter UX-arbeidet».
@@ -137,17 +148,6 @@ Studenten ser hvor hun står i semesteret og hva hun bør øve på (UJ-2). Lagt 
   *Eksempel:* Avslutter studenten en flashcardøkt etter 12 av 20 kort, og hun markerte 9 som «Kunne» første gang, lagres: flashcards, én forelesning, avbrutt, vist 12, kunne 9, kunne ikke 3. Enkeltsvar lagres ikke. Å lese et sammendrag er ikke en økt. En forelesning regnes som øvd når den har minst én lagret økt.
 - **FR-57** Emnesiden viser forelesningene på en semesterlinje etter dato, fra første forelesning til eksamen, med øvd og ikke øvd, dagens dato og hvor mange uker det er til eksamen. Forsiden viser det samme for alle emnene. *(Kan kuttes: da vises samme informasjon som tekst, for eksempel «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd».)*
 - **FR-58** Forsiden viser «Neste å øve på» for hvert emne: den eldste forelesningen som har innhold, men ikke er øvd. Er alle øvd, vises den som ble øvd lengst siden. *(Kan kuttes.)*
-
-### Felles for alt generert innhold
-
-Gjelder flashcards, quiz og bør ha-funksjonene.
-
-- **FR-38** Appen kontrollerer alt språkmodellen lager før det lagres: sidetallet i kilden finnes i filen, et quizspørsmål har nøyaktig fire alternativer der ett er riktig, og ingen påkrevde felt er tomme. Det som ikke består kontrollen, forkastes og regnes med i beskjeden om at det ble laget færre enn valgt (FR-18).
-- **FR-39** Sidetall i kilder er sidenummeret i PDF-filen, telt fra første side i filen, ikke sidetallet som eventuelt er trykt på siden.
-- **FR-40** Sider der teksten fra PDF-en mangler formler, sendes også som bilde til språkmodellen, slik at formlene kommer med. Det er bedre å sende en side for mye som bilde enn en for lite. Regelen kontrolleres på kjente testsider der formlene er tegnet som grafikk (*Principles of Economics 3e*, PDF-side 127–128). *(Kan kuttes.)*
-- **FR-41** Innhold laget fra en side som er sendt som bilde, er merket «Inneholder formel – sjekk mot kilden». Det samme gjelder når språkmodellen melder at noe ser ut til å mangle på siden. *(Kan kuttes sammen med FR-40.)*
-
-**Konfidensnivå.** Faglæreren ba om en beslutning om konfidensnivå, det vil si hvordan appen håndterer at språkmodellen kan ta feil. Appen viser ikke språkmodellens egen vurdering av hvor sikker den er, fordi språkmodeller ikke vurderer sin egen sikkerhet pålitelig. I stedet bygger appen på kontroller som faktisk kan sjekkes: innholdet lages bare fra notatene (FR-18, FR-29), alt kontrolleres før lagring (FR-38), alt viser kilde (FR-20, FR-32), innhold fra sider med formler er merket (FR-41), og studenten kan slette det som er feil (FR-27, FR-37). Hvor godt dette virker, måles med stikkprøvene i SK-13 til SK-17.
 
 ## Bør ha-funksjoner
 
@@ -191,7 +191,7 @@ Alle de ikke-funksjonelle kravene er en del av MVP-en, på samme måte som må h
 Sensor skal kunne starte og teste appen uten studentens nøkler, kontoer eller tjenester.
 
 - **NFR-1** Appen kan startes lokalt på en PC ved å følge README, med kommandoer som kan kopieres direkte. README oppgir hvilke versjoner av programmer som trengs, hvordan testene kjøres, og lenker til planleggingsdokumentene.
-- **NFR-2** Demomodus er standard. I demomodus lager en mock-modell innhold ut fra teksten i den opplastede filen etter reglene i NFR-2a, med sidetall som finnes i filen, og gir samme svar hver gang for samme fil. Appen trenger da verken nøkkel, konto eller internett, og alle funksjoner kan prøves, også med en PDF sensor laster opp selv.
+- **NFR-2** Demomodus er standard. I demomodus lager en mock-modell innhold ut fra teksten i den opplastede filen etter reglene i NFR-2a, med sidetall som finnes i filen, og gir samme svar hver gang for samme fil. Appen trenger da verken nøkkel, konto eller internett, og alle funksjoner kan prøves, også med en PDF som lastes opp for første gang.
 - **NFR-2a** Mock-modellen bruker bare teksten i de opplastede filene. Den leter etter definisjonssetninger, det vil si setninger med «er» eller, i engelske PDF-er, «is», og lager innhold slik:
   - **Flashcards:** Ett begrepskort per definisjonssetning. Ordene før «er»/«is» står på forsiden, og hele setningen på baksiden. Kilden er siden setningen står på.
   - **Modellkort:** Tre eller flere linjer etter hverandre som begynner med kulepunkt eller nummer, blir ett modellkort. Huskeregelen lages etter FR-43 og FR-44.
@@ -251,7 +251,7 @@ Kriteriene står i den rekkefølgen sensor kan etterprøve dem: først det som k
 
 Kjøres med mock-modellen, slik at sensor kan kjøre dem uten nøkkel.
 
-- **SK-1** Hvert funksjonelt må ha-krav (FR-1 til FR-41) har minst én automatisk test, med mindre kravet bare kan kontrolleres manuelt. Da står det i testplanen hvorfor.
+- **SK-1** Hvert funksjonelt må ha-krav (FR-1 til FR-41 og FR-56 til FR-58) har minst én automatisk test, med mindre kravet bare kan kontrolleres manuelt. Da står det i testplanen hvorfor.
 - **SK-2** En student ser og kan endre bare sitt eget innhold (FR-4).
 - **SK-3** Alle sidetall i kildene finnes i den opplastede filen (FR-20, FR-32, FR-39).
 - **SK-4** Ugyldig innhold fra språkmodellen forkastes, og studenten får beskjed om at det ble laget færre (FR-38, FR-18). Testes med en mock-modell som med vilje gir ugyldige svar.
@@ -260,8 +260,8 @@ Kjøres med mock-modellen, slik at sensor kan kjøre dem uten nøkkel.
 - **SK-7** Word-filer, for store filer og PDF-er uten tekst avvises med riktig beskjed (FR-9, FR-10, NFR-16).
 - **SK-8** Feiler genereringen, lagres ingenting halvferdig (FR-21).
 - **SK-9** Universell utforming kontrolleres automatisk på alle sider (NFR-13).
-- **SK-20** Resultatet av en økt lagres når økten avsluttes, også når den avbrytes, mens enkeltsvar ikke lagres. «Neste å øve på» følger regelen i FR-58 (FR-56, FR-58).
 - **SK-10** Huskeregelen stemmer med forbokstavene, og modellkort der alle punktene har samme forbokstav, lages uten huskeregel (FR-44, FR-45). Gjelder hvis huskeregler bygges.
+- **SK-20** Resultatet av en økt lagres når økten avsluttes, også når den avbrytes, mens enkeltsvar ikke lagres. «Neste å øve på» følger regelen i FR-58 (FR-56, FR-58).
 
 ### Manuelle kontroller før innlevering
 
@@ -355,6 +355,20 @@ UX-arbeidet 10.–11. november 2026 ([EXPERIENCE.md](../../ux-designs/ux-G91-vik
 
 Faglæreren advarte om at omfanget kunne bli for stort. Bare FR-56 og eksamensdatoen er nye må ha-krav, og begge er små. Resten er merket *(Kan kuttes)*.
 
+## Endringer etter tilbakemeldingen på PRD-en
+
+Tilbakemeldingen 12. november 2026 ([tilbakemelding-prd.md](tilbakemelding-prd.md)) pekte på omfang, manglende reserveplan og krav som ikke kunne testes.
+
+| PRD-en sa | PRD-en sier nå | Begrunnelse |
+|---|---|---|
+| Kjerneflyten skal virke 27.11, appen ferdig 5.12 | Milepæler 14.11, 27.11, 1.12 og 5.12, og en kuttrekkefølge som også omfatter NFR-13 og NFR-15 (Omfang) | De tyngste kravene kunne ikke kuttes. Funksjoner kuttes før kvalitet og testing. |
+| Kostnaden med Gemini er ikke bekreftet (#8) | Plan B: ikke bekreftet innen 14.11 → demomodus alene, og SK-13 til SK-17 flyttes til Begrensninger | Vertex-kall virket allerede 2026-11-05, så det uavklarte er kostnaden, ikke tilgangen. |
+| Mock-modellen «lager innhold ut fra teksten» (NFR-2) | Faste regler for hver innholdstype (NFR-2a) | Demomodus er det sensor møter først, og reglene må kunne bli en story og testes. |
+| Øktype inkluderte «huskeregler», resultat var ikke definert (FR-56) | Tre øktyper med resultat for hver; modellkort er flashcards; tomme økter lagres ikke (FR-56) | Datamodellen og semesterlinjen bygger på dette. Huskeregelen er en hjelp på kortet, ikke en egen øving. |
+| «Forståelig beskjed», «senere», «en setning eller to», «halvparten» | Tidsgrense, meldingstekst, rekkefølge, lengde og 35 % (FR-21, FR-25, FR-53, NFR-8, SK-15) | Tester trenger tall og tekster. |
+
+Rekkefølgen på ID-ene er ryddet, og ordlista har fått emne, forelesning, flashcard, quiz og resultat.
+
 ## Begrensninger og risikoer
 
 ### Begrensninger
@@ -385,6 +399,10 @@ Disse avklares før eller under arkitektur og implementering, og følges opp som
 
 - **Demomodus:** Appen kjører med mock-modellen i stedet for en ekte språkmodell. Standard for sensor.
 - **Mock-modell:** En liten erstatning for språkmodellen som lager forutsigbart innhold uten internett. Brukes i demomodus og i de automatiske testene.
+- **Emne:** Et fag studenten tar, for eksempel Markedsføring, med navn og eksamensdato.
+- **Forelesning:** Én forelesning i et emne, med dato og én eller flere PDF-filer.
+- **Flashcard (kort):** Et kort med spørsmål eller begrep på forsiden og svar på baksiden. «Kort» brukes som kortform. Begrepskort og modellkort er typer flashcards.
+- **Quiz (quizspørsmål):** Flervalgsspørsmål med fire alternativer. «Spørsmål» brukes som kortform når det går fram av sammenhengen at det er quizspørsmål.
 - **Begrepskort:** Flashcard med et begrep på forsiden og forklaringen på baksiden.
 - **Modellkort:** Flashcard som ber studenten forklare en modell eller liste, med punktene og eventuell huskeregel på baksiden.
 - **Kilde:** Filnavn og sidetall i PDF-filen som innholdet er laget fra.
