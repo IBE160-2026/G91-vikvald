@@ -176,7 +176,7 @@ Studenten leser et sammendrag av forelesningen som repetisjon (UJ-1). Faglærere
 
 ## Ikke-funksjonelle krav
 
-Alle de ikke-funksjonelle kravene er en del av MVP-en, på samme måte som må ha-funksjonene.
+Alle de ikke-funksjonelle kravene er en del av MVP-en, på samme måte som må ha-funksjonene, med unntakene i kuttrekkefølgen (se Omfang).
 
 ### Kjørbarhet og demomodus
 
@@ -224,6 +224,7 @@ Faglæreren ba om beslutninger om valg av språkmodell og om behandlingen skal s
 - **Ikke lokal modell.** En lokal modell via Ollama er valgt bort fordi den er svakere på norsk og har begrenset plass til lange PDF-er. Demomodusen (NFR-2) dekker behovet for å kjøre appen uten skytjeneste.
 - **Konkret modell** velges i arkitekturen etter en kvalitetstest på norsk (issue #3 og #4).
 - **Kostnad.** Anslått til høyst noen få kroner per semester. En ekte språkmodell krever et eget Google Cloud-prosjekt med kredittkort, og det er ikke bekreftet at bruken trekkes fra prøvekreditten (issue #8). Sensor trenger ikke dette, fordi demomodus er standard.
+- **Plan B.** Er det ikke bekreftet innen 14. november at kall til Gemini trekkes fra prøvekreditten (issue #8), leveres appen med demomodus alene. Kvalitetsmålingene SK-13 til SK-17 flyttes da til Begrensninger. Testen fra 2026-11-05 dokumenteres som det eneste som finnes om kvaliteten med ekte modell, med sin begrensning: én kjøring på 2–3 sider.
 
 ## Suksesskriterier
 
@@ -269,12 +270,24 @@ Måles manuelt med Gemini på eksempelnotatene og åpent lisensiert materiale. H
 
 ### Kjerneflyt
 
-Kjerneflyten er det som må virke og være stabilt først, både i demomodus og med Gemini: logge inn → opprette emne og forelesning → laste opp PDF → lage og øve på flashcards → lage og ta quiz. Virker ikke kjerneflyten 27. november, kuttes bør ha-funksjonene. Målet er at appen er ferdig 5. desember. Innleveringsfristen er 15. desember 2026.
+Kjerneflyten er det som må virke og være stabilt først, både i demomodus og med Gemini: logge inn → opprette emne og forelesning → laste opp PDF → lage og øve på flashcards → lage og ta quiz. Milepæler:
+
+- **14. november:** Det er avklart om Gemini kan brukes (Plan B under Valg av språkmodell).
+- **27. november:** Kjerneflyten virker i demomodus. Virker den ikke, kuttes bør ha-funksjonene.
+- **1. desember:** Gemini er koblet på kjerneflyten.
+- **5. desember:** Appen er ferdig. Innleveringsfristen er 15. desember 2026.
 
 ### Prioritering
 
 - **Må ha:** 1 Norsk språk · 2 Innlogging og egne data · 3 Emner, forelesninger og opplasting · 4 Flashcards · 5 Flervalgsquiz, med «Oversikt fram mot eksamen», kravene i «Felles for alt generert innhold» og alle ikke-funksjonelle krav. Krav merket *(Kan kuttes)* går først.
 - **Bør ha, i byggerekkefølge:** 6 Huskeregler · 7 Fritekstspørsmål med selvvurdering · 8 Sammendrag.
+
+Blir tiden knapp, kuttes det i denne rekkefølgen:
+
+1. Krav merket *(Kan kuttes)*.
+2. Bør ha-funksjonene, bakfra: sammendrag, fritekst, huskeregler.
+3. NFR-15: bare Chrome og Edge kontrolleres.
+4. NFR-13 og SK-9: den automatiske testen av universell utforming kjøres bare på tre sider: forelesningssiden, flashcard-øving og quiz. Tastaturgjennomgangen beholdes.
 
 Faglæreren advarte om at MVP-en i briefen var større enn prosjektforslaget den bygger på. Må ha er derfor holdt til de fem punktene faglæreren foreslo, nøkkelbegreper er slått sammen med flashcards, og krav som kan kuttes, er merket. Huskeregler er ett av de fire særtrekkene, men står som bør ha slik faglæreren foreslo. Kuttes de, faller SK-10 bort.
 
