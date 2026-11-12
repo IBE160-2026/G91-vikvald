@@ -35,3 +35,7 @@
 - [ ] 2026-11-11 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — kjør eventuelt UX-validering (bmad-ux Validate) av DESIGN.md og EXPERIENCE.md
 - [ ] 2026-11-11 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — skisser flater som bare er beskrevet i tekst, hvis de trengs
 - [ ] 2026-11-11 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — juster eventuelt de foreløpige fargene i F2-V1 før koding
+- [ ] 2026-11-12 [prd](998-2026-11-09-12-49-06-prd.md) — avklar prøvekreditten (#8) innen 14.11, ellers leveres appen med demomodus alene (Plan B, #20)
+- [x] 2026-11-12 [prd](998-2026-11-09-12-49-06-prd.md) — svar på refleksjonsspørsmålene i tilbakemeldingen på PRD-en (teknologistakken, vurdering av faglige feil) (#20) (løst 2026-11-13)
+- [ ] 2026-11-12 [prd](998-2026-11-09-12-49-06-prd.md) — tegn skisse 03 og 04 på nytt uten Huskeregler-raden, hvis de skal brukes i rapporten (#18)
+- [ ] 2026-11-13 [prd](998-2026-11-09-12-49-06-prd.md) — i arkitekturfasen: be KI sammenligne stakken med et enklere alternativ og begrunne den opp mot sensorveiledningen (lovet i refleksjonen)

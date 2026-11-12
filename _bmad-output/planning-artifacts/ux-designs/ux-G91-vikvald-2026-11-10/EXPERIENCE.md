@@ -2,7 +2,7 @@
 title: "EXPERIENCE: Studiekamerat"
 status: final
 created: 2026-11-10
-updated: 2026-11-11
+updated: 2026-11-12
 sources:
   - ../../prds/prd-G91-vikvald-2026-11-09/prd.md
 ---
@@ -38,7 +38,7 @@ Skissene ligger i [`mockups/`](mockups/). **Dokumentene vinner ved konflikt med 
 | 08 | Flashcards ferdig | Øving | Siste kort i 07 | Øktpanel, ferdig | [08-flashcard-ferdig.svg](mockups/08-flashcard-ferdig.svg) |
 | 09 | Quiz | Øving | «Start» Quiz (03), «Øv nå» på Quiz-raden (04) | Øktpanel | [09-quiz.svg](mockups/09-quiz.svg) |
 | 10 | Quizresultat | Øving | Siste spørsmål i 09 | Øktpanel, ferdig | [10-quiz-resultat.svg](mockups/10-quiz-resultat.svg) |
-| 11 | Modellkort-økt | Øving | «Øv nå» på Huskeregler-raden (04) | Øktpanel | [11-modellkort.svg](mockups/11-modellkort.svg) |
+| 11 | Modellkort i flashcard-økt | Øving | Modellkort kommer i flashcard-økten (07), blandet med de andre kortene | Øktpanel | [11-modellkort.svg](mockups/11-modellkort.svg) |
 | 12 | Fritekst-økt | Øving | «Start» Fritekstspørsmål (03), «Øv nå» på Fritekst-raden (04) | Øktpanel | [12-fritekst.svg](mockups/12-fritekst.svg) |
 | 13 | Sammendrag | Side | Sammendrag-raden (04) | Sidemeny, forelesningen valgt | [13-sammendrag.svg](mockups/13-sammendrag.svg) |
 | 14 | Slett fil | Dialog over 04 | «Slett» på filrad | – | [14-slett-bekreft.svg](mockups/14-slett-bekreft.svg) |
@@ -53,11 +53,11 @@ Disse bygges fra mønstrene i dette dokumentet og DESIGN.md:
 - **Ny forelesning, nytt navn, endre dato, slett forelesning** (FR-7, FR-14, FR-15): dialoger. Dato er dagens dato som standard.
 - **Erstatt fil** (FR-13): bekreftelse som 14, med teksten «erstatter» i stedet for «sletter».
 - **Lag flashcards** (FR-17) og **Lag fritekstspørsmål** (FR-48): dialoger som 06, med omfang og uten vanskelighetsgrad.
-- **Lag huskeregler** (FR-42) og **Lag sammendrag** (FR-53): starter jobben direkte, uten dialog. [ASSUMPTION] Ingen valg finnes i PRD-en.
+- **Lag modellkort** (FR-42), en tekstknapp på Flashcards-raden ved siden av «Lag flere», og **Lag sammendrag** (FR-53): starter jobben direkte, uten dialog. [ASSUMPTION] Ingen valg finnes i PRD-en.
 - **Hurtigtaster** («?»): dialog. Innholdet er et åpent spørsmål.
 - **Endre huskeregel** (FR-46): fra 11. Ikke skissert.
 - **Rediger og slett kort, slett spørsmål** (FR-27, FR-37, FR-52): ikke skissert, og det er ikke bestemt hvor det skjer. Se Åpne spørsmål.
-- **Resultat for modellkort og fritekst** (FR-26, FR-51): som 08, med «Riktig / Delvis riktig / Feil» for fritekst.
+- **Resultat for fritekst** (FR-51): som 08, med «Riktig / Delvis riktig / Feil». Modellkort har ikke eget resultat; de telles med i flashcard-økten (08).
 - **Slett konto** (FR-5): bekreftelse som 14, åpnes fra 15.
 
 ### Navigasjon
@@ -158,7 +158,7 @@ Oppførsel. Visuelt utseende står i DESIGN.md, «Komponenter». Navnene er de s
 | Jobb pågår | 04 | Jobbstatus i raden: «Lager quizspørsmål …» og «Du kan bruke resten av appen imens.» Klara kan gå hvor hun vil (NFR-17). Når jobben er ferdig, kommer «Øv nå» tilbake og en statusmelding leses opp (NFR-12). [ASSUMPTION] Forlater hun siden, får hun beskjed når jobben er ferdig, og forelesningen viser det når hun kommer tilbake. |
 | Generering feilet | 04 | Ikke skissert. Raden viser feilmeldingen i tekst og «Prøv igjen». Ingenting halvferdig lagres (FR-21). |
 | Færre enn valgt | 04 | Ikke skissert. Statusmelding med hvor mange som ble laget (FR-18, FR-38). Leses opp (NFR-12). |
-| Ingen modeller funnet | 04 | Ikke skissert. Melding i Huskeregler-raden (FR-47). |
+| Ingen modeller funnet | 04 | Ikke skissert. Melding i Flashcards-raden (FR-47). |
 | Fil avvist | 04 | Ikke skissert. Word og andre filtyper (FR-9), PDF uten tekst (FR-10) og over 50 sider (NFR-16) avvises med melding ved opplastingsfeltet. Fila lastes ikke opp. |
 | Første opplasting | 04 → 05 | Vilkårsdialogen vises før fila lastes opp. Avbryt → ingenting lastes opp (FR-11). |
 | Sletting | 14 | Viser hva som slettes sammen med fila (FR-12). Avbryt har startfokus, og avbrudd sletter ingenting. |
@@ -271,7 +271,7 @@ Tre uker før eksamen har Klara lastet opp notater fra alle forelesningene i Mar
 1. Forsiden (02) viser at eksamen er om tre uker, og at fire av åtte forelesninger er øvd. Hun trykker «Åpne» på Markedsføring.
 2. Emnesiden (03) viser forelesningene med status. I kortet «Øv på hele emnet» trykker hun «Øv på flashcards». Økten (07) blander kort fra alle forelesningene (FR-23).
 3. Etterpå tar hun quiz på hele emnet («Start», 09). Kilden ved hvert spørsmål viser hvilken forelesning det kommer fra.
-4. Hun åpner «Uke 37: Merkevare» og øver på huskeregler (11). Hun snur modellkortet «Forklar AIDA-modellen» og ser punktene og huskeregelen AIDA. Hun vil heller ha sin egen regel og trykker «Endre huskeregel» (FR-46).
+4. Hun åpner «Uke 37: Merkevare» og øver på flashcards (07). Midt i økten kommer et modellkort (11). Hun snur modellkortet «Forklar AIDA-modellen» og ser punktene og huskeregelen AIDA. Hun vil heller ha sin egen regel og trykker «Endre huskeregel» (FR-46).
 5. Tilbake på emnesiden starter hun fritekstspørsmål for hele emnet (12). Hun skriver svaret i tekstfeltet og trykker «Vis modellsvar».
 6. **Klimaks:** Modellsvaret står under hennes eget svar, med kilde. Hun ser selv hva hun fikk med og hva hun glemte, og trykker `2` for «Delvis riktig». Rutenettet i øktpanelet viser ◐. Hun øver som på eksamen, og vet hvor hun står.
 7. Når økten er ferdig, ser hun hvor mange hun hadde riktig, delvis riktig og feil (FR-51).
@@ -333,7 +333,7 @@ Semesterlinjen må kunne vises smalere uten at etiketter kolliderer. [ASSUMPTION
 
 Disse tre var åpne spørsmål i utkastet. Silje avgjorde dem. De to første krever endring i PRD-en.
 
-1. **Øvingshistorikk lagres per økt.** For hver økt lagres dato, type (flashcards, quiz, huskeregler eller fritekst), omfang (én forelesning eller hele emnet) og poengsum. Enkeltsvar og markeringer lagres ikke. Dette gir «Øvd 03.11», «4 av 8 forelesninger øvd», «Siste økt» og fylte og hule stasjoner på semesterlinjen. *PRD: FR-56, og FR-25 og FR-51 er presisert.*
+1. **Øvingshistorikk lagres per økt.** For hver økt lagres dato, type (flashcards, quiz eller fritekst; modellkort er flashcards, endret 12.11), omfang (én forelesning eller hele emnet) og poengsum. Enkeltsvar og markeringer lagres ikke. Dette gir «Øvd 03.11», «4 av 8 forelesninger øvd», «Siste økt» og fylte og hule stasjoner på semesterlinjen. *PRD: FR-56, og FR-25 og FR-51 er presisert.*
 2. **Et emne har navn og eksamensdato.** Eksamensdatoen er påkrevd når emnet lages, og kan endres. Semesterlinjen starter ved første forelesning, så semesterstart lagres ikke. *PRD: FR-6 er utvidet.*
 3. **Rediger og slett skjer under øving.** Hvert kort eller spørsmål har «Rediger» (flashcards og modellkort, FR-27 og FR-46) og «Slett» (alle typer, FR-27, FR-37 og FR-52) i bunnfeltet ved kilden. Sletting krever bekreftelse. Det finnes ingen egen listeside i MVP.
 
@@ -342,7 +342,7 @@ Disse tre var åpne spørsmål i utkastet. Silje avgjorde dem. De to første kre
 6. **Hurtigtastdialogen («?»)** viser tastene for siden Klara er på. Enkelttaster virker bare under øving, aldri når fokus står i et tekstfelt (WCAG 2.1.4).
 7. **Ny bruker uten emner:** forsiden viser «Lag ditt første emne» og én setning om hva appen gjør. Testbrukeren har eksempelemnet.
 8. **Feilmeldinger** (FR-9, FR-10, FR-18, FR-21, FR-47, NFR-16): ordlyden i «Stemme og tone» gjelder. Meldingen vises ved fila eller jobben, ikke som egen side.
-9. **Huskeregler for hele emnet** får egen rad i «Øv på hele emnet» (03).
+9. ~~**Huskeregler for hele emnet** får egen rad i «Øv på hele emnet» (03).~~ Endret 12.11.2026: Modellkort øves sammen med flashcards. Det finnes ingen egen rad for huskeregler, verken på 03 eller 04.
 10. **«Avslutt økt»** krever ingen bekreftelse. Resultatet for det som er gjort, vises og lagres.
 11. **Fritekst:** Klara velger kortsvar eller langsvar i dialogen, sammen med omfang (FR-48).
 12. **Kildehenvisningen** er tekst i MVP, ikke en lenke. Å åpne PDF-en på riktig side er en mulig utvidelse.
@@ -351,4 +351,4 @@ Disse tre var åpne spørsmål i utkastet. Silje avgjorde dem. De to første kre
 
 ## Åpne spørsmål
 
-Ingen. Svarene på 4–14 er Siljes godkjenning av forslag 11.11.2026. Skissene er ikke oppdatert for 3, 7–11 og 13; dokumentet vinner.
+Ingen. Svarene på 4–14 er Siljes godkjenning av forslag 11.11.2026. Skissene er ikke oppdatert for 3, 7–11 og 13; dokumentet vinner. Skisse 03 og 04 viser fortsatt Huskeregler-raden, som er fjernet 12.11.2026 (punkt 9).

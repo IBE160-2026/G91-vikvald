@@ -4,6 +4,10 @@ Eksempler på at KI-forslag er avvist eller rettet, og på feil KI gjorde. Nyest
 
 | Dato | Hva KI gjorde | Hvem oppdaget det | Hva som ble gjort | Spor |
 |---|---|---|---|---|
+| 2026-11-13 | Jeg husket at jeg fikk flere alternativer til teknologistakken. | KI, mot sesjonsloggen fra 2026-11-05 | Loggen viser ett forslag til stakken. Alternativene gjaldt språkmodellen. Refleksjonen sier det slik. | `81e7b3f` |
+| 2026-11-12 | Spurte om «modellkort (huskeregler)» som om de var det samme, og foreslo øktypen «huskeregler». | Jeg («modellkort er ikke samme som huskeregler») | Modellkort er flashcards. Huskeregler er ikke en øktype. | `4d303ac` |
+| 2026-11-12 | Sa at modellkort «øves sammen med de andre kortene» uten å sjekke UX-dokumentet, som hadde en egen Huskeregler-rad. | KI, ved gjennomgang av `EXPERIENCE.md` | Konflikten ble lagt fram. Jeg valgte å fjerne raden. | `16e7f99` |
+| 2026-11-12 | Tilbakemeldingen foreslo 120 sekunders tidsgrense og å bruke testen fra 2026-11-05 som «kvalitetsbevis». | KI, mot NFR-17 og testens egen begrensning | 3 minutter i FR-21, og testen beskrives som én kjøring, ikke som en stikkprøve. | `07108f9`, `9e61265` |
 | 2026-11-11 | Subagenter tegnet funksjoner som ikke er i PRD-en («Glemt passordet?», «Endre e-post», «Endre passord») og skrev «under ett minutt» der PRD-en sier under to. | KI, ved gjennomgang av skissene mot PRD-en | Fjernet funksjonene og rettet ventetiden i skissene. | `ddba22a` |
 | 2026-11-11 | Tolket «ja liker» om hybrid F som et endelig valg. Førte det opp som beslutning og satte i gang skisser av de ti siste sidene. | Jeg («har ikke sagt at du skal velge f og gå videre») | Stoppet subagentene, holdt de halvferdige sidene utenfor repoet og rettet beslutningsloggen. | Denne økten |
 | 2026-11-10 | Lagde hybrid D ved å bare bytte farger og skrift i B, uten ny vurdering av helheten. | Jeg («for rotete og visuelt dårlig») | Forkastet D. Nye forslag ble sett over i nettleser før levering. | `e404712` |

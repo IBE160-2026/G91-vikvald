@@ -2,7 +2,7 @@
 title: "PRD: Studiekamerat"
 status: final
 created: 2026-11-09
-updated: 2026-11-11
+updated: 2026-11-12
 ---
 
 # PRD: Studiekamerat
@@ -87,13 +87,13 @@ Studenten tester seg selv på stoffet fra én forelesning (UJ-1) eller hele emne
 - **FR-18** Kortene lages bare fra stoffet i forelesningens filer. Gir stoffet grunnlag for færre kort enn valgt, lages færre, og studenten får beskjed om det.
 - **FR-19** Det finnes to typer kort: spørsmål med svar, og begrepskort med begrepet på forsiden og forklaringen på baksiden.
 - **FR-20** Hvert kort viser kilden: filnavn og sidetall (se FR-39).
-- **FR-21** Mens kortene lages, ser studenten at appen jobber. Feiler det, får hun en forståelig beskjed og kan prøve igjen, uten at halvferdige kort lagres.
+- **FR-21** Mens kortene lages, ser studenten at appen jobber. Feiler kallet, eller er innholdet ikke ferdig etter 3 minutter, vises «Vi klarte ikke å lage [flashcardene/quizspørsmålene/…]. Ingenting er lagret. Prøv igjen.» med knappen «Prøv igjen». Antall kort og spørsmål i forelesningen er uendret.
 - **FR-22** Lager studenten kort fra en forelesning som allerede har kort, legges de nye til de eksisterende.
 
 *Øve*
 - **FR-23** Studenten kan øve på kortene fra én forelesning eller fra alle forelesningene i et emne. Kortene vises i tilfeldig rekkefølge.
 - **FR-24** Forsiden vises først. Baksiden vises først når studenten velger å snu kortet.
-- **FR-25** Etter at kortet er snudd, markerer studenten «Kunne» eller «Kunne ikke». Kort markert «Kunne ikke» vises igjen senere i samme økt, til hun har markert dem «Kunne» eller avslutter økten. Markeringene for enkeltkort lagres ikke mellom øktene; bare resultatet av økten lagres (FR-56).
+- **FR-25** Etter at kortet er snudd, markerer studenten «Kunne» eller «Kunne ikke». Kort markert «Kunne ikke» legges bakerst og vises igjen når alle de andre kortene er vist én gang, til hun har markert dem «Kunne» eller avslutter økten. Markeringene for enkeltkort lagres ikke mellom øktene; bare resultatet av økten lagres (FR-56).
 - **FR-26** Når økten er ferdig, ser studenten hvor mange kort hun kunne og ikke kunne. *(Kan kuttes.)*
 
 *Rette opp*
@@ -122,14 +122,6 @@ Quizen lages og brukes på samme måte som flashcardene, men studenten velger bl
 *Rette opp*
 - **FR-37** Studenten kan slette enkeltspørsmål hun selv har laget, direkte fra spørsmålet mens hun tar quizen. Sletting krever bekreftelse. Spørsmål kan ikke redigeres; et dårlig spørsmål slettes, og hun kan lage nye.
 
-### Oversikt fram mot eksamen
-
-Studenten ser hvor hun står i semesteret og hva hun bør øve på (UJ-2). Lagt til etter UX-arbeidet, se «Endringer etter UX-arbeidet».
-
-- **FR-56** Når en øvingsøkt avsluttes, enten den er gjennomført eller avbrutt, lagres dato, type (flashcards, quiz, huskeregler eller fritekst), omfang (én forelesning eller hele emnet) og resultat for det som ble gjort. Enkeltsvar og markeringer lagres ikke. En forelesning regnes som øvd når den har minst én lagret økt.
-- **FR-57** Emnesiden viser forelesningene på en semesterlinje etter dato, fra første forelesning til eksamen, med øvd og ikke øvd, dagens dato og hvor mange uker det er til eksamen. Forsiden viser det samme for alle emnene. *(Kan kuttes: da vises samme informasjon som tekst, for eksempel «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd».)*
-- **FR-58** Forsiden viser «Neste å øve på» for hvert emne: den eldste forelesningen som har innhold, men ikke er øvd. Er alle øvd, vises den som ble øvd lengst siden. *(Kan kuttes.)*
-
 ### Felles for alt generert innhold
 
 Gjelder flashcards, quiz og bør ha-funksjonene.
@@ -140,6 +132,22 @@ Gjelder flashcards, quiz og bør ha-funksjonene.
 - **FR-41** Innhold laget fra en side som er sendt som bilde, er merket «Inneholder formel – sjekk mot kilden». Det samme gjelder når språkmodellen melder at noe ser ut til å mangle på siden. *(Kan kuttes sammen med FR-40.)*
 
 **Konfidensnivå.** Faglæreren ba om en beslutning om konfidensnivå, det vil si hvordan appen håndterer at språkmodellen kan ta feil. Appen viser ikke språkmodellens egen vurdering av hvor sikker den er, fordi språkmodeller ikke vurderer sin egen sikkerhet pålitelig. I stedet bygger appen på kontroller som faktisk kan sjekkes: innholdet lages bare fra notatene (FR-18, FR-29), alt kontrolleres før lagring (FR-38), alt viser kilde (FR-20, FR-32), innhold fra sider med formler er merket (FR-41), og studenten kan slette det som er feil (FR-27, FR-37). Hvor godt dette virker, måles med stikkprøvene i SK-13 til SK-17.
+
+### Oversikt fram mot eksamen
+
+Studenten ser hvor hun står i semesteret og hva hun bør øve på (UJ-2). Lagt til etter UX-arbeidet, se «Endringer etter UX-arbeidet».
+
+- **FR-56** En økt starter når studenten begynner å øve, og avsluttes når hun er ferdig, velger «Avslutt» eller forlater siden. Økten lagres bare hvis minst ett kort er markert eller ett spørsmål besvart. Da lagres dato, type, omfang (én forelesning eller hele emnet), om økten ble avbrutt, og resultatet:
+
+  | Type | Resultat |
+  |---|---|
+  | Flashcards, også modellkort | antall kort vist, antall «Kunne» og «Kunne ikke». Første markering på hvert kort teller. |
+  | Quiz | antall besvart og antall riktige |
+  | Fritekst | antall besvart og antall «Riktig», «Delvis riktig» og «Feil» |
+
+  *Eksempel:* Avslutter studenten en flashcardøkt etter 12 av 20 kort, og hun markerte 9 som «Kunne» første gang, lagres: flashcards, én forelesning, avbrutt, vist 12, kunne 9, kunne ikke 3. Enkeltsvar lagres ikke. Å lese et sammendrag er ikke en økt. En forelesning regnes som øvd når den har minst én lagret økt.
+- **FR-57** Emnesiden viser forelesningene på en semesterlinje etter dato, fra første forelesning til eksamen, med øvd og ikke øvd, dagens dato og hvor mange uker det er til eksamen. Forsiden viser det samme for alle emnene. *(Kan kuttes: da vises samme informasjon som tekst, for eksempel «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd».)*
+- **FR-58** Forsiden viser «Neste å øve på» for hvert emne: den eldste forelesningen som har innhold, men ikke er øvd. Er alle øvd, vises den som ble øvd lengst siden. *(Kan kuttes.)*
 
 ## Bør ha-funksjoner
 
@@ -170,20 +178,29 @@ Studenten øver på eksamenslignende spørsmål der hun må formulere svaret sel
 
 Studenten leser et sammendrag av forelesningen som repetisjon (UJ-1). Faglæreren ba om en beslutning om detaljnivå. Svaret er ett nivå, se «Endringer fra briefen».
 
-- **FR-53** Studenten kan be om et sammendrag av en forelesning. Sammendraget har hovedpunktene fra notatene med en setning eller to om hvert, ordnet etter tema. Reglene i FR-21 og FR-38 gjelder.
+- **FR-53** Studenten kan be om et sammendrag av en forelesning. Sammendraget har hovedpunktene fra notatene, ordnet etter tema: 5 til 15 punkter, hvert på høyst 50 ord. Reglene i FR-21 og FR-38 gjelder.
 - **FR-54** Hvert punkt i sammendraget viser hvilken fil og side det kommer fra.
 - **FR-55** Ber studenten om et nytt sammendrag, erstatter det nye sammendraget det gamle.
 
 ## Ikke-funksjonelle krav
 
-Alle de ikke-funksjonelle kravene er en del av MVP-en, på samme måte som må ha-funksjonene.
+Alle de ikke-funksjonelle kravene er en del av MVP-en, på samme måte som må ha-funksjonene, med unntakene i kuttrekkefølgen (se Omfang).
 
 ### Kjørbarhet og demomodus
 
 Sensor skal kunne starte og teste appen uten studentens nøkler, kontoer eller tjenester.
 
 - **NFR-1** Appen kan startes lokalt på en PC ved å følge README, med kommandoer som kan kopieres direkte. README oppgir hvilke versjoner av programmer som trengs, hvordan testene kjøres, og lenker til planleggingsdokumentene.
-- **NFR-2** Demomodus er standard. I demomodus lager en mock-modell innhold ut fra teksten i den opplastede filen, med sidetall som finnes i filen, og gir samme svar hver gang for samme fil. Appen trenger da verken nøkkel, konto eller internett, og alle funksjoner kan prøves, også med en PDF sensor laster opp selv.
+- **NFR-2** Demomodus er standard. I demomodus lager en mock-modell innhold ut fra teksten i den opplastede filen etter reglene i NFR-2a, med sidetall som finnes i filen, og gir samme svar hver gang for samme fil. Appen trenger da verken nøkkel, konto eller internett, og alle funksjoner kan prøves, også med en PDF som lastes opp for første gang.
+- **NFR-2a** Mock-modellen bruker bare teksten i de opplastede filene. Den leter etter definisjonssetninger, det vil si setninger med «er» eller, i engelske PDF-er, «is», og lager innhold slik:
+  - **Flashcards:** Ett begrepskort per definisjonssetning. Ordene før «er»/«is» står på forsiden, og hele setningen på baksiden. Kilden er siden setningen står på.
+  - **Modellkort:** Tre eller flere linjer etter hverandre som begynner med kulepunkt eller nummer, blir ett modellkort. Huskeregelen lages etter FR-43 og FR-44.
+  - **Quiz:** «Hva er [begrep]?», med resten av definisjonssetningen som riktig svar. De tre andre alternativene er definisjoner av andre begreper i samme forelesning. Finnes det færre enn fire definisjoner, lages ingen quiz, og studenten får beskjed (FR-18).
+  - **Fritekst:** «Forklar [begrep].», med definisjonssetningen som modellsvar.
+  - **Sammendrag:** Første setning på hver side, med sidetall.
+  - Samme fil gir samme resultat hver gang. Rekkefølgen under øving er likevel tilfeldig (FR-23).
+  - Kontrollene i FR-38 gjelder også for mock-modellen. FR-31 og SK-13 til SK-17 gjelder bare ekte språkmodell.
+  - README sier at innholdet i demomodus er enkelt og mekanisk, og at det viser at funksjonene virker, ikke hvor god kvaliteten er med ekte språkmodell.
 - **NFR-3** Appen leveres med en testbruker og et eksempelemne med forelesninger, filer og ferdig generert innhold. Eksempelmaterialet er skrevet med egne ord eller er åpent lisensiert. Materiale basert på OpenStax krediteres og deles under samme lisens (CC BY-NC-SA 4.0). PDF-er fra OpenStax legges ikke i repoet; README forklarer hvor de lastes ned.
 - **NFR-4** Språkmodellen velges med én innstilling (mock eller Gemini), uten endringer i koden. Språkmodellen kalles bare fra serveren, og nøkler eller tilgang til språkmodellen sendes aldri til nettleseren. Hemmeligheter ligger i en `.env`-fil utenfor Git, og repoet har en `.env.example` som viser hvilke innstillinger som finnes.
 
@@ -199,7 +216,7 @@ Sensor skal kunne starte og teste appen uten studentens nøkler, kontoer eller t
 
 Appen skal kunne brukes av alle, også med tastatur eller skjermleser. Kravene bygger på WCAG 2.1 nivå AA, som er standarden norsk regelverk bruker for nettløsninger.
 
-- **NFR-8** Alle funksjoner kan brukes med bare tastatur, også å snu et flashcard, velge et svaralternativ og bekrefte en sletting. Det er alltid synlig hvilket element som har fokus. Hurtigtaster med én tast virker bare under øving, og aldri når fokus står i et tekstfelt. En oversikt over hurtigtastene for siden vises med «?». *(Oversikten kan kuttes.)*
+- **NFR-8** Alle funksjoner kan brukes med bare tastatur, også å snu et flashcard, velge et svaralternativ og bekrefte en sletting. Det er alltid synlig hvilket element som har fokus. Hurtigtaster med én tast virker bare under øving, og aldri når fokus står i et tekstfelt: i flashcards snur Mellomrom kortet, `1` er «Kunne ikke» og `2` er «Kunne»; i quiz velger `A`–`D` svar og Enter bekrefter; i fritekst er `1`/`2`/`3` Feil, Delvis riktig og Riktig; Esc avslutter økten. En oversikt over hurtigtastene for siden vises med «?». *(Oversikten kan kuttes.)*
 - **NFR-9** Tekst har en kontrast på minst 4,5:1 mot bakgrunnen.
 - **NFR-10** Riktig og feil svar vises med tekst eller symbol i tillegg til farge, slik at det kan forstås uten å skille rødt fra grønt.
 - **NFR-11** Alle skjemafelt har en synlig etikett, og feilmeldinger forklarer i tekst hva som er feil og hvordan det rettes.
@@ -224,6 +241,7 @@ Faglæreren ba om beslutninger om valg av språkmodell og om behandlingen skal s
 - **Ikke lokal modell.** En lokal modell via Ollama er valgt bort fordi den er svakere på norsk og har begrenset plass til lange PDF-er. Demomodusen (NFR-2) dekker behovet for å kjøre appen uten skytjeneste.
 - **Konkret modell** velges i arkitekturen etter en kvalitetstest på norsk (issue #3 og #4).
 - **Kostnad.** Anslått til høyst noen få kroner per semester. En ekte språkmodell krever et eget Google Cloud-prosjekt med kredittkort, og det er ikke bekreftet at bruken trekkes fra prøvekreditten (issue #8). Sensor trenger ikke dette, fordi demomodus er standard.
+- **Plan B.** Er det ikke bekreftet innen 14. november at kall til Gemini trekkes fra prøvekreditten (issue #8), leveres appen med demomodus alene. Kvalitetsmålingene SK-13 til SK-17 flyttes da til Begrensninger. Testen fra 2026-11-05 dokumenteres som det eneste som finnes om kvaliteten med ekte modell, med sin begrensning: én kjøring på 2–3 sider.
 
 ## Suksesskriterier
 
@@ -233,7 +251,7 @@ Kriteriene står i den rekkefølgen sensor kan etterprøve dem: først det som k
 
 Kjøres med mock-modellen, slik at sensor kan kjøre dem uten nøkkel.
 
-- **SK-1** Hvert funksjonelt må ha-krav (FR-1 til FR-41) har minst én automatisk test, med mindre kravet bare kan kontrolleres manuelt. Da står det i testplanen hvorfor.
+- **SK-1** Hvert funksjonelt må ha-krav (FR-1 til FR-41 og FR-56 til FR-58) har minst én automatisk test, med mindre kravet bare kan kontrolleres manuelt. Da står det i testplanen hvorfor.
 - **SK-2** En student ser og kan endre bare sitt eget innhold (FR-4).
 - **SK-3** Alle sidetall i kildene finnes i den opplastede filen (FR-20, FR-32, FR-39).
 - **SK-4** Ugyldig innhold fra språkmodellen forkastes, og studenten får beskjed om at det ble laget færre (FR-38, FR-18). Testes med en mock-modell som med vilje gir ugyldige svar.
@@ -242,8 +260,10 @@ Kjøres med mock-modellen, slik at sensor kan kjøre dem uten nøkkel.
 - **SK-7** Word-filer, for store filer og PDF-er uten tekst avvises med riktig beskjed (FR-9, FR-10, NFR-16).
 - **SK-8** Feiler genereringen, lagres ingenting halvferdig (FR-21).
 - **SK-9** Universell utforming kontrolleres automatisk på alle sider (NFR-13).
-- **SK-20** Resultatet av en økt lagres når økten avsluttes, også når den avbrytes, mens enkeltsvar ikke lagres. «Neste å øve på» følger regelen i FR-58 (FR-56, FR-58).
 - **SK-10** Huskeregelen stemmer med forbokstavene, og modellkort der alle punktene har samme forbokstav, lages uten huskeregel (FR-44, FR-45). Gjelder hvis huskeregler bygges.
+- **SK-20** Resultatet av en økt lagres når økten avsluttes, også når den avbrytes, mens enkeltsvar ikke lagres. «Neste å øve på» følger regelen i FR-58 (FR-56, FR-58).
+- **SK-21** Mock-modellen gir det samme innholdet to ganger for samme fil, og lager flashcards, quiz og sammendrag etter reglene i NFR-2a fra en kjent testfil (NFR-2a).
+- **SK-22** Semesterlinja viser riktige forelesninger som øvd og ikke øvd, og riktig antall uker til eksamen (FR-57). Gjelder også tekstvarianten hvis semesterlinja kuttes.
 
 ### Manuelle kontroller før innlevering
 
@@ -252,29 +272,41 @@ Kjøres med mock-modellen, slik at sensor kan kjøre dem uten nøkkel.
 
 ### Kvalitet med ekte språkmodell
 
-Måles manuelt med Gemini på eksempelnotatene og åpent lisensiert materiale. Hvert kort og spørsmål vurderes mot kilden og føres i et regneark som «riktig», «faglig feil» eller «feil kilde». Resultatet legges i repoet.
+Måles manuelt med Gemini på eksempelnotatene og åpent lisensiert materiale. Hvert kort og spørsmål vurderes mot kilden og føres i et regneark som «riktig», «faglig feil» eller «feil kilde». Vurderingen gjøres av meg mot læreboka, ikke av KI. Kort jeg er usikker på etter å ha slått opp, teller som faglig feil. Resultatet legges i repoet.
 
 - **SK-13** **Faglige feil:** En stikkprøve på 50 flashcards fra markedsføring har under 5 % faglige feil. Feil fagbegrep, for eksempel «Promotering» der notatene sier «Påvirkning», regnes som faglig feil.
 - **SK-14** **Riktige kilder:** Minst 95 % av kortene i stikkprøven viser til en side der innholdet faktisk står.
-- **SK-15** **Quiz:** I en stikkprøve på 20 quizspørsmål har hvert spørsmål nøyaktig ett faglig riktig alternativ, og det riktige alternativet er det lengste i høyst halvparten av spørsmålene (FR-31).
+- **SK-15** **Quiz:** I en stikkprøve på 20 quizspørsmål har hvert spørsmål nøyaktig ett faglig riktig alternativ, og det riktige alternativet er det lengste i høyst 35 % av spørsmålene (FR-31). Ved tilfeldighet er det lengste i omtrent 25 %.
 - **SK-16** **Formler:** Kort laget fra PDF-side 127–128 i *Principles of Economics 3e* gjengir formlene riktig. Gjelder hvis FR-40 bygges.
 - **SK-17** **Motvekt:** Minst 80 % av overskriftene i notatene har minst ett kort, slik at lav feilprosent ikke skyldes at det bare lages enkle kort om noen få detaljer.
 
 ### Bruk og prosess (grunnlag for rapporten)
 
-- **SK-18** Stoffet i markedsføring legges inn forelesning for forelesning, og en repetisjonsøkt med flashcards, quiz og eventuelle huskeregler gjennomføres som før en eksamen. En kort egenrefleksjon vurderer om appen ga oversikt over stoffet. Dette er ikke bevis for at appen virker for andre, se Begrensninger.
+- **SK-18** Stoffet i markedsføring legges inn forelesning for forelesning, og en repetisjonsøkt med flashcards, quiz og eventuelle huskeregler gjennomføres som før en eksamen. En kort egenrefleksjon vurderer om appen ga oversikt over stoffet, og om semesterlinja og «Neste å øve på» hjalp meg å velge hva jeg skulle øve på. Dette er ikke bevis for at appen virker for andre, se Begrensninger.
 - **SK-19** Bruken av KI i utviklingen er dokumentert i `docs/ki-prosess/` og sesjonsloggene, slik emnet krever.
 
 ## Omfang
 
 ### Kjerneflyt
 
-Kjerneflyten er det som må virke og være stabilt først, både i demomodus og med Gemini: logge inn → opprette emne og forelesning → laste opp PDF → lage og øve på flashcards → lage og ta quiz. Virker ikke kjerneflyten 27. november, kuttes bør ha-funksjonene. Målet er at appen er ferdig 5. desember. Innleveringsfristen er 15. desember 2026.
+Kjerneflyten er det som må virke og være stabilt først, både i demomodus og med Gemini: logge inn → opprette emne og forelesning → laste opp PDF → lage og øve på flashcards → lage og ta quiz. Milepæler:
+
+- **14. november:** Det er avklart om Gemini kan brukes (Plan B under Valg av språkmodell).
+- **27. november:** Kjerneflyten virker i demomodus. Virker den ikke, kuttes bør ha-funksjonene.
+- **1. desember:** Gemini er koblet på kjerneflyten.
+- **5. desember:** Appen er ferdig. Innleveringsfristen er 15. desember 2026.
 
 ### Prioritering
 
 - **Må ha:** 1 Norsk språk · 2 Innlogging og egne data · 3 Emner, forelesninger og opplasting · 4 Flashcards · 5 Flervalgsquiz, med «Oversikt fram mot eksamen», kravene i «Felles for alt generert innhold» og alle ikke-funksjonelle krav. Krav merket *(Kan kuttes)* går først.
 - **Bør ha, i byggerekkefølge:** 6 Huskeregler · 7 Fritekstspørsmål med selvvurdering · 8 Sammendrag.
+
+Blir tiden knapp, kuttes det i denne rekkefølgen:
+
+1. Krav merket *(Kan kuttes)*.
+2. Bør ha-funksjonene, bakfra: sammendrag, fritekst, huskeregler.
+3. NFR-15: bare Chrome og Edge kontrolleres.
+4. NFR-13 og SK-9: den automatiske testen av universell utforming kjøres bare på tre sider: forelesningssiden, flashcard-øving og quiz. Tastaturgjennomgangen beholdes.
 
 Faglæreren advarte om at MVP-en i briefen var større enn prosjektforslaget den bygger på. Må ha er derfor holdt til de fem punktene faglæreren foreslo, nøkkelbegreper er slått sammen med flashcards, og krav som kan kuttes, er merket. Huskeregler er ett av de fire særtrekkene, men står som bør ha slik faglæreren foreslo. Kuttes de, faller SK-10 bort.
 
@@ -325,6 +357,21 @@ UX-arbeidet 10.–11. november 2026 ([EXPERIENCE.md](../../ux-designs/ux-G91-vik
 
 Faglæreren advarte om at omfanget kunne bli for stort. Bare FR-56 og eksamensdatoen er nye må ha-krav, og begge er små. Resten er merket *(Kan kuttes)*.
 
+## Endringer etter tilbakemeldingen på PRD-en
+
+Tilbakemeldingen 12. november 2026 ([tilbakemelding-prd.md](tilbakemelding-prd.md)) pekte på omfang, manglende reserveplan og krav som ikke kunne testes.
+
+| PRD-en sa | PRD-en sier nå | Begrunnelse |
+|---|---|---|
+| Kjerneflyten skal virke 27.11, appen ferdig 5.12 | Milepæler 14.11, 27.11, 1.12 og 5.12, og en kuttrekkefølge som også omfatter NFR-13 og NFR-15 (Omfang) | De tyngste kravene kunne ikke kuttes. Funksjoner kuttes før kvalitet og testing. |
+| Kostnaden med Gemini er ikke bekreftet (#8) | Plan B: ikke bekreftet innen 14.11 → demomodus alene, og SK-13 til SK-17 flyttes til Begrensninger | Vertex-kall virket allerede 2026-11-05, så det uavklarte er kostnaden, ikke tilgangen. |
+| Mock-modellen «lager innhold ut fra teksten» (NFR-2) | Faste regler for hver innholdstype (NFR-2a) | Demomodus er det sensor møter først, og reglene må kunne bli en story og testes. |
+| Øktype inkluderte «huskeregler», resultat var ikke definert (FR-56) | Tre øktyper med resultat for hver; modellkort er flashcards; tomme økter lagres ikke (FR-56) | Datamodellen og semesterlinjen bygger på dette. Huskeregelen er en hjelp på kortet, ikke en egen øving. |
+| «Forståelig beskjed», «senere», «en setning eller to», «halvparten» | Tidsgrense, meldingstekst, rekkefølge, lengde og 35 % (FR-21, FR-25, FR-53, NFR-8, SK-15) | Tester trenger tall og tekster. |
+| Mock-modellen og semesterlinja hadde ingen suksesskriterier | SK-21 og SK-22, og SK-18 vurderer om semesterlinja hjalp | Hovedideen «bygd for semesteret» ble bare målt i SK-18, og reglene for mock-modellen må testes. |
+
+Rekkefølgen på ID-ene er ryddet, og ordlista har fått emne, forelesning, flashcard, quiz og resultat.
+
 ## Begrensninger og risikoer
 
 ### Begrensninger
@@ -347,7 +394,7 @@ Faglæreren advarte om at omfanget kunne bli for stort. Bare FR-56 og eksamensda
 Disse avklares før eller under arkitektur og implementering, og følges opp som GitHub Issues:
 
 - Test norsk kvalitet og vurder testkortene faglig (#3), og velg Gemini-modell (#4).
-- Sjekk at Vertex-kall trekkes fra prøvekreditten, og at budsjettvarsel er satt (#8).
+- Sjekk at Vertex-kall trekkes fra prøvekreditten, og at budsjettvarsel er satt (#8). Frist 14. november, se Plan B.
 - Lag og test regelen for å finne sider med formler som mangler i teksten (#9).
 - Skriv 2–3 eksempelnotater på norsk med egne ord, basert på *Principles of Marketing* fra OpenStax (NFR-3).
 
@@ -355,10 +402,15 @@ Disse avklares før eller under arkitektur og implementering, og følges opp som
 
 - **Demomodus:** Appen kjører med mock-modellen i stedet for en ekte språkmodell. Standard for sensor.
 - **Mock-modell:** En liten erstatning for språkmodellen som lager forutsigbart innhold uten internett. Brukes i demomodus og i de automatiske testene.
+- **Emne:** Et fag studenten tar, for eksempel Markedsføring, med navn og eksamensdato.
+- **Forelesning:** Én forelesning i et emne, med dato og én eller flere PDF-filer.
+- **Flashcard (kort):** Et kort med spørsmål eller begrep på forsiden og svar på baksiden. «Kort» brukes som kortform. Begrepskort og modellkort er typer flashcards.
+- **Quiz (quizspørsmål):** Flervalgsspørsmål med fire alternativer. «Spørsmål» brukes som kortform når det går fram av sammenhengen at det er quizspørsmål.
 - **Begrepskort:** Flashcard med et begrep på forsiden og forklaringen på baksiden.
 - **Modellkort:** Flashcard som ber studenten forklare en modell eller liste, med punktene og eventuell huskeregel på baksiden.
 - **Kilde:** Filnavn og sidetall i PDF-filen som innholdet er laget fra.
 - **Stikkprøve:** Manuell kontroll av et utvalg kort eller spørsmål mot kilden.
 - **Kjerneflyt:** Den delen av appen som må virke først: innlogging, emner og forelesninger, opplasting, flashcards og quiz.
-- **Økt:** Én gjennomgang av flashcards, quiz, huskeregler eller fritekst, fra start til den avsluttes.
+- **Økt:** Én gjennomgang av flashcards, quiz eller fritekst, se FR-56.
+- **Resultat:** Det som lagres om en økt: antall kort eller spørsmål og hvordan det gikk, se FR-56.
 - **Semesterlinje:** Tidslinje som viser forelesningene i et emne etter dato, fram til eksamen.
