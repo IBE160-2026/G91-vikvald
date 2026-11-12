@@ -262,6 +262,8 @@ Kjøres med mock-modellen, slik at sensor kan kjøre dem uten nøkkel.
 - **SK-9** Universell utforming kontrolleres automatisk på alle sider (NFR-13).
 - **SK-10** Huskeregelen stemmer med forbokstavene, og modellkort der alle punktene har samme forbokstav, lages uten huskeregel (FR-44, FR-45). Gjelder hvis huskeregler bygges.
 - **SK-20** Resultatet av en økt lagres når økten avsluttes, også når den avbrytes, mens enkeltsvar ikke lagres. «Neste å øve på» følger regelen i FR-58 (FR-56, FR-58).
+- **SK-21** Mock-modellen gir det samme innholdet to ganger for samme fil, og lager flashcards, quiz og sammendrag etter reglene i NFR-2a fra en kjent testfil (NFR-2a).
+- **SK-22** Semesterlinja viser riktige forelesninger som øvd og ikke øvd, og riktig antall uker til eksamen (FR-57). Gjelder også tekstvarianten hvis semesterlinja kuttes.
 
 ### Manuelle kontroller før innlevering
 
@@ -280,7 +282,7 @@ Måles manuelt med Gemini på eksempelnotatene og åpent lisensiert materiale. H
 
 ### Bruk og prosess (grunnlag for rapporten)
 
-- **SK-18** Stoffet i markedsføring legges inn forelesning for forelesning, og en repetisjonsøkt med flashcards, quiz og eventuelle huskeregler gjennomføres som før en eksamen. En kort egenrefleksjon vurderer om appen ga oversikt over stoffet. Dette er ikke bevis for at appen virker for andre, se Begrensninger.
+- **SK-18** Stoffet i markedsføring legges inn forelesning for forelesning, og en repetisjonsøkt med flashcards, quiz og eventuelle huskeregler gjennomføres som før en eksamen. En kort egenrefleksjon vurderer om appen ga oversikt over stoffet, og om semesterlinja og «Neste å øve på» hjalp meg å velge hva jeg skulle øve på. Dette er ikke bevis for at appen virker for andre, se Begrensninger.
 - **SK-19** Bruken av KI i utviklingen er dokumentert i `docs/ki-prosess/` og sesjonsloggene, slik emnet krever.
 
 ## Omfang
@@ -366,6 +368,7 @@ Tilbakemeldingen 12. november 2026 ([tilbakemelding-prd.md](tilbakemelding-prd.m
 | Mock-modellen «lager innhold ut fra teksten» (NFR-2) | Faste regler for hver innholdstype (NFR-2a) | Demomodus er det sensor møter først, og reglene må kunne bli en story og testes. |
 | Øktype inkluderte «huskeregler», resultat var ikke definert (FR-56) | Tre øktyper med resultat for hver; modellkort er flashcards; tomme økter lagres ikke (FR-56) | Datamodellen og semesterlinjen bygger på dette. Huskeregelen er en hjelp på kortet, ikke en egen øving. |
 | «Forståelig beskjed», «senere», «en setning eller to», «halvparten» | Tidsgrense, meldingstekst, rekkefølge, lengde og 35 % (FR-21, FR-25, FR-53, NFR-8, SK-15) | Tester trenger tall og tekster. |
+| Mock-modellen og semesterlinja hadde ingen suksesskriterier | SK-21 og SK-22, og SK-18 vurderer om semesterlinja hjalp | Hovedideen «bygd for semesteret» ble bare målt i SK-18, og reglene for mock-modellen må testes. |
 
 Rekkefølgen på ID-ene er ryddet, og ordlista har fått emne, forelesning, flashcard, quiz og resultat.
 
