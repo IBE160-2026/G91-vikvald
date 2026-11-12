@@ -2,6 +2,16 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-13: Refleksjonsspørsmålene i PRD-tilbakemeldingen
+
+> jeg synes dette er så vanskelig fordi jeg kan for lite om det
+
+KI forklarte at spørsmålet handler om hvordan jeg tok valget, ikke om hvor mye jeg kan om teknologi.
+
+> jeg sjekker selv mot læreboka, når jeg er usikker slår jeg opp. har bachelorgrad i markedsføringsledelse
+
+**Resultat:** To svar i `refleksjoner.md` (`81e7b3f`, `0f8935e`), og metoden for stikkprøvene er presisert i PRD-en (`f5c6c82`).
+
 ## 2026-11-12: Følge opp tilbakemeldingen på PRD-en
 
 > 3. vil være delaktig i alle beslutninger
