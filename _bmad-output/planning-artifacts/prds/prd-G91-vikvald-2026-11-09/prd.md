@@ -87,13 +87,13 @@ Studenten tester seg selv på stoffet fra én forelesning (UJ-1) eller hele emne
 - **FR-18** Kortene lages bare fra stoffet i forelesningens filer. Gir stoffet grunnlag for færre kort enn valgt, lages færre, og studenten får beskjed om det.
 - **FR-19** Det finnes to typer kort: spørsmål med svar, og begrepskort med begrepet på forsiden og forklaringen på baksiden.
 - **FR-20** Hvert kort viser kilden: filnavn og sidetall (se FR-39).
-- **FR-21** Mens kortene lages, ser studenten at appen jobber. Feiler det, får hun en forståelig beskjed og kan prøve igjen, uten at halvferdige kort lagres.
+- **FR-21** Mens kortene lages, ser studenten at appen jobber. Feiler kallet, eller er innholdet ikke ferdig etter 3 minutter, vises «Vi klarte ikke å lage [flashcardene/quizspørsmålene/…]. Ingenting er lagret. Prøv igjen.» med knappen «Prøv igjen». Antall kort og spørsmål i forelesningen er uendret.
 - **FR-22** Lager studenten kort fra en forelesning som allerede har kort, legges de nye til de eksisterende.
 
 *Øve*
 - **FR-23** Studenten kan øve på kortene fra én forelesning eller fra alle forelesningene i et emne. Kortene vises i tilfeldig rekkefølge.
 - **FR-24** Forsiden vises først. Baksiden vises først når studenten velger å snu kortet.
-- **FR-25** Etter at kortet er snudd, markerer studenten «Kunne» eller «Kunne ikke». Kort markert «Kunne ikke» vises igjen senere i samme økt, til hun har markert dem «Kunne» eller avslutter økten. Markeringene for enkeltkort lagres ikke mellom øktene; bare resultatet av økten lagres (FR-56).
+- **FR-25** Etter at kortet er snudd, markerer studenten «Kunne» eller «Kunne ikke». Kort markert «Kunne ikke» legges bakerst og vises igjen når alle de andre kortene er vist én gang, til hun har markert dem «Kunne» eller avslutter økten. Markeringene for enkeltkort lagres ikke mellom øktene; bare resultatet av økten lagres (FR-56).
 - **FR-26** Når økten er ferdig, ser studenten hvor mange kort hun kunne og ikke kunne. *(Kan kuttes.)*
 
 *Rette opp*
@@ -178,7 +178,7 @@ Studenten øver på eksamenslignende spørsmål der hun må formulere svaret sel
 
 Studenten leser et sammendrag av forelesningen som repetisjon (UJ-1). Faglæreren ba om en beslutning om detaljnivå. Svaret er ett nivå, se «Endringer fra briefen».
 
-- **FR-53** Studenten kan be om et sammendrag av en forelesning. Sammendraget har hovedpunktene fra notatene med en setning eller to om hvert, ordnet etter tema. Reglene i FR-21 og FR-38 gjelder.
+- **FR-53** Studenten kan be om et sammendrag av en forelesning. Sammendraget har hovedpunktene fra notatene, ordnet etter tema: 5 til 15 punkter, hvert på høyst 50 ord. Reglene i FR-21 og FR-38 gjelder.
 - **FR-54** Hvert punkt i sammendraget viser hvilken fil og side det kommer fra.
 - **FR-55** Ber studenten om et nytt sammendrag, erstatter det nye sammendraget det gamle.
 
@@ -216,7 +216,7 @@ Sensor skal kunne starte og teste appen uten studentens nøkler, kontoer eller t
 
 Appen skal kunne brukes av alle, også med tastatur eller skjermleser. Kravene bygger på WCAG 2.1 nivå AA, som er standarden norsk regelverk bruker for nettløsninger.
 
-- **NFR-8** Alle funksjoner kan brukes med bare tastatur, også å snu et flashcard, velge et svaralternativ og bekrefte en sletting. Det er alltid synlig hvilket element som har fokus. Hurtigtaster med én tast virker bare under øving, og aldri når fokus står i et tekstfelt. En oversikt over hurtigtastene for siden vises med «?». *(Oversikten kan kuttes.)*
+- **NFR-8** Alle funksjoner kan brukes med bare tastatur, også å snu et flashcard, velge et svaralternativ og bekrefte en sletting. Det er alltid synlig hvilket element som har fokus. Hurtigtaster med én tast virker bare under øving, og aldri når fokus står i et tekstfelt: i flashcards snur Mellomrom kortet, `1` er «Kunne ikke» og `2` er «Kunne»; i quiz velger `A`–`D` svar og Enter bekrefter; i fritekst er `1`/`2`/`3` Feil, Delvis riktig og Riktig; Esc avslutter økten. En oversikt over hurtigtastene for siden vises med «?». *(Oversikten kan kuttes.)*
 - **NFR-9** Tekst har en kontrast på minst 4,5:1 mot bakgrunnen.
 - **NFR-10** Riktig og feil svar vises med tekst eller symbol i tillegg til farge, slik at det kan forstås uten å skille rødt fra grønt.
 - **NFR-11** Alle skjemafelt har en synlig etikett, og feilmeldinger forklarer i tekst hva som er feil og hvordan det rettes.
@@ -274,7 +274,7 @@ Måles manuelt med Gemini på eksempelnotatene og åpent lisensiert materiale. H
 
 - **SK-13** **Faglige feil:** En stikkprøve på 50 flashcards fra markedsføring har under 5 % faglige feil. Feil fagbegrep, for eksempel «Promotering» der notatene sier «Påvirkning», regnes som faglig feil.
 - **SK-14** **Riktige kilder:** Minst 95 % av kortene i stikkprøven viser til en side der innholdet faktisk står.
-- **SK-15** **Quiz:** I en stikkprøve på 20 quizspørsmål har hvert spørsmål nøyaktig ett faglig riktig alternativ, og det riktige alternativet er det lengste i høyst halvparten av spørsmålene (FR-31).
+- **SK-15** **Quiz:** I en stikkprøve på 20 quizspørsmål har hvert spørsmål nøyaktig ett faglig riktig alternativ, og det riktige alternativet er det lengste i høyst 35 % av spørsmålene (FR-31). Ved tilfeldighet er det lengste i omtrent 25 %.
 - **SK-16** **Formler:** Kort laget fra PDF-side 127–128 i *Principles of Economics 3e* gjengir formlene riktig. Gjelder hvis FR-40 bygges.
 - **SK-17** **Motvekt:** Minst 80 % av overskriftene i notatene har minst ett kort, slik at lav feilprosent ikke skyldes at det bare lages enkle kort om noen få detaljer.
 
