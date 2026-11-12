@@ -126,7 +126,15 @@ Quizen lages og brukes på samme måte som flashcardene, men studenten velger bl
 
 Studenten ser hvor hun står i semesteret og hva hun bør øve på (UJ-2). Lagt til etter UX-arbeidet, se «Endringer etter UX-arbeidet».
 
-- **FR-56** Når en øvingsøkt avsluttes, enten den er gjennomført eller avbrutt, lagres dato, type (flashcards, quiz, huskeregler eller fritekst), omfang (én forelesning eller hele emnet) og resultat for det som ble gjort. Enkeltsvar og markeringer lagres ikke. En forelesning regnes som øvd når den har minst én lagret økt.
+- **FR-56** En økt starter når studenten begynner å øve, og avsluttes når hun er ferdig, velger «Avslutt» eller forlater siden. Økten lagres bare hvis minst ett kort er markert eller ett spørsmål besvart. Da lagres dato, type, omfang (én forelesning eller hele emnet), om økten ble avbrutt, og resultatet:
+
+  | Type | Resultat |
+  |---|---|
+  | Flashcards, også modellkort | antall kort vist, antall «Kunne» og «Kunne ikke». Første markering på hvert kort teller. |
+  | Quiz | antall besvart og antall riktige |
+  | Fritekst | antall besvart og antall «Riktig», «Delvis riktig» og «Feil» |
+
+  *Eksempel:* Avslutter studenten en flashcardøkt etter 12 av 20 kort, og hun markerte 9 som «Kunne» første gang, lagres: flashcards, én forelesning, avbrutt, vist 12, kunne 9, kunne ikke 3. Enkeltsvar lagres ikke. Å lese et sammendrag er ikke en økt. En forelesning regnes som øvd når den har minst én lagret økt.
 - **FR-57** Emnesiden viser forelesningene på en semesterlinje etter dato, fra første forelesning til eksamen, med øvd og ikke øvd, dagens dato og hvor mange uker det er til eksamen. Forsiden viser det samme for alle emnene. *(Kan kuttes: da vises samme informasjon som tekst, for eksempel «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd».)*
 - **FR-58** Forsiden viser «Neste å øve på» for hvert emne: den eldste forelesningen som har innhold, men ikke er øvd. Er alle øvd, vises den som ble øvd lengst siden. *(Kan kuttes.)*
 
@@ -373,5 +381,6 @@ Disse avklares før eller under arkitektur og implementering, og følges opp som
 - **Kilde:** Filnavn og sidetall i PDF-filen som innholdet er laget fra.
 - **Stikkprøve:** Manuell kontroll av et utvalg kort eller spørsmål mot kilden.
 - **Kjerneflyt:** Den delen av appen som må virke først: innlogging, emner og forelesninger, opplasting, flashcards og quiz.
-- **Økt:** Én gjennomgang av flashcards, quiz, huskeregler eller fritekst, fra start til den avsluttes.
+- **Økt:** Én gjennomgang av flashcards, quiz eller fritekst, se FR-56.
+- **Resultat:** Det som lagres om en økt: antall kort eller spørsmål og hvordan det gikk, se FR-56.
 - **Semesterlinje:** Tidslinje som viser forelesningene i et emne etter dato, fram til eksamen.
