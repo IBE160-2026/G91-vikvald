@@ -4,6 +4,7 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
+| 2026-11-13 | Nye suksesskriterier: SK-21 tester reglene for mock-modellen, SK-22 tester semesterlinja, og SK-18 vurderer om semesterlinja hjalp. | Tilbakemeldingen påpekte at hovedideen «bygd for semesteret» knapt ble målt. Ingen nye funksjoner, bare tester av det som skal bygges. | `5c1d60f` |
 | 2026-11-13 | Stikkprøvene (SK-13 til SK-17) vurderes av meg mot læreboka, ikke av KI. Kort jeg er usikker på etter å ha slått opp, teller som faglig feil. | KI skal ikke bedømme sitt eget arbeid, og usikre kort skal ikke tolkes i min favør. Jeg har fagbakgrunn i markedsføring. Svar på refleksjonsspørsmål i tilbakemeldingen. | `f5c6c82` |
 | 2026-11-12 | Modellkort er flashcards. De øves i flashcard-økten, uten egen rad, og «Lag modellkort» står på Flashcards-raden. Huskeregler er ikke en øktype. | Huskeregelen er bare en hjelp til å huske punktene på kortet. PRD-en sa allerede at modellkort er en type flashcard; UX-designet hadde en egen rad som ikke stemte. Mindre å bygge. | `4d303ac`, `16e7f99` |
 | 2026-11-12 | En økt lagres bare når minst ett kort er markert eller ett spørsmål besvart. Første markering på hvert kort teller i resultatet. | Ellers regnes forelesningen som øvd uten øving, og en fullført økt ville alltid vist at alt satt. Svar på tilbakemelding 4.4. | `4d303ac` |
