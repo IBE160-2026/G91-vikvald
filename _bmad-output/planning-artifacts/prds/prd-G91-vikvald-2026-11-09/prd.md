@@ -360,7 +360,7 @@ Faglæreren advarte om at omfanget kunne bli for stort. Bare FR-56 og eksamensda
 Disse avklares før eller under arkitektur og implementering, og følges opp som GitHub Issues:
 
 - Test norsk kvalitet og vurder testkortene faglig (#3), og velg Gemini-modell (#4).
-- Sjekk at Vertex-kall trekkes fra prøvekreditten, og at budsjettvarsel er satt (#8).
+- Sjekk at Vertex-kall trekkes fra prøvekreditten, og at budsjettvarsel er satt (#8). Frist 14. november, se Plan B.
 - Lag og test regelen for å finne sider med formler som mangler i teksten (#9).
 - Skriv 2–3 eksempelnotater på norsk med egne ord, basert på *Principles of Marketing* fra OpenStax (NFR-3).
 
