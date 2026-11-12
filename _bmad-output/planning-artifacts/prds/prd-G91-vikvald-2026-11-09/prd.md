@@ -270,7 +270,7 @@ Kjøres med mock-modellen, slik at sensor kan kjøre dem uten nøkkel.
 
 ### Kvalitet med ekte språkmodell
 
-Måles manuelt med Gemini på eksempelnotatene og åpent lisensiert materiale. Hvert kort og spørsmål vurderes mot kilden og føres i et regneark som «riktig», «faglig feil» eller «feil kilde». Resultatet legges i repoet.
+Måles manuelt med Gemini på eksempelnotatene og åpent lisensiert materiale. Hvert kort og spørsmål vurderes mot kilden og føres i et regneark som «riktig», «faglig feil» eller «feil kilde». Vurderingen gjøres av meg mot læreboka, ikke av KI. Kort jeg er usikker på etter å ha slått opp, teller som faglig feil. Resultatet legges i repoet.
 
 - **SK-13** **Faglige feil:** En stikkprøve på 50 flashcards fra markedsføring har under 5 % faglige feil. Feil fagbegrep, for eksempel «Promotering» der notatene sier «Påvirkning», regnes som faglig feil.
 - **SK-14** **Riktige kilder:** Minst 95 % av kortene i stikkprøven viser til en side der innholdet faktisk står.
