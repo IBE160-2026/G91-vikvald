@@ -4,6 +4,7 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
+| 2026-11-13 | Plan B utløses ikke: Gemini på Vertex brukes. Budsjettvarsel settes ikke så lenge kontoen er i prøveperioden. | Kontoen er i prøveperioden med 2 781,63 kr kreditt igjen til februar 2027. Bruken 1.–13. november var 2,49 kr. Kortet kan ikke belastes uten at kontoen oppgraderes (#8). | `4d5e298` |
 | 2026-11-13 | Nye suksesskriterier: SK-21 tester reglene for mock-modellen, SK-22 tester semesterlinja, og SK-18 vurderer om semesterlinja hjalp. | Tilbakemeldingen påpekte at hovedideen «bygd for semesteret» knapt ble målt. Ingen nye funksjoner, bare tester av det som skal bygges. | `5c1d60f` |
 | 2026-11-13 | Stikkprøvene (SK-13 til SK-17) vurderes av meg mot læreboka, ikke av KI. Kort jeg er usikker på etter å ha slått opp, teller som faglig feil. | KI skal ikke bedømme sitt eget arbeid, og usikre kort skal ikke tolkes i min favør. Jeg har fagbakgrunn i markedsføring. Svar på refleksjonsspørsmål i tilbakemeldingen. | `f5c6c82` |
 | 2026-11-12 | Modellkort er flashcards. De øves i flashcard-økten, uten egen rad, og «Lag modellkort» står på Flashcards-raden. Huskeregler er ikke en øktype. | Huskeregelen er bare en hjelp til å huske punktene på kortet. PRD-en sa allerede at modellkort er en type flashcard; UX-designet hadde en egen rad som ikke stemte. Mindre å bygge. | `4d303ac`, `16e7f99` |
