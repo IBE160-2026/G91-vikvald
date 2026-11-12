@@ -191,7 +191,16 @@ Alle de ikke-funksjonelle kravene er en del av MVP-en, på samme måte som må h
 Sensor skal kunne starte og teste appen uten studentens nøkler, kontoer eller tjenester.
 
 - **NFR-1** Appen kan startes lokalt på en PC ved å følge README, med kommandoer som kan kopieres direkte. README oppgir hvilke versjoner av programmer som trengs, hvordan testene kjøres, og lenker til planleggingsdokumentene.
-- **NFR-2** Demomodus er standard. I demomodus lager en mock-modell innhold ut fra teksten i den opplastede filen, med sidetall som finnes i filen, og gir samme svar hver gang for samme fil. Appen trenger da verken nøkkel, konto eller internett, og alle funksjoner kan prøves, også med en PDF sensor laster opp selv.
+- **NFR-2** Demomodus er standard. I demomodus lager en mock-modell innhold ut fra teksten i den opplastede filen etter reglene i NFR-2a, med sidetall som finnes i filen, og gir samme svar hver gang for samme fil. Appen trenger da verken nøkkel, konto eller internett, og alle funksjoner kan prøves, også med en PDF sensor laster opp selv.
+- **NFR-2a** Mock-modellen bruker bare teksten i de opplastede filene. Den leter etter definisjonssetninger, det vil si setninger med «er» eller, i engelske PDF-er, «is», og lager innhold slik:
+  - **Flashcards:** Ett begrepskort per definisjonssetning. Ordene før «er»/«is» står på forsiden, og hele setningen på baksiden. Kilden er siden setningen står på.
+  - **Modellkort:** Tre eller flere linjer etter hverandre som begynner med kulepunkt eller nummer, blir ett modellkort. Huskeregelen lages etter FR-43 og FR-44.
+  - **Quiz:** «Hva er [begrep]?», med resten av definisjonssetningen som riktig svar. De tre andre alternativene er definisjoner av andre begreper i samme forelesning. Finnes det færre enn fire definisjoner, lages ingen quiz, og studenten får beskjed (FR-18).
+  - **Fritekst:** «Forklar [begrep].», med definisjonssetningen som modellsvar.
+  - **Sammendrag:** Første setning på hver side, med sidetall.
+  - Samme fil gir samme resultat hver gang. Rekkefølgen under øving er likevel tilfeldig (FR-23).
+  - Kontrollene i FR-38 gjelder også for mock-modellen. FR-31 og SK-13 til SK-17 gjelder bare ekte språkmodell.
+  - README sier at innholdet i demomodus er enkelt og mekanisk, og at det viser at funksjonene virker, ikke hvor god kvaliteten er med ekte språkmodell.
 - **NFR-3** Appen leveres med en testbruker og et eksempelemne med forelesninger, filer og ferdig generert innhold. Eksempelmaterialet er skrevet med egne ord eller er åpent lisensiert. Materiale basert på OpenStax krediteres og deles under samme lisens (CC BY-NC-SA 4.0). PDF-er fra OpenStax legges ikke i repoet; README forklarer hvor de lastes ned.
 - **NFR-4** Språkmodellen velges med én innstilling (mock eller Gemini), uten endringer i koden. Språkmodellen kalles bare fra serveren, og nøkler eller tilgang til språkmodellen sendes aldri til nettleseren. Hemmeligheter ligger i en `.env`-fil utenfor Git, og repoet har en `.env.example` som viser hvilke innstillinger som finnes.
 
