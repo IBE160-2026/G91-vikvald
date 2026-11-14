@@ -5,7 +5,7 @@ purpose: build-substrate
 altitude: feature
 paradigm: 'Modulær monolitt i to deler: Next.js-klient + FastAPI-server, med vertikale moduler'
 scope: 'Hele MVP-en av Studiekamerat (PRD 2026-11-09, UX 2026-11-10), kjørt lokalt i Docker Compose'
-status: draft
+status: final
 created: '2026-11-14'
 updated: '2026-11-14'
 binds: [FR-1..FR-58, NFR-1..NFR-17, SK-1..SK-22]
