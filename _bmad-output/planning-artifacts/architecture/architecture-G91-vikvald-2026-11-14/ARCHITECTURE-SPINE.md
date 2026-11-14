@@ -37,26 +37,28 @@ flowchart LR
   A -.->|bare når LLM_PROVIDER=vertex| V[Gemini på Vertex AI<br/>EU-endepunkt]
 ```
 
-Avhengigheter mellom backend-modulene. En pil betyr «kan kalle»:
+Modulene og hva hver eier. En pil betyr «kan kalle»:
 
 ```mermaid
 flowchart TD
-  identity
+  identity["identity<br/>users"]
+  subjects["subjects<br/>subjects, lectures"]
+  files["files<br/>files, file_pages"]
+  content["content<br/>flashcards, quiz_questions,<br/>freetext_questions, summaries"]
+  generation["generation<br/>jobs, llm-port, kontroll"]
+  practice["practice<br/>practice_sessions, oversikt"]
   subjects --> identity
   files --> subjects
+  content --> files
   generation --> files
   generation --> content
-  content --> files
   practice --> content
   practice --> subjects
-  core[core: config, db, sikkerhet, lagring] 
-  identity --> core
-  subjects --> core
-  files --> core
-  generation --> core
-  content --> core
-  practice --> core
+  subjects -->|tellinger| content
+  files -->|tellinger| content
 ```
+
+Alle moduler kan bruke `core` (config, db, sikkerhet, lagring, feil). `content` eier alle tellinger av innhold, både til slette-forhåndsvisning og til forelesningsoversikten (FR-16). Tabellen viser hvilken modul som eier hvilke data. Bare eiermodulen skriver til en tabell.
 
 ## Invarianter og regler
 
@@ -64,99 +66,157 @@ flowchart TD
 
 - **Binds:** alle moduler, NFR-4
 - **Prevents:** at modellkall, kontroll, lagring eller tilgangssjekk havner i frontend
-- **Rule:** Frontend snakker bare med `/api/*` på samme adresse. Den leser aldri databasen, filene eller språkmodellen direkte. Next.js sender `/api/*` videre til `API_INTERNAL_URL` (`http://backend:8000`) med `rewrites`. Det er ingen Caddy og ingen CORS i normal bruk (avvik fra technology.md: Caddy er kuttet).
+- **Rule:** Frontend snakker bare med `/api/*` på samme adresse. Den leser aldri databasen, filene eller språkmodellen direkte. Next.js sender `/api/*` videre til `API_INTERNAL_URL` med `rewrites`. Adressen er `http://backend:8000` som standard, og den settes ved bygging. Det finnes ingen `proxy.ts`. Ingen enkeltforespørsel varer over 30 sekunder: lange operasjoner er jobber (AD-5). Det er ingen Caddy og ingen CORS i normal bruk (avvik fra technology.md: Caddy er kuttet).
 
 ### AD-2: Alt eies av én bruker, og hver spørring filtreres på den
 
 - **Binds:** FR-4, FR-5, SK-2, alle moduler som har data
 - **Prevents:** at noen moduler sjekker eierskap og andre ikke
-- **Rule:** Alle rader hører til en bruker gjennom kjeden bruker → emne → forelesning → fil → innhold. Hver rute henter innlogget bruker fra én felles avhengighet (`current_user`), og hver spørring filtrerer på brukeren. Forsøk på å åpne andres data gir `404`, ikke `403`, slik at det ikke avslører at dataene finnes.
+- **Rule:** Alle rader hører til en bruker gjennom kjeden bruker → emne → forelesning → fil → innhold. Hver rute henter innlogget bruker fra én felles avhengighet (`current_user`), og hver spørring filtrerer på brukeren. Forsøk på å åpne andres data gir `404 NOT_FOUND`, ikke `403`, slik at det ikke avslører at dataene finnes.
 
 ### AD-3: Språkmodellen ligger bak én port, valgt med `LLM_PROVIDER`
 
 - **Binds:** NFR-2, NFR-2a, NFR-4, NFR-5, SK-4, SK-21
 - **Prevents:** at noen moduler kaller Gemini direkte, eller at demomodus og ekte modell oppfører seg ulikt
-- **Rule:** Bare `generation`-modulen kaller modellen, og det skjer gjennom pydantic-ai (som i technology.md). `LLM_PROVIDER=mock|vertex`, med `mock` som standard. `vertex` bruker `GoogleCloudProvider(location='eu')` med Application Default Credentials og modellnavnet fra `VERTEX_MODEL`. Det globale endepunktet brukes aldri, og mellomlagring er slått av i Google Cloud-prosjektet. Mock-modellen følger reglene i NFR-2a og gir samme svar for samme fil. Den har også en variant som med vilje gir ugyldige svar (SK-4). Avvik fra technology.md: Vertex AI i stedet for OpenRouter, på grunn av NFR-5.
+- **Rule:** Bare `generation` kaller modellen, og det skjer gjennom pydantic-ai (som i technology.md). Porten tar imot sidetekst og eventuelle sidebilder, og gir tilbake samme output-type uansett hvilken leverandør som brukes. `LLM_PROVIDER=mock|vertex`, med `mock` som standard.
+  - **Vertex:** bruker `GoogleCloudProvider(location='eu')` med Application Default Credentials, `NativeOutput` (Geminis innebygde `responseSchema`), og modell og tenkenivå fra `VERTEX_MODEL` og `VERTEX_THINKING`. Det globale endepunktet brukes aldri, og mellomlagring er slått av i Google Cloud-prosjektet.
+  - **Mock:** er en pydantic-ai `FunctionModel` som følger reglene i NFR-2a og gir samme svar for samme fil. Varianten `LLM_PROVIDER=mock-invalid` gir ugyldige elementer med vilje (SK-4).
+  - Avvik fra technology.md: Vertex AI i stedet for OpenRouter, på grunn av NFR-5.
 
 ### AD-4: Én vei fra notater til lagret innhold
 
-- **Binds:** FR-18, FR-21, FR-29, FR-38, FR-45, FR-48, FR-53, SK-3, SK-4, SK-8
-- **Prevents:** at innholdstypene kontrolleres ulikt, eller at halvferdig innhold blir lagret
-- **Rule:** All generering går gjennom samme løp. Først hentes sidetekst fra `file_pages`, så sendes forespørselen til porten (AD-3). Deretter kontrolleres hvert element i kode, og alt som består, lagres i **én transaksjon**. Skjemaet for hver innholdstype defineres én gang som en Pydantic-modell, som brukes både som `output_type` mot modellen og som kontroll. Elementer som ikke består, forkastes og telles. Feiler kallet, eller tar det over 3 minutter (`asyncio.wait_for`), lagres ingenting.
+- **Binds:** FR-18, FR-21, FR-22, FR-29, FR-33, FR-38, FR-45, FR-48, FR-53, FR-55, SK-3, SK-4, SK-8
+- **Prevents:** at innholdstypene kontrolleres ulikt, at ett ugyldig element velter hele jobben, eller at halvferdig innhold blir lagret
+- **Rule:** All generering går gjennom samme løp:
+  1. Hent sidetekst fra `file_pages`.
+  2. Kall porten (AD-3). Modellen svarer med en **løs** liste der feltene kan mangle.
+  3. Kontroller hvert element for seg med `validate_item(item, pages)`: påkrevde felt, at siden finnes, nøyaktig fire alternativer med ett riktig, og huskeregelens forbokstaver (FR-45).
+  4. Forkast og tell de som ikke består.
+  5. Lagre de gyldige i **én transaksjon**.
+
+  Kort og spørsmål **legges til** det som finnes fra før (FR-22, FR-33). Et sammendrag **erstatter** det gamle i samme transaksjon (FR-55). Rekkefølgen på quizalternativene blandes én gang når spørsmålet lagres, med samme resultat for samme innhold (FR-30). Feiler kallet, eller tar det over 3 minutter (`asyncio.wait_for`), lagres ingenting. `content` eier de lagrede modellene, og `generation` eier de løse modellene som modellen svarer med.
 
 ### AD-5: Generering er en jobb i databasen, én aktiv per forelesning
 
-- **Binds:** NFR-17, FR-21
-- **Prevents:** to jobber på samme forelesning, eller ulik statusmodell i frontend og backend
-- **Rule:** En jobb er en rad i `jobs` med status `running`, `done` eller `failed`, i tillegg til antall laget og antall forkastet. Den kjøres som en asyncio-oppgave i backend-prosessen, uten Redis og uten egen worker. En delvis unik indeks på `lecture_id` der status er `running` hindrer to aktive jobber. Jobber som står som `running` når backenden starter, settes til `failed`. Frontend spør etter status med TanStack Query (polling) mens jobben pågår.
+- **Binds:** NFR-17, FR-18, FR-21
+- **Prevents:** to jobber på samme forelesning, eller at frontend og backend har ulik statusmodell
+- **Rule:** En jobb er en rad i `jobs` med feltene `id`, `lecture_id`, `kind` (`flashcards`, `quiz`, `models`, `freetext` eller `summary`), `params`, `status` (`running`, `done` eller `failed`), `requested`, `created`, `discarded`, `error_code`, `started_at` og `finished_at`.
+  - **Start:** `POST /api/lectures/{id}/jobs` gir `202`. Pågår det allerede en jobb på forelesningen, svarer appen `409 JOB_ALREADY_RUNNING`. En delvis unik indeks på `lecture_id` der `status='running'` håndhever dette, med både `postgresql_where` og `sqlite_where`.
+  - **Kjøring:** Jobben kjører som en asyncio-oppgave i backenden med sin egen databasesesjon, ikke forespørselens. Backenden kjører med nøyaktig én Uvicorn-prosess. Når backenden starter, settes jobber som står som `running`, til `failed`.
+  - **Status i frontend:** Én hook i `(app)`-layouten spør `GET /api/jobs/active` med jevne mellomrom. Den viser ferdigmeldingen med sonner i et levende område (NFR-12), uansett hvilken side studenten er på. Forelesningssiden viser siste jobb per `kind`.
 
 ### AD-6: Sidetekst lagres én gang, og alt innhold peker på fil og side
 
-- **Binds:** FR-10, FR-20, FR-32, FR-39, FR-40, FR-54, NFR-16
+- **Binds:** FR-10, FR-11, FR-20, FR-32, FR-39, FR-40, FR-41, FR-54, NFR-16
 - **Prevents:** at sidetall kontrolleres mot en annen tekst enn den modellen fikk
-- **Rule:** Ved opplasting leser PyMuPDF teksten fra hver side og lagrer den i `file_pages(file_id, page_no, text)`. `page_no` er PDF-sidenummeret og starter på 1. Filer med over 50 sider eller uten lesbar tekst avvises der. Alt generert innhold lagrer `file_id` og `page_no`, og kontrollen sjekker at siden finnes. Bilde av en side (FR-40) lages ved behov fra den lagrede PDF-en og lagres ikke. Avvik fra technology.md: PyMuPDF i stedet for pypdf.
+- **Rule:** Ved opplasting leser PyMuPDF teksten fra hver side og lagrer den i `file_pages(file_id, page_no, text, needs_image)`. `page_no` er PDF-sidenummeret og starter på 1. `needs_image` settes etter regelen fra issue #9. Opplastingen avvises med en feilkode når:
+  - studenten ikke har godtatt vilkårene (`users.terms_accepted_at` er tom), med `TERMS_NOT_ACCEPTED`
+  - fila ikke er en PDF
+  - fila har over 50 sider
+  - fila ikke har lesbar tekst
 
-### AD-7: Innhold eies av kildefila, og sletting går nedover kjeden
+  Alt generert innhold lagrer `file_id`, `page_no` og `formula_flag` (FR-41). Bilde av en side lages ved behov fra den lagrede PDF-en og lagres ikke. Avvik fra technology.md: PyMuPDF i stedet for pypdf.
 
-- **Binds:** FR-5, FR-12, FR-13, FR-14, SK-6
-- **Prevents:** innhold som blir liggende igjen, eller sletting som gjøres forskjellig fra sted til sted
-- **Rule:** Fremmednøkler har `ON DELETE CASCADE` hele veien fra bruker til innhold. Generert innhold er knyttet til fila det kom fra, og forsvinner med den. Fila på disken slettes etter at transaksjonen er fullført. Sletting av konto fjerner hele brukermappa. Før hver sletting kan frontend be om en opptelling av hva som slettes (`GET …/delete-preview`), og selve slettingen er et eget kall.
+### AD-7: Sletting går nedover kjeden, og sammendraget eies av forelesningen
+
+- **Binds:** FR-5, FR-12, FR-13, FR-14, FR-16, SK-6
+- **Prevents:** innhold som blir liggende igjen, et halvt sammendrag, eller tellinger som regnes ut på flere måter
+- **Rule:**
+  - **Kaskade:** Fremmednøkler har `ON DELETE CASCADE` hele veien fra bruker til innhold, og ingen kode sletter rad for rad.
+  - **Kort og spørsmål:** hører til fila de kom fra.
+  - **Sammendrag:** hører til forelesningen. Slettes eller erstattes en av forelesningens filer, slettes hele sammendraget i samme transaksjon.
+  - **Erstatte fil (FR-13):** er ett kall: slett den gamle og last opp den nye.
+  - **Filer på disken:** slettes etter at transaksjonen er fullført. Sletting av konto fjerner hele brukermappa.
+  - **Før sletting:** `GET …/delete-preview` gir tellingene fra `content`. Selve slettingen er et eget kall. Sletting mens en jobb pågår på forelesningen gir `409 JOB_ALREADY_RUNNING`.
 
 ### AD-8: PDF-filer ligger på et volum bak én lagringsmodul
 
-- **Binds:** FR-8, FR-13, NFR-2
+- **Binds:** FR-8, FR-13, NFR-2, NFR-3
 - **Prevents:** at moduler skriver filer på egen hånd, eller at brukerens filnavn havner i stier på disken
-- **Rule:** Bare `core/storage` leser og skriver filer, med stien `data/uploads/<user_id>/<file_id>.pdf`. Det opprinnelige filnavnet lagres bare i databasen. Avvik fra technology.md: et Docker-volum i stedet for Supabase Storage, fordi lokal Supabase krever hemmeligheter (NFR-2).
+- **Rule:** Bare `core/storage` leser og skriver filer, med stien `data/uploads/<user_id>/<file_id>.pdf`, og det gjelder også demodataene. Det opprinnelige filnavnet lagres bare i databasen. Avvik fra technology.md: et Docker-volum i stedet for Supabase Storage, fordi lokal Supabase krever hemmeligheter (NFR-2).
 
-### AD-9: Økter lagres bare som resultat
+### AD-9: Økter lagres bare som resultat, én gang
 
-- **Binds:** FR-25, FR-51, FR-56, FR-57, FR-58, SK-20
-- **Prevents:** at enkeltsvar lagres, eller at «øvd» beregnes ulikt fra sted til sted
-- **Rule:** Frontend teller underveis i økten og sender **ett** resultat når økten er ferdig, når studenten velger «Avslutt», eller ved `pagehide` (med `sendBeacon`), og bare hvis minst ett svar er gitt. Backenden lagrer bare dette resultatet. «Øvd», semesterlinja og «Neste å øve på» beregnes i backend (`practice`), aldri i frontend.
+- **Binds:** FR-25, FR-51, FR-56, FR-57, FR-58, SK-20, SK-22
+- **Prevents:** at enkeltsvar lagres, at samme økt lagres to ganger, eller at «øvd» regnes ut på flere måter
+- **Rule:** Nettleseren lager en `session_id` (UUID) når økten starter, og teller underveis. Resultatet sendes én gang til `POST /api/practice-sessions`, og bare hvis minst ett svar er gitt. Det sendes når økten er ferdig, når studenten velger «Avslutt», når studenten går til en annen side i appen, før utlogging, og ved `pagehide` (med `sendBeacon`).
+  - **Felter:** `session_id`, `subject_id`, `lecture_id` (tom betyr hele emnet), `kind` (`flashcards`, `quiz` eller `freetext`), `aborted`, `shown`, `answered`, `correct`, `partial`, `wrong` og `started_at`.
+  - **Backend:** godtar både JSON og `text/plain`, og lagrer med `ON CONFLICT DO NOTHING`.
+  - **«Øvd»:** En forelesning regnes som øvd når den har en økt. En økt på hele emnet teller for alle forelesningene i emnet som hadde innhold da økten startet. Dette regnes ut i én funksjon i `practice`. Semesterlinja og «Neste å øve på» bruker bare den.
 
 ### AD-10: Innlogging med app-JWT i en httpOnly-cookie
 
 - **Binds:** FR-3, FR-4, NFR-7
 - **Prevents:** at innloggingen lagres og leses ulikt
-- **Rule:** Passord lagres som bcrypt-hash og må ha minst 8 tegn. Ved innlogging lager appen en HS256-JWT med PyJWT (som i technology.md) og legger den i en cookie med `HttpOnly` og `SameSite=Lax`. Den legges ikke i `localStorage`. `JWT_SECRET` har en standardverdi bare når `APP_ENV=local`, og ellers nekter appen å starte uten nøkkel (som i technology.md).
+- **Rule:**
+  - **Passord:** lagres som bcrypt-hash og må være 8 tegn til 72 byte. Er det lengre, svarer appen `PASSWORD_TOO_LONG`.
+  - **Innloggingsbillett:** en HS256-JWT laget med PyJWT (som i technology.md) og lagt i cookien `sk_session` med `HttpOnly`, `SameSite=Lax` og `Path=/`. Den gjelder i 30 dager, som `ACCESS_TOKEN_EXPIRE_MINUTES` i technology.md, og lagres aldri i `localStorage`.
+  - **Uten gyldig innlogging:** svarer API-et `401 UNAUTHENTICATED`, og frontend sender studenten til innloggingssiden.
+  - **Nøkkel:** `JWT_SECRET` har en standardverdi bare når `APP_ENV=local`. Ellers nekter appen å starte uten nøkkel (som i technology.md).
 
 ### AD-11: Én kilde for innstillinger og brytere
 
 - **Binds:** NFR-2, NFR-4, kuttrekkefølgen i PRD-en
 - **Prevents:** at frontend og backend er uenige om hvilke funksjoner som er på
-- **Rule:** Alle innstillinger leses med pydantic-settings fra miljøet. `.env` er valgfri, og uten den starter appen i demomodus. Brytere finnes bare for bør ha-funksjonene: `FEATURE_MNEMONICS`, `FEATURE_FREETEXT` og `FEATURE_SUMMARY`. Frontend leser bryterne fra `GET /api/config` mens appen kjører. Ingen hemmelighet får `NEXT_PUBLIC_`-prefiks. Lite avvik fra technology.md: den har brytere i to lag ved bygging, mens her finnes de bare ett sted.
+- **Rule:** Alle innstillinger leses med pydantic-settings fra miljøet. `.env` er valgfri, og uten den starter appen i demomodus. Brytere finnes bare for bør ha-funksjonene: `FEATURE_MNEMONICS`, `FEATURE_FREETEXT` og `FEATURE_SUMMARY`. Frontend leser bryterne og `demo_mode` fra `GET /api/config` mens appen kjører. Ingen hemmelighet får `NEXT_PUBLIC_`-prefiks. Lite avvik fra technology.md: den har brytere i to lag ved bygging, mens her finnes de bare ett sted.
 
 ### AD-12: Backenden sender feilkoder, og frontend eier all norsk tekst
 
-- **Binds:** FR-1, FR-9, FR-10, FR-21, NFR-11, NFR-12
-- **Prevents:** samme feil med ulik ordlyd, eller engelsk tekst i grensesnittet
-- **Rule:** Feil fra API-et har formen `{"error": {"code": "<SNAKE_CASE>", "details": {…}}}`. Frontend har én fil med meldingstekster per kode, og tekstene der er de som er godkjent i EXPERIENCE.md. Backenden sender aldri tekst som skal vises til brukeren.
+- **Binds:** FR-1, FR-9, FR-10, FR-18, FR-21, NFR-11, NFR-12
+- **Prevents:** samme feil med ulik ordlyd, engelsk tekst i grensesnittet, eller feil i FastAPIs eget format
+- **Rule:**
+  - **Format:** Alle feil fra API-et har formen `{"error": {"code": "<SNAKE_CASE>", "details": {…}}}`.
+  - **Feilkoder:** Kodene står i én liste, `core/errors.py`.
+  - **FastAPIs egne feil:** Globale feilhåndterere skriver om `HTTPException` og valideringsfeil (`422`) til samme format.
+  - **Tekst:** Frontend har én fil med meldingstekster per kode, og tekstene der er de som er godkjent i EXPERIENCE.md. En test sjekker at alle kodene i backend finnes i meldingsfila. Backenden sender aldri tekst som skal vises til brukeren.
 
 ### AD-13: Koden virker på både Postgres og SQLite
 
 - **Binds:** SK-1 til SK-22, backend
 - **Prevents:** at testene går grønt på SQLite mens appen feiler på Postgres, eller omvendt
-- **Rule:** Appen kjører på Postgres, og pytest kjører på SQLite i minnet (aiosqlite), som i technology.md. Bare SQL som fungerer på begge brukes. Databaseendringer gjøres med Alembic og kjøres automatisk når backend-containeren starter.
+- **Rule:**
+  - **Databaser:** Appen kjører på Postgres, og pytest kjører på SQLite i minnet (aiosqlite, `StaticPool`), som i technology.md.
+  - **SQLite i testene:** Hver tilkobling slår på `PRAGMA foreign_keys=ON`.
+  - **Felles SQL:** Bare SQL som fungerer på begge brukes. Delvise indekser og `ON CONFLICT` skrives med variantene for begge databasene.
+  - **Databaseendringer:** gjøres med Alembic.
 
-### AD-14: Appen virker uten internett i demomodus
+### AD-14: Appen starter med én kommando og virker uten internett i demomodus
 
-- **Binds:** NFR-2, NFR-3, SK-11, SK-21
-- **Prevents:** skjulte kall ut av maskinen, eller en oppstart som krever konto
-- **Rule:** `docker compose up` uten `.env` gir demomodus med testbruker og eksempelemne. Eksempelemnet legges inn ved oppstart når databasen er tom og `APP_ENV=local` (`seed_if_empty`, som i technology.md). Fonter, ikoner og skript følger med appen. Inter hentes fra `@fontsource-variable/inter`, ikke fra Google Fonts.
+- **Binds:** NFR-1, NFR-2, NFR-3, SK-11, SK-21
+- **Prevents:** skjulte kall ut av maskinen, en oppstart som krever konto, eller demodata som ikke ligner ekte data
+- **Rule:**
+  - **Oppstart:** `docker compose up` uten `.env` gir demomodus. `db` har en helsesjekk (`pg_isready`), og `backend` venter på den (`service_healthy`).
+  - **Rekkefølge i backend:** Alembic-endringer, så `seed_if_empty` (bare når `APP_ENV=local`), så opprydding i jobber (AD-5), så Uvicorn. Backenden har `/api/health`.
+  - **Demodata:** Testbrukeren og eksempelemnet lages gjennom de vanlige tjenestene for opplasting og generering med mock-modellen, ikke med egne SQL-setninger (NFR-3).
+  - **Uten internett:** Fonter, ikoner og skript følger med appen. Inter hentes fra `@fontsource-variable/inter`.
+  - **Bygging:** Frontend bygges i flere trinn med `output: 'standalone'`, og backend med `uv sync --locked`, som i technology.md.
 
 ## Konvensjoner
 
 | Område | Konvensjon |
 | --- | --- |
-| Språk | Kode, tabeller og API-felt på engelsk. All tekst i grensesnittet på bokmål. Ordliste: emne = `subject`, forelesning = `lecture`, fil = `file`, flashcard = `flashcard` (`kind`: `qa`, `concept`, `model`), quizspørsmål = `quiz_question`, fritekstspørsmål = `freetext_question`, sammendrag = `summary`/`summary_point`, økt = `practice_session`, jobb = `job`. |
-| Backend-modul | `app/modules/<modul>/` med `router.py`, `service.py`, `models.py` og `schemas.py`. Ruter samles under `/api/<modul>`. |
-| Frontend-modul | `modules/<modul>/` med `types.ts`, `api.ts`, `components/` og `pages/`, som speiler backend (technology.md). Ruter i `app/` er tynne og henter fra `modules/`. |
-| ID-er og datoer | UUID som primærnøkkel. Datoer som ISO 8601: `date` for forelesning og eksamen, `datetime` i UTC for tidsstempler. Visningen i frontend er norsk (`dd.mm.åååå`). |
-| JSON | `snake_case` i API-et. TypeScript-typene i `types.ts` bruker samme feltnavn. |
-| Databasesesjon | Ingen `rollback()` på den delte sesjonen i en forespørsel. Bruk `INSERT … ON CONFLICT DO NOTHING` der det passer (technology.md). |
-| Tilfeldig rekkefølge | Rekkefølgen i økter blandes i frontend ved øktstart (FR-23, FR-34). Lagret innhold har fast rekkefølge. |
-| Tester | Hvert krav har en test som er merket med krav-ID-en i navnet, for eksempel `test_fr38_…`. Playwright kjører axe på alle sider (NFR-13). Alle tester kjøres med `LLM_PROVIDER=mock`. |
+| Språk | Kode, tabeller og API-felt på engelsk. All tekst i grensesnittet på bokmål, og `<html lang="nb">`. Ordliste: emne = `subject`, forelesning = `lecture`, fil = `file`, flashcard = `flashcard` (`kind`: `qa`, `concept`, `model`), quizspørsmål = `quiz_question` (`options[4]`, `correct_index`), fritekstspørsmål = `freetext_question` (`kind`: `short`, `long`), sammendrag = `summary`/`summary_point`, økt = `practice_session`, jobb = `job`. |
+| API | Ressurser ligger under foreldrene sine: `/api/subjects/{id}/lectures`, `/api/lectures/{id}/files` og så videre. Enkeltressurser har egne stier: `/api/flashcards/{id}`. Ingen paginering i MVP. |
+| Backend-modul | `app/modules/<modul>/` med `router.py`, `service.py`, `models.py` og `schemas.py`. |
+| Frontend-modul | `modules/<modul>/` med `types.ts`, `api.ts`, `components/` og `pages/`, som speiler backend (technology.md). Ruter i `app/` er tynne. Øktlogikken, med blanding av rekkefølge (FR-23, FR-34) og «Kunne ikke» bakerst (FR-25), ligger i frontend-modulen `practice`. |
+| ID-er og datoer | UUID som primærnøkkel. `date` for forelesning og eksamen, og `datetime` i UTC for tidsstempler, begge som ISO 8601. Visningen er norsk (`dd.mm.åååå`). |
+| JSON | `snake_case` i API-et. TypeScript-typene bruker samme feltnavn. |
+| Emnefarge | `subjects.color_index` (0–5) lagres når emnet opprettes, i fast rekkefølge (DESIGN.md). |
+| Brukervalg | Valget om å skru av hurtigtaster med én tast lagres i `localStorage` (per nettleser). |
+| Databasesesjon | Ingen `rollback()` på den delte sesjonen i en forespørsel (technology.md). |
+| Visning av innhold | Generert innhold vises som ren tekst, aldri som HTML. Derfor trengs ikke DOMPurify fra technology.md. |
 | Logging | Logger skrives til stdout. Notattekst og passord logges aldri. |
+
+## Utvikling og testing
+
+| Hva | Hvordan |
+| --- | --- |
+| Utvikling | `docker compose up db` for databasen. Backend kjøres med `uv run uvicorn app.main:app --reload`, og frontend med `npm run dev`, begge direkte på maskinen. |
+| Pakker | Python-pakkene låses i `uv.lock` med uv, og npm-pakkene i `package-lock.json`. |
+| Backend-tester | `uv run pytest`, med SQLite i minnet og `LLM_PROVIDER=mock`. |
+| Frontend-tester | `npm run test`, med Vitest. |
+| Ende-til-ende | `npx playwright test` mot `docker compose up` på port 3000. Testene dekker innlogging og opplasting gjennom `rewrites`, og axe kjøres på alle sider (NFR-13). |
+| Krav-ID | Testnavn har krav-ID-en, for eksempel `test_fr38_…`, slik at SK-1 kan sjekkes. |
 
 ## Teknologi
 
@@ -170,7 +230,7 @@ Sjekket mot PyPI og npm 2026-11-14. Kjørebildene er de samme som i technology.m
 | asyncpg / aiosqlite | 0.32.0 / 0.22.1 |
 | Pydantic / pydantic-settings | 2.14.3 / 2.16.3 |
 | PyJWT / bcrypt | 2.15.1 / 5.0.0 |
-| pydantic-ai-slim (med Google) / google-genai | 2.68.0 / 3.3.0 |
+| pydantic-ai-slim[google] | 2.68.0 (velger selv `google-genai` < 3) |
 | PyMuPDF | 2.1 |
 | pytest / pytest-asyncio / httpx | 9.2.0 / 1.5.0 / 0.28.1 |
 | Node (bilde `node:22-alpine`) | 22 |
@@ -192,7 +252,7 @@ Sjekket mot PyPI og npm 2026-11-14. Kjørebildene er de samme som i technology.m
 flowchart LR
   subgraph compose[docker compose up]
     F[frontend :3000] --> A[backend :8000]
-    A --> D[(db: Postgres 16)]
+    A -->|venter på helsesjekk| D[(db: Postgres 16)]
     A --- V1[(volum: uploads)]
     D --- V2[(volum: pgdata)]
   end
@@ -215,17 +275,18 @@ erDiagram
   FILE ||--o{ FREETEXT_QUESTION : kilde
   LECTURE ||--o| SUMMARY : har
   SUMMARY ||--o{ SUMMARY_POINT : har
-  FILE ||--o{ SUMMARY_POINT : kilde
   LECTURE ||--o{ JOB : har
   SUBJECT ||--o{ PRACTICE_SESSION : har
   LECTURE |o--o{ PRACTICE_SESSION : "gjelder (tom = hele emnet)"
 ```
 
+`SUMMARY_POINT` lagrer `file_id` og `page_no` som kilde, men eies av `SUMMARY` (AD-7).
+
 ### Mapper
 
 ```text
 backend/
-  app/core/            # config, db, security, storage, llm-port
+  app/core/            # config, db, security, storage, errors, llm-port
   app/modules/         # identity, subjects, files, generation, content, practice
   app/seed/            # eksempelemne og testbruker (NFR-3)
   alembic/
@@ -233,7 +294,7 @@ backend/
 frontend/
   app/                 # ruter: (auth), (app)
   modules/             # speiler backend-modulene
-  lib/                 # fetch-transport, config, hurtigtaster
+  lib/                 # fetch-transport, config, hurtigtaster, meldingstekster
   e2e/                 # Playwright + axe
 docker-compose.yml
 .env.example
@@ -243,20 +304,21 @@ docker-compose.yml
 
 | Krav | Modul | Styrt av |
 | --- | --- | --- |
-| FR-3–FR-5, NFR-7 (konto) | `identity` | AD-2, AD-7, AD-10 |
+| FR-3–FR-5, FR-11, NFR-7 (konto og vilkår) | `identity` | AD-2, AD-6, AD-7, AD-10 |
 | FR-6, FR-7, FR-14, FR-15 (emner og forelesninger) | `subjects` | AD-2, AD-7 |
 | FR-8–FR-13, NFR-16 (opplasting) | `files`, `core/storage` | AD-6, AD-7, AD-8 |
-| FR-17–FR-22, FR-28–FR-33, FR-42–FR-49, FR-53–FR-55, FR-38–FR-41 (generering) | `generation` | AD-3, AD-4, AD-5, AD-6 |
-| FR-23–FR-27, FR-34–FR-37, FR-50–FR-52 (øving, redigering) | `content` + frontend | AD-2, AD-9 |
-| FR-56–FR-58, FR-16 (økter og oversikt) | `practice` | AD-9 |
-| FR-1, FR-2, NFR-8–NFR-15 (språk, UU, skjerm) | frontend | AD-12, konvensjonene |
-| NFR-1–NFR-4 (kjøring, demomodus) | `core`, `seed`, Docker | AD-3, AD-11, AD-14 |
+| FR-2, FR-17–FR-22, FR-28–FR-33, FR-38–FR-49, FR-53–FR-55 (generering) | `generation`, `content` | AD-3, AD-4, AD-5, AD-6 |
+| FR-23–FR-27, FR-34–FR-37, FR-46, FR-50–FR-52 (øving og redigering) | `content`, frontend-modulen `practice` | AD-2, AD-4, AD-9 |
+| FR-16, FR-56–FR-58 (økter og oversikt) | `practice`, `content` (tellinger) | AD-7, AD-9 |
+| FR-1, NFR-6, NFR-8–NFR-15 (språk, vilkårstekst, UU, skjerm) | frontend | AD-12, konvensjonene |
+| NFR-1–NFR-5, NFR-17 (kjøring, demomodus, modell, ventetid) | `core`, `seed`, `generation`, Docker | AD-3, AD-5, AD-11, AD-14 |
 
 ## Utsatt
 
-- **Konkret Gemini-modell og tenkenivå:** Velges etter kvalitetstesten (issue #3 og #4). Det er bare innstillinger i `.env`, så arkitekturen påvirkes ikke.
-- **Regelen for sider med formler (FR-40):** Lages og testes i issue #9. Arkitekturen fastsetter bare at bildet lages fra den lagrede PDF-en (AD-6).
-- **Innholdet i instruksene til modellen:** Fastsettes i storyen for hver innholdstype. Skjema og kontroll er fastsatt (AD-4).
-- **CI (GitHub Actions):** Er ikke med i technology.md. Avgjøres i planleggingen av stories.
+- **Konkret Gemini-modell og tenkenivå:** Velges etter kvalitetstesten (issue #3 og #4). Det er bare innstillinger i `.env`.
+- **Regelen for `needs_image` (FR-40):** Lages og testes i issue #9. Feltet og flyten er fastsatt (AD-6).
+- **Instruksene til modellen:** Fastsettes i storyen for hver innholdstype. Skjema og kontroll er fastsatt (AD-4).
+- **CI (GitHub Actions):** Er ikke med i technology.md. Avgjøres i planleggingen av stories, og bruker i så fall kommandoene under «Utvikling og testing».
+- **Lisensfil for repoet:** Avgjøres i et eget issue. PyMuPDF er AGPL, og repoet er offentlig.
 - **Publisering, HTTPS, rate limiting, backup og overvåking:** Er utenfor MVP (PRD). Tas opp igjen hvis appen publiseres, og da må også serveren ligge i EU (NFR-5).
 - **Mobil og spredt repetisjon:** Er utenfor MVP eller mulige utvidelser (PRD).
