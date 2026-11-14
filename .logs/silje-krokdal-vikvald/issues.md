@@ -43,7 +43,11 @@
 - [ ] 2026-11-14 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — avgjør kanttilfellene fra UX-gjennomgangen (gruppe 3) i arkitekturen eller i storiene (#18)
 - [ ] 2026-11-14 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — rydd struktur og språk i DESIGN.md og EXPERIENCE.md (gruppe 4) (#18)
 - [ ] 2026-11-14 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — velg og mål tre nye emnefarger ved koding
-- [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — epics og stories lages først når Silje sier fra
+- [x] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — epics og stories lages først når Silje sier fra (løst 2026-11-14: startet, se epics-og-stories)
 - [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — velg lisens for repoet (#25)
-- [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — avgjør om CI (GitHub Actions) skal med, i planleggingen av stories
+- [x] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — avgjør om CI (GitHub Actions) skal med, i planleggingen av stories (løst 2026-11-14: liten CI, kan kuttes, f6cb57f)
 - [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — skriv oppsettsguide i README når koden finnes, første story får det som akseptkriterium (#27)
+- [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — legg epic 2 inn i epics.md slik den ble godkjent 14.11
+- [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — gå gjennom og godkjenn storiene for epic 3–9, med spørsmål og [AVGJØRES]-kriterier
+- [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — før godkjenningen av epic 1 og 2 og bruken av subagenter inn i KI-sporet
+- [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — fullfør de siste stegene i bmad-create-epics-and-stories og åpne pull request
