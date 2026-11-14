@@ -211,7 +211,7 @@ Alle moduler kan bruke `core` (config, db, sikkerhet, lagring, feil). `content` 
 
 | Hva | Hvordan |
 | --- | --- |
-| Utvikling | `docker compose up db` for databasen. Backend kjøres med `uv run uvicorn app.main:app --reload`, og frontend med `npm run dev`, begge direkte på maskinen. |
+| Utvikling | `docker compose up db` for databasen. Backend kjøres med `uv run uvicorn app.main:app --reload`, og frontend med `npm run dev` og `API_INTERNAL_URL=http://localhost:8000`, begge direkte på maskinen. |
 | Pakker | Python-pakkene låses i `uv.lock` med uv, og npm-pakkene i `package-lock.json`. |
 | Backend-tester | `uv run pytest`, med SQLite i minnet og `LLM_PROVIDER=mock`. |
 | Frontend-tester | `npm run test`, med Vitest. |
