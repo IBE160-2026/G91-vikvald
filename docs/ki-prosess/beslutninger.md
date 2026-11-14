@@ -4,6 +4,11 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
+| 2026-11-14 | Arkitekturen følger faglærers technology.md: FastAPI-backend, Next.js-frontend og Docker Compose med Postgres. Erstatter stakkforslaget fra 2026-11-05. | technology.md er faglærers referanse. Faglærer sensurerer ved å kjøre appen i Docker, så repoet leverer egne Dockerfiler. | `69ec805` |
+| 2026-11-14 | Gemini på Vertex AI i stedet for OpenRouter som i technology.md. | NFR-5: OpenRouter er et mellomledd i USA, og behandling i EU krever betalt bedriftsplan. Vertex er allerede testet og dekket av prøvekreditten. | `69ec805` |
+| 2026-11-14 | PDF-er lagres i en mappe i stedet for Supabase Storage, Caddy kuttes, og PyMuPDF brukes i stedet for pypdf. | Sensor slipper nøkler og sertifikatadvarsel, og FR-40 krever bilde av en side. | `69ec805` |
+| 2026-11-14 | Bakgrunnsjobber kjøres i backenden, innloggingen ligger i en sikker cookie, og brytere finnes bare for bør ha-funksjonene. | Enkleste løsning som oppfyller NFR-17, FR-4 og kuttrekkefølgen. | `69ec805` |
+| 2026-11-14 | Lisensen for repoet utsettes. | PyMuPDF er AGPL, men repoet er offentlig, så kravet er oppfylt. | #25 |
 | 2026-11-14 | Gruppe 3 (kanttilfeller) og 4 (struktur og språk) fra UX-gjennomgangen utsettes. Arkitekturen startes i stedet. | Gruppe 3 kan avgjøres i arkitekturen eller som akseptkriterier i storiene, og gruppe 4 påvirker ikke hva som bygges. | #18 |
 | 2026-11-14 | Enkelttaster kan skrus av med bryteren «Bruk hurtigtaster» i hurtigtastdialogen. | WCAG 2.1.4 godtar ikke «bare under øving» som løsning. En bryter er enkel å forklare og teste. | `9f44255` |
 | 2026-11-14 | Mens en jobb pågår, er de andre «Lag …»-knappene i forelesningen ikke aktive, og raden forklarer hvorfor. | Følger «én jobb per forelesning» (NFR-17). En kø ville gitt mer å bygge. | `9f44255` |
