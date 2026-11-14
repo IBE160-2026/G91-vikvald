@@ -2,7 +2,7 @@
 title: "DESIGN: Studiekamerat"
 status: final
 created: 2026-11-10
-updated: 2026-11-11
+updated: 2026-11-14
 name: Studiekamerat
 description: Norskspråklig studieverktøy for PC-nettleser. Designretning F2-V1 «Signaturfarge»: rolig papir, presis grotesk og én ultramarin merkefarge for handling og posisjon.
 sources:
@@ -242,7 +242,6 @@ components:
   source-link:
     typography: '{typography.caption}'
     foreground: '{colors.ink}'
-    underline: '1px {colors.border-card}'
   semester-timeline:
     background: '{colors.surface}'
     line-width: 4px
@@ -337,7 +336,7 @@ Skisser: [02 Dine emner](mockups/02-emner.svg) viser hele uttrykket på forsiden
 ### Kanter, linjer og flater
 
 - **`{colors.border-control}` (#858B96)** er kanten på det man kan trykke på eller skrive i: omrissknapper, tekstfelt, radioknapper og opplastingsfeltet. 3,2:1 mot papir, nok for grafikk (WCAG 1.4.11).
-- **`{colors.border-card}` (#DDDCD5)** er kanten på kort, dialoger, svaralternativer, tomme ruter og tastaturknapper. Den er også den svake streken under kildelenken.
+- **`{colors.border-card}` (#DDDCD5)** er kanten på kort, dialoger, svaralternativer, tomme ruter og tastaturknapper.
 - **`{colors.divider}` (#EAE9E3)** er skillelinjer inne i kort og under toppfeltet. **`{colors.gridline}` (#EDECE6)** er de loddrette månedslinjene på semesterlinjen.
 - **`{colors.progress-track}` (#E4E4DF)** er sporet bak fremdriftsstolper.
 - **`{colors.surface-note}` (#F0EFE9)** er merknadsflaten (personvernmerknad, huskeregel, «sjekk mot kilden») og demomerket. Dempet grå har 5,5:1 på den.
@@ -509,7 +508,7 @@ Tre vanlige stiler og én for fare. Høyde 40 px (48 px under øving), hjørner 
 - **Valgkort** (`choice-option`): hvitt kort med radioknapp, tittel og forklaring. Omfang står som tre kort ved siden av hverandre, vanskelighetsgrad som tre rader. Valgt: `{colors.brand-tint}`, 1,5 px kant i `{colors.brand}` og fylt ultramarin radioknapp.
 - **Avkrysning** (`checkbox`): 20 px, `{rounded.kbd}`. Avkrysset: fylt `{colors.brand}` med hvit hake.
 - **Skjemafelt** (`text-field`): etikett over feltet (15 px / 600), felt på 48 px med kant i `{colors.border-control}`. Feil: 1,5 px kant i `{colors.danger}`, og under feltet et ikon og teksten i rødt. Passordfeltet har tekstknappen «Vis». Skisse: [01](mockups/01-logg-inn.svg).
-- **Kildelenke** (`source-link`): filikon, «merkevare-notater.pdf, side 4» i `{typography.caption}` med en svak strek under i `{colors.border-card}`. Det er den eneste understrekede teksten i appen.
+- **Kildelenke** (`source-link`): filikon, «merkevare-notater.pdf, side 4» i `{typography.caption}`, uten understreking. I MVP er kilden tekst, ikke en lenke (se EXPERIENCE.md).
 - **Demomerke** (`demo-badge`): pille på `{colors.surface-note}` med dempet tekst «Demomodus: innholdet lages av en testmodell». Skisse: [15](mockups/15-konto.svg).
 - **Kontokort** (`account-card`): tre hvite kort (Innlogging, Vilkår og personvern, Slett kontoen) med rader som filkortet på forelesningssiden.
 
@@ -528,7 +527,7 @@ Tre vanlige stiler og én for fare. Høyde 40 px (48 px under øving), hjørner 
 | Riktig og feil med symbol og tekst i tillegg til farge | Status som bare vises med farge |
 | Status med fylt og hul prikk og tekst | Stolpediagram eller andre grafer for status |
 | Én semesterlinje per side | Tidslinje i sidemenyen |
-| Tekstknapper med ikon eller pil | Understreking, unntatt kildelenken |
+| Tekstknapper med ikon eller pil | Understreking |
 | Hvite kort med tynn kant og `lift` | Harde skygger og gradienter |
 | Svart fokusring på alt som kan få fokus | Blå fokusring (forveksles med merkefargen) eller å fjerne den |
 | Sakelig resultat: «11 av 15 riktige» | Feiring, konfetti, strek-teller |
