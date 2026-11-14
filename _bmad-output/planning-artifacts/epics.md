@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [step-01-validate-prerequisites]
+stepsCompleted: [step-01-validate-prerequisites, step-02-design-epics]
 inputDocuments:
   - prds/prd-G91-vikvald-2026-11-09/prd.md
   - prds/prd-G91-vikvald-2026-11-09/addendum.md
@@ -174,7 +174,6 @@ Det finnes ingen ferdig startmal. Prosjektet er nytt, så **Epic 1 Story 1 må s
 - AR-17 (testing): `uv run pytest` med `LLM_PROVIDER=mock`; `npm run test` med Vitest; `npx playwright test` mot `docker compose up` med axe på alle sider. Testnavn har krav-ID (`test_fr38_…`) slik at SK-1 kan sjekkes. Pakker låses i `uv.lock` og `package-lock.json`.
 - AR-18 (Vertex-oppsett): Vertex krever `LLM_PROVIDER=vertex`, `GOOGLE_CLOUD_PROJECT`, `VERTEX_MODEL` og en `docker-compose.override.yml` utenfor Git som monterer `~/.config/gcloud` skrivebeskyttet. README viser hvordan mellomlagring slås av og sjekkes.
 - AR-19 (utsatt): Konkret Gemini-modell (issue #3, #4), regelen for `needs_image` (issue #9), instruksene til modellen (fastsettes i storyen for hver innholdstype), CI (avgjort 2026-11-14, se AR-20) og lisensfil (PyMuPDF er AGPL; eget issue).
-
 - AR-20 (CI, avgjort 2026-11-14): En liten GitHub Actions-jobb kjører `uv run pytest` og `npm run test` ved hver pull request. Playwright er ikke med, fordi den krever hele appen i Docker. Settes opp i den første storien. *(Kan kuttes: CI er ikke et krav i PRD-en, technology.md eller sensorveiledningen, og går først hvis det blir mer arbeid enn ventet.)*
 
 ### UX-designkrav
@@ -281,8 +280,83 @@ Gruppe 3 i [review-ux-2026-11-14.md](ux-designs/ux-G91-vikvald-2026-11-10/review
 
 ### Dekning av funksjonelle krav
 
-{{requirements_coverage_map}}
+| Krav | Epic | Kort |
+|---|---|---|
+| FR-1 | 1 (og alle) | Norsk bokmål i grensesnittet |
+| FR-2 | 3 (og 4, 7–9) | Norsk i generert innhold |
+| FR-3 | 1 | Konto, innlogging, utlogging |
+| FR-4 | 1 (og alle) | Bare egne data |
+| FR-5 | 2 | Slette konto |
+| FR-6, FR-7 | 2 | Emner og forelesninger |
+| FR-8–FR-11 | 2 | Opplasting, avvisning, vilkår |
+| FR-12–FR-14 | 2 (tellinger utvides i 3, 4, 7–9) | Slette og erstatte |
+| FR-15 | 2 | Forelesningsdato og sortering |
+| FR-16 | 5 | Tellinger og sist øvd per forelesning |
+| FR-17–FR-27 | 3 | Flashcards |
+| FR-28–FR-37 | 4 | Quiz |
+| FR-38 | 3 (og 4, 7–9) | Kontroll før lagring |
+| FR-39 | 2 (sidenummer) og 3 (kilde) | PDF-sidenummer |
+| FR-40, FR-41 | 6 | Formler som bilde og formelmerke |
+| FR-42–FR-47 | 7 | Huskeregler |
+| FR-48–FR-52 | 8 | Fritekst |
+| FR-53–FR-55 | 9 | Sammendrag |
+| FR-56 | 3 (og 4, 8) | Lagring av økter |
+| FR-57, FR-58 | 5 | Semesterlinje og «Neste å øve på» |
+
+Alle 58 funksjonelle krav har en epic.
 
 ## Epics
 
-{{epics_list}}
+### Prinsipper for inndelingen
+
+- **Vertical slices.** Hver epic er en hel del av appen, fra side til API, logikk og tabell, og følger modulene i arkitekturen (AR-16). Koden for én epic holdes så isolert som mulig i sin modul.
+- **Gjenbruk (DRY).** Det som brukes av mer enn én modul, flyttes til en fellesmappe og kopieres aldri: `backend/app/core/` og `frontend/lib/` (fra arkitekturen) og `frontend/components/` for felles skjermdeler som knapper, dialog, slettebekreftelse, kildelenke, merknadsflate og formelmerke (nytt, avgjort 2026-11-14).
+- **To motorer bygges én gang i epic 3:** genereringsløpet i `generation` (jobb, mock-modell, kontroll, AR-3 til AR-5) og øktrammen i `practice` (øktpanel, svarrutenett, resultat, lagring av økt). Senere innholdstyper plugger seg inn i dem.
+- **Testing, universell utforming og README i hver story.** Hver story har tester med krav-ID (AR-17) og axe-sjekk av sidene den lager. README starter i epic 1 og fullføres i epic 6. Epic 6 tar bare den samlede kontrollen.
+- **Tabeller lages når de trengs**, i storien som først bruker dem.
+- **Rekkefølge og kutt:** epic 1–4 er kjerneflyten i demomodus (milepæl 27.11), epic 6 kobler på Gemini (1.12), og epic 7–9 er bør ha som kuttes bakfra.
+
+### Epic 1: Kom i gang: appen starter og du kan logge inn
+
+Sensor starter appen med én kommando uten nøkler, og studenten kan opprette konto, logge inn og logge ut. Legger grunnmuren alle senere epics bygger på: prosjektskjelett, Docker Compose, CI, fellesmappene, designtokens, toppfelt, feilformat, innstillinger og «Fant ikke siden».
+**Krav:** FR-1, FR-3, FR-4. NFR-1 (start), NFR-4, NFR-7, NFR-9, NFR-11, NFR-12. AR-1, AR-2, AR-10–AR-17, AR-20. UX-DR1, UX-DR2, UX-DR4, UX-DR5, UX-DR6, UX-DR25, UX-DR40, UX-DR41, UX-DR43, UX-DR45, UX-DR46.
+
+### Epic 2: Emner, forelesninger og notater
+
+Studenten organiserer semesteret: oppretter, gir nytt navn til og sletter emner og forelesninger, laster opp PDF-notater etter å ha godtatt vilkårene, får beskjed om filer som avvises, sletter og erstatter filer, og kan slette kontoen sin.
+**Krav:** FR-5–FR-15, FR-39. NFR-6, NFR-16. AR-6–AR-8. UX-DR3, UX-DR7, UX-DR13 (uten tellinger av innhold), UX-DR15, UX-DR16, UX-DR17, UX-DR21, UX-DR22, UX-DR23, UX-DR39, UX-DR42.
+
+### Epic 3: Øv med flashcards
+
+Studenten lager flashcards fra en forelesning, øver med «Kunne» og «Kunne ikke», ser resultatet, retter eller sletter dårlige kort, og økten lagres. Bygger genereringsløpet og øktrammen som de andre innholdstypene gjenbruker.
+**Krav:** FR-2, FR-17–FR-27, FR-38, FR-56 (flashcards). NFR-2, NFR-2a (flashcards), NFR-8, NFR-10, NFR-17. AR-3–AR-5, AR-9. UX-DR8, UX-DR9, UX-DR10, UX-DR14 (flashcards), UX-DR18, UX-DR19, UX-DR20, UX-DR24 (flashcards), UX-DR26, UX-DR27, UX-DR31–UX-DR36, UX-DR44.
+
+### Epic 4: Ta quiz
+
+Studenten lager flervalgsquiz med valgt omfang og vanskelighetsgrad, svarer og bekrefter før fasit og forklaring vises, ser poengsum og feilsvar, og kan slette dårlige spørsmål. Plugger seg inn i motorene fra epic 3.
+**Krav:** FR-28–FR-37, FR-56 (quiz). NFR-2a (quiz). UX-DR14 (quiz), UX-DR24 (quiz), UX-DR29.
+
+### Epic 5: Oversikt fram mot eksamen
+
+Studenten ser hvor hun står i semesteret: semesterlinja med øvd og ikke øvd og tid til eksamen, «Neste å øve på» på forsiden, og tellinger og «sist øvd» i forelesningstabellen. Mye kan kuttes til tekst.
+**Krav:** FR-16, FR-57, FR-58. UX-DR11, UX-DR12, UX-DR13 (tellinger og status).
+
+### Epic 6: Ekte språkmodell og klar for sensor
+
+Appen kan bruke Gemini i EU, formler kommer med fra sider sendt som bilde, og sensor møter en ferdig app med testbruker, eksempelemne og en README som virker. Avslutter med samlet kontroll av universell utforming, tastatur, nettlesere og stikkprøvene for kvalitet.
+**Krav:** FR-40, FR-41. NFR-1 (fullført), NFR-3, NFR-5, NFR-13, NFR-14, NFR-15. AR-14 (demodata), AR-18, AR-19 (lisens). UX-DR37. SK-11–SK-17.
+
+### Epic 7: Huskeregler (bør ha)
+
+Studenten får modellkort med forbokstavregel for modeller og lister i notatene, øver på dem i flashcard-økten og kan endre eller legge til egen huskeregel.
+**Krav:** FR-42–FR-47. NFR-2a (modellkort). UX-DR28.
+
+### Epic 8: Fritekstspørsmål med selvvurdering (bør ha)
+
+Studenten øver på kortsvar- og langsvarsspørsmål, skriver svaret selv, ser modellsvaret med kilde og vurderer seg selv.
+**Krav:** FR-48–FR-52, FR-56 (fritekst). NFR-2a (fritekst). UX-DR14 (fritekst), UX-DR24 (fritekst), UX-DR30.
+
+### Epic 9: Sammendrag (bør ha)
+
+Studenten leser et sammendrag av forelesningen med kilde på hvert punkt, og kan lage et nytt som erstatter det gamle.
+**Krav:** FR-53–FR-55. NFR-2a (sammendrag). UX-DR38.
