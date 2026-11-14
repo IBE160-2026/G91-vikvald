@@ -18,6 +18,20 @@ KI sjekket forslaget mot sensorveiledningen og tilbakemeldingene og fant at test
 
 **Resultat:** Kravlista (`f6cb57f`) og ni epics (`70afae6`). Storiene skrives av subagenter, én per epic.
 
+KI la fram hver epic med forslag til svar på de åpne spørsmålene. Epic 1 og 2 ble godkjent med:
+
+> ja til alt
+
+og epic 3–9 med:
+
+> ja
+
+> er det i tråd med sensorveiledning og tilbakemelding?
+
+KI sjekket epicene mot sensorveiledningen og tilbakemeldingene og fant at omfanget fortsatt er den største risikoen. Det tas med i sprintplanleggingen.
+
+**Resultat:** 9 epics og 43 stories, med dekning av alle 142 krav (`1c93690` til `415bf76`).
+
 ## 2026-11-14: Arkitektur
 
 > bmad-architecture bruk technology.md som referanse, men tilpass denne til dette prosjektet for MVP
