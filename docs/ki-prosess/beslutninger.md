@@ -4,6 +4,12 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
+| 2026-11-14 | Gruppe 3 (kanttilfeller) og 4 (struktur og språk) fra UX-gjennomgangen utsettes. Arkitekturen startes i stedet. | Gruppe 3 kan avgjøres i arkitekturen eller som akseptkriterier i storiene, og gruppe 4 påvirker ikke hva som bygges. | #18 |
+| 2026-11-14 | Enkelttaster kan skrus av med bryteren «Bruk hurtigtaster» i hurtigtastdialogen. | WCAG 2.1.4 godtar ikke «bare under øving» som løsning. En bryter er enkel å forklare og teste. | `9f44255` |
+| 2026-11-14 | Mens en jobb pågår, er de andre «Lag …»-knappene i forelesningen ikke aktive, og raden forklarer hvorfor. | Følger «én jobb per forelesning» (NFR-17). En kø ville gitt mer å bygge. | `9f44255` |
+| 2026-11-14 | Vilkårsteksten har alltid NFR-6-innholdet, også i demomodus. | FR-11 krever det, og samtykket holder hvis appen byttes til Gemini. | `fcf09cf` |
+| 2026-11-14 | Passordet må ha minst 8 tegn. Registreringen sier fra hvis e-postadressen er i bruk, men innloggingen gjør det ikke. | Forståelig for brukeren og godt nok for et studentprosjekt. | `fcf09cf` |
+| 2026-11-14 | Det man kan trykke på, får kanten `border-control`. Emnefargene følger en fast liste på seks farger som gjentas, og navnet står alltid ved fargen. | Kravet om kontrast i WCAG 1.4.11. Fargen er aldri eneste kjennetegn. | `fcf09cf` |
 | 2026-11-13 | Plan B utløses ikke: Gemini på Vertex brukes. Budsjettvarsel settes ikke så lenge kontoen er i prøveperioden. | Kontoen er i prøveperioden med 2 781,63 kr kreditt igjen til februar 2027. Bruken 1.–13. november var 2,49 kr. Kortet kan ikke belastes uten at kontoen oppgraderes (#8). | `4d5e298` |
 | 2026-11-13 | Nye suksesskriterier: SK-21 tester reglene for mock-modellen, SK-22 tester semesterlinja, og SK-18 vurderer om semesterlinja hjalp. | Tilbakemeldingen påpekte at hovedideen «bygd for semesteret» knapt ble målt. Ingen nye funksjoner, bare tester av det som skal bygges. | `5c1d60f` |
 | 2026-11-13 | Stikkprøvene (SK-13 til SK-17) vurderes av meg mot læreboka, ikke av KI. Kort jeg er usikker på etter å ha slått opp, teller som faglig feil. | KI skal ikke bedømme sitt eget arbeid, og usikre kort skal ikke tolkes i min favør. Jeg har fagbakgrunn i markedsføring. Svar på refleksjonsspørsmål i tilbakemeldingen. | `f5c6c82` |

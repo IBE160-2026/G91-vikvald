@@ -2,7 +2,7 @@
 title: "EXPERIENCE: Studiekamerat"
 status: final
 created: 2026-11-10
-updated: 2026-11-12
+updated: 2026-11-14
 sources:
   - ../../prds/prd-G91-vikvald-2026-11-09/prd.md
 ---
@@ -11,7 +11,7 @@ sources:
 
 Dette dokumentet sier hvordan Studiekamerat er bygd opp og oppfører seg. Hvordan den ser ut, står i [DESIGN.md](DESIGN.md). Krav fra PRD-en er henvist med ID (FR-, NFR-, UJ-) og ikke gjentatt her.
 
-Skissene ligger i [`mockups/`](mockups/). **Dokumentene vinner ved konflikt med skissene.** Tekst i skissene som forelesningsnavn i andre emner, spørsmål, svar, filnavn og sidetall er eksempelinnhold, ikke krav.
+Skissene ligger i [`mockups/`](mockups/). **Dokumentene vinner ved konflikt med skissene.** Tekst i skissene som forelesningsnavn i andre emner, spørsmål, svar, filnavn og sidetall er eksempelinnhold, ikke krav. Skissene er ikke oppdatert for alle avgjørelsene fra 11.–12.11.2026 (se Endringslogg). Skisse 03 og 04 viser fortsatt Huskeregler-raden, som er fjernet.
 
 ## Grunnlag (Foundation)
 
@@ -19,7 +19,7 @@ Skissene ligger i [`mockups/`](mockups/). **Dokumentene vinner ved konflikt med 
 - **Språk:** norsk bokmål i hele grensesnittet (FR-1). Sidene har `lang="nb"` (NFR-12).
 - **Teknologi:** teknisk stakk og eventuelt UI-bibliotek er ikke bestemt i UX-arbeidet. Det avgjøres i arkitekturen. Dette dokumentet beskriver oppførsel uavhengig av bibliotek.
 - **Visuell referanse:** [DESIGN.md](DESIGN.md). Tokens henvises som `{colors.brand}` osv.
-- **Demomodus** er standard (NFR-2). Grensesnittet er likt i demomodus og med ekte språkmodell. Forskjellen vises på kontosiden.
+- **Demomodus** er standard (NFR-2). Grensesnittet er likt i demomodus og med ekte språkmodell. Forskjellen vises på kontosiden. Vilkårsteksten (05) er den samme i begge moduser og har alltid innholdet i NFR-6, slik FR-11 krever. I demomodus får den i tillegg setningen «I demomodus sendes ingenting ut.» Merknadene på 04 og 13, kontosiden og ventetiden tilpasses modusen: i demomodus står det at ingenting sendes ut, og at innholdet tar noen sekunder å lage (NFR-2, NFR-17).
 - **Tre moduser:** forsiden uten sidemeny, arbeidssider med sidemeny (emnetre), og øving der sidemenyen blir et øktpanel.
 
 ## Informasjonsarkitektur (Information Architecture)
@@ -48,16 +48,18 @@ Skissene ligger i [`mockups/`](mockups/). **Dokumentene vinner ved konflikt med 
 
 Disse bygges fra mønstrene i dette dokumentet og DESIGN.md:
 
-- **Opprett konto** (FR-3): samme kort som 01, byttet med «Opprett konto» / «Logg inn».
-- **Nytt emne, nytt navn, slett emne** (FR-6, FR-14): dialoger. Sletting følger mønsteret i 14.
+- **Opprett konto** (FR-3): samme kort som 01, byttet med «Opprett konto» / «Logg inn». Passordet må ha minst 8 tegn. Finnes e-postadressen fra før, står det «Det finnes allerede en konto med denne e-postadressen. Logg inn i stedet.» Det avslører at kontoen finnes, men er godtatt fordi registrering ellers blir uforståelig. Innloggingen avslører det fortsatt ikke.
+- **Nytt emne, nytt navn, endre eksamensdato, slett emne** (FR-6, FR-14): dialoger. Nytt emne har to påkrevde felt: navn og eksamensdato. Er datoen tom eller ugyldig, står det under feltet: «Skriv inn eksamensdatoen, for eksempel 04.12.2026.» Eksamensdatoen endres med «Endre eksamensdato» på emnesiden (03). Sletting følger mønsteret i 14.
 - **Ny forelesning, nytt navn, endre dato, slett forelesning** (FR-7, FR-14, FR-15): dialoger. Dato er dagens dato som standard.
 - **Erstatt fil** (FR-13): bekreftelse som 14, med teksten «erstatter» i stedet for «sletter».
-- **Lag flashcards** (FR-17) og **Lag fritekstspørsmål** (FR-48): dialoger som 06, med omfang og uten vanskelighetsgrad.
+- **Lag flashcards** (FR-17): dialog som 06, med omfang (10, 20 eller 30) og uten vanskelighetsgrad.
+- **Lag fritekstspørsmål** (FR-48): dialog som 06, uten vanskelighetsgrad. Klara velger type (kortsvar eller langsvar) og omfang (rask 5, vanlig 10 eller dyp 15).
 - **Lag modellkort** (FR-42), en tekstknapp på Flashcards-raden ved siden av «Lag flere», og **Lag sammendrag** (FR-53): starter jobben direkte, uten dialog. [ASSUMPTION] Ingen valg finnes i PRD-en.
-- **Hurtigtaster** («?»): dialog. Innholdet er et åpent spørsmål.
+- **Hurtigtaster**: dialog som viser tastene for siden Klara er på, og bryteren «Bruk hurtigtaster» (på som standard). Åpnes med «? Hurtigtaster» nederst i sidemenyen, og med `?` under øving.
 - **Endre huskeregel** (FR-46): fra 11. Ikke skissert.
-- **Rediger og slett kort, slett spørsmål** (FR-27, FR-37, FR-52): ikke skissert, og det er ikke bestemt hvor det skjer. Se Åpne spørsmål.
-- **Resultat for fritekst** (FR-51): som 08, med «Riktig / Delvis riktig / Feil». Modellkort har ikke eget resultat; de telles med i flashcard-økten (08).
+- **Rediger og slett kort, slett spørsmål** (FR-27, FR-37, FR-46, FR-52): skjer under øving. Hvert kort eller spørsmål har «Rediger» (flashcards og modellkort) og «Slett» (alle typer) i bunnfeltet ved kilden. Sletting krever bekreftelse som 14. Det finnes ingen egen listeside i MVP. Redigeringen er ikke skissert.
+- **Resultat for fritekst** (FR-51): som 08, med tre tall: «Riktig», «Delvis riktig» og «Feil». Under står spørsmålene Klara vurderte som Feil eller Delvis riktig, med modellsvar og kilde. Hennes eget svar vises ikke, fordi det ikke lagres. Modellkort har ikke eget resultat; de telles med i flashcard-økten (08).
+- **Fant ikke siden** (FR-4): én side med «Fant ikke siden» og lenke til forsiden. Den brukes både når innholdet ikke finnes og når det tilhører en annen bruker, så ingen kan se forskjell. Er innloggingen utløpt, kommer Klara til 01 med «Du er logget ut. Logg inn igjen.»
 - **Slett konto** (FR-5): bekreftelse som 14, åpnes fra 15.
 
 ### Navigasjon
@@ -93,7 +95,7 @@ Prinsipper:
 
 ### Meldinger som ikke er skissert
 
-PRD-en sier hva meldingene skal inneholde. Ordlyden under er forslag. [ASSUMPTION] Ordlyden må godkjennes av Silje.
+PRD-en sier hva meldingene skal inneholde. Ordlyden under er godkjent av Silje 11.11.2026. Meldingen vises ved fila eller jobben, ikke som egen side.
 
 | Situasjon | Krav | Forslag til tekst |
 |---|---|---|
@@ -115,19 +117,19 @@ Oppførsel. Visuelt utseende står i DESIGN.md, «Komponenter». Navnene er de s
 | Menyrad (`menu-row`) | Sidemeny | Hele raden er klikkbar. Valgt rad er markert og har `aria-current="page"`. Lange navn kortes av med «…», og hele navnet finnes som tilgjengelig navn. |
 | Øktpanel (`session-panel`) | 07–12 | Viser hvor langt Klara er, hva hun har svart, og «Avslutt økt». Oppdateres etter hvert svar. Når økten er ferdig, byttes «Avslutt økt» med «✓ Økten er ferdig og lagret». |
 | Svarrutenett (`answer-grid-cell`) | Øktpanel | Én rute per kort eller spørsmål. Viser ✓, ✗ eller ◐ etter svar. Rutene er ikke knapper; Klara kan ikke hoppe mellom spørsmål. [ASSUMPTION] Skissene viser ikke klikk. |
-| Semesterlinje (`semester-timeline`) | 02, 03, 04 | Viser forelesninger som stasjoner (fylt = øvd), «I dag» og eksamen. Er grafikk; samme informasjon finnes i tekst ved siden av (emnenavn, antall forelesninger, «Eksamen 04.12 · om 3 uker»). Kan kuttes (FR-57): da vises bare teksten. |
-| Emnekort (`subject-card`) | 02 | «Åpne» → 03. Hovedknappen starter flashcards for forelesningen under NESTE Å ØVE PÅ. Har emnet ikke innhold, står NESTE STEG med «Lag flashcards» → 04 for den forelesningen. Regelen for hvilken forelesning som vises, er et åpent spørsmål. |
-| Forelesningstabell (`lecture-table`) | 03 | Sortert etter dato (FR-15). Hele raden er lenke til 04. Viser antall kort og quiz og status (FR-16). |
+| Semesterlinje (`semester-timeline`) | 02, 03, 04 | Viser forelesninger som stasjoner (fylt = øvd), «I dag» og eksamen. Er grafikk; samme informasjon finnes i tekst ved siden av (emnenavn, antall forelesninger, «Eksamen 04.12 · om 3 uker»). Er eksamen i dag, står det «Eksamen i dag». Er den passert, står det «Eksamen var 04.12». Linjen starter ved første forelesning; semesterstart lagres ikke. Kan kuttes (FR-57): da vises bare teksten, ordrett «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd». |
+| Emnekort (`subject-card`) | 02 | «Åpne» → 03. Hovedknappen starter flashcards for forelesningen under NESTE Å ØVE PÅ. Har emnet ikke innhold, står NESTE STEG med «Lag flashcards» → 04 for den forelesningen. NESTE Å ØVE PÅ er den eldste forelesningen som har innhold, men ikke er øvd. Er alle øvd, vises den som ble øvd lengst siden. |
+| Forelesningstabell (`lecture-table`) | 03 | Sortert etter dato (FR-15). Hele raden er lenke til 04. Viser antall filer, kort og quiz og status med når den sist ble øvd (FR-16). |
 | Kort «Øv på hele emnet» (`practice-all-card`) | 03 | Starter øving på alt innhold i emnet: flashcards (07), quiz (09) og fritekst (12) (FR-23, FR-34, FR-50). En rad vises bare når emnet har den typen innhold. |
 | Filrad (`file-row`) | 04 | «Slett» åpner 14. «Erstatt» åpner filvelgeren, deretter en bekreftelse som 14 (FR-13). |
 | Opplastingsfelt (`upload-zone`) | 04 | Tar imot én eller flere PDF-er ved dra og slipp eller «Velg PDF» (FR-8). Første gang åpnes 05 før opplasting (FR-11). Filer som avvises, får melding (FR-9, FR-10, NFR-16). |
-| Rad i «Lag og øv» (`create-row`) | 04 | Med innhold: «Øv nå» starter økt for forelesningen, «Lag flere» åpner dialog og legger nye til de gamle (FR-22, FR-33). Uten innhold: «Lag …» åpner dialog eller starter jobben. Sammendrag-raden åpner 13 når sammendraget finnes. |
-| Jobbstatus (`job-status`) | 04 | Erstatter knappene i raden mens jobben pågår. Klara kan gå hvor hun vil i appen imens (NFR-17). Leses opp av skjermleser når den starter og slutter (NFR-12). [ASSUMPTION] Bare én jobb per type og forelesning om gangen. |
+| Rad i «Lag og øv» (`create-row`) | 04 | Med innhold: «Øv nå» starter økt for forelesningen, «Lag flere» åpner dialog og legger nye til de gamle (FR-22, FR-33). Uten innhold: «Lag …» åpner dialog eller starter jobben. Flashcards-raden har tekstknappen «Lag modellkort» både med og uten flashcards (FR-42). Sammendrag-raden åpner 13 når sammendraget finnes. |
+| Jobbstatus (`job-status`) | 04 | Erstatter knappene i raden mens jobben pågår. Klara kan gå hvor hun vil i appen imens (NFR-17). Leses opp av skjermleser når den starter og slutter (NFR-12). Det går bare én jobb per forelesning om gangen (NFR-17). Mens den pågår, er de andre «Lag …»-knappene i forelesningen ikke aktive, og raden sier hvorfor, for eksempel «Venter til flashcardene er ferdige». |
 | Hovedknapp (`button-primary`) | Overalt | Det Klara gjør oftest på stedet. Høyst én per rad eller seksjon. |
 | Omrissknapp (`button-outline`) | Overalt | Sjeldnere eller sekundære valg, og «Avbryt». |
 | Tekstknapp (`button-text`) | Overalt | Handlinger i rader og kort. Ikonet har tekst ved siden av; ikonet alene er aldri hele navnet. |
 | Fareknapp (`button-danger`) | 14 og andre slettedialoger | Utfører slettingen. Har aldri startfokus. |
-| Kildelenke (`source-link`) | Alt generert innhold | Viser fil og PDF-side (FR-20, FR-32, FR-39, FR-49, FR-54). [ASSUMPTION] I MVP er kilden tekst, ikke lenke som åpner PDF-en; det er en mulig utvidelse i PRD-en. Da må den heller ikke understrekes som lenke. Se Åpne spørsmål. |
+| Kildelenke (`source-link`) | Alt generert innhold | Viser fil og PDF-side (FR-20, FR-32, FR-39, FR-49, FR-54). I MVP er kilden tekst, ikke en lenke, og den understrekes ikke. Å åpne PDF-en på riktig side er en mulig utvidelse. |
 | Flashcard (`flashcard`) | 07 | Forsiden vises først. Snus med Mellomrom eller klikk (FR-24). Spørsmålskort og begrepskort (FR-19) bruker samme kort; på begrepskort står begrepet under SPØRSMÅL. [ASSUMPTION] Etiketten er ikke skissert for begrepskort. «Kunne» og «Kunne ikke» er aktive først når kortet er snudd (FR-25). Kort markert «Kunne ikke» kommer igjen senere i økten. |
 | Modellkort (`model-card`) | 11 | Som flashcard (FR-42). Har kortet ingen huskeregel (FR-44), vises bare punktene, og «Endre huskeregel» heter «Legg til huskeregel» (FR-46). [ASSUMPTION] Ordlyden er ikke skissert. «Endre huskeregel» åpner redigering av huskeregelen (FR-46). |
 | Svaralternativ (`quiz-option`) | 09 | Fire alternativer (FR-30). Klara velger ett, og bekrefter. Etter bekreftelse er alternativene låst (FR-35), og riktig svar og forklaring vises. |
@@ -151,12 +153,12 @@ Oppførsel. Visuelt utseende står i DESIGN.md, «Komponenter». Navnene er de s
 
 | Tilstand | Flate | Oppførsel |
 |---|---|---|
-| Ny bruker uten emner | 02 | Ikke skissert. [ASSUMPTION] Semesterlinjen og kortene byttes med én kort forklaring og «Nytt emne» som hovedknapp. Se Åpne spørsmål. |
+| Ny bruker uten emner | 02 | Ikke skissert. Semesterlinjen og kortene byttes med én setning om hva appen gjør og «Lag ditt første emne» som hovedknapp. Testbrukeren har eksempelemnet. |
 | Emne uten øvingsinnhold | 02 | Kortet viser NESTE STEG og «Lag flashcards» i stedet for «Øv nå» (skisse 02, Organisasjon og ledelse). |
 | Forelesning uten filer | 03, 04 | Tabellen viser «Ingen filer ennå». På 04 er «Lag og øv»-knappene ikke aktive før det finnes en fil. [ASSUMPTION] |
 | Type uten innhold | 04 | «Ingen ennå» / «Ikke laget» og en omrissknapp for å lage. |
-| Jobb pågår | 04 | Jobbstatus i raden: «Lager quizspørsmål …» og «Du kan bruke resten av appen imens.» Klara kan gå hvor hun vil (NFR-17). Når jobben er ferdig, kommer «Øv nå» tilbake og en statusmelding leses opp (NFR-12). [ASSUMPTION] Forlater hun siden, får hun beskjed når jobben er ferdig, og forelesningen viser det når hun kommer tilbake. |
-| Generering feilet | 04 | Ikke skissert. Raden viser feilmeldingen i tekst og «Prøv igjen». Ingenting halvferdig lagres (FR-21). |
+| Jobb pågår | 04 | Jobbstatus i raden: «Lager quizspørsmål …» og «Du kan bruke resten av appen imens.» Klara kan gå hvor hun vil (NFR-17). Når jobben er ferdig, kommer «Øv nå» tilbake. En kort melding vises og leses opp (NFR-12), uansett hvilken side Klara er på, og forelesningen viser resultatet når hun kommer tilbake. |
+| Generering feilet | 04 | Ikke skissert. Gjelder også når jobben ikke er ferdig etter 3 minutter. Raden viser feilmeldingen i tekst og «Prøv igjen». Ingenting halvferdig lagres (FR-21). |
 | Færre enn valgt | 04 | Ikke skissert. Statusmelding med hvor mange som ble laget (FR-18, FR-38). Leses opp (NFR-12). |
 | Ingen modeller funnet | 04 | Ikke skissert. Melding i Flashcards-raden (FR-47). |
 | Fil avvist | 04 | Ikke skissert. Word og andre filtyper (FR-9), PDF uten tekst (FR-10) og over 50 sider (NFR-16) avvises med melding ved opplastingsfeltet. Fila lastes ikke opp. |
@@ -166,7 +168,7 @@ Oppførsel. Visuelt utseende står i DESIGN.md, «Komponenter». Navnene er de s
 | Svar ikke bekreftet | 09 | Klara kan bytte valg. Ingen farge, ingen forklaring. Ikke skissert (09 viser etter bekreftelse). |
 | Fritekst før modellsvar | 12 | Tekstfeltet er åpent. Modellsvar og selvvurdering er skjult. Ikke skissert. |
 | Nytt sammendrag | 13 | «Lag nytt sammendrag» starter en jobb. Det gamle sammendraget står til det nye er ferdig, og blir så erstattet (FR-55). [ASSUMPTION] |
-| Økt ferdig | 08, 10 | Øktpanelet er fullt. Innholdet viser resultatet. |
+| Økt ferdig | 08, 10 | Øktpanelet er fullt. Innholdet viser resultatet. Økten lagres med dato, type (flashcards, quiz eller fritekst; modellkort er flashcards), omfang (én forelesning eller hele emnet) og poengsum. Enkeltsvar og markeringer lagres ikke (FR-56). |
 | Innhold med formel | Kort, quiz, fritekst, sammendrag | Merket «Inneholder formel – sjekk mot kilden» (FR-41). Ikke skissert. |
 | Innloggingsfeil | 01 | Feltet får feilkant og tekst under, og fokus flyttes til feltet (skisse 01). |
 | Konto | 15 | Passord-raden viser bare «Lagret kryptert, aldri i klartekst» (NFR-7). Det finnes ingen endring av e-post eller passord. |
@@ -182,7 +184,7 @@ Oppførsel. Visuelt utseende står i DESIGN.md, «Komponenter». Navnene er de s
 
 | Flate | Tast | Handling |
 |---|---|---|
-| Alle med sidemeny | `?` | Åpner hurtigtastdialogen |
+| Øving (07–12) | `?` | Åpner hurtigtastdialogen. På sider med sidemeny åpnes den med knappen «? Hurtigtaster». |
 | Flashcard og modellkort (07, 11) | Mellomrom | Snu kortet |
 | | `1` | Kunne ikke |
 | | `2` | Kunne |
@@ -198,8 +200,8 @@ Oppførsel. Visuelt utseende står i DESIGN.md, «Komponenter». Navnene er de s
 
 Regler:
 
-- **Enkelttaster** (tall, bokstaver, Mellomrom) virker ikke mens fokus står i et tekstfelt. Ellers kan Klara ikke skrive svaret sitt på 12.
-- **Enkelttaster må kunne skrus av** (WCAG 2.1.4). Hvor det skjer, er et åpent spørsmål.
+- **Enkelttaster** (tall, bokstaver, Mellomrom, `?`) virker bare under øving (07–12), og aldri mens fokus står i et tekstfelt. Ellers kan Klara ikke skrive svaret sitt på 12.
+- **Enkelttaster kan skrus av** med bryteren «Bruk hurtigtaster» i hurtigtastdialogen (WCAG 2.1.4). Den er på som standard. Når den er av, virker knappene som før, og hint-linjen skjules.
 - Tastene står alltid synlig i hint-linjen på siden de virker.
 
 ### Grep
@@ -208,7 +210,8 @@ Regler:
 - **Bekreft svar:** valg og bekreftelse er to steg (FR-35). Etter bekreftelse kan svaret ikke endres.
 - **Selvvurdering:** etter modellsvaret velger Klara Feil, Delvis riktig eller Riktig (FR-51). Ingen er forhåndsvalgt, og appen dytter ikke mot et svar.
 - **Rekkefølge:** kort og spørsmål vises i tilfeldig rekkefølge (FR-23, FR-34).
-- **Avslutt økt:** [ASSUMPTION] avslutter uten bekreftelse og viser resultatet for det som er besvart. Se Åpne spørsmål.
+- **Avslutt økt:** avslutter uten bekreftelse. Resultatet for det som er besvart, vises og lagres som avbrutt, for eksempel «Avbrutt etter 12 av 20». Er ingenting markert eller besvart, lagres ingenting, og Klara går rett tilbake dit hun startet, uten resultatside (FR-56).
+- **Forlate en økt:** går Klara til en annen side, logger ut eller lukker fanen midt i en økt, lagres økten som avbrutt hvis minst ett kort er markert eller ett spørsmål besvart (FR-56).
 
 ### Ikke i appen
 
@@ -232,7 +235,7 @@ Oppførsel. Kontrast og farger står i DESIGN.md. Grunnlaget er WCAG 2.1 AA.
 - **Grafikk.** Semesterlinjen og svarrutenettet har en tekstlig versjon for skjermleser, for eksempel «Markedsføring: 4 av 8 forelesninger øvd. Eksamen fredag 04.12, om 3 uker.»
 - **Tilgjengelige navn.** Ikonknapper har tekst. Forkortede navn i menyen har hele navnet som tilgjengelig navn. Svarrutenettet leses som «Spørsmål 4: feil».
 - **Overskrifter og landemerker.** Én sidetittel (h1) per side. Toppfelt, sidemeny og innhold er egne landemerker.
-- **Enkelttaster** kan skrus av (WCAG 2.1.4).
+- **Enkelttaster** kan skrus av i hurtigtastdialogen (WCAG 2.1.4). Se Interaksjon.
 - **Zoom (NFR-14).** Alt kan brukes med 200 % tekst uten vannrett rulling.
 - **Kontroll (NFR-13).** Automatiske tester på alle sider pluss en manuell gjennomgang med bare tastatur av hele kjerneflyten (SK-9, SK-12).
 
@@ -249,7 +252,7 @@ Klara har nettopp hatt forelesningen «Uke 37: Merkevare» i Markedsføring. Hun
 3. På emnesiden (03) trykker hun «Ny forelesning». Navnet er «Uke 37: Merkevare», og datoen er dagens dato (FR-15). Hun kommer til forelesningssiden (04).
 4. Hun drar `merkevare-notater.pdf` inn i opplastingsfeltet. Det er første gang, så vilkårsdialogen (05) åpnes. Hun leser, krysser av og trykker «Godta og last opp».
 5. Fila står i fillista med antall sider. Mer orker hun ikke. Hun logger ut.
-6. Noen dager senere åpner hun forelesningen fra sidemenyen. Hun trykker «Lag flashcards», velger «Vanlig», og jobbstatusen viser at kortene lages. Hun trykker «Lag quiz» (06), velger «Vanlig» og «Middels», og trykker «Lag quiz».
+6. Noen dager senere åpner hun forelesningen fra sidemenyen. Hun trykker «Lag flashcards», velger «Vanlig», og jobbstatusen viser at kortene lages. «Lag quiz» venter til kortene er ferdige. Da trykker hun «Lag quiz» (06), velger «Vanlig» og «Middels», og trykker «Lag quiz».
 7. Mens quizen lages, trykker hun «Øv nå» på flashcards. Kortøkten (07) starter. Hun leser spørsmålet, tenker, og snur med Mellomrom. Hun trykker `2` for «Kunne» eller `1` for «Kunne ikke». Kortene hun ikke kunne, kommer igjen.
 8. Økten er ferdig (08): «Kunne 19», «Kunne ikke 5», og en liste over de fem kortene med kilde. Hun går tilbake til forelesningen.
 9. Quizen er ferdig laget. Hun trykker «Øv nå» på Quiz-raden (09), velger svar med `A`–`D` og bekrefter med Enter. Først da ser hun riktig svar og forklaring med kilde.
@@ -278,9 +281,9 @@ Tre uker før eksamen har Klara lastet opp notater fra alle forelesningene i Mar
 
 **Feilveier:**
 
-- Et kort er faglig feil. Hun sjekker kilden og sletter eller retter kortet (FR-27, FR-37). Hvor dette gjøres, er ikke bestemt.
+- Et kort er faglig feil. Hun sjekker kilden og trykker «Slett» eller «Rediger» i bunnfeltet på kortet (FR-27, FR-37).
 - Et kort er merket «Inneholder formel – sjekk mot kilden». Hun slår opp i PDF-en på siden som står i kilden (FR-41).
-- Hun avslutter en økt halvveis med Esc. Hun kommer tilbake dit hun startet.
+- Hun avslutter en økt halvveis med Esc. Resultatet for det hun har gjort, vises og lagres.
 
 ### Flyt 3 — Klara rydder i filene (FR-12, FR-13)
 
@@ -312,7 +315,7 @@ Skissene er tegnet for 1440 × 900 px. PRD-en krever at appen virker ned til 768
 |---|---|
 | ≥ 1280 px | Som skissene. |
 | 768–1279 px | [ASSUMPTION] Forsidekortene går fra tre til to kolonner og så én. To kolonner på 03, 04 og 13 legges under hverandre når de ikke får plass. Flashcard og quizkolonne krymper til bredden som er igjen. |
-| ≤ 768 px eller 200 % tekst | Sidemenyen og øktpanelet tar for mye plass. Hva som skjer med dem, er ikke bestemt. Se Åpne spørsmål. |
+| ≤ 768 px eller 200 % tekst | Sidemenyen og øktpanelet skjules bak en menyknapp i toppfeltet og legger seg over innholdet når de åpnes. |
 
 Semesterlinjen må kunne vises smalere uten at etiketter kolliderer. [ASSUMPTION] Månedsetiketter kan forkortes, men «I dag» og eksamen skal alltid synes.
 
@@ -324,31 +327,19 @@ Semesterlinjen må kunne vises smalere uten at etiketter kolliderer. [ASSUMPTION
 - **Forbilder for håndverket (F2):** Linear, Things og Stripe Dashboard i lys utgave.
 - **Valgt bort: tidslinje i sidemenyen.** Det var den som gjorde hybridene rotete.
 - **Valgt bort: stolpediagram på emnesiden.** Status vises med prikk og tekst.
-- **Valgt bort: understrekede knapper og lenker.** Unntatt kildelenken.
+- **Valgt bort: understrekede knapper og lenker.**
 - **Valgt bort: dobbel informasjon.** Kortene sier ikke det tidslinjen eller øktpanelet allerede viser.
 - **Valgt bort: feiring av resultater.** Resultatet er sakelig.
 - **Valgt bort: «Glemt passord»** (FR-3) og endring av e-post og passord, som ikke er i PRD-en.
 
-## Avgjort i gjennomgangen 11.11.2026
+## Endringslogg
 
-Disse tre var åpne spørsmål i utkastet. Silje avgjorde dem. De to første krever endring i PRD-en.
+Avgjørelsene står i seksjonene de gjelder. Her står bare når de ble tatt.
 
-1. **Øvingshistorikk lagres per økt.** For hver økt lagres dato, type (flashcards, quiz eller fritekst; modellkort er flashcards, endret 12.11), omfang (én forelesning eller hele emnet) og poengsum. Enkeltsvar og markeringer lagres ikke. Dette gir «Øvd 03.11», «4 av 8 forelesninger øvd», «Siste økt» og fylte og hule stasjoner på semesterlinjen. *PRD: FR-56, og FR-25 og FR-51 er presisert.*
-2. **Et emne har navn og eksamensdato.** Eksamensdatoen er påkrevd når emnet lages, og kan endres. Semesterlinjen starter ved første forelesning, så semesterstart lagres ikke. *PRD: FR-6 er utvidet.*
-3. **Rediger og slett skjer under øving.** Hvert kort eller spørsmål har «Rediger» (flashcards og modellkort, FR-27 og FR-46) og «Slett» (alle typer, FR-27, FR-37 og FR-52) i bunnfeltet ved kilden. Sletting krever bekreftelse. Det finnes ingen egen listeside i MVP.
-
-4. **«Neste å øve på»** er den eldste forelesningen som har innhold, men ikke er øvd. Er alle øvd: den som ble øvd lengst siden.
-5. **Smal skjerm (≤ 768 px og 200 % tekst):** sidemenyen og øktpanelet skjules bak en menyknapp i toppfeltet og legger seg over innholdet når de åpnes.
-6. **Hurtigtastdialogen («?»)** viser tastene for siden Klara er på. Enkelttaster virker bare under øving, aldri når fokus står i et tekstfelt (WCAG 2.1.4).
-7. **Ny bruker uten emner:** forsiden viser «Lag ditt første emne» og én setning om hva appen gjør. Testbrukeren har eksempelemnet.
-8. **Feilmeldinger** (FR-9, FR-10, FR-18, FR-21, FR-47, NFR-16): ordlyden i «Stemme og tone» gjelder. Meldingen vises ved fila eller jobben, ikke som egen side.
-9. ~~**Huskeregler for hele emnet** får egen rad i «Øv på hele emnet» (03).~~ Endret 12.11.2026: Modellkort øves sammen med flashcards. Det finnes ingen egen rad for huskeregler, verken på 03 eller 04.
-10. **«Avslutt økt»** krever ingen bekreftelse. Resultatet for det som er gjort, vises og lagres.
-11. **Fritekst:** Klara velger kortsvar eller langsvar i dialogen, sammen med omfang (FR-48).
-12. **Kildehenvisningen** er tekst i MVP, ikke en lenke. Å åpne PDF-en på riktig side er en mulig utvidelse.
-13. **Demomodus:** personverntekst og ventetid tilpasses modusen. I demomodus står det at ingenting sendes ut, og at innholdet tar noen sekunder (NFR-2, NFR-17).
-14. **Jobber:** én jobb per forelesning om gangen. Når en jobb er ferdig, vises en kort melding som skjermlesere leser opp (NFR-12), uansett hvilken side Klara er på.
+- **11.11.2026:** Silje avgjorde tre åpne spørsmål i utkastet: øvingshistorikk per økt, eksamensdato på emnet og redigering og sletting under øving. Hun godkjente også forslag om «Neste å øve på», smal skjerm, hurtigtaster, ny bruker, feilmeldinger, «Avslutt økt», fritekst med kortsvar og langsvar, kilde som tekst, demomodus og én jobb per forelesning. *PRD: FR-6 ble utvidet, FR-56 kom til, og FR-25 og FR-51 ble presisert.*
+- **12.11.2026:** Huskeregler for hele emnet fikk ikke egen rad. Modellkort øves sammen med flashcards, og i historikken telles de som flashcards.
+- **14.11.2026:** Etter gjennomgang (`bmad-review`) ble avgjørelsene flyttet inn i seksjonene de gjelder. To nye avgjørelser: enkelttaster kan skrus av med en bryter i hurtigtastdialogen (WCAG 2.1.4), og mens en jobb pågår, er de andre «Lag …»-knappene i forelesningen ikke aktive. Hull mot PRD-en ble tettet (FR-3, FR-4, FR-6, FR-16, FR-21, FR-42, FR-51, FR-56, FR-57 og NFR-6). Nye avgjørelser: vilkårsteksten har alltid NFR-6-innholdet, passord har minst 8 tegn, kontroller har kanten `border-control`, og emnefarger går i en fast liste på seks.
 
 ## Åpne spørsmål
 
-Ingen. Svarene på 4–14 er Siljes godkjenning av forslag 11.11.2026. Skissene er ikke oppdatert for 3, 7–11 og 13; dokumentet vinner. Skisse 03 og 04 viser fortsatt Huskeregler-raden, som er fjernet 12.11.2026 (punkt 9).
+Ingen fra UX-arbeidet. Funnene fra gjennomgangen 14.11.2026 som ikke er behandlet ennå, er ført i issue #18.

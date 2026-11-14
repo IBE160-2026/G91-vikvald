@@ -4,6 +4,10 @@ Eksempler på at KI-forslag er avvist eller rettet, og på feil KI gjorde. Nyest
 
 | Dato | Hva KI gjorde | Hvem oppdaget det | Hva som ble gjort | Spor |
 |---|---|---|---|---|
+| 2026-11-14 | I UX-økten 11.–12.11 ble avgjørelsene lagt nederst i EXPERIENCE.md uten at teksten de gjaldt, ble rettet. Dokumentet hadde status final, men motsa seg selv. | KI, i gjennomgangen | Avgjørelsene flyttet inn i seksjonene de gjelder. | `9f44255` |
+| 2026-11-14 | Avgjørelse 6 (KI-forslag) sa at enkelttaster «bare under øving» oppfyller WCAG 2.1.4. Det gjør det ikke. | KI, i gjennomgangen | Bryteren «Bruk hurtigtaster». | `9f44255` |
+| 2026-11-14 | Avgjørelse 13 (KI-forslag) tilpasset personvernteksten til demomodus, i strid med FR-11 og NFR-6. | KI, i gjennomgangen | Vilkårsteksten har alltid NFR-6-innholdet. | `fcf09cf` |
+| 2026-11-14 | Svaralternativer og valgkort fikk en kant med for lav kontrast (ca. 1,3:1). | KI, i gjennomgangen | Kanten `border-control` (3,2:1). | `fcf09cf` |
 | 2026-11-13 | Jeg husket at jeg fikk flere alternativer til teknologistakken. | KI, mot sesjonsloggen fra 2026-11-05 | Loggen viser ett forslag til stakken. Alternativene gjaldt språkmodellen. Refleksjonen sier det slik. | `81e7b3f` |
 | 2026-11-12 | Spurte om «modellkort (huskeregler)» som om de var det samme, og foreslo øktypen «huskeregler». | Jeg («modellkort er ikke samme som huskeregler») | Modellkort er flashcards. Huskeregler er ikke en øktype. | `4d303ac` |
 | 2026-11-12 | Sa at modellkort «øves sammen med de andre kortene» uten å sjekke UX-dokumentet, som hadde en egen Huskeregler-rad. | KI, ved gjennomgang av `EXPERIENCE.md` | Konflikten ble lagt fram. Jeg valgte å fjerne raden. | `16e7f99` |

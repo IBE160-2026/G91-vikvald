@@ -2,6 +2,14 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-14: Gjennomgang av UX-dokumentene
+
+> bmad-review
+
+KI kjørte fire uavhengige gjennomlesninger (adversarial, edge-case-hunter, structure og prose) av DESIGN.md og EXPERIENCE.md, og sjekket dem mot PRD-en. Jeg tok de valgene som trengtes underveis, i spørsmålsdialoger.
+
+**Resultat:** Funnene i `review-ux-2026-11-14.md` (`f5134a4`). Gruppe 1 og 2 er rettet (`9f44255`, `fcf09cf`). Gruppe 3 og 4 er ført i #18.
+
 ## 2026-11-13: Refleksjonsspørsmålene i PRD-tilbakemeldingen
 
 > jeg synes dette er så vanskelig fordi jeg kan for lite om det

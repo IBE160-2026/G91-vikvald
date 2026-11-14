@@ -2,7 +2,7 @@
 title: "DESIGN: Studiekamerat"
 status: final
 created: 2026-11-10
-updated: 2026-11-11
+updated: 2026-11-14
 name: Studiekamerat
 description: Norskspråklig studieverktøy for PC-nettleser. Designretning F2-V1 «Signaturfarge»: rolig papir, presis grotesk og én ultramarin merkefarge for handling og posisjon.
 sources:
@@ -226,10 +226,14 @@ components:
     scrim: '{colors.scrim} @ 42 %'
   quiz-option:
     background: '{colors.surface}'
-    border: '1px {colors.border-card}'
+    border: '1px {colors.border-control}'
     radius: '{rounded.option}'
     correct: '{colors.success-tint} + 1.5px {colors.success}'
     wrong: '{colors.danger-tint} + 1.5px {colors.danger}'
+  choice-option:
+    background: '{colors.surface}'
+    border: '1px {colors.border-control}'
+    radius: '{rounded.option}'
   choice-option-selected:
     background: '{colors.brand-tint}'
     border: '1.5px {colors.brand}'
@@ -242,7 +246,6 @@ components:
   source-link:
     typography: '{typography.caption}'
     foreground: '{colors.ink}'
-    underline: '1px {colors.border-card}'
   semester-timeline:
     background: '{colors.surface}'
     line-width: 4px
@@ -324,7 +327,7 @@ Skisser: [02 Dine emner](mockups/02-emner.svg) viser hele uttrykket på forsiden
 - I skissene er de knyttet til Markedsføring, Samfunnsøkonomi og Organisasjon og ledelse. Det er eksempelinnhold.
 - Kontrast: 5,3:1 (oransje på papir), 6,1:1 (petrol på papir), 6,1:1 (grønn på papir).
 - Emnefarger brukes aldri på knapper, flater eller tekst. Oransje er særlig utsatt: den skal ikke brukes til advarsler eller «delvis riktig», fordi den da forveksles med emnet.
-- [ASSUMPTION] Hvordan et nytt emne får farge, og hva som skjer med flere enn tre emner, er ikke bestemt. Se Åpne spørsmål.
+- **Nye emner** får fargene i fast rekkefølge etter når emnet ble opprettet. Lista skal ha seks farger: de tre over og tre til, som velges og måles ved koding. De må ha minst 3:1 mot papir og holdes unna merkefargen og rødt og grønt. Fra det sjuende emnet gjentas fargene. Emnenavnet står alltid ved prikken og linjen, så fargen er aldri eneste kjennetegn.
 
 ### Riktig, feil og delvis
 
@@ -336,8 +339,8 @@ Skisser: [02 Dine emner](mockups/02-emner.svg) viser hele uttrykket på forsiden
 
 ### Kanter, linjer og flater
 
-- **`{colors.border-control}` (#858B96)** er kanten på det man kan trykke på eller skrive i: omrissknapper, tekstfelt, radioknapper og opplastingsfeltet. 3,2:1 mot papir, nok for grafikk (WCAG 1.4.11).
-- **`{colors.border-card}` (#DDDCD5)** er kanten på kort, dialoger, svaralternativer, tomme ruter og tastaturknapper. Den er også den svake streken under kildelenken.
+- **`{colors.border-control}` (#858B96)** er kanten på det man kan trykke på eller skrive i: omrissknapper, tekstfelt, radioknapper, tomme avkrysningsbokser, svaralternativer, valgkort og opplastingsfeltet. 3,2:1 mot papir, nok for grafikk (WCAG 1.4.11).
+- **`{colors.border-card}` (#DDDCD5)** er kanten på kort, dialoger, tomme ruter i svarrutenettet og tastaturknapper. Den brukes ikke på noe man kan trykke på, fordi kontrasten er for lav (WCAG 1.4.11).
 - **`{colors.divider}` (#EAE9E3)** er skillelinjer inne i kort og under toppfeltet. **`{colors.gridline}` (#EDECE6)** er de loddrette månedslinjene på semesterlinjen.
 - **`{colors.progress-track}` (#E4E4DF)** er sporet bak fremdriftsstolper.
 - **`{colors.surface-note}` (#F0EFE9)** er merknadsflaten (personvernmerknad, huskeregel, «sjekk mot kilden») og demomerket. Dempet grå har 5,5:1 på den.
@@ -465,7 +468,7 @@ Visuell beskrivelse. Hvordan komponentene oppfører seg, står i EXPERIENCE.md, 
 
 - **Semesterlinje** (`semester-timeline`): et hvitt kort med symbolforklaring i toppraden (fylt prikk «Øvd», hul prikk «Ikke øvd ennå», firkant «Eksamen», stiplet «Tid igjen»). Månedene AUG–DES som overlinjer med loddrette `{colors.gridline}`. Én linje per emne i emnefargen, 4 px tykk: heltrukket fram til i dag, stiplet fram til eksamen. Stasjonene er sirkler (fylt = øvd, hul = ikke øvd). Eksamen er en svart firkant. «I dag 10.11» er en pille i `{colors.brand}` med loddrett nål. Til venstre: emnenavn, antall forelesninger og «Eksamen 04.12 · om 3 uker». På forelesningssiden viser linjen bare ett emne, og «Du er her» er en ring rundt stasjonen med en nål. Skisser: [02](mockups/02-emner.svg), [03](mockups/03-emne.svg), [04](mockups/04-forelesning.svg). På innloggingen står en grå, forenklet linje som bilde.
 - **Emnekort** (`subject-card`): hvitt kort, tre i bredden. Emneprikk og navn, tekstknappen «Åpne ›» øverst til høyre, antall kort og quizspørsmål, en hårlinje, overlinjen NESTE Å ØVE PÅ med forelesning og grunn («16 kort, ikke øvd ennå»), én knapp, og nederst fremdrift som små stolper («4 av 8 forelesninger øvd»). Kort uten øvingsinnhold har NESTE STEG og omrissknappen «Lag flashcards».
-- **Forelesningstabell** (`lecture-table`): kolonnene Dato, Forelesning, Kort, Quiz og Status. Tall høyrejustert. Tomme tall vises som «–». Status med fylt eller hul prikk og tekst («Øvd 03.11», «Ikke øvd ennå», «Ingen filer ennå»). Pil (›) i `{colors.icon-faint}` ytterst. Hover gir `{colors.row-hover}` og mørk pil.
+- **Forelesningstabell** (`lecture-table`): kolonnene Dato, Forelesning, Filer, Kort, Quiz og Status. Tall høyrejustert. Tomme tall vises som «–». Status med fylt eller hul prikk og tekst («Øvd 03.11», «Ikke øvd ennå», «Ingen filer ennå»). Pil (›) i `{colors.icon-faint}` ytterst. Hover gir `{colors.row-hover}` og mørk pil.
 - **Kort «Øv på hele emnet»** (`practice-all-card`): hvitt kort ved siden av tabellen, med en rad per øvingstype (tittel, omfang og handling). Flashcards har hovedknappen «Øv på flashcards», de andre har tekstknappen «Start ›». Nederst SISTE ØKT.
 
 ### Forelesning
@@ -507,9 +510,9 @@ Tre vanlige stiler og én for fare. Høyde 40 px (48 px under øving), hjørner 
 
 - **Dialog** (`dialog`): hvit, `{rounded.xl}`, tynn kant, `float`-skygge, over sløret. Tittel i `{typography.dialog-title}` og lukkekryss øverst, innhold, en skillelinje og knappene nederst til høyre i rekkefølgen «Avbryt», hovedhandling. Bredde etter innhold: 560 px (slett), 640 px (vilkår), 720 px (lag quiz). Skisser: [05](mockups/05-vilkar.svg), [06](mockups/06-lag-innhold.svg), [14](mockups/14-slett-bekreft.svg).
 - **Valgkort** (`choice-option`): hvitt kort med radioknapp, tittel og forklaring. Omfang står som tre kort ved siden av hverandre, vanskelighetsgrad som tre rader. Valgt: `{colors.brand-tint}`, 1,5 px kant i `{colors.brand}` og fylt ultramarin radioknapp.
-- **Avkrysning** (`checkbox`): 20 px, `{rounded.kbd}`. Avkrysset: fylt `{colors.brand}` med hvit hake.
+- **Avkrysning** (`checkbox`): 20 px, `{rounded.kbd}`. Tom: hvit med 1 px kant i `{colors.border-control}`. Avkrysset: fylt `{colors.brand}` med hvit hake.
 - **Skjemafelt** (`text-field`): etikett over feltet (15 px / 600), felt på 48 px med kant i `{colors.border-control}`. Feil: 1,5 px kant i `{colors.danger}`, og under feltet et ikon og teksten i rødt. Passordfeltet har tekstknappen «Vis». Skisse: [01](mockups/01-logg-inn.svg).
-- **Kildelenke** (`source-link`): filikon, «merkevare-notater.pdf, side 4» i `{typography.caption}` med en svak strek under i `{colors.border-card}`. Det er den eneste understrekede teksten i appen.
+- **Kildelenke** (`source-link`): filikon, «merkevare-notater.pdf, side 4» i `{typography.caption}`, uten understreking. I MVP er kilden tekst, ikke en lenke (se EXPERIENCE.md).
 - **Demomerke** (`demo-badge`): pille på `{colors.surface-note}` med dempet tekst «Demomodus: innholdet lages av en testmodell». Skisse: [15](mockups/15-konto.svg).
 - **Kontokort** (`account-card`): tre hvite kort (Innlogging, Vilkår og personvern, Slett kontoen) med rader som filkortet på forelesningssiden.
 
@@ -528,7 +531,7 @@ Tre vanlige stiler og én for fare. Høyde 40 px (48 px under øving), hjørner 
 | Riktig og feil med symbol og tekst i tillegg til farge | Status som bare vises med farge |
 | Status med fylt og hul prikk og tekst | Stolpediagram eller andre grafer for status |
 | Én semesterlinje per side | Tidslinje i sidemenyen |
-| Tekstknapper med ikon eller pil | Understreking, unntatt kildelenken |
+| Tekstknapper med ikon eller pil | Understreking |
 | Hvite kort med tynn kant og `lift` | Harde skygger og gradienter |
 | Svart fokusring på alt som kan få fokus | Blå fokusring (forveksles med merkefargen) eller å fjerne den |
 | Sakelig resultat: «11 av 15 riktige» | Feiring, konfetti, strek-teller |
@@ -539,5 +542,4 @@ Tre vanlige stiler og én for fare. Høyde 40 px (48 px under øving), hjørner 
 ## Åpne spørsmål
 
 1. **Fargeverdiene** er foreløpige og kan justeres før koding (se «Farger»). Rollene står fast.
-2. **Emnefarger:** hvordan får et nytt emne farge, og hva skjer med flere enn tre emner? Kildene sier ikke noe. Flere farger må måles for kontrast og holdes unna merkefargen og rødt/grønt.
-3. **Ikke skissert:** formelmerket (FR-41), statusmeldinger for feil og «færre enn valgt», hurtigtastdialogen, dialogene for nytt emne, ny forelesning og lag flashcards/fritekst, og redigering av kort. De følger komponentene over, men har ingen visuell referanse.
+2. **Ikke skissert:** formelmerket (FR-41), statusmeldinger for feil og «færre enn valgt», hurtigtastdialogen, dialogene for nytt emne, ny forelesning og lag flashcards/fritekst, og redigering av kort. De følger komponentene over, men har ingen visuell referanse.
