@@ -38,8 +38,11 @@
 - [x] 2026-11-12 [prd](998-2026-11-09-12-49-06-prd.md) — avklar prøvekreditten (#8) innen 14.11, ellers leveres appen med demomodus alene (Plan B, #20) (løst 2026-11-13: prøveperiode, Plan B ikke utløst)
 - [x] 2026-11-12 [prd](998-2026-11-09-12-49-06-prd.md) — svar på refleksjonsspørsmålene i tilbakemeldingen på PRD-en (teknologistakken, vurdering av faglige feil) (#20) (løst 2026-11-13)
 - [ ] 2026-11-12 [prd](998-2026-11-09-12-49-06-prd.md) — tegn skisse 03 og 04 på nytt uten Huskeregler-raden, hvis de skal brukes i rapporten (#18)
-- [ ] 2026-11-13 [prd](998-2026-11-09-12-49-06-prd.md) — i arkitekturfasen: be KI sammenligne stakken med et enklere alternativ og begrunne den opp mot sensorveiledningen (lovet i refleksjonen)
+- [x] 2026-11-13 [prd](998-2026-11-09-12-49-06-prd.md) — i arkitekturfasen: be KI sammenligne stakken med et enklere alternativ og begrunne den opp mot sensorveiledningen (lovet i refleksjonen) (løst 2026-11-14)
 - [ ] 2026-11-13 [prd](998-2026-11-09-12-49-06-prd.md) — sett budsjettvarsel hvis Google Cloud-kontoen oppgraderes fra prøveperioden
 - [ ] 2026-11-14 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — avgjør kanttilfellene fra UX-gjennomgangen (gruppe 3) i arkitekturen eller i storiene (#18)
 - [ ] 2026-11-14 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — rydd struktur og språk i DESIGN.md og EXPERIENCE.md (gruppe 4) (#18)
 - [ ] 2026-11-14 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — velg og mål tre nye emnefarger ved koding
+- [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — epics og stories lages først når Silje sier fra
+- [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — velg lisens for repoet (#25)
+- [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — avgjør om CI (GitHub Actions) skal med, i planleggingen av stories

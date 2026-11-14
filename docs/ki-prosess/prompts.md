@@ -2,6 +2,20 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-14: Arkitektur
+
+> bmad-architecture bruk technology.md som referanse, men tilpass denne til dette prosjektet for MVP
+
+KI anbefalte én Next.js-app. Jeg valgte oppsettet i technology.md.
+
+> vil i hovedsak bruke det som blir brukt i techology.md, men hvis du har store motsetninger og andre anbefalinger kan jeg få de, men vil ha grundig begrunnelse på hvorfor det er bedre
+
+> hvorfor er vertex ai bedre når faglærer har laget techology.md?
+
+> faglærer lager en dockerfil for å sensurere om dette ikke finnes fra før
+
+**Resultat:** Arkitekturdokumentet (`69ec805`, `3934a34`). Det følger technology.md, med fire begrunnede avvik. Fem uavhengige gjennomganger fant feil som er rettet (#24).
+
 ## 2026-11-14: Gjennomgang av UX-dokumentene
 
 > bmad-review

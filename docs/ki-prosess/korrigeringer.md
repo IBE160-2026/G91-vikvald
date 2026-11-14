@@ -4,6 +4,11 @@ Eksempler på at KI-forslag er avvist eller rettet, og på feil KI gjorde. Nyest
 
 | Dato | Hva KI gjorde | Hvem oppdaget det | Hva som ble gjort | Spor |
 |---|---|---|---|---|
+| 2026-11-14 | Anbefalte én Next.js-app i stedet for oppsettet i technology.md. | Jeg | Fulgte technology.md. Avvik må begrunnes grundig. | `69ec805` |
+| 2026-11-14 | Låste en versjon av `google-genai` som ikke kan installeres sammen med pydantic-ai. | KI, i uavhengig gjennomgang | Låsen ble fjernet. | `3934a34` |
+| 2026-11-14 | Skrev kontrollregelen slik at ett ugyldig kort ville få hele jobben til å feile, i strid med FR-38. | KI, i uavhengig gjennomgang | Hvert kort kontrolleres for seg. | `3934a34` |
+| 2026-11-14 | Glemte vilkårsgodkjenning (FR-11), ga sammendraget to eiere og lot økter kunne lagres to ganger. | KI, i uavhengig gjennomgang | Rettet i AD-6, AD-7 og AD-9. | `3934a34` |
+| 2026-11-14 | Forklarte valgene for teknisk. | Jeg («forklar enklere») | Kortere forklaringer med ett poeng per punkt. | Denne økten |
 | 2026-11-14 | I UX-økten 11.–12.11 ble avgjørelsene lagt nederst i EXPERIENCE.md uten at teksten de gjaldt, ble rettet. Dokumentet hadde status final, men motsa seg selv. | KI, i gjennomgangen | Avgjørelsene flyttet inn i seksjonene de gjelder. | `9f44255` |
 | 2026-11-14 | Avgjørelse 6 (KI-forslag) sa at enkelttaster «bare under øving» oppfyller WCAG 2.1.4. Det gjør det ikke. | KI, i gjennomgangen | Bryteren «Bruk hurtigtaster». | `9f44255` |
 | 2026-11-14 | Avgjørelse 13 (KI-forslag) tilpasset personvernteksten til demomodus, i strid med FR-11 og NFR-6. | KI, i gjennomgangen | Vilkårsteksten har alltid NFR-6-innholdet. | `fcf09cf` |

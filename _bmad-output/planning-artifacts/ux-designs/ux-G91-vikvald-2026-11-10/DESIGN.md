@@ -36,7 +36,7 @@ colors:
   on-danger: '#FFFFFF'
   scrim: '#15181F'
 typography:
-  # Skissene bruker SF Pro (-apple-system). Den ekte appen bruker Inter fra Google Fonts
+  # Skissene bruker SF Pro (-apple-system). Den ekte appen bruker Inter, som følger med appen (NFR-2)
   # med tabulære tall (font-feature-settings: "tnum") på all tekst.
   page-title:
     fontFamily: Inter
@@ -372,7 +372,7 @@ All tekst har minst 4,5:1 (NFR-9).
 
 ## Typografi (Typography)
 
-**Én skriftfamilie.** Skissene er tegnet med SF Pro (`-apple-system`). Den ekte appen bruker **Inter** fra Google Fonts, fordi SF Pro bare finnes på Apple-maskiner. Inter ligner i form, har vektene 400, 500 og 600, og har tabulære tall. Reserveskrift: `system-ui, sans-serif`.
+**Én skriftfamilie.** Skissene er tegnet med SF Pro (`-apple-system`). Den ekte appen bruker **Inter**, fordi SF Pro bare finnes på Apple-maskiner. Fonten følger med appen (`@fontsource-variable/inter`) og hentes ikke fra Google Fonts, slik at appen virker uten internett (NFR-2, arkitekturens AD-14). Inter ligner i form, har vektene 400, 500 og 600, og har tabulære tall. Reserveskrift: `system-ui, sans-serif`.
 
 **Tabulære tall overalt** (`font-feature-settings: "tnum"`). Datoer, antall kort og quizspørsmål står da i rette kolonner, og tall i tabeller er høyrejustert.
 
