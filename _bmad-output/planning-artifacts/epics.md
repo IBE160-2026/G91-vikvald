@@ -1,313 +1,332 @@
 
 
-## Epic 5: Oversikt fram mot eksamen
+## Epic 6: Ekte språkmodell og klar for sensor
 
-Studenten ser hvor hun står i semesteret: semesterlinja med øvd og ikke øvd og tid til eksamen, «Neste å øve på» på forsiden, og tellinger og «sist øvd» i forelesningstabellen. Mye kan kuttes til tekst.
+Appen kan bruke Gemini i EU, formler kommer med fra sider sendt som bilde, og sensor møter en ferdig app med testbruker, eksempelemne og en README som virker. Epicen avslutter med en samlet kontroll av universell utforming, tastatur, nettlesere og stikkprøvene for kvalitet.
 
-Rekkefølgen er valgt slik at det som kan kuttes, ligger sist eller i egne stories: 5.1 legger grunnlaget (funksjonen for «øvd» og oversikts-API-et), 5.3 er tekstvarianten av FR-57, og 5.5 er selve semesterlinja, som kan kuttes uten at FR-57 mister reserven.
-
-### Story 5.1: Regn ut «øvd» ett sted og vis det i sidemenyen og SISTE ØKT
+### Story 6.1: Koble Gemini på Vertex AI inn bak språkmodellporten
 
 Som student,
-vil jeg se hvilke forelesninger jeg har øvd på, og hva jeg gjorde sist,
-slik at jeg vet hva jeg har gjort uten å måtte huske det selv.
+vil jeg at appen kan lage innhold med Gemini i EU når den er slått på,
+slik at jeg får innhold av ekte kvalitet uten at notatene mine forlater EU.
 
-**Krav:** FR-56 («øvd»-regelen), AR-2, AR-9, AR-15, AR-16, AR-17, UX-DR7 (statusprikk), UX-DR14 (SISTE ØKT)
+**Krav:** NFR-4, NFR-5, AR-3, AR-18
 
 **Akseptkriterier:**
 
-**Gitt** at `practice_sessions` og `POST /api/practice-sessions` finnes fra epic 3
-**Når** storien er bygd
-**Så** finnes det én funksjon i `backend/app/modules/practice/service.py` (for eksempel `practiced_lectures(db, user_id, subject_id)`) som gir, for hver forelesning i emnet, om den er øvd og tidspunktet for siste økt som teller for den
-**Og** ingen annen kode i backend eller frontend regner ut «øvd» på egen hånd; oversikten, tabellen, sidemenyen, «Neste å øve på» og semesterlinja bruker bare denne funksjonen (AR-9)
+**Gitt** at `LLM_PROVIDER=vertex`, `GOOGLE_CLOUD_PROJECT` og `VERTEX_MODEL` er satt
+**Når** backend starter
+**Så** bruker genereringsløpet `VertexGenerator` bak den samme porten `generate(kind, pages, options)` som `MockGenerator` (gjenbruker porten og løpet fra epic 3)
+**Og** ingen andre moduler enn `generation` importerer pydantic-ai eller kaller modellen
 
-**Gitt** en forelesning med én lagret økt på bare denne forelesningen (også en avbrutt økt)
-**Når** funksjonen kjøres
-**Så** er forelesningen øvd, og siste tidspunkt er øktens `started_at`
+**Gitt** at `VertexGenerator` lages
+**Når** leverandøren settes opp
+**Så** brukes pydantic-ai med `GoogleCloudProvider(location='eu')` og Application Default Credentials (ADC)
+**Og** en test bekrefter at `location` er `eu`, og at det globale endepunktet (`global`) aldri brukes
 
-**Gitt** en lagret økt på hele emnet (`lecture_id` tom) med `started_at` T
-**Når** funksjonen kjøres
-**Så** teller økten for alle forelesninger i emnet som hadde øvingsinnhold (flashcards, quizspørsmål eller fritekstspørsmål) laget før eller ved T
-**Og** den teller ikke for forelesninger som fikk sitt første innhold etter T, og heller ikke for forelesninger uten innhold
-**Og** spørsmålet «hadde innhold ved T» besvares av én funksjon i `content` (gjenbruker tellingsregisteret fra epic 2–4), slik at `practice` ikke leser innholdstabellene direkte (AR-16)
+**Gitt** en innholdstype i registeret fra epic 3
+**Når** `VertexGenerator` kaller modellen
+**Så** bes det om svar med `NativeOutput` og det samme løse skjemaet som mock-modellen gir
+**Og** svaret går videre gjennom `validate_item`, forkasting, telling og lagring akkurat som i demomodus
 
-**Gitt** en forelesning uten noen økt som teller
-**Når** funksjonen kjøres
-**Så** er den ikke øvd, og siste tidspunkt er tomt
+**Gitt** at `VERTEX_MODEL` og `VERTEX_THINKING` er satt i `.env`
+**Når** modellen kalles
+**Så** brukes modellnavnet og tenkenivået derfra
+**Og** modellen kan byttes (issue #3, #4) uten kodeendring; `.env.example` har `gemini-3.5-flash` som foreløpig verdi
 
-**Gitt** en innlogget student
-**Når** frontend kaller `GET /api/overview`
-**Så** svarer API-et med studentens emner (id, navn, `color_index`, `exam_date`) og for hvert emne forelesningene (id, navn, dato, `practiced`, `last_practiced_at`) og `last_session` (type, forelesning eller hele emnet, `started_at`, `aborted` og tallene fra økten), i `snake_case` og med ISO 8601-datoer (AR-15)
-**Og** svaret inneholder bare studentens egne data, og uten innlogging svarer API-et `401 UNAUTHENTICATED` (AR-2, AR-10)
+**Gitt** at `LLM_PROVIDER=vertex`, men `GOOGLE_CLOUD_PROJECT` eller `VERTEX_MODEL` mangler
+**Når** backend starter
+**Så** stopper den med en loggmelding som sier hvilken innstilling som mangler
+**Og** meldingen inneholder ingen hemmeligheter
 
-**Gitt** sidemenyen med emnetre fra epic 2
-**Når** et emne er åpent
-**Så** har hver menyrad en fylt statusprikk når forelesningen er øvd og en hul prikk når den ikke er det (UX-DR7)
-**Og** prikken har et tilgjengelig navn, «Øvd» eller «Ikke øvd ennå», slik at status ikke bare vises med fylt eller hul form
+**Gitt** at kallet til Vertex feiler (for eksempel manglende innlogging i gcloud eller nettverksfeil) eller tar over 3 minutter
+**Når** jobben avsluttes
+**Så** blir jobben `failed` med feilkoden fra epic 3, ingenting lagres, og studenten ser meldingen fra FR-21 med «Prøv igjen» (gjenbruker `job-status`)
+**Og** loggen har feilkoden, men ikke notattekst eller svar fra modellen (AR-15)
 
-**Gitt** at studenten har fullført eller avbrutt en økt
-**Når** hun kommer tilbake til en side med sidemeny eller kortet «Øv på hele emnet»
-**Så** viser siden den nye statusen uten at hun må laste siden på nytt (oversikten hentes på nytt etter økten)
+**Gitt** at appen kjører med `LLM_PROVIDER=vertex`
+**Når** nettleseren henter `GET /api/config`
+**Så** er `demo_mode` `false`, og svaret har verken prosjekt-ID, modellnavn eller annen nøkkel
+**Og** ingen innstilling for Vertex har prefikset `NEXT_PUBLIC_`
 
-**Gitt** emnesiden (03) med kortet «Øv på hele emnet» fra epic 3 og 4
-**Når** emnet har minst én lagret økt
-**Så** står SISTE ØKT nederst i kortet med type og omfang og dato og resultat, som i skisse 03: «Quiz · Uke 37: Merkevare» og «09.11 · 12 av 15 riktige» (UX-DR14)
-**Og** en økt på hele emnet viser «Hele emnet» i stedet for forelesningsnavnet
-**Og** datoen vises som dd.mm med en felles datofunksjon i `frontend/lib/`
+**Gitt** at `demo_mode` er `false`
+**Når** studenten åpner kontosiden og vilkårsdialogen
+**Så** vises ikke demomerket, og setningen «I demomodus sendes ingenting ut.» er borte (gjenbruker bryterne fra epic 1–3)
+**Og** språkmodell-raden på kontosiden viser «Gemini fra Google, behandlet i EU», ventetiden er «Tar vanligvis under to minutter.», og personvernmerknaden på 04 er «Notatene sendes til Googles språkmodell i EU.» og «Ikke last opp personopplysninger, f.eks. navn på medstudenter.», slik som i skissene
 
-**Gitt** et emne uten lagrede økter
-**Når** emnesiden vises
-**Så** vises ikke SISTE ØKT
+**Gitt** at repoet er klonet
+**Når** utvikleren følger README-avsnittet om Gemini
+**Så** viser README hvordan `.env` fylles ut, og innholdet i en `docker-compose.override.yml` som monterer `~/.config/gcloud` skrivebeskyttet inn i `backend`
+**Og** `docker-compose.override.yml` står i `.gitignore`, og README viser hvordan mellomlagring slås av og sjekkes i Google Cloud-prosjektet (NFR-5)
 
-**Gitt** sidene som er endret (03, 04, 13 og 15 med sidemeny)
-**Når** Playwright-testene kjører
-**Så** finner axe ingen brudd, og statusprikkene og SISTE ØKT kan nås og leses med tastatur og skjermleser
+**Gitt** testpakken
+**Når** `uv run pytest` kjøres med `LLM_PROVIDER=mock`
+**Så** testes `VertexGenerator` med pydantic-ais testmodell (`TestModel` eller `FunctionModel`), og ekte kall er sperret (`ALLOW_MODEL_REQUESTS = False`)
+**Og** testene har krav-ID i navnet, for eksempel `test_ar3_vertex_uses_eu_location` og `test_nfr4_config_has_no_secrets` (AR-17)
 
-**Gitt** testene for storien
-**Når** de kjøres med `uv run pytest`, `npm run test` og `npx playwright test`
-**Så** har testnavnene krav-ID, for eksempel `test_ar9_emneokt_teller_forelesninger_med_innhold_ved_start`, `test_fr56_avbrutt_okt_gir_ovd` og `test_ux_dr14_siste_okt` (AR-17)
-
-### Story 5.2: Vis tellinger og «Øvd 03.11» i forelesningstabellen *(Kan kuttes)*
+### Story 6.2: Fastsett instruksene til modellen for flashcards og quiz
 
 Som student,
-vil jeg se hvor mange filer, kort og quizspørsmål hver forelesning har, og når jeg sist øvde,
-slik at jeg ser hvilke forelesninger som er klare og hvilke jeg har latt ligge.
+vil jeg at Gemini lager kort og quizspørsmål på norsk med fagbegrepene fra notatene mine og alternativer som ikke røper svaret,
+slik at jeg øver på det riktige stoffet og ikke kan gjette meg til fasiten.
 
-**Krav:** FR-16, UX-DR13 (tellinger og status), AR-15, AR-17
+**Krav:** FR-2, FR-31, AR-3
 
 **Akseptkriterier:**
 
-**Gitt** emnesiden (03) med forelesningstabellen fra epic 2
-**Når** siden vises
-**Så** har tabellen kolonnene Dato, Forelesning, Filer, Kort, Quiz og Status (UX-DR13)
-**Og** Kort er antall flashcards (modellkort regnes med når de finnes), og Quiz er antall quizspørsmål
+**Gitt** registeret for innholdstyper fra epic 3
+**Når** flashcards og quiz registreres
+**Så** har hver av dem en instruksfil i `backend/app/modules/generation/instructions/` (`flashcards.md` og `quiz.md`) som `VertexGenerator` leser
+**Og** instruksene ligger i Git, slik at sensor kan lese dem; senere innholdstyper (epic 7–9) legger til sin egen fil på samme måte
 
-**Gitt** antallene i en rad
-**Når** de vises
-**Så** er tallene høyrejustert med tabulære tall, og 0 vises som «–»
-**Og** tellingene kommer fra tellingsregisteret i `content` (gjenbruker det som delete-preview bruker), slik at en ny innholdstype bare melder seg inn ett sted
+**Gitt** sider som sendes til modellen
+**Når** forespørselen bygges
+**Så** er hver side merket med `file_id`, filnavn og `page_no`, og modellen bes oppgi kilden med disse verdiene
+**Og** en test med `FunctionModel` bekrefter at forespørselen har sidene, instruksen og største antall fra omfanget (10, 20 eller 30)
 
-**Gitt** en forelesning som er øvd
-**Når** raden vises
-**Så** står det fylt prikk og «Øvd 03.11», der datoen er siste økt som teller for forelesningen etter funksjonen fra story 5.1
+**Gitt** instruksen for flashcards
+**Når** den leses
+**Så** sier den at kortene bare skal lages fra sidene, skal være på norsk bokmål, og at norske fagbegreper fra notatene brukes slik de står, med det engelske i parentes når notatene bruker begge, for eksempel «merkevare (brand)» (FR-2)
+**Og** den sier at begge korttypene kan brukes (spørsmål med svar og begrepskort), at modellen lager færre enn største antall heller enn å fylle opp med svake kort, og at kortene skal spre seg over overskriftene i notatene (SK-17)
 
-**Gitt** en forelesning med filer som ikke er øvd
-**Når** raden vises
-**Så** står det hul prikk og «Ikke øvd ennå»
+**Gitt** instruksen for quiz
+**Når** den leses
+**Så** sier den at hvert spørsmål har fire alternativer med nøyaktig ett riktig, en forklaring og en kilde, og at vanskelighetsgraden følger FR-28 (lett: kjenne igjen en definisjon, middels: forstå sammenhenger, vanskelig: bruke stoffet på et eksempel)
+**Og** den sier at alternativene skal være omtrent like lange, at feilalternativene skal være troverdige for en som ikke kan stoffet, og at «alle de ovenfor» og lignende ikke brukes (FR-31)
 
-**Gitt** en forelesning uten filer
-**Når** raden vises
-**Så** står det «Ingen filer ennå»
+**Gitt** at instruksene er skrevet
+**Når** Silje prøver dem med Gemini på åpent lisensierte sider (som i `research/pdf-og-norsk-test/`)
+**Så** noteres det hun retter i instruksene, i `docs/ki-prosess/korrigeringer.md`
+**Og** kvaliteten måles først i stikkprøvene i story 6.6
 
-**Gitt** en økt på hele emnet
-**Når** tabellen vises etterpå
-**Så** har alle forelesninger som hadde innhold da økten startet, fått «Øvd» med øktens dato, og de andre er uendret
+**Gitt** testpakken
+**Når** testene kjøres
+**Så** finnes tester med krav-ID i navnet, for eksempel `test_fr2_flashcard_instructions_require_norwegian_terms` og `test_fr31_quiz_instructions_require_equal_length` (AR-17)
+**Og** testplanen (story 6.5) sier at FR-2 og FR-31 for ekte modell bare kan måles manuelt, i SK-13 og SK-15
 
-**Gitt** tabellen
-**Når** studenten bruker tastatur
-**Så** kan hver rad nås med Tab og åpne forelesningen (04) med Enter, som i epic 2
-**Og** axe finner ingen brudd på 03
-
-**Gitt** testene for storien
-**Når** de kjøres
-**Så** har de krav-ID i navnet, for eksempel `test_fr16_tellinger_per_forelesning` og `test_fr16_status_ovd_dato` (AR-17)
-
-### Story 5.3: Vis «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd» på forsiden og emnesiden
+### Story 6.3: Send sider med formler som bilde og merk innholdet *(Kan kuttes)*
 
 Som student,
-vil jeg se hvor lenge det er til eksamen og hvor mange forelesninger jeg har øvd på,
-slik at jeg vet om jeg ligger an til å rekke det.
+vil jeg at formler som mangler i teksten, kommer med, og at innhold fra slike sider er merket,
+slik at jeg vet når jeg bør sjekke en formel mot kilden.
 
-Denne storien er tekstvarianten av FR-57. Den bygges først, slik at kravet er oppfylt også om semesterlinja (story 5.5) kuttes.
-
-**Krav:** FR-57 (reserven), SK-22, AR-15, AR-17
+**Krav:** FR-40, FR-41, AR-6, UX-DR37
 
 **Akseptkriterier:**
 
-**Gitt** forsiden (02) med emnelista fra epic 2
-**Når** studenten har emner
-**Så** står det for hvert emne en linje med emnenavn og teksten ordrett etter mønsteret «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd»
+**Gitt** at en PDF lastes opp
+**Når** `files` leser sidene med PyMuPDF
+**Så** settes `file_pages.needs_image` etter regelen fra issue #9: en side får `true` når den har vektortegninger eller bilder over en lav terskel som fastsettes ved testing, slik at heller en side for mye enn for lite blir sendt som bilde
+**Og** regelen og terskelen står i en kommentar i koden og i issue #9
 
-**Gitt** emnesiden (03)
-**Når** siden vises
-**Så** står samme tekst for dette emnet under overskriften
+**Gitt** *Principles of Economics 3e*, PDF-side 127–128 (formler tegnet som vektorgrafikk)
+**Når** Silje laster opp fila lokalt
+**Så** får begge sidene `needs_image = true`, og en vanlig tekstside i samme bok får `false`
+**Og** resultatet noteres i issue #9; OpenStax-PDF-en legges ikke i repoet, så den automatiske testen bruker en liten test-PDF med en formel tegnet som vektorgrafikk og en side med bare tekst
 
-**Gitt** antallet øvde forelesninger
-**Når** teksten lages
-**Så** er N i «N av M» antall forelesninger som er øvd etter funksjonen fra story 5.1, og M er alle forelesningene i emnet, også de uten filer (som i skisse 03: 4 av 8)
+**Gitt** en jobb med sider der `needs_image = true`
+**Når** genereringsløpet henter sidene
+**Så** lages et bilde av hver slik side fra den lagrede PDF-en gjennom `core/storage` og sendes sammen med teksten til porten
+**Og** bildet lagres verken på disk eller i databasen (AR-6)
 
-**Gitt** dagens dato og eksamensdatoen
-**Når** antall uker regnes ut
-**Så** gjøres det i én funksjon i `frontend/lib/` (for eksempel `weeksUntilExam(examDate, today)`) som tar dagens dato som argument, slik at den kan testes
-**Og** antallet avrundes til nærmeste hele uke, som i skisse 02 (24 dager gir «om 3 uker», 34 dager gir «om 5 uker», 21 dager gir «om 3 uker»)
-**Og** «om 1 uke» står i entall
-**Og** er det mindre enn sju dager igjen, vises dager i stedet: «Eksamen 04.12, om 3 dager» og «Eksamen 04.12, i morgen»
-**Og** dagens dato er studentens lokale dato
+**Gitt** at modellen svarer
+**Når** svaret tolkes
+**Så** har skjemaet et felt der modellen kan melde at noe mangler i teksten (for eksempel `formula_missing`), og instruksene fra story 6.2 ber modellen bruke det
+**Og** `MockGenerator` setter aldri feltet
 
-**Gitt** at eksamen er i dag
-**Når** teksten vises
-**Så** står det «Eksamen i dag · 4 av 8 forelesninger øvd»
+**Gitt** et gyldig element
+**Når** det lagres
+**Så** settes `formula_flag = true` hvis kildesiden har `needs_image = true` eller modellen meldte at noe mangler; ellers `false`
+**Og** regelen ligger ett sted i genereringsløpet og gjelder alle innholdstyper i registeret, også dem som kommer i epic 7–9
 
-**Gitt** at eksamensdatoen er passert
-**Når** teksten vises
-**Så** står det «Eksamen var 04.12 · 4 av 8 forelesninger øvd»
+**Gitt** et flashcard eller quizspørsmål med `formula_flag = true`
+**Når** det vises under øving, i forklaringen etter bekreftet svar eller i listen over feil
+**Så** vises formelmerket (`formula-flag`) med teksten «Inneholder formel – sjekk mot kilden» ordrett, på merknadsflaten med infoikon, rett over kildelenken
+**Og** formelmerket er en felles komponent i `frontend/components/` som gjenbruker merknadsflaten, slik at epic 7–9 kan bruke den; det er ikke oransje eller rødt
 
-**Gitt** et emne uten forelesninger
-**Når** teksten vises
-**Så** står det «Eksamen 04.12, om 3 uker · Ingen forelesninger ennå» i stedet for «0 av 0 forelesninger øvd» *(E6)*
-
-**Gitt** en økt som studenten nettopp har lagret
-**Når** hun går tilbake til forsiden eller emnesiden
-**Så** viser teksten det nye antallet øvde forelesninger (SK-22)
-
-**Gitt** sidene 02 og 03
-**Når** Playwright-testene kjører
-**Så** finner axe ingen brudd, og teksten er vanlig tekst som skjermleseren leser
-
-**Gitt** testene for storien
-**Når** de kjøres
-**Så** har de krav-ID i navnet, for eksempel `test_sk22_uker_til_eksamen`, `test_sk22_antall_ovd` og `test_fr57_eksamen_i_dag` (AR-17)
-
-### Story 5.4: Vis emnekort med «Neste å øve på» på forsiden
-
-Som student,
-vil jeg se ett kort per emne med hva jeg bør øve på nå,
-slik at jeg kommer i gang med én knapp i stedet for å lete.
-
-**Krav:** FR-58 (*Kan kuttes*), SK-20, UX-DR12, AR-17
-
-**Akseptkriterier:**
-
-**Gitt** forsiden (02) med emnelista fra epic 2
-**Når** studenten har emner
-**Så** vises ett emnekort (`subject-card`) per emne i stedet for den enkle lista: emneprikk i emnefargen og navn, tekstknappen «Åpne ›» til emnesiden (03), og antall kort og quizspørsmål, for eksempel «120 kort · 64 quizspørsmål» (UX-DR12)
-**Og** kortene står i tre kolonner, og to og én kolonne i smalere vinduer (UX-DR10)
-**Og** tekstlinja fra story 5.3 står fortsatt per emne over kortene
-
-**Gitt** et emnekort
+**Gitt** innhold uten `formula_flag`
 **Når** det vises
-**Så** står fremdriften nederst som små stolper, én per forelesning, fylt når forelesningen er øvd, med teksten «4 av 8 forelesninger øvd» (samme tall som i story 5.3)
-**Og** stolpene er skjult for skjermleser, siden teksten sier det samme
+**Så** vises ikke formelmerket
 
-**Gitt** et emne med øvingsinnhold *(Kan kuttes: FR-58)*
-**Når** kortet vises
-**Så** står NESTE Å ØVE PÅ med den eldste forelesningen (etter dato) som har innhold og ikke er øvd, og en grunn, for eksempel «Uke 38: Markedsmiksen» og «16 kort, ikke øvd ennå»
-**Og** hovedknappen «Øv nå» starter flashcards for den forelesningen (gjenbruker økten fra epic 3)
-**Og** har forelesningen bare quiz eller fritekst, følger knappen regelen for «Øv nå» som avgjøres i epic 3 (A15, E1)
+**Gitt** sidene som viser formelmerket
+**Når** axe kjøres og siden brukes med tastatur
+**Så** har axe ingen brudd, og merket leses av skjermleser som tekst (ikke bare som ikon)
+**Og** testene har krav-ID i navnet, for eksempel `test_fr40_vector_formula_page_needs_image` og `test_fr41_flag_set_when_model_reports_missing` (AR-17)
 
-**Gitt** at alle forelesninger med innhold er øvd *(Kan kuttes: FR-58)*
-**Når** kortet vises
-**Så** står NESTE Å ØVE PÅ med forelesningen som ble øvd lengst siden, og grunnen «16 kort, sist øvd 03.11»
-**Og** «øvd» og «sist øvd» kommer bare fra funksjonen i story 5.1 (SK-20)
+### Story 6.4: Lag testbruker og eksempelemne med eksempelnotater
 
-**Gitt** et emne med forelesninger og filer, men uten øvingsinnhold
-**Når** kortet vises
-**Så** står «Ingen øvingsinnhold ennå» i stedet for tellingene, og NESTE STEG med den eldste forelesningen som har filer, grunnen «2 filer lastet opp, klare til bruk» og omrissknappen «Lag flashcards», som åpner forelesningssiden (04)
+Som sensor,
+vil jeg kunne logge inn med en testbruker og finne et ferdig eksempelemne med notater og innhold,
+slik at jeg kan prøve alle funksjonene uten å lage noe selv.
 
-**Gitt** et emne uten forelesninger
-**Når** kortet vises
-**Så** står NESTE STEG med «Ingen forelesninger ennå» og omrissknappen «Ny forelesning», som åpner emnesiden (03) *(E2)*
-
-**Gitt** et emne med forelesninger, men uten filer
-**Når** kortet vises
-**Så** står NESTE STEG med den eldste forelesningen, grunnen «Ingen filer ennå» og omrissknappen «Last opp PDF», som åpner forelesningssiden (04) *(E2)*
-
-**Gitt** at FR-58 kuttes
-**Når** kortet vises
-**Så** viser det fortsatt navn, «Åpne ›», tellinger, fremdrift og NESTE STEG, og ingen annen story bryter
-
-**Gitt** forsiden
-**Når** Playwright-testene kjører
-**Så** finner axe ingen brudd, alle knapper kan nås med Tab i leserekkefølge, og hvert kort har emnenavnet som overskrift
-
-**Gitt** testene for storien
-**Når** de kjøres
-**Så** har de krav-ID i navnet, for eksempel `test_fr58_eldste_ikke_ovd`, `test_fr58_alle_ovd_gir_lengst_siden`, `test_sk20_neste_a_ove_pa` og `test_ux_dr12_neste_steg` (AR-17)
-
-### Story 5.5: Vis semesterlinja på forsiden, emnesiden og forelesningssiden *(Kan kuttes)*
-
-Som student,
-vil jeg se forelesningene mine på en linje fram mot eksamen,
-slik at jeg ser med ett blikk hvor mye som har vært, hva jeg har øvd, og hvor lenge det er igjen.
-
-Kuttes denne storien, står tekstvarianten fra story 5.3 igjen, og FR-57 er oppfylt med reserven.
-
-**Krav:** FR-57, SK-22, UX-DR11, AR-17
+**Krav:** NFR-2 (README-tekst fra NFR-2a), NFR-3, AR-14
 
 **Akseptkriterier:**
 
-**Gitt** forsiden (02)
-**Når** studenten har emner
-**Så** vises semesterlinja (`semester-timeline`) over emnekortene, i stedet for tekstlinjene fra story 5.3, som et hvitt kort med symbolforklaringen «Øvd», «Ikke øvd ennå», «Eksamen» og «Tid igjen» (UX-DR11)
-**Og** hvert emne har én linje i emnefargen, 4 px tykk, heltrukket fram til i dag og stiplet fram til eksamen
-**Og** forelesningene er stasjoner etter dato, fylt når de er øvd og hule når de ikke er det, etter funksjonen fra story 5.1
-**Og** eksamen er en svart firkant, og «I dag» er en pille med dato og loddrett nål
+**Gitt** prosjektet
+**Når** eksempelnotatene legges inn
+**Så** finnes 2–3 korte notater på norsk bokmål, skrevet med egne ord og basert på *Principles of Marketing* fra OpenStax (for eksempel markedsmiksen, segmentering og AIDA, issue #13), som PDF i `backend/app/seed/notater/` sammen med kildeteksten
+**Og** hvert notat har minst fire definisjonssetninger med «er» og minst én punktliste med tre eller flere punkter, slik at mock-modellen lager flashcards, quiz og modellkort etter NFR-2a
 
-**Gitt** semesterlinja
-**Når** den vises
-**Så** står emnenavn, antall forelesninger og «Eksamen 04.12 · om 3 uker» til venstre for hver linje, med «Eksamen i dag» og «Eksamen var 04.12» som i story 5.3
-**Og** antall uker kommer fra samme funksjon som i story 5.3 (gjenbrukes, ikke kopieres)
+**Gitt** eksempelnotatene
+**Når** de leses
+**Så** krediterer hvert notat OpenStax *Principles of Marketing* med lenke, sier at det er endret, og at det deles under CC BY-NC-SA 4.0
+**Og** mappa har en lisensfil for notatene; ingen OpenStax-PDF ligger i repoet
 
-**Gitt** emnesiden (03)
-**Når** siden vises
-**Så** viser semesterlinja bare dette emnet, med ukenummer og dato ved stasjonene og eksamensdatoen ved firkanten, som i skisse 03
-**Og** tekstlinja fra story 5.3 erstattes av linja
+**Gitt** at KI ble brukt til utkast av notatene
+**Når** de legges inn
+**Så** står det i `docs/ki-prosess/`, og Silje har lest dem faglig før de tas i bruk
 
-**Gitt** forelesningssiden (04)
-**Når** siden vises
-**Så** viser semesterlinja bare forelesningens emne, og denne forelesningen er merket med en ring rundt stasjonen, en nål og teksten «Du er her»
+**Gitt** en tom database og `APP_ENV=local`
+**Når** backend starter
+**Så** kjører `seed_if_empty` etter Alembic og før jobboppryddingen og Uvicorn (AR-14)
+**Og** den lager testbrukeren `test@studiekamerat.no` med passordet `studiekamerat`, godtar vilkårene, lager emnet «Markedsføring» med eksamensdato og én forelesning per notat, og laster opp notatene, alt gjennom de vanlige tjenestene i `identity`, `subjects` og `files`, ikke med egne SQL-setninger
+**Og** datoene regnes ut fra dagen seed kjører: forelesningene de siste ukene og eksamen om tre uker, slik at semesterlinja ser riktig ut også når sensor åpner appen etter 15. desember
 
-**Gitt** emnenes datoer
-**Når** linja tegnes
-**Så** starter den ved måneden med første forelesning og slutter ved måneden med eksamen, og på forsiden fra den tidligste til den seneste av disse for alle emner
-**Og** dagens dato tas med i spennet, slik at «I dag» alltid kan vises
-**Og** månedsoverlinjene lages fra spennet og er ikke låst til august–desember *(E4)*
+**Gitt** at eksempelemnet er laget
+**Når** seed lager innhold
+**Så** kjøres det vanlige genereringsløpet med mock-modellen for hver innholdstype som er registrert og slått på, i hver forelesning, uansett hva `LLM_PROVIDER` er satt til
+**Og** seed lagrer én eller to økter gjennom `practice`, slik at oversikten fra epic 5 viser både øvd og ikke øvd med en gang
+**Og** innholdstyper fra epic 7–9 kommer derfor med automatisk når de er bygd og bryteren er på; en test med en ekstra innholdstype i registeret viser dette, og en avslått bryter gir ingen rader av den typen
 
-**Gitt** et emne uten forelesninger
-**Når** linja tegnes
-**Så** har emnet ingen stasjoner, bare en stiplet linje fra i dag til eksamensfirkanten, og teksten til venstre sier «Ingen forelesninger ennå» *(E6)*
+**Gitt** at databasen ikke er tom, eller at `APP_ENV` ikke er `local`
+**Når** backend starter
+**Så** gjør seed ingenting, og en ny oppstart lager aldri dobbelt testbruker eller emne
 
-**Gitt** semesterlinja
-**Når** en skjermleser leser siden
-**Så** er grafikken skjult for skjermleseren, og det finnes en tekstlig versjon per emne, for eksempel «Markedsføring: 4 av 8 forelesninger øvd. Eksamen fredag 04.12, om 3 uker.»
+**Gitt** at appen er startet med `docker compose up` uten `.env`
+**Når** sensor logger inn med testbrukeren
+**Så** ser hun emnet «Markedsføring» med forelesninger, filer og ferdig generert innhold, og kan øve med en gang
+**Og** en Playwright-test logger inn som testbrukeren, åpner emnet og starter en flashcardøkt, og axe har ingen brudd på sidene den besøker
 
-**Gitt** et vindu ned til 768 px eller 200 % tekst
-**Når** semesterlinja vises
-**Så** blir det ingen vannrett rulling, månedsetikettene kan forkortes, og «I dag» og eksamen synes alltid
+**Gitt** README
+**Når** sensor leser den
+**Så** står testbrukerens e-post og passord der
+**Og** README sier, med teksten fra NFR-2a, at demoinnholdet er enkelt og mekanisk og viser at funksjonene virker, ikke kvaliteten med ekte modell, og den sier hvor *Principles of Marketing* og *Principles of Economics 3e* lastes ned hos OpenStax og hvordan de krediteres
 
-**Gitt** sidene 02, 03 og 04
-**Når** Playwright-testene kjører
-**Så** finner axe ingen brudd, og semesterlinja tar ikke tastaturfokus, siden den ikke har noe å trykke på
+**Gitt** testpakken
+**Når** testene kjøres
+**Så** finnes tester med krav-ID i navnet, for eksempel `test_nfr3_seed_creates_test_user_and_subject` og `test_ar14_seed_only_when_empty_and_local` (AR-17)
 
-**Gitt** testene for storien
+### Story 6.5: Fullfør README, legg til lisens og vis testdekningen
+
+Som sensor,
+vil jeg kunne starte appen fra en ren kopi, se hvilken lisens som gjelder, og se hvilke krav som er testet og hvordan,
+slik at jeg kan etterprøve leveransen.
+
+**Krav:** NFR-1 (fullført), AR-19 (lisens), SK-1, SK-11
+
+**Akseptkriterier:**
+
+**Gitt** README
+**Når** den leses fra toppen
+**Så** har den: programmer som trengs med versjon (Docker Desktop, og uv og Node for utvikling), oppstart med `docker compose up` og adressen `http://localhost:3000`, at demomodus er standard uten `.env`, testbrukerens innlogging, hvordan pytest, Vitest og Playwright kjøres, hvordan Gemini slås på (fra story 6.1), demotekst og nedlasting av OpenStax (fra story 6.4), lenker til planleggingsdokumentene og testplanen, og kreditering og lisens
+**Og** alle kommandoer står i kodeblokker som kan kopieres (issue #27)
+
+**Gitt** repoet
+**Når** lisensen legges til
+**Så** finnes en `LICENSE`-fil i rota med lisensen AGPL-3.0, fordi PyMuPDF er AGPL og repoet er offentlig (issue #25)
+**Og** README sier hvilken lisens koden har, at eksempelnotatene har CC BY-NC-SA 4.0, og at PyMuPDF er AGPL
+
+**Gitt** `.env.example`
+**Når** den sammenlignes med innstillingene i `core/config`
+**Så** har den alle innstillingene med forklaring og uten hemmelige verdier
+**Og** en test sjekker at alle innstillingene finnes i `.env.example`, og at appen kan lages med tom miljø og `APP_ENV=local` (`test_nfr4_env_example_lists_all_settings`)
+
+**Gitt** testplanen `docs/testplan.md`
+**Når** den leses
+**Så** har den én rad per må ha-krav (FR-1–FR-41 og FR-56–FR-58) med testene som dekker det, eller «manuell» med begrunnelse når kravet bare kan kontrolleres manuelt (for eksempel FR-2 og FR-31 med ekte modell)
+**Og** den viser hvor SK-2–SK-22 kontrolleres, og har plass til resultatene fra de manuelle kontrollene i story 6.6
+
+**Gitt** testplanen og testene
+**Når** `uv run pytest` kjøres
+**Så** sjekker en test at hvert må ha-krav enten har minst én test med krav-ID i navnet (i backend-, Vitest- eller Playwright-testene) eller en begrunnelse for manuell kontroll i testplanen (`test_sk1_every_must_requirement_has_test_or_reason`)
+**Og** testen feiler med en liste over kravene som mangler
+
+**Gitt** en ren kopi av repoet i en ny mappe, uten `.env`, uten gcloud-innlogging og uten andre kontoer
+**Når** Silje følger README ordrett
+**Så** starter appen i demomodus, testbrukeren kan logge inn, og alle testkommandoene i README virker (SK-11)
+**Og** dato, commit og eventuelle avvik føres i testplanen, og README rettes der den ikke stemte
+
+### Story 6.6: Gjør den avsluttende kontrollen av universell utforming, skjerm, nettlesere og kvalitet
+
+Som sensor,
+vil jeg se dokumentert at appen er kontrollert for universell utforming, skjermstørrelse, nettlesere og kvalitet med ekte modell,
+slik at jeg kan stole på at kravene er oppfylt og ser hvor de ikke er det.
+
+**Krav:** NFR-13, NFR-14, NFR-15, SK-9, SK-12, SK-13, SK-14, SK-15, SK-16, SK-17
+
+**Akseptkriterier:**
+
+**Gitt** at appen kjører med `docker compose up` og seed-dataene fra story 6.4
+**Når** `npx playwright test` kjøres
+**Så** sjekker axe forelesningssiden, flashcard-øving og quiz uten brudd (gjenbruker Playwright- og axe-oppsettet fra epic 1)
+**Og** testene har krav-ID i navnet, for eksempel `test_nfr13_axe_lecture_page`
+
+**Gitt** de samme testene *(Kan kuttes, kuttrekkefølge punkt 4)*
 **Når** de kjøres
-**Så** har de krav-ID i navnet, for eksempel `test_fr57_stasjoner_ovd`, `test_sk22_semesterlinje_uker`, `test_ux_dr11_du_er_her` og `test_ux_dr11_tekstlig_versjon` (AR-17)
+**Så** sjekker axe også alle de andre sidene og tilstandene: innlogging og oppretting, forsiden med og uten emner, emnesiden, vilkårsdialogen, lag-dialogene, slettebekreftelsen, flashcard- og quizresultat, hurtigtastdialogen, kontosiden og «Fant ikke siden», uten brudd
+**Og** sider for bør ha (modellkort, fritekst, sammendrag) sjekkes når bryteren er på i `GET /api/config`, slik at de kommer med uten at testen endres
+
+**Gitt** kjerneflyten: logge inn → opprette emne og forelesning → laste opp PDF og godta vilkår → lage og øve på flashcards → lage og ta quiz → logge ut
+**Når** Silje gjør den med bare tastatur (SK-12)
+**Så** kan hvert steg gjøres, fokusringen synes hele tiden, og fokus går dit EXPERIENCE.md sier
+**Og** dato, nettleser og funn føres i testplanen; feil rettes eller føres som GitHub Issue og i `issues.md`
+
+**Gitt** alle sidene over
+**Når** vinduet er 768 px bredt
+**Så** har ingen side vannrett rulling, og sidemenyen og øktpanelet ligger bak menyknappen (NFR-14, UX-DR10)
+**Og** en Playwright-test sjekker at sidebredden ikke er større enn vinduet; 200 % tekststørrelse i nettleseren kontrolleres manuelt på kjerneflyten og føres i testplanen
+
+**Gitt** kjerneflyten
+**Når** den gjennomføres i siste Chrome og Edge
+**Så** virker den, og resultatet føres i testplanen med versjonsnummer (NFR-15)
+**Og** *(Kan kuttes, kuttrekkefølge punkt 3)* det samme gjøres i siste Safari
+
+**Gitt** at Gemini er slått på og eksempelnotatene og åpent lisensiert materiale fra OpenStax er lastet opp lokalt
+**Når** Silje lager en stikkprøve på 50 flashcards fra markedsføring og 20 quizspørsmål
+**Så** eksporterer et lite skript (`backend/scripts/`) kortene og spørsmålene med kilde til et regneark som CSV i `docs/kvalitet/` med kolonnene innhold, kilde, vurdering («riktig», «faglig feil», «feil kilde») og kommentar
+**Og** Silje vurderer hvert element mot læreboka, ikke med KI; kort hun er usikker på etter å ha slått opp, teller som faglig feil
+
+**Gitt** det utfylte regnearket
+**Når** resultatet regnes ut
+**Så** står det i `docs/kvalitet/` om grensene er nådd: under 5 % faglige feil (SK-13), minst 95 % riktig kilde (SK-14), ett faglig riktig alternativ i hvert quizspørsmål og det riktige som det lengste i høyst 35 % (SK-15), og minst 80 % av overskriftene i notatene med minst ett kort (SK-17)
+**Og** modellen og tenkenivået som ble brukt, står der; valget av modell (issue #4) avgjøres ut fra dette og settes bare i `.env.example`; ventetiden for 20 flashcards med Gemini noteres (kontroll av NFR-17 fra epic 3)
+
+**Gitt** at story 6.3 er bygd *(Kan kuttes sammen med story 6.3)*
+**Når** Silje lager kort fra *Principles of Economics 3e*, PDF-side 127–128
+**Så** sammenlignes formlene på kortene med sidene, og resultatet føres i regnearket (SK-16)
+**Og** kortene har formelmerket
+
+**Gitt** at en grense ikke nås
+**Når** resultatet føres
+**Så** står det hva som ble gjort (for eksempel endrede instrukser eller annen modell) eller hvorfor ingenting ble gjort, med lenke til `docs/ki-prosess/korrigeringer.md` eller et GitHub Issue
+**Og** resultatet legges i repoet uten personopplysninger
 
 ### Dekning
 
 | Krav | Story |
 |---|---|
-| FR-16 *(Kan kuttes)* | 5.2 |
-| FR-57 *(Kan kuttes)*: reserven (tekst) | 5.3 |
-| FR-57 *(Kan kuttes)*: semesterlinja | 5.5 |
-| FR-58 *(Kan kuttes)* | 5.4 (egne merkede kriterier) |
-| SK-20 («Neste å øve på») | 5.4, med «øvd» fra 5.1 |
-| SK-22 | 5.3 og 5.5 |
-| AR-9 («øvd» i én funksjon, emneøkt-regelen) | 5.1 |
-| UX-DR7 (statusprikk øvd/ikke øvd) | 5.1 |
-| UX-DR11 | 5.5 (teksten i 5.3) |
-| UX-DR12 | 5.4 |
-| UX-DR13 (tellinger og status) | 5.2 |
-| UX-DR14 (SISTE ØKT) | 5.1 |
-| E2 | 5.4 |
-| E4 | 5.5 |
-| E6 | 5.3 og 5.5 |
+| FR-40 | 6.3 *(Kan kuttes)* |
+| FR-41 | 6.3 *(Kan kuttes sammen med FR-40)* |
+| UX-DR37 | 6.3 |
+| FR-2, FR-31 (instruksene til ekte modell; grunnkravene ligger i epic 3 og 4) | 6.2, målt i 6.6 |
+| NFR-1 (fullført) | 6.5 (6.1 og 6.4 legger til sine avsnitt) |
+| NFR-3 | 6.4 |
+| NFR-4, NFR-5 | 6.1 |
+| NFR-13, NFR-14, NFR-15 | 6.6 |
+| AR-3 (Vertex), AR-18 | 6.1 (instrukser 6.2) |
+| AR-14 (demodata) | 6.4 |
+| AR-19 (lisens, `needs_image`, instrukser, modellvalg) | 6.5 (lisens), 6.3 (`needs_image`), 6.2 (instrukser), 6.6 (modellvalg) |
+| SK-1, SK-11 | 6.5 |
+| SK-9, SK-12–SK-17 | 6.6 |
 
 ### Avgjort av Silje 2026-11-14
 
-1. Er det mindre enn sju dager til eksamen, vises dager: «om 3 dager» og «i morgen». «Eksamen i dag» gjelder som før.
-2. Slettes alt innholdet i en forelesning, mister den «øvd» fra emneøkter. Det godtas, fordi en ekstra tabell for å unngå det gjør MVP-en mer komplisert enn nødvendig.
-3. Tekstene «16 kort, sist øvd 03.11», «Hele emnet» i SISTE ØKT og knappene «Ny forelesning» og «Last opp PDF» i NESTE STEG.
-4. Bare flashcards, quiz og fritekst teller som «øvd». Et sammendrag er ikke en økt.
-5. Funksjonen for «øvd» lages i 5.1.
-6. Kanttilfellene E2, E4 og E6 er løst slik kriteriene beskriver.
+1. Med Gemini på viser kontosiden «Gemini fra Google, behandlet i EU», ventetiden er «Tar vanligvis under to minutter.», og merknaden på 04 er «Notatene sendes til Googles språkmodell i EU.» og «Ikke last opp personopplysninger, f.eks. navn på medstudenter.», ordrett fra skissene.
+2. Testbrukeren er `test@studiekamerat.no` med passordet `studiekamerat`.
+3. Datoene i eksempelemnet regnes ut fra dagen seed kjører.
+4. Seed lagrer én eller to økter, slik at oversikten viser både øvd og ikke øvd.
+5. En side sendes som bilde når den har tegninger eller bilder over en lav grense. Regelen testes på s. 127–128 (issue #9).
+6. Formelmerket settes ut fra `needs_image` også i demomodus.
+7. Lisensen er AGPL-3.0, fordi PyMuPDF er AGPL (issue #25).
+8. Regnearket for stikkprøvene er en CSV-fil i `docs/kvalitet/`.
