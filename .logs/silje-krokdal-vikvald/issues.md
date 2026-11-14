@@ -46,3 +46,4 @@
 - [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — epics og stories lages først når Silje sier fra
 - [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — velg lisens for repoet (#25)
 - [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — avgjør om CI (GitHub Actions) skal med, i planleggingen av stories
+- [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — skriv oppsettsguide i README når koden finnes, første story får det som akseptkriterium (#27)
