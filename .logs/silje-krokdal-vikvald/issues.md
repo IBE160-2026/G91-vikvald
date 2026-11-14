@@ -47,7 +47,7 @@
 - [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — velg lisens for repoet (#25)
 - [x] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — avgjør om CI (GitHub Actions) skal med, i planleggingen av stories (løst 2026-11-14: liten CI, kan kuttes, f6cb57f)
 - [ ] 2026-11-14 [arkitektur](996-2026-11-14-16-21-37-arkitektur.md) — skriv oppsettsguide i README når koden finnes, første story får det som akseptkriterium (#27)
-- [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — legg epic 2 inn i epics.md slik den ble godkjent 14.11
-- [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — gå gjennom og godkjenn storiene for epic 3–9, med spørsmål og [AVGJØRES]-kriterier
-- [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — før godkjenningen av epic 1 og 2 og bruken av subagenter inn i KI-sporet
-- [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — fullfør de siste stegene i bmad-create-epics-and-stories og åpne pull request
+- [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — legg epic 2 inn i epics.md slik den ble godkjent 14.11 (#29)
+- [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — gå gjennom og godkjenn storiene for epic 3–9, med spørsmål og [AVGJØRES]-kriterier (#29)
+- [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — før godkjenningen av epic 1 og 2 og bruken av subagenter inn i KI-sporet (#29)
+- [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — fullfør de siste stegene i bmad-create-epics-and-stories og åpne pull request (#29)
