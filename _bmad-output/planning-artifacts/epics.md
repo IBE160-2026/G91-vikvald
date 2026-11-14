@@ -1,332 +1,517 @@
 
 
-## Epic 6: Ekte språkmodell og klar for sensor
+## Epic 7: Huskeregler (bør ha)
 
-Appen kan bruke Gemini i EU, formler kommer med fra sider sendt som bilde, og sensor møter en ferdig app med testbruker, eksempelemne og en README som virker. Epicen avslutter med en samlet kontroll av universell utforming, tastatur, nettlesere og stikkprøvene for kvalitet.
+Studenten får modellkort med forbokstavregel for modeller og lister i notatene, øver på dem i flashcard-økten og kan endre eller legge til egen huskeregel. Bygges først av bør ha-epicene og kuttes sist (bryter `FEATURE_MNEMONICS`).
 
-### Story 6.1: Koble Gemini på Vertex AI inn bak språkmodellporten
+### Story 7.1: Lag modellkort fra en forelesning
 
 Som student,
-vil jeg at appen kan lage innhold med Gemini i EU når den er slått på,
-slik at jeg får innhold av ekte kvalitet uten at notatene mine forlater EU.
+vil jeg trykke «Lag modellkort» og få et modellkort for hver modell eller liste i notatene, med huskeregel av forbokstavene,
+slik at jeg kan pugge modeller som AIDA med aktiv øving.
 
-**Krav:** NFR-4, NFR-5, AR-3, AR-18
+**Krav:** FR-2, FR-38, FR-42, FR-43, FR-44, FR-45, FR-47, FR-12, NFR-2a (modellkort), NFR-3, AR-3, AR-4, AR-5, AR-7, AR-11, AR-12, AR-17, UX-DR18, UX-DR19, UX-DR22, UX-DR24 (modellkort), UX-DR42
 
 **Akseptkriterier:**
 
-**Gitt** at `LLM_PROVIDER=vertex`, `GOOGLE_CLOUD_PROJECT` og `VERTEX_MODEL` er satt
-**Når** backend starter
-**Så** bruker genereringsløpet `VertexGenerator` bak den samme porten `generate(kind, pages, options)` som `MockGenerator` (gjenbruker porten og løpet fra epic 3)
-**Og** ingen andre moduler enn `generation` importerer pydantic-ai eller kaller modellen
+**Gitt** at epic 3 har laget `flashcards` med `kind` (`qa`, `concept`, `model`)
+**Når** storien er bygd
+**Så** har en Alembic-migrering lagt til `points` (JSON-liste med tekst) og `mnemonic` (tekst, kan være tom) på `flashcards`, som virker på både Postgres og SQLite (AR-13)
+**Og** bare `content` skriver til tabellen (AR-16)
 
-**Gitt** at `VertexGenerator` lages
-**Når** leverandøren settes opp
-**Så** brukes pydantic-ai med `GoogleCloudProvider(location='eu')` og Application Default Credentials (ADC)
-**Og** en test bekrefter at `location` er `eu`, og at det globale endepunktet (`global`) aldri brukes
+**Gitt** at innholdstypen `models` er meldt inn i registeret for innholdstyper fra epic 3 (generator-regel, validator, lagring)
+**Når** studenten sender `POST /api/lectures/{id}/jobs` med `kind: "models"`
+**Så** svarer API-et `202`, og jobben går gjennom det samme løpet som flashcards (AR-4): sidetekst → porten → `validate_item` per kort → forkast og tell → lagre de gyldige i én transaksjon
+**Og** modellkortene lagres som `flashcards` med `kind = "model"`, `front`, `points`, `mnemonic`, `file_id`, `page_no` og `formula_flag`, og legges til de som finnes fra før (FR-22)
+**Og** pågår det allerede en jobb på forelesningen, svarer API-et `409 JOB_ALREADY_RUNNING` (gjenbruker epic 3)
 
-**Gitt** en innholdstype i registeret fra epic 3
-**Når** `VertexGenerator` kaller modellen
-**Så** bes det om svar med `NativeOutput` og det samme løse skjemaet som mock-modellen gir
-**Og** svaret går videre gjennom `validate_item`, forkasting, telling og lagring akkurat som i demomodus
+**Gitt** `LLM_PROVIDER=mock` og en fil der én side har en linje fulgt av tre eller flere linjer etter hverandre som begynner med kulepunkt eller nummer
+**Når** modellkort lages
+**Så** lager `MockGenerator` ett modellkort per slik liste: forsiden er «Forklar [linja rett over lista].», punktene er listelinjene uten kulepunkt eller nummer, i samme rekkefølge, og kilden er siden lista står på (NFR-2a)
+**Og** huskeregelen er forbokstaven i hvert punkt satt sammen med store bokstaver, i notatenes rekkefølge (FR-43)
+**Og** samme fil gir samme modellkort hver gang (NFR-2)
+**Og** ved «Lag modellkort» på nytt hopper mock-modellen over modellkort med samme forside som et modellkort forelesningen har fra før, slik som for flashcards i epic 3
 
-**Gitt** at `VERTEX_MODEL` og `VERTEX_THINKING` er satt i `.env`
-**Når** modellen kalles
-**Så** brukes modellnavnet og tenkenivået derfra
-**Og** modellen kan byttes (issue #3, #4) uten kodeendring; `.env.example` har `gemini-3.5-flash` som foreløpig verdi
+**Gitt** et modellkort der alle punktene begynner på samme bokstav (som de fire P-ene)
+**Når** det kontrolleres før lagring
+**Så** lagres det med tom `mnemonic`, uten huskeregel (FR-44, SK-10)
 
-**Gitt** at `LLM_PROVIDER=vertex`, men `GOOGLE_CLOUD_PROJECT` eller `VERTEX_MODEL` mangler
-**Når** backend starter
-**Så** stopper den med en loggmelding som sier hvilken innstilling som mangler
-**Og** meldingen inneholder ingen hemmeligheter
+**Gitt** et generert modellkort der punktene har ulike forbokstaver
+**Når** `validate_item` kontrollerer det
+**Så** forkastes og telles det hvis bokstavene i huskeregelen (bare bokstaver, uten hensyn til store og små, æ/ø/å regnes som bokstaver) ikke er nøyaktig forbokstavene i punktene i samme rekkefølge, eller hvis huskeregelen mangler (FR-45, SK-10)
+**Og** det forkastes og telles også hvis forsiden er tom, det har færre enn tre punkter, et punkt er tomt, eller siden ikke finnes i fila (FR-38)
+**Og** en test med `LLM_PROVIDER=mock-invalid` viser at ugyldige modellkort forkastes og at de gyldige lagres (SK-4)
 
-**Gitt** at kallet til Vertex feiler (for eksempel manglende innlogging i gcloud eller nettverksfeil) eller tar over 3 minutter
+**Gitt** at en modellkortjobb er ferdig uten at noe modellkort ble lagret
+**Når** forelesningssiden eller ferdigmeldingen viser resultatet
+**Så** står det ordrett «Vi fant ingen modeller eller lister i denne forelesningen.» i et levende område (FR-47, UX-DR42, UX-DR44)
+**Og** meldingen er ikke en feil: jobben har status `done`, og det er ingen «Prøv igjen»-knapp
+
+**Gitt** at kallet til modellen feiler eller tar over 3 minutter
 **Når** jobben avsluttes
-**Så** blir jobben `failed` med feilkoden fra epic 3, ingenting lagres, og studenten ser meldingen fra FR-21 med «Prøv igjen» (gjenbruker `job-status`)
-**Og** loggen har feilkoden, men ikke notattekst eller svar fra modellen (AR-15)
+**Så** lagres ingen modellkort, og job-status viser «Vi klarte ikke å lage modellkortene. Ingenting er lagret. Prøv igjen.» med «Prøv igjen» (FR-21, gjenbruker `job-status`)
 
-**Gitt** at appen kjører med `LLM_PROVIDER=vertex`
-**Når** nettleseren henter `GET /api/config`
-**Så** er `demo_mode` `false`, og svaret har verken prosjekt-ID, modellnavn eller annen nøkkel
-**Og** ingen innstilling for Vertex har prefikset `NEXT_PUBLIC_`
+**Gitt** at forelesningen har minst én fil
+**Når** studenten ser Flashcards-raden i «Lag og øv»
+**Så** står tekstknappen «Lag modellkort» der både med og uten flashcards, og den starter jobben direkte uten dialog (UX-DR18, UX-DR24)
+**Og** mens jobben går, viser `job-status` «Lager modellkort …» og «Du kan bruke resten av appen imens.», og de andre «Lag …»-knappene er ikke aktive og sier «Venter til modellkortene er ferdige» (UX-DR19)
+**Og** uten filer er knappen ikke aktiv (UX-DR18)
+**Og** det finnes ingen egen Huskeregler-rad; antallet på Flashcards-raden teller modellkortene med (FR-42)
 
-**Gitt** at `demo_mode` er `false`
-**Når** studenten åpner kontosiden og vilkårsdialogen
-**Så** vises ikke demomerket, og setningen «I demomodus sendes ingenting ut.» er borte (gjenbruker bryterne fra epic 1–3)
-**Og** språkmodell-raden på kontosiden viser «Gemini fra Google, behandlet i EU», ventetiden er «Tar vanligvis under to minutter.», og personvernmerknaden på 04 er «Notatene sendes til Googles språkmodell i EU.» og «Ikke last opp personopplysninger, f.eks. navn på medstudenter.», slik som i skissene
+**Gitt** at innholdstypen er meldt inn i delete-preview-registeret fra epic 2
+**Når** studenten vil slette eller erstatte en fil, en forelesning eller et emne med modellkort
+**Så** teller `GET …/delete-preview` modellkort for seg og flashcards uten modellkort for seg, og slettebekreftelsen viser for eksempel «Dette sletter også 18 flashcards, 11 quizspørsmål og 2 modellkort laget fra fila. Det kan ikke angres.» (FR-12, UX-DR22)
+**Og** modellkortene slettes med fila gjennom `ON DELETE CASCADE` (AR-7)
 
-**Gitt** at repoet er klonet
-**Når** utvikleren følger README-avsnittet om Gemini
-**Så** viser README hvordan `.env` fylles ut, og innholdet i en `docker-compose.override.yml` som monterer `~/.config/gcloud` skrivebeskyttet inn i `backend`
-**Og** `docker-compose.override.yml` står i `.gitignore`, og README viser hvordan mellomlagring slås av og sjekkes i Google Cloud-prosjektet (NFR-5)
+**Gitt** `LLM_PROVIDER=vertex`
+**Når** `VertexGenerator` får `kind = "models"`
+**Så** bruker den en egen instruks for modellkort, lagt der epic 6 har lagt instruksene for de andre typene, som sier: bruk bare stoffet på sidene; finn modeller og lister (for eksempel AIDA); skriv forsiden som «Forklar …»; ta med punktene i den rekkefølgen de står i notatene; lag huskeregelen av forbokstaven i hvert punkt; gi ingen huskeregel når alle punktene har samme forbokstav; oppgi PDF-sidenummeret der modellen står; skriv på norsk bokmål og bruk fagbegrepene fra notatene, med engelsk i parentes når notatene bruker begge (FR-2, FR-39, FR-42–FR-44)
+**Og** svaret har et løst output-skjema for modellkort, og en test (uten kall til Google) sjekker at instruksen og skjemaet finnes for `models`
 
-**Gitt** testpakken
-**Når** `uv run pytest` kjøres med `LLM_PROVIDER=mock`
-**Så** testes `VertexGenerator` med pydantic-ais testmodell (`TestModel` eller `FunctionModel`), og ekte kall er sperret (`ALLOW_MODEL_REQUESTS = False`)
-**Og** testene har krav-ID i navnet, for eksempel `test_ar3_vertex_uses_eu_location` og `test_nfr4_config_has_no_secrets` (AR-17)
+**Gitt** `APP_ENV=local`, tom database og `FEATURE_MNEMONICS` på
+**Når** `seed_if_empty` kjører
+**Så** lager den modellkort for minst én forelesning i eksempelemnet gjennom de vanlige tjenestene med mock-modellen, og eksempelnotatene har minst én liste med ulike forbokstaver og én der alle begynner på samme bokstav (NFR-3, AR-14)
 
-### Story 6.2: Fastsett instruksene til modellen for flashcards og quiz
+**Gitt** `FEATURE_MNEMONICS=false`
+**Når** studenten åpner forelesningssiden eller kaller API-et
+**Så** vises ikke «Lag modellkort», og `POST /api/lectures/{id}/jobs` med `kind: "models"` svarer `404 FEATURE_DISABLED` (AR-11)
+**Og** seed lager ikke modellkort
 
-Som student,
-vil jeg at Gemini lager kort og quizspørsmål på norsk med fagbegrepene fra notatene mine og alternativer som ikke røper svaret,
-slik at jeg øver på det riktige stoffet og ikke kan gjette meg til fasiten.
+**Gitt** de nye testene
+**Når** de kjøres med `uv run pytest`, `npm run test` og `npx playwright test`
+**Så** har de krav-ID i navnet (`test_fr43_…`, `test_fr45_…`, `test_fr47_…`, AR-17)
+**Og** forelesningssiden har ingen axe-brudd, og «Lag modellkort» kan brukes med bare tastatur
+**Og** README sin liste over brytere forklarer `FEATURE_MNEMONICS`
 
-**Krav:** FR-2, FR-31, AR-3
-
-**Akseptkriterier:**
-
-**Gitt** registeret for innholdstyper fra epic 3
-**Når** flashcards og quiz registreres
-**Så** har hver av dem en instruksfil i `backend/app/modules/generation/instructions/` (`flashcards.md` og `quiz.md`) som `VertexGenerator` leser
-**Og** instruksene ligger i Git, slik at sensor kan lese dem; senere innholdstyper (epic 7–9) legger til sin egen fil på samme måte
-
-**Gitt** sider som sendes til modellen
-**Når** forespørselen bygges
-**Så** er hver side merket med `file_id`, filnavn og `page_no`, og modellen bes oppgi kilden med disse verdiene
-**Og** en test med `FunctionModel` bekrefter at forespørselen har sidene, instruksen og største antall fra omfanget (10, 20 eller 30)
-
-**Gitt** instruksen for flashcards
-**Når** den leses
-**Så** sier den at kortene bare skal lages fra sidene, skal være på norsk bokmål, og at norske fagbegreper fra notatene brukes slik de står, med det engelske i parentes når notatene bruker begge, for eksempel «merkevare (brand)» (FR-2)
-**Og** den sier at begge korttypene kan brukes (spørsmål med svar og begrepskort), at modellen lager færre enn største antall heller enn å fylle opp med svake kort, og at kortene skal spre seg over overskriftene i notatene (SK-17)
-
-**Gitt** instruksen for quiz
-**Når** den leses
-**Så** sier den at hvert spørsmål har fire alternativer med nøyaktig ett riktig, en forklaring og en kilde, og at vanskelighetsgraden følger FR-28 (lett: kjenne igjen en definisjon, middels: forstå sammenhenger, vanskelig: bruke stoffet på et eksempel)
-**Og** den sier at alternativene skal være omtrent like lange, at feilalternativene skal være troverdige for en som ikke kan stoffet, og at «alle de ovenfor» og lignende ikke brukes (FR-31)
-
-**Gitt** at instruksene er skrevet
-**Når** Silje prøver dem med Gemini på åpent lisensierte sider (som i `research/pdf-og-norsk-test/`)
-**Så** noteres det hun retter i instruksene, i `docs/ki-prosess/korrigeringer.md`
-**Og** kvaliteten måles først i stikkprøvene i story 6.6
-
-**Gitt** testpakken
-**Når** testene kjøres
-**Så** finnes tester med krav-ID i navnet, for eksempel `test_fr2_flashcard_instructions_require_norwegian_terms` og `test_fr31_quiz_instructions_require_equal_length` (AR-17)
-**Og** testplanen (story 6.5) sier at FR-2 og FR-31 for ekte modell bare kan måles manuelt, i SK-13 og SK-15
-
-### Story 6.3: Send sider med formler som bilde og merk innholdet *(Kan kuttes)*
+### Story 7.2: Øv på modellkort og endre huskeregelen
 
 Som student,
-vil jeg at formler som mangler i teksten, kommer med, og at innhold fra slike sider er merket,
-slik at jeg vet når jeg bør sjekke en formel mot kilden.
+vil jeg møte modellkortene i flashcard-økten og kunne bytte ut huskeregelen med min egen,
+slik at jeg øver på modellene sammen med de andre kortene og husker dem på min måte.
 
-**Krav:** FR-40, FR-41, AR-6, UX-DR37
-
-**Akseptkriterier:**
-
-**Gitt** at en PDF lastes opp
-**Når** `files` leser sidene med PyMuPDF
-**Så** settes `file_pages.needs_image` etter regelen fra issue #9: en side får `true` når den har vektortegninger eller bilder over en lav terskel som fastsettes ved testing, slik at heller en side for mye enn for lite blir sendt som bilde
-**Og** regelen og terskelen står i en kommentar i koden og i issue #9
-
-**Gitt** *Principles of Economics 3e*, PDF-side 127–128 (formler tegnet som vektorgrafikk)
-**Når** Silje laster opp fila lokalt
-**Så** får begge sidene `needs_image = true`, og en vanlig tekstside i samme bok får `false`
-**Og** resultatet noteres i issue #9; OpenStax-PDF-en legges ikke i repoet, så den automatiske testen bruker en liten test-PDF med en formel tegnet som vektorgrafikk og en side med bare tekst
-
-**Gitt** en jobb med sider der `needs_image = true`
-**Når** genereringsløpet henter sidene
-**Så** lages et bilde av hver slik side fra den lagrede PDF-en gjennom `core/storage` og sendes sammen med teksten til porten
-**Og** bildet lagres verken på disk eller i databasen (AR-6)
-
-**Gitt** at modellen svarer
-**Når** svaret tolkes
-**Så** har skjemaet et felt der modellen kan melde at noe mangler i teksten (for eksempel `formula_missing`), og instruksene fra story 6.2 ber modellen bruke det
-**Og** `MockGenerator` setter aldri feltet
-
-**Gitt** et gyldig element
-**Når** det lagres
-**Så** settes `formula_flag = true` hvis kildesiden har `needs_image = true` eller modellen meldte at noe mangler; ellers `false`
-**Og** regelen ligger ett sted i genereringsløpet og gjelder alle innholdstyper i registeret, også dem som kommer i epic 7–9
-
-**Gitt** et flashcard eller quizspørsmål med `formula_flag = true`
-**Når** det vises under øving, i forklaringen etter bekreftet svar eller i listen over feil
-**Så** vises formelmerket (`formula-flag`) med teksten «Inneholder formel – sjekk mot kilden» ordrett, på merknadsflaten med infoikon, rett over kildelenken
-**Og** formelmerket er en felles komponent i `frontend/components/` som gjenbruker merknadsflaten, slik at epic 7–9 kan bruke den; det er ikke oransje eller rødt
-
-**Gitt** innhold uten `formula_flag`
-**Når** det vises
-**Så** vises ikke formelmerket
-
-**Gitt** sidene som viser formelmerket
-**Når** axe kjøres og siden brukes med tastatur
-**Så** har axe ingen brudd, og merket leses av skjermleser som tekst (ikke bare som ikon)
-**Og** testene har krav-ID i navnet, for eksempel `test_fr40_vector_formula_page_needs_image` og `test_fr41_flag_set_when_model_reports_missing` (AR-17)
-
-### Story 6.4: Lag testbruker og eksempelemne med eksempelnotater
-
-Som sensor,
-vil jeg kunne logge inn med en testbruker og finne et ferdig eksempelemne med notater og innhold,
-slik at jeg kan prøve alle funksjonene uten å lage noe selv.
-
-**Krav:** NFR-2 (README-tekst fra NFR-2a), NFR-3, AR-14
+**Krav:** FR-42, FR-46, FR-23–FR-27 (for modellkort), FR-56 (modellkort), NFR-8, NFR-10, AR-4, AR-11, AR-17, UX-DR20, UX-DR21, UX-DR25, UX-DR27, UX-DR28, UX-DR45
 
 **Akseptkriterier:**
 
-**Gitt** prosjektet
-**Når** eksempelnotatene legges inn
-**Så** finnes 2–3 korte notater på norsk bokmål, skrevet med egne ord og basert på *Principles of Marketing* fra OpenStax (for eksempel markedsmiksen, segmentering og AIDA, issue #13), som PDF i `backend/app/seed/notater/` sammen med kildeteksten
-**Og** hvert notat har minst fire definisjonssetninger med «er» og minst én punktliste med tre eller flere punkter, slik at mock-modellen lager flashcards, quiz og modellkort etter NFR-2a
+**Gitt** en forelesning eller et emne med flashcards og modellkort
+**Når** studenten starter flashcard-økten med «Øv nå» eller fra «Øv på hele emnet»
+**Så** kommer modellkortene blandet med de andre kortene i tilfeldig rekkefølge (FR-23, gjenbruker øktrammen fra epic 3)
+**Og** forsiden viser SPØRSMÅL med «Forklar …», og baksiden vises først når kortet snus med Mellomrom, klikk eller knapp (FR-24)
 
-**Gitt** eksempelnotatene
-**Når** de leses
-**Så** krediterer hvert notat OpenStax *Principles of Marketing* med lenke, sier at det er endret, og at det deles under CC BY-NC-SA 4.0
-**Og** mappa har en lisensfil for notatene; ingen OpenStax-PDF ligger i repoet
+**Gitt** at et modellkort er snudd
+**Når** studenten ser baksiden
+**Så** viser `model-card` punktene som rader med en bokstavboks foran hvert, bundet sammen av en tynn loddrett linje, huskeregelen på merknadsflaten med «Huskeregel:», og kilden (UX-DR28, UX-DR20, gjenbruker `note-surface` og kildelenken)
+**Og** punktene er en ordnet liste for skjermleser, og bokstavboksene er skjult for skjermleser slik at hvert punkt leses én gang (UX-DR45)
+**Og** har kortet formelmerke, vises det som på andre kort (gjenbruker `formula-flag` fra epic 6)
 
-**Gitt** at KI ble brukt til utkast av notatene
-**Når** de legges inn
-**Så** står det i `docs/ki-prosess/`, og Silje har lest dem faglig før de tas i bruk
+**Gitt** et modellkort uten huskeregel (FR-44)
+**Når** det er snudd
+**Så** vises bare punktene, og knappen heter «Legg til huskeregel» i stedet for «Endre huskeregel» (FR-46, UX-DR28)
 
-**Gitt** en tom database og `APP_ENV=local`
-**Når** backend starter
-**Så** kjører `seed_if_empty` etter Alembic og før jobboppryddingen og Uvicorn (AR-14)
-**Og** den lager testbrukeren `test@studiekamerat.no` med passordet `studiekamerat`, godtar vilkårene, lager emnet «Markedsføring» med eksamensdato og én forelesning per notat, og laster opp notatene, alt gjennom de vanlige tjenestene i `identity`, `subjects` og `files`, ikke med egne SQL-setninger
-**Og** datoene regnes ut fra dagen seed kjører: forelesningene de siste ukene og eksamen om tre uker, slik at semesterlinja ser riktig ut også når sensor åpner appen etter 15. desember
+**Gitt** at et modellkort er snudd
+**Når** studenten markerer «Kunne» eller «Kunne ikke» (med knapp eller `2`/`1`)
+**Så** behandles det som et vanlig flashcard: «Kunne ikke»-kort kommer igjen bakerst, og økten lagres som `kind = "flashcards"` med modellkortene talt i `shown`, `correct` og `wrong` (FR-25, FR-56)
+**Og** det finnes ikke noe eget resultat for modellkort; de telles med i flashcard-resultatet (EXPERIENCE.md)
 
-**Gitt** at eksempelemnet er laget
-**Når** seed lager innhold
-**Så** kjøres det vanlige genereringsløpet med mock-modellen for hver innholdstype som er registrert og slått på, i hver forelesning, uansett hva `LLM_PROVIDER` er satt til
-**Og** seed lagrer én eller to økter gjennom `practice`, slik at oversikten fra epic 5 viser både øvd og ikke øvd med en gang
-**Og** innholdstyper fra epic 7–9 kommer derfor med automatisk når de er bygd og bryteren er på; en test med en ekstra innholdstype i registeret viser dette, og en avslått bryter gir ingen rader av den typen
+**Gitt** at studenten trykker «Endre huskeregel» eller «Legg til huskeregel»
+**Når** dialogen åpnes
+**Så** har den feltet «Huskeregel» med synlig etikett, utfylt med dagens huskeregel om den finnes, og knappene «Avbryt» og «Lagre» (UX-DR21, UX-DR25, gjenbruker dialog og skjemafelt)
+**Og** Esc eller «Avbryt» lukker uten endring, og fokus går tilbake til knappen
+**Og** hurtigtastene virker ikke mens fokus står i feltet (NFR-8)
 
-**Gitt** at databasen ikke er tom, eller at `APP_ENV` ikke er `local`
-**Når** backend starter
-**Så** gjør seed ingenting, og en ny oppstart lager aldri dobbelt testbruker eller emne
+**Gitt** at studenten skriver sin egen huskeregel og trykker «Lagre»
+**Når** `PATCH /api/flashcards/{id}` får `mnemonic`
+**Så** lagres den nye huskeregelen og vises på kortet med en gang (FR-46)
+**Og** den kontrolleres ikke mot forbokstavene, bare for tomt felt (AR-4)
+**Og** markeringen av kortet i økten endres ikke
 
-**Gitt** at appen er startet med `docker compose up` uten `.env`
-**Når** sensor logger inn med testbrukeren
-**Så** ser hun emnet «Markedsføring» med forelesninger, filer og ferdig generert innhold, og kan øve med en gang
-**Og** en Playwright-test logger inn som testbrukeren, åpner emnet og starter en flashcardøkt, og axe har ingen brudd på sidene den besøker
+**Gitt** at studenten tømmer feltet eller bare skriver mellomrom og trykker «Lagre» *(E33)*
+**Når** skjemaet sendes
+**Så** lagres ingenting, feltet får rød kant og teksten «Skriv inn en huskeregel.» under seg, og fokus flyttes til feltet (UX-DR25)
+**Og** API-et avviser tom eller blank `mnemonic` med den samme feilkoden for tomme felt som redigering av kort bruker fra epic 3 (AR-12)
 
-**Gitt** README
-**Når** sensor leser den
-**Så** står testbrukerens e-post og passord der
-**Og** README sier, med teksten fra NFR-2a, at demoinnholdet er enkelt og mekanisk og viser at funksjonene virker, ikke kvaliteten med ekte modell, og den sier hvor *Principles of Marketing* og *Principles of Economics 3e* lastes ned hos OpenStax og hvordan de krediteres
+**Gitt** et modellkort under øving
+**Når** studenten trykker «Rediger»
+**Så** kan hun endre forsiden og punktene (ett punkt per linje) med den samme redigeringen som flashcards fra epic 3, og tomme felt avvises som der (FR-27, FR-42)
+**Og** «Slett» på et modellkort sletter det etter slettebekreftelsen, som for andre kort (FR-27, gjenbruker slettebekreftelsen)
 
-**Gitt** testpakken
-**Når** testene kjøres
-**Så** finnes tester med krav-ID i navnet, for eksempel `test_nfr3_seed_creates_test_user_and_subject` og `test_ar14_seed_only_when_empty_and_local` (AR-17)
+**Gitt** `FEATURE_MNEMONICS=false`
+**Når** et modellkort som allerede finnes vises i økten
+**Så** vises det som modellkort, men uten «Endre huskeregel»/«Legg til huskeregel», og `PATCH` med `mnemonic` svarer `404 FEATURE_DISABLED` (AR-11)
 
-### Story 6.5: Fullfør README, legg til lisens og vis testdekningen
-
-Som sensor,
-vil jeg kunne starte appen fra en ren kopi, se hvilken lisens som gjelder, og se hvilke krav som er testet og hvordan,
-slik at jeg kan etterprøve leveransen.
-
-**Krav:** NFR-1 (fullført), AR-19 (lisens), SK-1, SK-11
-
-**Akseptkriterier:**
-
-**Gitt** README
-**Når** den leses fra toppen
-**Så** har den: programmer som trengs med versjon (Docker Desktop, og uv og Node for utvikling), oppstart med `docker compose up` og adressen `http://localhost:3000`, at demomodus er standard uten `.env`, testbrukerens innlogging, hvordan pytest, Vitest og Playwright kjøres, hvordan Gemini slås på (fra story 6.1), demotekst og nedlasting av OpenStax (fra story 6.4), lenker til planleggingsdokumentene og testplanen, og kreditering og lisens
-**Og** alle kommandoer står i kodeblokker som kan kopieres (issue #27)
-
-**Gitt** repoet
-**Når** lisensen legges til
-**Så** finnes en `LICENSE`-fil i rota med lisensen AGPL-3.0, fordi PyMuPDF er AGPL og repoet er offentlig (issue #25)
-**Og** README sier hvilken lisens koden har, at eksempelnotatene har CC BY-NC-SA 4.0, og at PyMuPDF er AGPL
-
-**Gitt** `.env.example`
-**Når** den sammenlignes med innstillingene i `core/config`
-**Så** har den alle innstillingene med forklaring og uten hemmelige verdier
-**Og** en test sjekker at alle innstillingene finnes i `.env.example`, og at appen kan lages med tom miljø og `APP_ENV=local` (`test_nfr4_env_example_lists_all_settings`)
-
-**Gitt** testplanen `docs/testplan.md`
-**Når** den leses
-**Så** har den én rad per må ha-krav (FR-1–FR-41 og FR-56–FR-58) med testene som dekker det, eller «manuell» med begrunnelse når kravet bare kan kontrolleres manuelt (for eksempel FR-2 og FR-31 med ekte modell)
-**Og** den viser hvor SK-2–SK-22 kontrolleres, og har plass til resultatene fra de manuelle kontrollene i story 6.6
-
-**Gitt** testplanen og testene
-**Når** `uv run pytest` kjøres
-**Så** sjekker en test at hvert må ha-krav enten har minst én test med krav-ID i navnet (i backend-, Vitest- eller Playwright-testene) eller en begrunnelse for manuell kontroll i testplanen (`test_sk1_every_must_requirement_has_test_or_reason`)
-**Og** testen feiler med en liste over kravene som mangler
-
-**Gitt** en ren kopi av repoet i en ny mappe, uten `.env`, uten gcloud-innlogging og uten andre kontoer
-**Når** Silje følger README ordrett
-**Så** starter appen i demomodus, testbrukeren kan logge inn, og alle testkommandoene i README virker (SK-11)
-**Og** dato, commit og eventuelle avvik føres i testplanen, og README rettes der den ikke stemte
-
-### Story 6.6: Gjør den avsluttende kontrollen av universell utforming, skjerm, nettlesere og kvalitet
-
-Som sensor,
-vil jeg se dokumentert at appen er kontrollert for universell utforming, skjermstørrelse, nettlesere og kvalitet med ekte modell,
-slik at jeg kan stole på at kravene er oppfylt og ser hvor de ikke er det.
-
-**Krav:** NFR-13, NFR-14, NFR-15, SK-9, SK-12, SK-13, SK-14, SK-15, SK-16, SK-17
-
-**Akseptkriterier:**
-
-**Gitt** at appen kjører med `docker compose up` og seed-dataene fra story 6.4
-**Når** `npx playwright test` kjøres
-**Så** sjekker axe forelesningssiden, flashcard-øving og quiz uten brudd (gjenbruker Playwright- og axe-oppsettet fra epic 1)
-**Og** testene har krav-ID i navnet, for eksempel `test_nfr13_axe_lecture_page`
-
-**Gitt** de samme testene *(Kan kuttes, kuttrekkefølge punkt 4)*
+**Gitt** de nye testene
 **Når** de kjøres
-**Så** sjekker axe også alle de andre sidene og tilstandene: innlogging og oppretting, forsiden med og uten emner, emnesiden, vilkårsdialogen, lag-dialogene, slettebekreftelsen, flashcard- og quizresultat, hurtigtastdialogen, kontosiden og «Fant ikke siden», uten brudd
-**Og** sider for bør ha (modellkort, fritekst, sammendrag) sjekkes når bryteren er på i `GET /api/config`, slik at de kommer med uten at testen endres
-
-**Gitt** kjerneflyten: logge inn → opprette emne og forelesning → laste opp PDF og godta vilkår → lage og øve på flashcards → lage og ta quiz → logge ut
-**Når** Silje gjør den med bare tastatur (SK-12)
-**Så** kan hvert steg gjøres, fokusringen synes hele tiden, og fokus går dit EXPERIENCE.md sier
-**Og** dato, nettleser og funn føres i testplanen; feil rettes eller føres som GitHub Issue og i `issues.md`
-
-**Gitt** alle sidene over
-**Når** vinduet er 768 px bredt
-**Så** har ingen side vannrett rulling, og sidemenyen og øktpanelet ligger bak menyknappen (NFR-14, UX-DR10)
-**Og** en Playwright-test sjekker at sidebredden ikke er større enn vinduet; 200 % tekststørrelse i nettleseren kontrolleres manuelt på kjerneflyten og føres i testplanen
-
-**Gitt** kjerneflyten
-**Når** den gjennomføres i siste Chrome og Edge
-**Så** virker den, og resultatet føres i testplanen med versjonsnummer (NFR-15)
-**Og** *(Kan kuttes, kuttrekkefølge punkt 3)* det samme gjøres i siste Safari
-
-**Gitt** at Gemini er slått på og eksempelnotatene og åpent lisensiert materiale fra OpenStax er lastet opp lokalt
-**Når** Silje lager en stikkprøve på 50 flashcards fra markedsføring og 20 quizspørsmål
-**Så** eksporterer et lite skript (`backend/scripts/`) kortene og spørsmålene med kilde til et regneark som CSV i `docs/kvalitet/` med kolonnene innhold, kilde, vurdering («riktig», «faglig feil», «feil kilde») og kommentar
-**Og** Silje vurderer hvert element mot læreboka, ikke med KI; kort hun er usikker på etter å ha slått opp, teller som faglig feil
-
-**Gitt** det utfylte regnearket
-**Når** resultatet regnes ut
-**Så** står det i `docs/kvalitet/` om grensene er nådd: under 5 % faglige feil (SK-13), minst 95 % riktig kilde (SK-14), ett faglig riktig alternativ i hvert quizspørsmål og det riktige som det lengste i høyst 35 % (SK-15), og minst 80 % av overskriftene i notatene med minst ett kort (SK-17)
-**Og** modellen og tenkenivået som ble brukt, står der; valget av modell (issue #4) avgjøres ut fra dette og settes bare i `.env.example`; ventetiden for 20 flashcards med Gemini noteres (kontroll av NFR-17 fra epic 3)
-
-**Gitt** at story 6.3 er bygd *(Kan kuttes sammen med story 6.3)*
-**Når** Silje lager kort fra *Principles of Economics 3e*, PDF-side 127–128
-**Så** sammenlignes formlene på kortene med sidene, og resultatet føres i regnearket (SK-16)
-**Og** kortene har formelmerket
-
-**Gitt** at en grense ikke nås
-**Når** resultatet føres
-**Så** står det hva som ble gjort (for eksempel endrede instrukser eller annen modell) eller hvorfor ingenting ble gjort, med lenke til `docs/ki-prosess/korrigeringer.md` eller et GitHub Issue
-**Og** resultatet legges i repoet uten personopplysninger
+**Så** har de krav-ID i navnet (`test_fr42_…`, `test_fr46_…`, AR-17)
+**Og** flashcard-økten med et modellkort og huskeregeldialogen har ingen axe-brudd, og alt kan gjøres med bare tastatur (snu, markere, endre huskeregel, lagre, avbryte)
 
 ### Dekning
 
 | Krav | Story |
 |---|---|
-| FR-40 | 6.3 *(Kan kuttes)* |
-| FR-41 | 6.3 *(Kan kuttes sammen med FR-40)* |
-| UX-DR37 | 6.3 |
-| FR-2, FR-31 (instruksene til ekte modell; grunnkravene ligger i epic 3 og 4) | 6.2, målt i 6.6 |
-| NFR-1 (fullført) | 6.5 (6.1 og 6.4 legger til sine avsnitt) |
-| NFR-3 | 6.4 |
-| NFR-4, NFR-5 | 6.1 |
-| NFR-13, NFR-14, NFR-15 | 6.6 |
-| AR-3 (Vertex), AR-18 | 6.1 (instrukser 6.2) |
-| AR-14 (demodata) | 6.4 |
-| AR-19 (lisens, `needs_image`, instrukser, modellvalg) | 6.5 (lisens), 6.3 (`needs_image`), 6.2 (instrukser), 6.6 (modellvalg) |
-| SK-1, SK-11 | 6.5 |
-| SK-9, SK-12–SK-17 | 6.6 |
+| FR-42 | 7.1 (lage), 7.2 (øve og redigere som flashcards) |
+| FR-43 | 7.1 |
+| FR-44 | 7.1 (lagres uten huskeregel), 7.2 («Legg til huskeregel») |
+| FR-45 | 7.1 |
+| FR-46 | 7.2 |
+| FR-47 | 7.1 |
+| NFR-2a (modellkort) | 7.1 |
+| UX-DR28 | 7.2 |
+
+## Epic 8: Fritekstspørsmål med selvvurdering (bør ha)
+
+Studenten øver på kortsvar- og langsvarsspørsmål, skriver svaret selv, ser modellsvaret med kilde og vurderer seg selv. Bygges etter epic 7 og kuttes før den (bryter `FEATURE_FREETEXT`).
+
+### Story 8.1: Lag fritekstspørsmål
+
+Som student,
+vil jeg lage kortsvar- eller langsvarsspørsmål med modellsvar fra en forelesning,
+slik at jeg kan øve på å formulere svar som på eksamen.
+
+**Krav:** FR-2, FR-18, FR-21, FR-22, FR-38, FR-48, FR-49, FR-12, NFR-2a (fritekst), NFR-3, AR-3, AR-4, AR-5, AR-7, AR-11, AR-12, AR-17, UX-DR18, UX-DR19, UX-DR21, UX-DR22, UX-DR24 (fritekst)
+
+**Akseptkriterier:**
+
+**Gitt** at storien er bygd
+**Når** Alembic-migreringen kjører
+**Så** finnes tabellen `freetext_questions` med `id`, `file_id` (fremmednøkkel med `ON DELETE CASCADE`), `kind` (`short` eller `long`), `question`, `model_answer`, `page_no`, `formula_flag` og `created_at`, på både Postgres og SQLite (AR-7, AR-13, AR-15)
+**Og** bare `content` skriver til tabellen (AR-16)
+
+**Gitt** at innholdstypen `freetext` er meldt inn i registeret for innholdstyper fra epic 3
+**Når** studenten sender `POST /api/lectures/{id}/jobs` med `kind: "freetext"` og `params` med type (`short`/`long`) og omfang (5, 10 eller 15)
+**Så** svarer API-et `202`, `requested` er omfanget, og jobben går gjennom det samme løpet (AR-4, AR-5)
+**Og** nye spørsmål legges til de som finnes fra før (FR-22)
+**Og** ugyldig type eller omfang avvises med feilkode (AR-12)
+
+**Gitt** `LLM_PROVIDER=mock`
+**Når** fritekstspørsmål lages
+**Så** lager `MockGenerator` ett spørsmål «Forklar [begrep].» per definisjonssetning, med hele definisjonssetningen som modellsvar og siden som kilde, inntil valgt omfang (NFR-2a)
+**Og** spørsmålene får typen studenten valgte
+**Og** samme fil gir samme spørsmål hver gang (NFR-2)
+**Og** ved «+ Lag flere» hopper mock-modellen over spørsmål med samme spørsmålstekst som et spørsmål forelesningen har fra før, slik som for flashcards i epic 3
+
+**Gitt** et generert fritekstspørsmål
+**Når** `validate_item` kontrollerer det
+**Så** forkastes og telles det hvis spørsmålet eller modellsvaret er tomt, eller siden ikke finnes i fila (FR-38, FR-49)
+**Og** en test med `mock-invalid` viser at ugyldige spørsmål forkastes og telles (SK-4)
+
+**Gitt** at færre enn valgt omfang ble lagret
+**Når** jobben er ferdig
+**Så** vises meldingen for «færre enn valgt» fra epic 3, for eksempel «Det ble laget 3 av inntil 5 spørsmål. Notatene ga ikke grunnlag for flere.» (FR-18, gjenbruker meldingen)
+
+**Gitt** at kallet feiler eller tar over 3 minutter
+**Når** jobben avsluttes
+**Så** lagres ingenting, antallet er uendret, og `job-status` viser «Vi klarte ikke å lage fritekstspørsmålene. Ingenting er lagret. Prøv igjen.» med «Prøv igjen» (FR-21, SK-8)
+
+**Gitt** en forelesning med filer
+**Når** studenten ser «Lag og øv»
+**Så** har den raden «Fritekstspørsmål»: uten spørsmål «Ingen ennå» og omrissknappen «Lag fritekstspørsmål»; med spørsmål antallet («10 spørsmål»), «Øv nå» og «+ Lag flere» (UX-DR18, gjenbruker `create-row`)
+**Og** mens jobben går, viser `job-status` «Lager fritekstspørsmål …» og «Du kan bruke resten av appen imens.», og andre «Lag …»-knapper sier «Venter til fritekstspørsmålene er ferdige» (UX-DR19)
+**Og** «Øv nå» peker til fritekst-økten, som kommer i story 8.2; til da er den ikke synlig
+
+**Gitt** at studenten trykker «Lag fritekstspørsmål» eller «+ Lag flere»
+**Når** dialogen åpnes
+**Så** velger hun type (Kortsvar eller Langsvar) og omfang som tre valgkort (Rask 5, Vanlig 10, Dyp 15), uten vanskelighetsgrad, og «Kortsvar» og «Vanlig» er forhåndsvalgt (UX-DR24, gjenbruker dialogen fra Lag quiz)
+**Og** piltaster flytter valget, Esc lukker uten endring, og knappene er «Avbryt» og hovedhandlingen (UX-DR21)
+
+**Gitt** at innholdstypen er meldt inn i delete-preview-registeret
+**Når** studenten vil slette eller erstatte en fil, forelesning eller et emne med fritekstspørsmål
+**Så** tar slettebekreftelsen med antallet fritekstspørsmål, for eksempel «… og 10 fritekstspørsmål laget fra fila. Det kan ikke angres.» (FR-12, UX-DR22)
+**Og** spørsmålene slettes med fila (AR-7)
+
+**Gitt** `LLM_PROVIDER=vertex`
+**Når** `VertexGenerator` får `kind = "freetext"`
+**Så** bruker den en egen instruks for fritekst som sier: bruk bare stoffet på sidene; lag inntil valgt antall spørsmål av valgt type, der kortsvar kan besvares med noen få setninger og langsvar krever forklaring av sammenhenger eller et eksempel, som på eksamen; ikke lag spørsmål om modeller og lister (de øves med modellkort); skriv et modellsvar bygd på notatene; oppgi PDF-sidenummeret; norsk bokmål med fagbegrepene fra notatene og engelsk i parentes når notatene bruker begge (FR-2, FR-39, FR-48, FR-49)
+**Og** en test (uten kall til Google) sjekker at instruksen og det løse output-skjemaet finnes for `freetext`
+
+**Gitt** `APP_ENV=local`, tom database og `FEATURE_FREETEXT` på
+**Når** `seed_if_empty` kjører
+**Så** lager den fritekstspørsmål for minst én forelesning i eksempelemnet gjennom de vanlige tjenestene med mock-modellen (NFR-3, AR-14)
+
+**Gitt** `FEATURE_FREETEXT=false`
+**Når** studenten åpner forelesningssiden eller kaller API-et
+**Så** vises ikke Fritekstspørsmål-raden, jobb med `kind: "freetext"` og alle fritekst-rutene svarer `404 FEATURE_DISABLED`, og seed lager ikke fritekstspørsmål (AR-11)
+
+**Gitt** de nye testene
+**Når** de kjøres
+**Så** har de krav-ID i navnet (`test_fr48_…`, `test_fr49_…`, AR-17)
+**Og** forelesningssiden og dialogen har ingen axe-brudd, og alt kan gjøres med bare tastatur
+**Og** README sin liste over brytere forklarer `FEATURE_FREETEXT`
+
+### Story 8.2: Øv på fritekst og vurder deg selv
+
+Som student,
+vil jeg skrive svaret mitt, se modellsvaret og vurdere meg selv som Feil, Delvis riktig eller Riktig,
+slik at jeg øver som på eksamen og ser hvor jeg står.
+
+**Krav:** FR-50, FR-51, FR-56 (fritekst), NFR-8, NFR-10, NFR-12, AR-9, AR-11, AR-15, AR-17, UX-DR8, UX-DR9, UX-DR30, UX-DR31, UX-DR32, UX-DR33, UX-DR34 (fritekst), UX-DR35 (fritekst), UX-DR44
+
+**Akseptkriterier:**
+
+**Gitt** en forelesning med fritekstspørsmål
+**Når** studenten trykker «Øv nå» på Fritekstspørsmål-raden
+**Så** åpnes fritekst-økten (12) i øktrammen fra epic 3, med øktpanelet (type «Fritekst», omfang, teller «2 / 10», fremdriftsstolpe, tellinger for Riktig, Delvis riktig og Feil, svarrutenett og «Avslutt økt») og innholdet sentrert i 832 px (UX-DR5, UX-DR8, gjenbruker øktrammen)
+**Og** spørsmålene hentes med `GET /api/lectures/{id}/freetext-questions` og vises én gang hver i tilfeldig rekkefølge (FR-50)
+
+**Gitt** et spørsmål i økten
+**Når** det vises
+**Så** står «SPØRSMÅL 2 AV 10», spørsmålet og tekstfeltet med synlig etikett «Ditt svar», mens modellsvar og selvvurdering er skjult (FR-50, UX-DR30)
+**Og** fokus står i tekstfeltet
+
+**Gitt** at tekstfeltet er tomt eller bare har mellomrom og linjeskift *(E28)*
+**Når** studenten ser knappen «Vis modellsvar»
+**Så** er den ikke aktiv; den blir aktiv først når feltet har minst ett tegn som ikke er mellomrom (FR-50)
+
+**Gitt** at studenten har skrevet et svar og trykker «Vis modellsvar»
+**Når** modellsvaret vises
+**Så** låses tekstfeltet, og «Levert · N ord» står ved etiketten (N er antall ord skilt med mellomrom) (UX-DR30)
+**Og** modellsvaret vises i `model-answer` med overskriften «Modellsvar», teksten, kilden og forelesningen (FR-49, gjenbruker kildelenken), og formelmerket når spørsmålet har det
+**Og** selvvurderingen «Hvordan gikk det?» vises med tre like omrissknapper Feil, Delvis riktig og Riktig, uten forhåndsvalg (FR-51, UX-DR30)
+
+**Gitt** at modellsvaret nettopp er vist *(A8)*
+**Når** fokus flyttes
+**Så** flyttes det til overskriften «Modellsvar» (med `tabindex="-1"`), slik at skjermleseren leser modellsvaret og neste Tab går til selvvurderingen; fokus legges ikke på en av vurderingsknappene, så appen ikke dytter mot et svar (UX-DR31)
+
+**Gitt** at modellsvaret ikke er vist ennå *(E27)*
+**Når** studenten trykker `1`, `2` eller `3`
+**Så** skjer ingenting; tastene virker bare når selvvurderingen er synlig
+**Og** de virker aldri mens fokus står i et tekstfelt, så hun kan skrive tall i svaret sitt (NFR-8, UX-DR32)
+
+**Gitt** at selvvurderingen er synlig
+**Når** studenten velger Feil, Delvis riktig eller Riktig med knapp eller `1`/`2`/`3`
+**Så** får ruta i svarrutenettet ✗, ◐ eller ✓ og leses som for eksempel «Spørsmål 2: delvis riktig», tellingen i øktpanelet øker, og økten går videre til neste spørsmål med fokus i «Ditt svar» (UX-DR9, NFR-10)
+**Og** studentens svar sendes aldri til serveren og lagres ikke (FR-51)
+
+**Gitt** at alle spørsmålene er vurdert
+**Når** økten er ferdig
+**Så** viser `result-summary` tre tall: «Riktig», «Delvis riktig» og «Feil», og øktpanelet viser «✓ Økten er ferdig og lagret» i et levende område (FR-51, UX-DR34, UX-DR44)
+**Og** `missed-list` viser spørsmålene hun vurderte som Feil eller Delvis riktig, med nummer, spørsmål, modellsvar og kilde, uten hennes eget svar (UX-DR35)
+**Og** hovedknappen starter samme økt på nytt (Enter), og tilbakevalget går til forelesningen (Esc) (UX-DR32, UX-DR34)
+
+**Gitt** at minst ett spørsmål er vurdert
+**Når** økten er ferdig, studenten velger «Avslutt økt» eller Esc, går til en annen side, logger ut eller lukker fanen
+**Så** sendes resultatet én gang til `POST /api/practice-sessions` med `kind = "freetext"`, `shown`, `answered`, `correct`, `partial`, `wrong` og `aborted` (FR-56, AR-9, gjenbruker lagringen fra epic 3)
+**Og** ved «Avslutt økt» vises resultatet som avbrutt, for eksempel «Avbrutt etter 4 av 10» (UX-DR33)
+**Og** er ingenting vurdert, lagres ingenting, og studenten går rett tilbake uten resultatside (UX-DR33)
+
+**Gitt** `FEATURE_FREETEXT=false`
+**Når** studenten åpner fritekst-økten eller kaller `GET …/freetext-questions`
+**Så** svarer API-et `404 FEATURE_DISABLED`, og «Øv nå» på raden vises ikke (AR-11)
+
+**Gitt** de nye testene
+**Når** de kjøres
+**Så** har de krav-ID i navnet (`test_fr50_…`, `test_fr51_…`, `test_fr56_freetext_…`, AR-17)
+**Og** fritekst-økten og resultatsiden har ingen axe-brudd, og hele økten kan gjennomføres med bare tastatur
+
+### Story 8.3: Fritekst for hele emnet, og slett dårlige spørsmål
+
+Som student,
+vil jeg øve på fritekstspørsmål fra hele emnet og slette spørsmål som er dårlige,
+slik at jeg kan repetere alt før eksamen og bare øve på spørsmål jeg stoler på.
+
+**Krav:** FR-50, FR-52, FR-56 (fritekst, hele emnet), NFR-8, AR-2, AR-9, AR-11, AR-17, UX-DR14 (fritekst), UX-DR22
+
+**Akseptkriterier:**
+
+**Gitt** et emne der minst én forelesning har fritekstspørsmål
+**Når** studenten åpner emnesiden
+**Så** har kortet «Øv på hele emnet» raden «Fritekstspørsmål» med antallet («10 spørsmål») og «Start ›» (UX-DR14, gjenbruker `practice-all-card`)
+**Og** har emnet ingen fritekstspørsmål, vises ikke raden
+
+**Gitt** at studenten trykker «Start ›» på Fritekstspørsmål-raden
+**Når** økten starter
+**Så** hentes spørsmålene fra alle forelesningene i emnet med `GET /api/subjects/{id}/freetext-questions`, i tilfeldig rekkefølge, og øktpanelet viser «[emne], hele emnet» (FR-50)
+**Og** økten lagres med tom `lecture_id` (hele emnet), og tilbakevalget på resultatsiden går til emnesiden (AR-9, UX-DR34)
+
+**Gitt** en annen students emne eller forelesning
+**Når** studenten kaller rutene for fritekstspørsmål
+**Så** svarer API-et `404 NOT_FOUND` (AR-2)
+
+**Gitt** et spørsmål under fritekst-økten
+**Når** studenten trykker «Slett» i bunnfeltet ved kilden
+**Så** åpnes slettebekreftelsen med «Avbryt» som startfokus, og «Avbryt» eller Esc sletter ingenting (FR-52, UX-DR22, gjenbruker slettebekreftelsen)
+**Og** bekrefter hun, slettes spørsmålet med `DELETE /api/freetext-questions/{id}` (`204`), og økten går videre til neste spørsmål uten at det slettede telles som vurdert
+
+**Gitt** `FEATURE_FREETEXT=false`
+**Når** studenten åpner emnesiden eller kaller rutene
+**Så** vises ikke Fritekstspørsmål-raden, og `GET /api/subjects/{id}/freetext-questions` og `DELETE /api/freetext-questions/{id}` svarer `404 FEATURE_DISABLED` (AR-11)
+
+**Gitt** de nye testene
+**Når** de kjøres
+**Så** har de krav-ID i navnet (`test_fr50_subject_…`, `test_fr52_…`, AR-17)
+**Og** emnesiden og slettebekreftelsen har ingen axe-brudd, og «Start ›» og sletting kan gjøres med bare tastatur
+
+### Dekning
+
+| Krav | Story |
+|---|---|
+| FR-48 | 8.1 |
+| FR-49 | 8.1 (lagres med kilde), 8.2 (vises med kilde) |
+| FR-50 | 8.2 (én forelesning), 8.3 (hele emnet) |
+| FR-51 | 8.2 |
+| FR-52 | 8.3 |
+| FR-56 (fritekst) | 8.2, 8.3 |
+| NFR-2a (fritekst) | 8.1 |
+| UX-DR14 (fritekst) | 8.3 |
+| UX-DR24 (fritekst) | 8.1 |
+| UX-DR30 | 8.2 |
+| UX-DR35 (fritekst, ført opp i oppdraget) | 8.2 |
+
+## Epic 9: Sammendrag (bør ha)
+
+Studenten leser et sammendrag av forelesningen med kilde på hvert punkt, og kan lage et nytt som erstatter det gamle. Bygges sist og kuttes først (bryter `FEATURE_SUMMARY`).
+
+### Story 9.1: Lag sammendrag av en forelesning
+
+Som student,
+vil jeg trykke «Lag sammendrag» og få hovedpunktene fra forelesningen ordnet etter tema, med kilde,
+slik at jeg kan repetere forelesningen raskt.
+
+**Krav:** FR-2, FR-21, FR-38, FR-53, FR-54, FR-55, FR-12, FR-13, FR-14, NFR-2a (sammendrag), NFR-3, AR-3, AR-4, AR-5, AR-7, AR-11, AR-12, AR-16, AR-17, UX-DR18, UX-DR19, UX-DR22, UX-DR24 (sammendrag)
+
+**Akseptkriterier:**
+
+**Gitt** at storien er bygd
+**Når** Alembic-migreringen kjører
+**Så** finnes `summaries` (`id`, `lecture_id` unik med `ON DELETE CASCADE`, `created_at`) og `summary_points` (`id`, `summary_id` med `ON DELETE CASCADE`, `theme`, `position`, `text`, `file_id`, `page_no`, `formula_flag`), på både Postgres og SQLite (AR-7, AR-13)
+**Og** en forelesning har høyst ett sammendrag
+
+**Gitt** at innholdstypen `summary` er meldt inn i registeret for innholdstyper fra epic 3
+**Når** studenten sender `POST /api/lectures/{id}/jobs` med `kind: "summary"`
+**Så** svarer API-et `202`, og jobben går gjennom det samme løpet (AR-4, AR-5)
+
+**Gitt** `LLM_PROVIDER=mock`
+**Når** et sammendrag lages
+**Så** lager `MockGenerator` ett punkt per side: første setning på siden, med fil og sidetall som kilde, og temaet er filnavnet (NFR-2a)
+**Og** samme filer gir samme sammendrag hver gang (NFR-2)
+
+**Gitt** et generert sammendragspunkt
+**Når** `validate_item` kontrollerer det
+**Så** forkastes og telles det hvis teksten eller temaet er tomt, teksten har over 50 ord, eller siden ikke finnes i fila (FR-38, FR-53)
+**Og** er det over 15 gyldige punkter, lagres de 15 første, og resten telles som forkastet (FR-53)
+
+**Gitt** at færre enn 5 punkter består kontrollen
+**Når** jobben avsluttes
+**Så** feiler den med `error_code = TOO_FEW_SUMMARY_POINTS`, ingenting lagres, og det gamle sammendraget står urørt (AR-4)
+**Og** meldingen er «Notatene ga ikke grunnlag for et sammendrag med minst 5 punkter. Det gamle sammendraget er beholdt.»
+**Og** `job-status` viser meldingen for koden fra meldingsfila, med «Prøv igjen» (AR-12)
+**Og** en test med en fil med færre enn 5 sider i mock-modus viser dette
+
+**Gitt** at kallet feiler eller tar over 3 minutter
+**Når** jobben avsluttes
+**Så** lagres ingenting, det gamle sammendraget beholdes, og `job-status` viser «Vi klarte ikke å lage sammendraget. Ingenting er lagret. Prøv igjen.» med «Prøv igjen» (FR-21, SK-8)
+
+**Gitt** at forelesningen har et sammendrag fra før, og et nytt består kontrollen
+**Når** det lagres
+**Så** slettes det gamle og lagres det nye i én og samme transaksjon, så det aldri finnes to eller et halvt sammendrag (FR-55, AR-4)
+
+**Gitt** en forelesning med filer
+**Når** studenten ser «Lag og øv»
+**Så** har den raden «Sammendrag»: uten sammendrag «Ikke laget» og omrissknappen «Lag sammendrag», som starter jobben direkte uten dialog (UX-DR18, UX-DR24, gjenbruker `create-row`)
+**Og** med sammendrag viser raden antallet punkter («7 punkter»); lenken til sammendragssiden kommer i story 9.2
+**Og** mens jobben går, viser `job-status` «Lager sammendrag …» og «Du kan bruke resten av appen imens.», og andre «Lag …»-knapper sier «Venter til sammendraget er ferdig» (UX-DR19)
+**Og** uten filer er knappen ikke aktiv
+
+**Gitt** at en av forelesningens filer slettes eller erstattes
+**Når** `files` sletter fila
+**Så** slettes hele sammendraget i den samme transaksjonen, også punktene fra de andre filene, gjennom en funksjon i `content` som `files` kaller (AR-7, AR-16, E15)
+**Og** en test viser at det ikke blir liggende et halvt sammendrag igjen
+**Og** sletting av forelesningen, emnet eller kontoen sletter sammendraget gjennom kaskaden (FR-14, AR-7)
+
+**Gitt** at innholdstypen er meldt inn i delete-preview-registeret
+**Når** studenten vil slette eller erstatte en fil i en forelesning med sammendrag, eller slette forelesningen eller emnet
+**Så** gir `GET …/delete-preview` antallet sammendrag, og slettebekreftelsen tar med sammendraget i lista over det som slettes, som «… og sammendraget av forelesningen» (FR-12, FR-13, FR-14, UX-DR22)
+
+**Gitt** `LLM_PROVIDER=vertex`
+**Når** `VertexGenerator` får `kind = "summary"`
+**Så** bruker den en egen instruks for sammendrag som sier: bruk bare stoffet på sidene; lag 5 til 15 hovedpunkter ordnet etter tema, med en kort tematittel; hvert punkt høyst 50 ord; oppgi fil og PDF-sidenummer for hvert punkt; norsk bokmål med fagbegrepene fra notatene og engelsk i parentes når notatene bruker begge (FR-2, FR-39, FR-53, FR-54)
+**Og** en test (uten kall til Google) sjekker at instruksen og det løse output-skjemaet finnes for `summary`
+
+**Gitt** `APP_ENV=local`, tom database og `FEATURE_SUMMARY` på
+**Når** `seed_if_empty` kjører
+**Så** lager den et sammendrag for minst én forelesning i eksempelemnet gjennom de vanlige tjenestene med mock-modellen, og den forelesningen har minst 5 sider med tekst (NFR-3, AR-14)
+
+**Gitt** `FEATURE_SUMMARY=false`
+**Når** studenten åpner forelesningssiden eller kaller API-et
+**Så** vises ikke Sammendrag-raden, jobb med `kind: "summary"` svarer `404 FEATURE_DISABLED`, og seed lager ikke sammendrag (AR-11)
+
+**Gitt** de nye testene
+**Når** de kjøres
+**Så** har de krav-ID i navnet (`test_fr53_…`, `test_fr55_…`, `test_ar7_summary_…`, AR-17)
+**Og** forelesningssiden har ingen axe-brudd, og «Lag sammendrag» kan brukes med bare tastatur
+**Og** README sin liste over brytere forklarer `FEATURE_SUMMARY`
+
+### Story 9.2: Les sammendraget og lag et nytt
+
+Som student,
+vil jeg lese sammendraget som en artikkel med kilde på hvert punkt, og kunne lage et nytt,
+slik at jeg kan repetere forelesningen og stole på hvor punktene kommer fra.
+
+**Krav:** FR-53, FR-54, FR-55, FR-56 (sammendrag er ikke en økt), NFR-12, AR-2, AR-11, AR-15, AR-17, UX-DR5, UX-DR7, UX-DR18, UX-DR19, UX-DR20, UX-DR36, UX-DR38, UX-DR45
+
+**Akseptkriterier:**
+
+**Gitt** en forelesning med sammendrag
+**Når** studenten bruker Sammendrag-raden i «Lag og øv»
+**Så** heter knappen på raden «Les sammendrag» når sammendraget finnes, og den åpner sammendragssiden (13) for forelesningen (UX-DR18)
+
+**Gitt** at sammendragssiden åpnes
+**Når** `GET /api/lectures/{id}/summary` svarer med temaer og punkter
+**Så** vises siden med sidemeny (forelesningen valgt), h1 «Sammendrag», undertekst som «7 punkter i 3 temaer · laget 10.11.2026 fra 2 filer», og artikkelkolonnen på 568 px (UX-DR5, UX-DR7, UX-DR38)
+**Og** temaene er seksjonstitler (h2), og punktene står under sitt tema i lagret rekkefølge
+**Og** hvert punkt viser kilden som tekst, for eksempel «merkevare-notater.pdf, side 4» (FR-54, UX-DR36, gjenbruker kildelenken), og formelmerket når punktet har det
+**Og** generert tekst vises som ren tekst (AR-15)
+
+**Gitt** sammendragssiden
+**Når** studenten ser innholdskortet til høyre
+**Så** står INNHOLD med temaene og antall punkter, KILDER med filene og antall sider, knappen «Lag nytt sammendrag» med teksten «Det nye sammendraget erstatter dette. Det gamle blir ikke lagret.», og merknaden «Sammendraget er laget av en språkmodell. Sjekk viktige punkter mot kilden.» på merknadsflaten (UX-DR20, UX-DR38)
+
+**Gitt** at studenten trykker «Lag nytt sammendrag»
+**Når** jobben går
+**Så** står det gamle sammendraget på siden til det nye er ferdig, og knappen er byttet med `job-status` («Lager sammendrag …») som leses opp ved start og slutt (FR-55, UX-DR19, UX-DR38)
+**Og** når jobben er ferdig, viser siden det nye sammendraget
+**Og** feiler jobben, eller gir den `TOO_FEW_SUMMARY_POINTS`, står det gamle sammendraget urørt med feilmeldingen og «Prøv igjen» (AR-4)
+
+**Gitt** at studenten leser sammendraget
+**Når** hun forlater siden
+**Så** lagres ingen økt, og lesingen gjør ikke forelesningen øvd (FR-56)
+
+**Gitt** en forelesning uten sammendrag, eller en annen students forelesning
+**Når** sammendragssiden eller `GET /api/lectures/{id}/summary` åpnes
+**Så** svarer API-et `404 NOT_FOUND`, og siden viser «Fant ikke siden» (AR-2, UX-DR41)
+
+**Gitt** `FEATURE_SUMMARY=false`
+**Når** studenten åpner sammendragssiden eller kaller `GET …/summary`
+**Så** svarer API-et `404 FEATURE_DISABLED`, og siden viser «Fant ikke siden» (AR-11)
+
+**Gitt** de nye testene
+**Når** de kjøres
+**Så** har de krav-ID i navnet (`test_fr54_…`, `test_fr55_…`, `test_fr56_summary_not_session_…`, AR-17)
+**Og** sammendragssiden har ingen axe-brudd, én h1, landemerker og tab-rekkefølge som følger leserekkefølgen, og «Lag nytt sammendrag» kan brukes med bare tastatur (UX-DR45)
+
+### Dekning
+
+| Krav | Story |
+|---|---|
+| FR-53 | 9.1 (lage og kontrollere), 9.2 (vise) |
+| FR-54 | 9.1 (lagres med kilde), 9.2 (vises med kilde) |
+| FR-55 | 9.1 (erstatter i én transaksjon), 9.2 («Lag nytt sammendrag», det gamle står til det nye er ferdig) |
+| NFR-2a (sammendrag) | 9.1 |
+| UX-DR38 | 9.2 |
+| AR-4 (`TOO_FEW_SUMMARY_POINTS`) | 9.1, 9.2 |
+| AR-7 (sammendraget slettes helt) | 9.1 |
 
 ### Avgjort av Silje 2026-11-14
 
-1. Med Gemini på viser kontosiden «Gemini fra Google, behandlet i EU», ventetiden er «Tar vanligvis under to minutter.», og merknaden på 04 er «Notatene sendes til Googles språkmodell i EU.» og «Ikke last opp personopplysninger, f.eks. navn på medstudenter.», ordrett fra skissene.
-2. Testbrukeren er `test@studiekamerat.no` med passordet `studiekamerat`.
-3. Datoene i eksempelemnet regnes ut fra dagen seed kjører.
-4. Seed lagrer én eller to økter, slik at oversikten viser både øvd og ikke øvd.
-5. En side sendes som bilde når den har tegninger eller bilder over en lav grense. Regelen testes på s. 127–128 (issue #9).
-6. Formelmerket settes ut fra `needs_image` også i demomodus.
-7. Lisensen er AGPL-3.0, fordi PyMuPDF er AGPL (issue #25).
-8. Regnearket for stikkprøvene er en CSV-fil i `docs/kvalitet/`.
+1. «Lag modellkort» står på Flashcards-raden, som avgjort 12.11 og i UX-DR18. Skisse 04 er utdatert på dette punktet.
+2. Forsiden på modellkort i demomodus er «Forklar [linja rett over lista].», og en liste teller bare når den står på én side.
+3. Et modellkort må ha minst tre punkter, også med ekte modell.
+4. Det vises ingen egen melding når noen modellkort forkastes, bare FR-47 når ingen blir laget.
+5. Er huskeregler slått av, øves modellkort som finnes, som vanlige flashcards uten «Endre huskeregel».
+6. En tom huskeregel avvises med «Skriv inn en huskeregel.» (E33).
+7. «Kortsvar» og «Vanlig» er forhåndsvalgt når fritekst lages.
+8. Valget i selvvurderingen går rett videre til neste spørsmål.
+9. Sammendraget i demomodus har ett tema per fil, med filnavnet som tema.
+10. Over 15 gyldige sammendragspunkter: de 15 første beholdes, og resten telles som forkastet.
+11. Tekstene «Notatene ga ikke grunnlag for et sammendrag med minst 5 punkter. Det gamle sammendraget er beholdt.», «Les sammendrag» og «… og sammendraget av forelesningen».
+12. Mock-modellen hopper over modellkort og fritekstspørsmål som finnes fra før, slik som for flashcards i epic 3.
+13. Kanttilfellene A8, E27, E28 og E33 er løst slik kriteriene beskriver.
