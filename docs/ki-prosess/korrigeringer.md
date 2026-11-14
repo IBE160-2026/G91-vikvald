@@ -4,6 +4,11 @@ Eksempler på at KI-forslag er avvist eller rettet, og på feil KI gjorde. Nyest
 
 | Dato | Hva KI gjorde | Hvem oppdaget det | Hva som ble gjort | Spor |
 |---|---|---|---|---|
+| 2026-11-14 | Skriptet som la inn epic 4–9 åpnet `epics.md` for skriving før det leste den, så kravlista og epic 1–3 forsvant fra fila i fire commits. | KI, under sluttsjekken av dekningen | Fila satt sammen igjen fra commitene. Ingenting gikk tapt. | `415bf76` |
+| 2026-11-14 | KI la utkastene til storiene i en midlertidig mappe, og de forsvant da maskinen startet på nytt etter strømbrudd. | KI, da loggen skulle lages på nytt | Hentet tilbake fra agentenes samtalefiler og lagret i repoet. | `a0e000f` |
+| 2026-11-14 | Utkastet til story 3.2 bygde merknadsflaten på nytt, selv om epic 2 allerede bygger den. | KI, ved gjennomgangen av epic 3 | 3.2 gjenbruker komponenten fra 2.3. | `add3324` |
+| 2026-11-14 | Sa at `beslutninger.md` hadde dupliserte rader. Det stemte ikke: KI hadde lest starten og slutten av fila, og de to utdragene overlappet. | KI, da ryddingen ikke fant noe å fjerne | Ingen endring i `beslutninger.md`. | Denne økten |
+| 2026-11-14 | Foreslo epics der testing, universell utforming og README lå samlet i epic 6, altså det som kuttes først hvis tiden blir knapp. | KI, da jeg spurte om forslaget var i tråd med sensorveiledningen | Testing, UU-sjekk og README skjer i hver story. Epic 6 tar bare den samlede kontrollen. | `70afae6` |
 | 2026-11-14 | Sa at funnene fra gjennomgangen av arkitekturen var rettet, men 12 mindre funn var verken lagt fram eller rettet. | Jeg, ved å lese `review-rubric.md` selv, og så KI da den gikk gjennom alle rapportene | `reviews/oppfolging.md` viser status for hvert funn, og de 12 ble rettet etter godkjenning. | `b145210` |
 | 2026-11-14 | Anbefalte én Next.js-app i stedet for oppsettet i technology.md. | Jeg | Fulgte technology.md. Avvik må begrunnes grundig. | `69ec805` |
 | 2026-11-14 | Låste en versjon av `google-genai` som ikke kan installeres sammen med pydantic-ai. | KI, i uavhengig gjennomgang | Låsen ble fjernet. | `3934a34` |

@@ -2,6 +2,36 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-14: Epics og stories
+
+> start epics and stories
+
+> ikke bruk techology.md
+
+> jeg ønsker at du legger inn epics som "vertical slices", dvs at koden er så isolert som mulig. men det er selvfølgelig vestentlig at du gjenbruker komponenter (DRY-prinsippet). lag heller fellesfoldere for felles komponenter eller biblioteker
+
+> er dette så langt i tråd med sensorveiledning og tilbakemelding?
+
+KI sjekket forslaget mot sensorveiledningen og tilbakemeldingene og fant at testing og universell utforming lå sist, i epic 6.
+
+> c, bruk subagenter til stories
+
+**Resultat:** Kravlista (`f6cb57f`) og ni epics (`70afae6`). Storiene skrives av subagenter, én per epic.
+
+KI la fram hver epic med forslag til svar på de åpne spørsmålene. Epic 1 og 2 ble godkjent med:
+
+> ja til alt
+
+og epic 3–9 med:
+
+> ja
+
+> er det i tråd med sensorveiledning og tilbakemelding?
+
+KI sjekket epicene mot sensorveiledningen og tilbakemeldingene og fant at omfanget fortsatt er den største risikoen. Det tas med i sprintplanleggingen.
+
+**Resultat:** 9 epics og 43 stories, med dekning av alle 142 krav (`1c93690` til `415bf76`).
+
 ## 2026-11-14: Arkitektur
 
 > bmad-architecture bruk technology.md som referanse, men tilpass denne til dette prosjektet for MVP

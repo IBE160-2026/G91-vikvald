@@ -4,6 +4,16 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
+| 2026-11-14 | Storiene skrives av sju subagenter, én per epic, og godkjennes én epic om gangen. | Det går raskere, og godkjenningen per epic gjør at det er jeg som tar valgene. | `1c93690` |
+| 2026-11-14 | KI-utkastene til storiene lagres i `stories-utkast/` ved siden av `epics.md`. | Viser hva KI foreslo og hva som ble godkjent. | `a0e000f` |
+| 2026-11-14 | Story 1.4 deles i «Opprett konto» og «Logg inn». | Den var for stor for én økt. | `1c93690` |
+| 2026-11-14 | Mock-modellen hopper over innhold som finnes fra før ved «Lag flere». | Ellers ser sensor de samme kortene to ganger og kan tro det er en feil. | `add3324` |
+| 2026-11-14 | Eksempelemnet får datoer regnet ut fra dagen appen startes. | Sensor åpner appen etter 15.12, og med faste datoer ville eksamen allerede vært passert. | `ae32ace` |
+| 2026-11-14 | Lisensen blir AGPL-3.0 (#25). | PyMuPDF, som leser PDF-ene, er AGPL og krever samme lisens for appen. | `ae32ace` |
+| 2026-11-14 | Epics og stories bygges bare på PRD, arkitektur og UX. technology.md er ikke eget grunnlag. | Arkitekturen bygger allerede på technology.md og sier hvor den gjelder og hvor det er avvik. Da leses ikke det samme to ganger. | `f6cb57f` |
+| 2026-11-14 | En liten CI (GitHub Actions) kjører pytest og Vitest ved hver pull request. Playwright er ikke med. Kan kuttes. | CI er ikke et krav, men gir synlig bevis på at testene går (testing teller 15 %). Den lille versjonen øker omfanget lite. | `f6cb57f` |
+| 2026-11-14 | Epicene er vertical slices som følger modulene. Det som brukes av flere moduler, flyttes til fellesmapper, og den nye mappa `frontend/components/` får felles skjermdeler. | Koden for hver del holdes isolert, uten kopier (DRY). shadcn/ui legger komponentene i `components/` uansett. | `70afae6` |
+| 2026-11-14 | Ni epics: 1–4 kjerneflyten i demomodus, 5 oversikt, 6 Gemini og klar for sensor, 7–9 bør ha. Testing, universell utforming og README skjer i hver story. | Følger milepælene og kuttrekkefølgen i PRD-en. Det som ligger sist, kuttes først, så testing kan ikke ligge sist. | `70afae6` |
 | 2026-11-14 | Arkitekturen følger faglærers technology.md: FastAPI-backend, Next.js-frontend og Docker Compose med Postgres. Erstatter stakkforslaget fra 2026-11-05. | technology.md er faglærers referanse. Faglærer sensurerer ved å kjøre appen i Docker, så repoet leverer egne Dockerfiler. | `69ec805` |
 | 2026-11-14 | Gemini på Vertex AI i stedet for OpenRouter som i technology.md. | NFR-5: OpenRouter er et mellomledd i USA, og behandling i EU krever betalt bedriftsplan. Vertex er allerede testet og dekket av prøvekreditten. | `69ec805` |
 | 2026-11-14 | PDF-er lagres i en mappe i stedet for Supabase Storage, Caddy kuttes, og PyMuPDF brukes i stedet for pypdf. | Sensor slipper nøkler og sertifikatadvarsel, og FR-40 krever bilde av en side. | `69ec805` |
