@@ -1,308 +1,313 @@
 
 
-## Epic 4: Ta quiz
+## Epic 5: Oversikt fram mot eksamen
 
-Studenten lager flervalgsquiz med valgt omfang og vanskelighetsgrad, svarer og bekrefter før fasit og forklaring vises, ser poengsum og feilsvar, og kan slette dårlige spørsmål. Plugger seg inn i motorene fra epic 3.
+Studenten ser hvor hun står i semesteret: semesterlinja med øvd og ikke øvd og tid til eksamen, «Neste å øve på» på forsiden, og tellinger og «sist øvd» i forelesningstabellen. Mye kan kuttes til tekst.
 
-### Story 4.1: Lag quizspørsmål fra en forelesning
+Rekkefølgen er valgt slik at det som kan kuttes, ligger sist eller i egne stories: 5.1 legger grunnlaget (funksjonen for «øvd» og oversikts-API-et), 5.3 er tekstvarianten av FR-57, og 5.5 er selve semesterlinja, som kan kuttes uten at FR-57 mister reserven.
+
+### Story 5.1: Regn ut «øvd» ett sted og vis det i sidemenyen og SISTE ØKT
 
 Som student,
-vil jeg lage quizspørsmål fra en forelesning med valgt omfang og vanskelighetsgrad,
-slik at jeg kan teste meg selv på stoffet i notatene mine.
+vil jeg se hvilke forelesninger jeg har øvd på, og hva jeg gjorde sist,
+slik at jeg vet hva jeg har gjort uten å måtte huske det selv.
 
-**Krav:** FR-2, FR-28, FR-29, FR-30, FR-31 (bare instruksen), FR-33, FR-38 (quiz), FR-39, NFR-2a (quiz), AR-3, AR-4, AR-5, AR-7, AR-15, AR-17, UX-DR18 (quiz), UX-DR19 (quiz), UX-DR24 (quiz), UX-DR42
+**Krav:** FR-56 («øvd»-regelen), AR-2, AR-9, AR-15, AR-16, AR-17, UX-DR7 (statusprikk), UX-DR14 (SISTE ØKT)
 
 **Akseptkriterier:**
 
-**Gitt** at appen starter etter denne storien
-**Når** Alembic kjører
-**Så** finnes tabellen `quiz_questions` med `id` (UUID), `file_id` (fremmednøkkel med `ON DELETE CASCADE`), `page_no`, `formula_flag`, `question`, `options` (liste med fire tekster), `correct_index` (0–3), `explanation` og `created_at`
-**Og** migreringen virker både på Postgres og på SQLite i minnet (AR-13)
+**Gitt** at `practice_sessions` og `POST /api/practice-sessions` finnes fra epic 3
+**Når** storien er bygd
+**Så** finnes det én funksjon i `backend/app/modules/practice/service.py` (for eksempel `practiced_lectures(db, user_id, subject_id)`) som gir, for hver forelesning i emnet, om den er øvd og tidspunktet for siste økt som teller for den
+**Og** ingen annen kode i backend eller frontend regner ut «øvd» på egen hånd; oversikten, tabellen, sidemenyen, «Neste å øve på» og semesterlinja bruker bare denne funksjonen (AR-9)
 
-**Gitt** registeret for innholdstyper fra epic 3
-**Når** quiz meldes inn med `kind` = `quiz`
-**Så** har registeret mock-regel, validator og lagring for quiz, og `POST /api/lectures/{id}/jobs` med `kind` = `quiz` og `params` med omfang (10, 20 eller 30, som flashcards) og `difficulty` (`easy`, `medium` eller `hard`) gir `202`
-**Og** ugyldig omfang eller vanskelighetsgrad gir feil i formatet fra `core/errors` (AR-12)
-**Og** gjenbruker jobbløpet, `409 JOB_ALREADY_RUNNING`, tidsgrensen på 3 minutter og `GET /api/jobs/active` uten egen kode for quiz
+**Gitt** en forelesning med én lagret økt på bare denne forelesningen (også en avbrutt økt)
+**Når** funksjonen kjøres
+**Så** er forelesningen øvd, og siste tidspunkt er øktens `started_at`
 
-**Gitt** en forelesning der filene har minst fire definisjonssetninger («er»/«is»)
-**Når** en quizjobb kjører med `LLM_PROVIDER=mock`
-**Så** lager `MockGenerator` ett spørsmål per definisjonssetning: «Hva er [begrep]?», resten av setningen som riktig svar, og definisjonene (resten av setningen) til de tre neste begrepene i forelesningen, i leserekkefølge og med omstart fra begynnelsen, som feilalternativer
-**Og** kilden er fila og PDF-sidenummeret der definisjonen står (FR-39)
-**Og** forklaringen er hele definisjonssetningen
-**Og** mock-modellen bruker samme regel uansett vanskelighetsgrad, og høyst så mange spørsmål som omfanget tillater, valgt på samme måte som flashcards i epic 3
-**Og** ved «+ Lag flere» hopper mock-modellen over spørsmål med samme spørsmålstekst som et spørsmål forelesningen har fra før, slik som for flashcards i epic 3, og er det ingen nye, vises meldingen for «ingenting laget»
-**Og** samme fil gir de samme spørsmålene hver gang (SK-21)
+**Gitt** en lagret økt på hele emnet (`lecture_id` tom) med `started_at` T
+**Når** funksjonen kjøres
+**Så** teller økten for alle forelesninger i emnet som hadde øvingsinnhold (flashcards, quizspørsmål eller fritekstspørsmål) laget før eller ved T
+**Og** den teller ikke for forelesninger som fikk sitt første innhold etter T, og heller ikke for forelesninger uten innhold
+**Og** spørsmålet «hadde innhold ved T» besvares av én funksjon i `content` (gjenbruker tellingsregisteret fra epic 2–4), slik at `practice` ikke leser innholdstabellene direkte (AR-16)
 
-**Gitt** en forelesning med færre enn fire definisjonssetninger
-**Når** en quizjobb kjører i demomodus
-**Så** lagres ingen quizspørsmål, jobben ender med `created` = 0
-**Og** studenten får meldingen for «færre enn valgt» slik epic 3 viser den for 0 av N (A20/E12), med ordet «spørsmål»
+**Gitt** en forelesning uten noen økt som teller
+**Når** funksjonen kjøres
+**Så** er den ikke øvd, og siste tidspunkt er tomt
 
-**Gitt** elementer fra modellen
-**Når** `validate_item` kontrollerer et quizelement
-**Så** forkastes det hvis det ikke har nøyaktig fire alternativer, hvis noen alternativer er tomme eller like (etter at mellomrom og store/små bokstaver er sett bort fra), hvis det riktige ikke er nøyaktig ett av dem, hvis spørsmål eller forklaring er tomt, eller hvis siden ikke finnes i fila
-**Og** de forkastede telles i `discarded` og gir meldingen «Det ble laget 12 av inntil 20 spørsmål. Notatene ga ikke grunnlag for flere.» med de faktiske tallene
-**Og** `LLM_PROVIDER=mock-invalid` gir ugyldige quizelementer som blir forkastet (SK-4)
+**Gitt** en innlogget student
+**Når** frontend kaller `GET /api/overview`
+**Så** svarer API-et med studentens emner (id, navn, `color_index`, `exam_date`) og for hvert emne forelesningene (id, navn, dato, `practiced`, `last_practiced_at`) og `last_session` (type, forelesning eller hele emnet, `started_at`, `aborted` og tallene fra økten), i `snake_case` og med ISO 8601-datoer (AR-15)
+**Og** svaret inneholder bare studentens egne data, og uten innlogging svarer API-et `401 UNAUTHENTICATED` (AR-2, AR-10)
 
-**Gitt** gyldige quizspørsmål som skal lagres
-**Når** de lagres i én transaksjon
-**Så** blandes rekkefølgen på alternativene én gang, med et frø regnet ut fra teksten i spørsmålet og alternativene (for eksempel SHA-256, ikke Pythons `hash()`), og `correct_index` peker på det riktige alternativet etter blandingen
-**Og** samme innhold gir alltid samme rekkefølge (AR-4)
-**Og** det riktige svaret står ikke på samme plass i alle spørsmål fra testfila (FR-30)
-**Og** nye spørsmål legges til de som finnes fra før (FR-33)
+**Gitt** sidemenyen med emnetre fra epic 2
+**Når** et emne er åpent
+**Så** har hver menyrad en fylt statusprikk når forelesningen er øvd og en hul prikk når den ikke er det (UX-DR7)
+**Og** prikken har et tilgjengelig navn, «Øvd» eller «Ikke øvd ennå», slik at status ikke bare vises med fylt eller hul form
 
-**Gitt** at kallet til modellen feiler eller tar over 3 minutter
-**Når** quizjobben avsluttes
-**Så** lagres ingenting, antallet spørsmål er uendret, og raden viser «Vi klarte ikke å lage quizspørsmålene. Ingenting er lagret. Prøv igjen.» med knappen «Prøv igjen», som starter jobben på nytt med samme valg
+**Gitt** at studenten har fullført eller avbrutt en økt
+**Når** hun kommer tilbake til en side med sidemeny eller kortet «Øv på hele emnet»
+**Så** viser siden den nye statusen uten at hun må laste siden på nytt (oversikten hentes på nytt etter økten)
 
-**Gitt** at ekte modell kobles på i epic 6
-**Når** quiz meldes inn i registeret
-**Så** har quiz en egen instruks til modellen på samme sted som flashcards-instruksen fra epic 3: bare stoff fra sidene, norsk bokmål med engelsk fagbegrep i parentes (FR-2), fire alternativer med nøyaktig ett riktig, en forklaring, sidetallet, beskrivelsen av valgt vanskelighetsgrad fra FR-28, og at alternativene er omtrent like lange og troverdige (FR-31)
-**Og** en enhetstest sjekker at instruksen tar med riktig beskrivelse for hver vanskelighetsgrad
-**Og** FR-31 måles ikke her, men i SK-15 i epic 6
+**Gitt** emnesiden (03) med kortet «Øv på hele emnet» fra epic 3 og 4
+**Når** emnet har minst én lagret økt
+**Så** står SISTE ØKT nederst i kortet med type og omfang og dato og resultat, som i skisse 03: «Quiz · Uke 37: Merkevare» og «09.11 · 12 av 15 riktige» (UX-DR14)
+**Og** en økt på hele emnet viser «Hele emnet» i stedet for forelesningsnavnet
+**Og** datoen vises som dd.mm med en felles datofunksjon i `frontend/lib/`
 
-**Gitt** forelesningssiden med «Lag og øv»
-**Når** Quiz-raden vises
-**Så** gjenbruker den `create-row`: uten spørsmål «Ingen ennå» og knappen «Lag quiz»; med spørsmål antallet («15 spørsmål»), «Øv nå» og «+ Lag flere»
-**Og** uten filer er knappene ikke aktive
-**Og** mens quizjobben pågår, viser `job-status` «Lager quizspørsmål …» og «Du kan bruke resten av appen imens.», og de andre «Lag …»-knappene er ikke aktive med forklaringen etter mønsteret fra epic 3 («Venter til quizspørsmålene er ferdige»)
-**Og** når en annen jobb pågår, er «Lag quiz» ikke aktiv og forklarer hvorfor
-
-**Gitt** at studenten trykker «Lag quiz» eller «+ Lag flere» på Quiz-raden
-**Når** dialogen «Lag quiz» (skisse 06) åpnes
-**Så** gjenbruker den dialogen fra `frontend/components/` med bredde 720 px, og viser forelesningen med antall filer og sider («Uke 37: Merkevare · 2 filer, 18 sider»)
-**Og** har studenten spørsmål fra før, står «Nye spørsmål legges til de 15 du har fra før.» med det faktiske tallet
-**Og** omfang er tre valgkort: «Rask» «Inntil 10 spørsmål», «Vanlig» «Inntil 20 spørsmål», «Dyp» «Inntil 30 spørsmål», og gjenbruker omfangsvalget fra «Lag flashcards» hvis det finnes
-**Og** vanskelighetsgrad er tre rader: «Lett» «Kjenne igjen en definisjon», «Middels» «Forstå sammenhenger», «Vanskelig» «Bruke stoffet på et eksempel»
-**Og** «Vanlig» og «Middels» er forhåndsvalgt, og piltaster flytter valget innenfor hver gruppe
-**Og** under står «Tar vanligvis under to minutter.» og «Du kan bruke resten av appen imens.», og knappene «Avbryt» og «Lag quiz»
-**Og** «Lag quiz» starter jobben og lukker dialogen; «Avbryt» og Esc lukker uten at noe startes, og fokus går tilbake til knappen som åpnet dialogen
-
-**Gitt** en fil, forelesning, et emne eller en konto med quizspørsmål
-**Når** `delete-preview` hentes
-**Så** melder quiz seg inn i telleregisteret i `content`, og tellingen tar med quizspørsmålene
-**Og** slettebekreftelsen viser for eksempel «Dette sletter også 18 flashcards, 11 quizspørsmål og 2 modellkort laget fra fila. Det kan ikke angres.»
-**Og** quizspørsmålene slettes med kaskade sammen med fila, også ved erstatning (AR-7)
-
-**Gitt** en annen brukers forelesning
-**Når** studenten prøver å starte en quizjobb på den
-**Så** svarer API-et `404 NOT_FOUND` (FR-4, AR-2)
-
-**Gitt** testene for storien
-**Når** `uv run pytest`, `npm run test` og `npx playwright test` kjøres
-**Så** har testene krav-ID i navnet, for eksempel `test_fr30_alternativer_blandes_deterministisk` og `test_nfr2a_quiz_krever_fire_definisjoner` (AR-17)
-**Og** axe finner ingen brudd på forelesningssiden med Quiz-raden og på dialogen «Lag quiz», og alt i dialogen kan brukes med bare tastatur
-
-### Story 4.2: Ta quiz på en forelesning
-
-Som student,
-vil jeg svare på quizspørsmålene fra en forelesning og bekrefte svaret før jeg ser fasit og forklaring,
-slik at jeg må tenke selv før jeg får vite svaret.
-
-**Krav:** FR-32, FR-34 (én forelesning), FR-35, FR-56 (quiz), NFR-8 (quiz), NFR-10, NFR-12, AR-9, AR-15, AR-17, UX-DR8, UX-DR9, UX-DR29, UX-DR31, UX-DR32, UX-DR33, UX-DR44
-
-**Akseptkriterier:**
-
-**Gitt** en forelesning med quizspørsmål
-**Når** frontend henter dem med `GET /api/lectures/{id}/quiz-questions`
-**Så** får den hvert spørsmål med `question`, `options`, `correct_index`, `explanation`, `source: {file_id, file_name, page_no}` og forelesningens navn, i samme stil som flashcards-API-et fra epic 3
-**Og** fasiten sendes med, som bestemt i arkitekturen (AR-15), men vises først etter bekreftelse
-**Og** en annen brukers forelesning gir `404 NOT_FOUND`
-
-**Gitt** at studenten trykker «Øv nå» på Quiz-raden
-**Når** quizøkten (skisse 09) starter
-**Så** gjenbruker den øktrammen fra `practice`: øktpanel med «Quiz» og forelesningens navn, teller («4 / 15»), fremdriftsstolpe, «3 riktige · 1 feil», svarrutenett med ✓ og ✗, symbolforklaring («Riktig», «Feil», «Ikke besvart ennå») og «Avslutt økt»
-**Og** spørsmålene kommer i tilfeldig rekkefølge, hvert én gang (FR-34)
-**Og** alternativene står i rekkefølgen de ble lagret med, med bokstavene A–D
-
-**Gitt** et spørsmål som ikke er bekreftet
-**Når** studenten ser det
-**Så** vises «SPØRSMÅL 4 AV 15», spørsmålet, fire svaralternativer (`quiz-option`, 62 px) og knappen «Bekreft svar» (se spørsmål 4)
-**Og** ingen farge, ingen forklaring og ingen markering av riktig svar finnes i siden (SK-5)
-**Og** studenten kan bytte valg så mange ganger hun vil
-
-**Gitt** at studenten har valgt et alternativ
-**Når** hun bekrefter
-**Så** låses alternativene, og svaret kan ikke endres (FR-35)
-**Og** riktig alternativ får grønn tone og «✓ Riktig svar», og et feil valgt alternativ får rød tone og «✗ Ditt svar», med tekst og symbol i tillegg til farge (NFR-10)
-**Og** forklaringskortet viser forklaringen, kilden med `source-link` fra `frontend/components/` («merkevare-notater.pdf, side 7») og forelesningen (FR-32)
-**Og** et levende område leser opp «Du svarte C. Svaret er bekreftet.» fulgt av «Riktig.» eller «Feil. Riktig svar er B.», uten at fokus flyttes for skjermleseren (UX-DR44)
-**Og** fokus flyttes til «Neste spørsmål» (UX-DR31)
-**Og** svarrutenettet og «riktige · feil» i øktpanelet oppdateres, og ruten leses som «Spørsmål 4: feil»
-
-**Gitt** at quizøkten vises og hurtigtaster er på
-**Når** studenten bruker tastaturet
-**Så** velger `A`–`D` (også små bokstaver) tilsvarende alternativ før bekreftelse, Enter bekrefter, Enter etter bekreftelse går til neste spørsmål, og Esc avslutter økten
-**Og** `A`–`D` gjør ingenting etter bekreftelse eller mens en dialog er åpen
-**Og** hint-linjen viser «A–D velg svar», «Enter bekreft svar» eller «Enter neste spørsmål», og «Esc avslutt», og skjules når hurtigtaster er slått av
-**Og** hurtigtastdialogen fra epic 3 viser tastene for quiz
-**Og** alt kan også gjøres med Tab, piltaster og Mellomrom uten hurtigtaster (alternativene er en radiogruppe)
-
-**Gitt** at studenten trykker Enter uten å ha valgt et alternativ
-**Når** spørsmålet ikke er bekreftet
-**Så** skjer ingenting, og «Bekreft svar» er ikke aktiv før et alternativ er valgt *(A7)*
-
-**Gitt** at fokus står på en annen knapp i siden, for eksempel «Slett», «Avslutt økt» eller en knapp i forklaringskortet
-**Når** studenten trykker Enter
-**Så** gjør Enter bare det den knappen gjør, og hurtigtasten for bekreft/neste utløses ikke i tillegg
-**Og** en Enter som holdes inne (gjentatt tastetrykk) bekrefter ikke og går videre i samme trykk *(E26)*
-
-**Gitt** det siste spørsmålet i økten
-**Når** svaret er bekreftet
-**Så** heter knappen «Se resultatet» i stedet for «Neste spørsmål», og den og Enter går til resultatet
-
-**Gitt** en quizøkt der minst ett spørsmål er bekreftet
-**Når** økten er ferdig, studenten velger «Avslutt økt» eller Esc, går til en annen side, logger ut eller lukker fanen
-**Så** sendes resultatet én gang til `POST /api/practice-sessions` med lagringen fra epic 3: `kind` = `quiz`, `lecture_id`, `shown`, `answered` (bekreftede svar), `correct`, `wrong` = `answered` − `correct`, `partial` = 0, og `aborted` når økten ikke ble fullført
-**Og** et valgt, men ikke bekreftet svar telles ikke som besvart
-**Og** uten bekreftede svar lagres ingenting, og «Avslutt økt» går rett tilbake dit økten startet
-
-**Gitt** testene for storien
-**Når** de kjøres
-**Så** har de krav-ID i navnet, for eksempel `test_fr35_svar_laases_etter_bekreftelse`, `test_sk5_forklaring_skjult_for_bekreftelse` og `test_fr56_quizokt_lagres` (AR-17)
-**Og** axe finner ingen brudd på quizsiden før og etter bekreftelse, og hele økten kan tas med bare tastatur med synlig fokus
-
-### Story 4.3: Se poengsum og feilsvar etter quizen
-
-Som student,
-vil jeg se hvor mange jeg fikk riktig og hvilke jeg svarte feil på,
-slik at jeg vet hva jeg må lese mer på.
-
-**Krav:** FR-36, AR-17, UX-DR8, UX-DR32, UX-DR33, UX-DR34, UX-DR35
-
-**Akseptkriterier:**
-
-**Gitt** at studenten har bekreftet svar på alle spørsmålene
-**Når** hun går til resultatet (skisse 10)
-**Så** gjenbruker siden resultatsammendraget fra øktrammen med overlinjen «QUIZ FERDIG» og tittelen «11 av 15 riktige»
-**Og** øktpanelet er fullt og viser «✓ Økten er ferdig og lagret», som leses opp
-**Og** knappene er «Ta quizen igjen» (hovedknapp) og tilbakevalget til der økten startet; Enter tar quizen igjen og Esc går tilbake
-
-**Gitt** at studenten avslutter med «Avslutt økt» eller Esc etter minst ett bekreftet svar
-**Når** resultatet vises
-**Så** står det som avbrutt («Avbrutt etter 12 av 20»), og poengsummen gjelder de besvarte spørsmålene
-
-**Gitt** at studenten trykker «Ta quizen igjen»
-**Når** den nye økten starter
-**Så** får den ny `session_id`, henter spørsmålene på nytt og viser dem i ny tilfeldig rekkefølge
-
-**Gitt** at studenten svarte feil på minst ett spørsmål *(Kan kuttes)*
-**Når** resultatet vises
-**Så** står undertittelen med omfang og antall, for eksempel «Markedsføring, hele emnet · her er de 4 du svarte feil på, med riktig svar og kilde»
-**Og** liste over feil (`missed-list`) fra øktrammen viser for hvert feilsvar nummeret i økten, spørsmålet, kilden, «✗ Ditt svar», «✓ Riktig svar» og forklaringen
-
-**Gitt** at studenten svarte riktig på alle *(Kan kuttes, sammen med lista)*
-**Når** resultatet vises
-**Så** vises ingen tom liste, og undertittelen viser bare omfanget
-
-**Gitt** testene for storien
-**Når** de kjøres
-**Så** har de krav-ID i navnet, for eksempel `test_fr36_poengsum_vises` og `test_fr36_liste_over_feilsvar` (AR-17)
-**Og** axe finner ingen brudd på resultatsiden, med og uten liste, og alt kan brukes med bare tastatur
-
-### Story 4.4: Ta quiz på hele emnet
-
-Som student,
-vil jeg ta quiz på spørsmålene fra alle forelesningene i et emne,
-slik at jeg kan repetere hele emnet før eksamen.
-
-**Krav:** FR-34 (hele emnet), FR-56 (quiz, hele emnet), AR-9, AR-17, UX-DR14 (quiz)
-
-**Akseptkriterier:**
-
-**Gitt** et emne der minst én forelesning har quizspørsmål
+**Gitt** et emne uten lagrede økter
 **Når** emnesiden vises
-**Så** har kortet «Øv på hele emnet» en Quiz-rad med antallet spørsmål og «Start ›», under flashcards-raden fra epic 3
-**Og** emner uten quizspørsmål har ingen Quiz-rad
+**Så** vises ikke SISTE ØKT
 
-**Gitt** at studenten trykker «Start ›» på Quiz-raden
-**Når** økten starter
-**Så** hentes alle emnets spørsmål med `GET /api/subjects/{id}/quiz-questions`, blandet på tvers av forelesninger i tilfeldig rekkefølge
-**Og** øktpanelet viser «Quiz» og «Markedsføring, hele emnet»
-**Og** forklaringskortet og lista over feil viser hvilken forelesning hvert spørsmål kommer fra
-**Og** en annen brukers emne gir `404 NOT_FOUND`
-
-**Gitt** en emneøkt med minst ett bekreftet svar
-**Når** den lagres
-**Så** sendes `lecture_id` tom, slik at økten teller for hele emnet (AR-9)
-**Og** tilbakevalget og Esc på resultatsiden går til emnesiden («Tilbake til emnet»)
+**Gitt** sidene som er endret (03, 04, 13 og 15 med sidemeny)
+**Når** Playwright-testene kjører
+**Så** finner axe ingen brudd, og statusprikkene og SISTE ØKT kan nås og leses med tastatur og skjermleser
 
 **Gitt** testene for storien
-**Når** de kjøres
-**Så** har de krav-ID i navnet, for eksempel `test_fr34_quiz_hele_emnet` (AR-17)
-**Og** axe finner ingen brudd på emnesiden med Quiz-raden og på quizøkten for hele emnet, og alt kan brukes med bare tastatur
+**Når** de kjøres med `uv run pytest`, `npm run test` og `npx playwright test`
+**Så** har testnavnene krav-ID, for eksempel `test_ar9_emneokt_teller_forelesninger_med_innhold_ved_start`, `test_fr56_avbrutt_okt_gir_ovd` og `test_ux_dr14_siste_okt` (AR-17)
 
-### Story 4.5: Slett et dårlig spørsmål under quizen
+### Story 5.2: Vis tellinger og «Øvd 03.11» i forelesningstabellen *(Kan kuttes)*
 
 Som student,
-vil jeg slette et quizspørsmål direkte mens jeg tar quizen,
-slik at dårlige spørsmål ikke kommer igjen.
+vil jeg se hvor mange filer, kort og quizspørsmål hver forelesning har, og når jeg sist øvde,
+slik at jeg ser hvilke forelesninger som er klare og hvilke jeg har latt ligge.
 
-**Krav:** FR-37, AR-2, AR-17, UX-DR22, UX-DR29
+**Krav:** FR-16, UX-DR13 (tellinger og status), AR-15, AR-17
 
 **Akseptkriterier:**
 
-**Gitt** et quizspørsmål i en økt
-**Når** det vises, før og etter bekreftelse
-**Så** står «Slett» i bunnfeltet hele tiden, også før svaret er bekreftet, mens kilden vises etter bekreftelse som i skisse 09, og det finnes ingen «Rediger» (spørsmål kan ikke redigeres)
+**Gitt** emnesiden (03) med forelesningstabellen fra epic 2
+**Når** siden vises
+**Så** har tabellen kolonnene Dato, Forelesning, Filer, Kort, Quiz og Status (UX-DR13)
+**Og** Kort er antall flashcards (modellkort regnes med når de finnes), og Quiz er antall quizspørsmål
 
-**Gitt** at studenten trykker «Slett»
-**Når** bekreftelsen åpnes
-**Så** gjenbruker den den felles slettebekreftelsen og teksten for enkeltelementer fra epic 3, med quizspørsmål i stedet for kort
-**Og** «Avbryt» har startfokus, og Esc eller «Avbryt» sletter ingenting og gir fokus tilbake til «Slett»
-**Og** hurtigtastene `A`–`D` og Enter virker ikke mens dialogen er åpen
+**Gitt** antallene i en rad
+**Når** de vises
+**Så** er tallene høyrejustert med tabulære tall, og 0 vises som «–»
+**Og** tellingene kommer fra tellingsregisteret i `content` (gjenbruker det som delete-preview bruker), slik at en ny innholdstype bare melder seg inn ett sted
 
-**Gitt** at studenten bekrefter slettingen
-**Når** `DELETE /api/quiz-questions/{id}` kalles
-**Så** svarer API-et `204`, og spørsmålet er borte fra databasen og fra tellingene på forelesningssiden og emnesiden
-**Og** en annen brukers spørsmål gir `404 NOT_FOUND`
-**Og** sletting mens en jobb pågår på forelesningen følger samme regel som sletting av kort i epic 3
+**Gitt** en forelesning som er øvd
+**Når** raden vises
+**Så** står det fylt prikk og «Øvd 03.11», der datoen er siste økt som teller for forelesningen etter funksjonen fra story 5.1
 
-**Gitt** at et spørsmål slettes før det er bekreftet
-**Når** økten fortsetter
-**Så** fjernes det fra økten etter samme regel som epic 3 bruker for kort (E22): telleren og svarrutenettet får ett spørsmål mindre, og neste spørsmål vises
-**Og** var det det siste spørsmålet, avsluttes økten som om den var ferdig (resultat hvis noe er besvart, ellers tilbake dit økten startet)
+**Gitt** en forelesning med filer som ikke er øvd
+**Når** raden vises
+**Så** står det hul prikk og «Ikke øvd ennå»
 
-**Gitt** at et spørsmål slettes etter at svaret er bekreftet
-**Når** økten fortsetter
-**Så** teller svaret fortsatt i poengsummen og i lista over feil, fordi det allerede er gitt, og økten går til neste spørsmål *(E22)*
+**Gitt** en forelesning uten filer
+**Når** raden vises
+**Så** står det «Ingen filer ennå»
+
+**Gitt** en økt på hele emnet
+**Når** tabellen vises etterpå
+**Så** har alle forelesninger som hadde innhold da økten startet, fått «Øvd» med øktens dato, og de andre er uendret
+
+**Gitt** tabellen
+**Når** studenten bruker tastatur
+**Så** kan hver rad nås med Tab og åpne forelesningen (04) med Enter, som i epic 2
+**Og** axe finner ingen brudd på 03
 
 **Gitt** testene for storien
 **Når** de kjøres
-**Så** har de krav-ID i navnet, for eksempel `test_fr37_slett_quizspormaal` og `test_fr37_avbryt_sletter_ingenting` (AR-17)
-**Og** axe finner ingen brudd på quizsiden med slettebekreftelsen åpen, og slettingen kan gjøres med bare tastatur
+**Så** har de krav-ID i navnet, for eksempel `test_fr16_tellinger_per_forelesning` og `test_fr16_status_ovd_dato` (AR-17)
+
+### Story 5.3: Vis «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd» på forsiden og emnesiden
+
+Som student,
+vil jeg se hvor lenge det er til eksamen og hvor mange forelesninger jeg har øvd på,
+slik at jeg vet om jeg ligger an til å rekke det.
+
+Denne storien er tekstvarianten av FR-57. Den bygges først, slik at kravet er oppfylt også om semesterlinja (story 5.5) kuttes.
+
+**Krav:** FR-57 (reserven), SK-22, AR-15, AR-17
+
+**Akseptkriterier:**
+
+**Gitt** forsiden (02) med emnelista fra epic 2
+**Når** studenten har emner
+**Så** står det for hvert emne en linje med emnenavn og teksten ordrett etter mønsteret «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd»
+
+**Gitt** emnesiden (03)
+**Når** siden vises
+**Så** står samme tekst for dette emnet under overskriften
+
+**Gitt** antallet øvde forelesninger
+**Når** teksten lages
+**Så** er N i «N av M» antall forelesninger som er øvd etter funksjonen fra story 5.1, og M er alle forelesningene i emnet, også de uten filer (som i skisse 03: 4 av 8)
+
+**Gitt** dagens dato og eksamensdatoen
+**Når** antall uker regnes ut
+**Så** gjøres det i én funksjon i `frontend/lib/` (for eksempel `weeksUntilExam(examDate, today)`) som tar dagens dato som argument, slik at den kan testes
+**Og** antallet avrundes til nærmeste hele uke, som i skisse 02 (24 dager gir «om 3 uker», 34 dager gir «om 5 uker», 21 dager gir «om 3 uker»)
+**Og** «om 1 uke» står i entall
+**Og** er det mindre enn sju dager igjen, vises dager i stedet: «Eksamen 04.12, om 3 dager» og «Eksamen 04.12, i morgen»
+**Og** dagens dato er studentens lokale dato
+
+**Gitt** at eksamen er i dag
+**Når** teksten vises
+**Så** står det «Eksamen i dag · 4 av 8 forelesninger øvd»
+
+**Gitt** at eksamensdatoen er passert
+**Når** teksten vises
+**Så** står det «Eksamen var 04.12 · 4 av 8 forelesninger øvd»
+
+**Gitt** et emne uten forelesninger
+**Når** teksten vises
+**Så** står det «Eksamen 04.12, om 3 uker · Ingen forelesninger ennå» i stedet for «0 av 0 forelesninger øvd» *(E6)*
+
+**Gitt** en økt som studenten nettopp har lagret
+**Når** hun går tilbake til forsiden eller emnesiden
+**Så** viser teksten det nye antallet øvde forelesninger (SK-22)
+
+**Gitt** sidene 02 og 03
+**Når** Playwright-testene kjører
+**Så** finner axe ingen brudd, og teksten er vanlig tekst som skjermleseren leser
+
+**Gitt** testene for storien
+**Når** de kjøres
+**Så** har de krav-ID i navnet, for eksempel `test_sk22_uker_til_eksamen`, `test_sk22_antall_ovd` og `test_fr57_eksamen_i_dag` (AR-17)
+
+### Story 5.4: Vis emnekort med «Neste å øve på» på forsiden
+
+Som student,
+vil jeg se ett kort per emne med hva jeg bør øve på nå,
+slik at jeg kommer i gang med én knapp i stedet for å lete.
+
+**Krav:** FR-58 (*Kan kuttes*), SK-20, UX-DR12, AR-17
+
+**Akseptkriterier:**
+
+**Gitt** forsiden (02) med emnelista fra epic 2
+**Når** studenten har emner
+**Så** vises ett emnekort (`subject-card`) per emne i stedet for den enkle lista: emneprikk i emnefargen og navn, tekstknappen «Åpne ›» til emnesiden (03), og antall kort og quizspørsmål, for eksempel «120 kort · 64 quizspørsmål» (UX-DR12)
+**Og** kortene står i tre kolonner, og to og én kolonne i smalere vinduer (UX-DR10)
+**Og** tekstlinja fra story 5.3 står fortsatt per emne over kortene
+
+**Gitt** et emnekort
+**Når** det vises
+**Så** står fremdriften nederst som små stolper, én per forelesning, fylt når forelesningen er øvd, med teksten «4 av 8 forelesninger øvd» (samme tall som i story 5.3)
+**Og** stolpene er skjult for skjermleser, siden teksten sier det samme
+
+**Gitt** et emne med øvingsinnhold *(Kan kuttes: FR-58)*
+**Når** kortet vises
+**Så** står NESTE Å ØVE PÅ med den eldste forelesningen (etter dato) som har innhold og ikke er øvd, og en grunn, for eksempel «Uke 38: Markedsmiksen» og «16 kort, ikke øvd ennå»
+**Og** hovedknappen «Øv nå» starter flashcards for den forelesningen (gjenbruker økten fra epic 3)
+**Og** har forelesningen bare quiz eller fritekst, følger knappen regelen for «Øv nå» som avgjøres i epic 3 (A15, E1)
+
+**Gitt** at alle forelesninger med innhold er øvd *(Kan kuttes: FR-58)*
+**Når** kortet vises
+**Så** står NESTE Å ØVE PÅ med forelesningen som ble øvd lengst siden, og grunnen «16 kort, sist øvd 03.11»
+**Og** «øvd» og «sist øvd» kommer bare fra funksjonen i story 5.1 (SK-20)
+
+**Gitt** et emne med forelesninger og filer, men uten øvingsinnhold
+**Når** kortet vises
+**Så** står «Ingen øvingsinnhold ennå» i stedet for tellingene, og NESTE STEG med den eldste forelesningen som har filer, grunnen «2 filer lastet opp, klare til bruk» og omrissknappen «Lag flashcards», som åpner forelesningssiden (04)
+
+**Gitt** et emne uten forelesninger
+**Når** kortet vises
+**Så** står NESTE STEG med «Ingen forelesninger ennå» og omrissknappen «Ny forelesning», som åpner emnesiden (03) *(E2)*
+
+**Gitt** et emne med forelesninger, men uten filer
+**Når** kortet vises
+**Så** står NESTE STEG med den eldste forelesningen, grunnen «Ingen filer ennå» og omrissknappen «Last opp PDF», som åpner forelesningssiden (04) *(E2)*
+
+**Gitt** at FR-58 kuttes
+**Når** kortet vises
+**Så** viser det fortsatt navn, «Åpne ›», tellinger, fremdrift og NESTE STEG, og ingen annen story bryter
+
+**Gitt** forsiden
+**Når** Playwright-testene kjører
+**Så** finner axe ingen brudd, alle knapper kan nås med Tab i leserekkefølge, og hvert kort har emnenavnet som overskrift
+
+**Gitt** testene for storien
+**Når** de kjøres
+**Så** har de krav-ID i navnet, for eksempel `test_fr58_eldste_ikke_ovd`, `test_fr58_alle_ovd_gir_lengst_siden`, `test_sk20_neste_a_ove_pa` og `test_ux_dr12_neste_steg` (AR-17)
+
+### Story 5.5: Vis semesterlinja på forsiden, emnesiden og forelesningssiden *(Kan kuttes)*
+
+Som student,
+vil jeg se forelesningene mine på en linje fram mot eksamen,
+slik at jeg ser med ett blikk hvor mye som har vært, hva jeg har øvd, og hvor lenge det er igjen.
+
+Kuttes denne storien, står tekstvarianten fra story 5.3 igjen, og FR-57 er oppfylt med reserven.
+
+**Krav:** FR-57, SK-22, UX-DR11, AR-17
+
+**Akseptkriterier:**
+
+**Gitt** forsiden (02)
+**Når** studenten har emner
+**Så** vises semesterlinja (`semester-timeline`) over emnekortene, i stedet for tekstlinjene fra story 5.3, som et hvitt kort med symbolforklaringen «Øvd», «Ikke øvd ennå», «Eksamen» og «Tid igjen» (UX-DR11)
+**Og** hvert emne har én linje i emnefargen, 4 px tykk, heltrukket fram til i dag og stiplet fram til eksamen
+**Og** forelesningene er stasjoner etter dato, fylt når de er øvd og hule når de ikke er det, etter funksjonen fra story 5.1
+**Og** eksamen er en svart firkant, og «I dag» er en pille med dato og loddrett nål
+
+**Gitt** semesterlinja
+**Når** den vises
+**Så** står emnenavn, antall forelesninger og «Eksamen 04.12 · om 3 uker» til venstre for hver linje, med «Eksamen i dag» og «Eksamen var 04.12» som i story 5.3
+**Og** antall uker kommer fra samme funksjon som i story 5.3 (gjenbrukes, ikke kopieres)
+
+**Gitt** emnesiden (03)
+**Når** siden vises
+**Så** viser semesterlinja bare dette emnet, med ukenummer og dato ved stasjonene og eksamensdatoen ved firkanten, som i skisse 03
+**Og** tekstlinja fra story 5.3 erstattes av linja
+
+**Gitt** forelesningssiden (04)
+**Når** siden vises
+**Så** viser semesterlinja bare forelesningens emne, og denne forelesningen er merket med en ring rundt stasjonen, en nål og teksten «Du er her»
+
+**Gitt** emnenes datoer
+**Når** linja tegnes
+**Så** starter den ved måneden med første forelesning og slutter ved måneden med eksamen, og på forsiden fra den tidligste til den seneste av disse for alle emner
+**Og** dagens dato tas med i spennet, slik at «I dag» alltid kan vises
+**Og** månedsoverlinjene lages fra spennet og er ikke låst til august–desember *(E4)*
+
+**Gitt** et emne uten forelesninger
+**Når** linja tegnes
+**Så** har emnet ingen stasjoner, bare en stiplet linje fra i dag til eksamensfirkanten, og teksten til venstre sier «Ingen forelesninger ennå» *(E6)*
+
+**Gitt** semesterlinja
+**Når** en skjermleser leser siden
+**Så** er grafikken skjult for skjermleseren, og det finnes en tekstlig versjon per emne, for eksempel «Markedsføring: 4 av 8 forelesninger øvd. Eksamen fredag 04.12, om 3 uker.»
+
+**Gitt** et vindu ned til 768 px eller 200 % tekst
+**Når** semesterlinja vises
+**Så** blir det ingen vannrett rulling, månedsetikettene kan forkortes, og «I dag» og eksamen synes alltid
+
+**Gitt** sidene 02, 03 og 04
+**Når** Playwright-testene kjører
+**Så** finner axe ingen brudd, og semesterlinja tar ikke tastaturfokus, siden den ikke har noe å trykke på
+
+**Gitt** testene for storien
+**Når** de kjøres
+**Så** har de krav-ID i navnet, for eksempel `test_fr57_stasjoner_ovd`, `test_sk22_semesterlinje_uker`, `test_ux_dr11_du_er_her` og `test_ux_dr11_tekstlig_versjon` (AR-17)
 
 ### Dekning
 
 | Krav | Story |
 |---|---|
-| FR-28 | 4.1 |
-| FR-29 | 4.1 |
-| FR-30 | 4.1 (blanding ved lagring), 4.2 (vises i lagret rekkefølge) |
-| FR-31 | 4.1 (instruksen); måles i SK-15 i epic 6 |
-| FR-32 | 4.2 |
-| FR-33 | 4.1 |
-| FR-34 | 4.2 (én forelesning), 4.4 (hele emnet) |
-| FR-35 | 4.2 |
-| FR-36 | 4.3 (poengsum; lista som egne *Kan kuttes*-kriterier) |
-| FR-37 | 4.5 |
-| FR-56 (quiz) | 4.2, 4.4 |
-| NFR-2a (quiz) | 4.1 |
-| UX-DR14 (quiz) | 4.4 |
-| UX-DR24 (quiz) | 4.1 |
-| UX-DR29 | 4.2 (alternativer, låsing, forklaringskort), 4.5 («Slett» i bunnfeltet) |
-
-Kanttilfeller: A7 og E26 i 4.2, E22 (quizdelen) i 4.5.
+| FR-16 *(Kan kuttes)* | 5.2 |
+| FR-57 *(Kan kuttes)*: reserven (tekst) | 5.3 |
+| FR-57 *(Kan kuttes)*: semesterlinja | 5.5 |
+| FR-58 *(Kan kuttes)* | 5.4 (egne merkede kriterier) |
+| SK-20 («Neste å øve på») | 5.4, med «øvd» fra 5.1 |
+| SK-22 | 5.3 og 5.5 |
+| AR-9 («øvd» i én funksjon, emneøkt-regelen) | 5.1 |
+| UX-DR7 (statusprikk øvd/ikke øvd) | 5.1 |
+| UX-DR11 | 5.5 (teksten i 5.3) |
+| UX-DR12 | 5.4 |
+| UX-DR13 (tellinger og status) | 5.2 |
+| UX-DR14 (SISTE ØKT) | 5.1 |
+| E2 | 5.4 |
+| E4 | 5.5 |
+| E6 | 5.3 og 5.5 |
 
 ### Avgjort av Silje 2026-11-14
 
-1. Forklaringen i demomodus er hele definisjonssetningen.
-2. Knappen på siste spørsmål heter «Se resultatet».
-3. Venteteksten i de andre radene er «Venter til quizspørsmålene er ferdige».
-4. Knappen for å svare heter «Bekreft svar».
-5. Etter bekreftelse leses «Riktig.» eller «Feil. Riktig svar er B.» opp i tillegg.
-6. Er alle svarene riktige, vises ingen liste, og undertittelen viser bare omfanget.
-7. «Slett» står i bunnfeltet hele tiden, også før svaret er bekreftet.
-8. Ved «+ Lag flere» hopper mock-modellen over spørsmål forelesningen har fra før, slik som for flashcards i epic 3.
-9. Kanttilfellene A7, E22 og E26 er løst slik kriteriene beskriver.
+1. Er det mindre enn sju dager til eksamen, vises dager: «om 3 dager» og «i morgen». «Eksamen i dag» gjelder som før.
+2. Slettes alt innholdet i en forelesning, mister den «øvd» fra emneøkter. Det godtas, fordi en ekstra tabell for å unngå det gjør MVP-en mer komplisert enn nødvendig.
+3. Tekstene «16 kort, sist øvd 03.11», «Hele emnet» i SISTE ØKT og knappene «Ny forelesning» og «Last opp PDF» i NESTE STEG.
+4. Bare flashcards, quiz og fritekst teller som «øvd». Et sammendrag er ikke en økt.
+5. Funksjonen for «øvd» lages i 5.1.
+6. Kanttilfellene E2, E4 og E6 er løst slik kriteriene beskriver.
