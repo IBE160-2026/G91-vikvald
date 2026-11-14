@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [step-01-validate-prerequisites, step-02-design-epics]
+stepsCompleted: [step-01-validate-prerequisites, step-02-design-epics, step-03-create-stories, step-04-final-validation]
 inputDocuments:
   - prds/prd-G91-vikvald-2026-11-09/prd.md
   - prds/prd-G91-vikvald-2026-11-09/addendum.md
