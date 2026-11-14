@@ -4,6 +4,7 @@ Eksempler på at KI-forslag er avvist eller rettet, og på feil KI gjorde. Nyest
 
 | Dato | Hva KI gjorde | Hvem oppdaget det | Hva som ble gjort | Spor |
 |---|---|---|---|---|
+| 2026-11-14 | Sa at `beslutninger.md` hadde dupliserte rader. Det stemte ikke: KI hadde lest starten og slutten av fila, og de to utdragene overlappet. | KI, da ryddingen ikke fant noe å fjerne | Ingen endring i `beslutninger.md`. | Denne økten |
 | 2026-11-14 | Foreslo epics der testing, universell utforming og README lå samlet i epic 6, altså det som kuttes først hvis tiden blir knapp. | KI, da jeg spurte om forslaget var i tråd med sensorveiledningen | Testing, UU-sjekk og README skjer i hver story. Epic 6 tar bare den samlede kontrollen. | `70afae6` |
 | 2026-11-14 | Sa at funnene fra gjennomgangen av arkitekturen var rettet, men 12 mindre funn var verken lagt fram eller rettet. | Jeg, ved å lese `review-rubric.md` selv, og så KI da den gikk gjennom alle rapportene | `reviews/oppfolging.md` viser status for hvert funn, og de 12 ble rettet etter godkjenning. | `b145210` |
 | 2026-11-14 | Anbefalte én Next.js-app i stedet for oppsettet i technology.md. | Jeg | Fulgte technology.md. Avvik må begrunnes grundig. | `69ec805` |
