@@ -63,3 +63,7 @@
 - [ ] 2026-11-20 [story-1-3-feil-og-innstillinger](991-2026-11-20-19-06-59-story-1-3-feil-og-innstillinger.md) — godkjenn eller skriv egne feiltekster for kodene som viser reserveteksten (#41)
 - [ ] 2026-11-20 [story-1-3-feil-og-innstillinger](991-2026-11-20-19-06-59-story-1-3-feil-og-innstillinger.md) — se over kanttilfellene om HTTP-feilkoder, feltnavn i `/api/config` og tom verdi i `.env` (#42, #43, #44)
 - [ ] 2026-11-20 [story-1-3-feil-og-innstillinger](991-2026-11-20-19-06-59-story-1-3-feil-og-innstillinger.md) — les over forklaringene av bryterne i README (skrevet av KI)
+- [ ] 2026-11-20 [story-1-4-opprett-konto](990-2026-11-20-19-32-44-story-1-4-opprett-konto.md) — avgjør om felles komponenter uten shadcn/ui er greit (avvik fra technology.md) (#46)
+- [ ] 2026-11-20 [story-1-4-opprett-konto](990-2026-11-20-19-32-44-story-1-4-opprett-konto.md) — se over e-postregelen og statuskode 422 for valideringskodene (#47, #49)
+- [ ] 2026-11-20 [story-1-4-opprett-konto](990-2026-11-20-19-32-44-story-1-4-opprett-konto.md) — avgjør om `JWT_SECRET` skal ha minstelengde utenfor `local` (#48)
+- [ ] 2026-11-20 [story-1-4-opprett-konto](990-2026-11-20-19-32-44-story-1-4-opprett-konto.md) — les over tekstene KI skrev i story 1.4 (fanetittel, README, `JWT_SECRET`) (#50)
