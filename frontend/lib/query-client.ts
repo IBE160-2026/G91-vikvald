@@ -1,6 +1,6 @@
-import { QueryClient } from "@tanstack/react-query";
+import { MutationCache, Query, QueryCache, QueryClient } from "@tanstack/react-query";
 
-import { ApiError } from "./api";
+import { ApiError, isUnauthenticated } from "./api";
 
 export const MAX_RETRIES = 3;
 
@@ -13,6 +13,29 @@ export function shouldRetry(failureCount: number, error: unknown): boolean {
   return failureCount < MAX_RETRIES;
 }
 
-export function makeQueryClient(): QueryClient {
-  return new QueryClient({ defaultOptions: { queries: { retry: shouldRetry } } });
+// Every 401 UNAUTHENTICATED, from any query or mutation in the app, goes to the
+// one function `onUnauthenticated`. Pages never handle a lost login themselves.
+//
+// It runs once per lost login. `onUnauthenticated` empties the cache while the
+// page that asked is still on screen, so its query starts again, gets 401 again,
+// and would empty the cache again in a loop until the page is gone. Later 401s
+// are therefore ignored until /me succeeds again (after the next login).
+export function makeQueryClient(onUnauthenticated?: () => void): QueryClient {
+  let handled = false;
+  const onError = (error: unknown) => {
+    if (!isUnauthenticated(error) || handled) return;
+    handled = true;
+    onUnauthenticated?.();
+  };
+  // Only /me proves she is logged in again. Another query that does not need a
+  // login (such as /api/config) can succeed while /me still gets 401, and must
+  // not restart the loop.
+  const onSuccess = (_data: unknown, query: Query<unknown, unknown, unknown>) => {
+    if (query.queryKey.length === 1 && query.queryKey[0] === "me") handled = false;
+  };
+  return new QueryClient({
+    queryCache: new QueryCache({ onError, onSuccess }),
+    mutationCache: new MutationCache({ onError }),
+    defaultOptions: { queries: { retry: shouldRetry } },
+  });
 }

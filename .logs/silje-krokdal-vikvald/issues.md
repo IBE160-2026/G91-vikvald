@@ -70,3 +70,7 @@
 - [ ] 2026-11-20 [story-1-5-logg-inn](989-2026-11-20-21-27-15-story-1-5-logg-inn.md) — se over kanttilfellene for innlogging: feilen under passordfeltet, bare e-postsjekk i skjemaet, lik svartid (#52, #53, #54)
 - [ ] 2026-11-20 [story-1-5-logg-inn](989-2026-11-20-21-27-15-story-1-5-logg-inn.md) — les over tekstene KI skrev i story 1.5 («Har du konto?», fanetittel, README) (#55)
 - [ ] 2026-11-20 [story-1-5-logg-inn](989-2026-11-20-21-27-15-story-1-5-logg-inn.md) — avgjør om innloggingsforsøk skal begrenses, og om rare tegn i håndskrevet JSON skal gi 401 (#56)
+- [ ] 2026-11-20 [story-1-6-innlogget-logg-ut-fant-ikke-siden](988-2026-11-20-21-56-56-story-1-6-innlogget-logg-ut-fant-ikke-siden.md) — se over kanttilfellene i story 1.6: flagg per fane, push ved utlogging, mislykket utlogging, toppfelt på «Fant ikke siden», adressen /konto (#58, #59, #60, #61, #62)
+- [ ] 2026-11-20 [story-1-6-innlogget-logg-ut-fant-ikke-siden](988-2026-11-20-21-56-56-story-1-6-innlogget-logg-ut-fant-ikke-siden.md) — avgjør om utlogging skal trekke tilbake JWT-en (#63)
+- [ ] 2026-11-20 [story-1-6-innlogget-logg-ut-fant-ikke-siden](988-2026-11-20-21-56-56-story-1-6-innlogget-logg-ut-fant-ikke-siden.md) — les over tekstene KI skrev i story 1.6 (fanetitler, «Lukk», README) (#64)
+- [ ] 2026-11-20 [story-1-6-innlogget-logg-ut-fant-ikke-siden](988-2026-11-20-21-56-56-story-1-6-innlogget-logg-ut-fant-ikke-siden.md) — gi dialogen inert og scroll-lås når den tas i bruk i epic 2

@@ -1,11 +1,19 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
-// top-bar (DESIGN.md "Frame"): the logo on the left. On the login and register
-// pages it shows only the logo; story 1.6 adds the account links on the right.
-export function TopBar({ children }: { children?: ReactNode }) {
+// top-bar (DESIGN.md "Frame"): the logo on the left, and on the right whatever
+// the page puts there (the account links inside the app, nothing on the login
+// and register pages). With `logoHref` the logo is a link (to / inside the app).
+export function TopBar({ children, logoHref }: { children?: ReactNode; logoHref?: string }) {
   return (
     <header className="flex h-topbar-height items-center justify-between border-b border-divider bg-paper px-4">
-      <Logo />
+      {logoHref ? (
+        <Link href={logoHref} className="rounded-sm">
+          <Logo />
+        </Link>
+      ) : (
+        <Logo />
+      )}
       {children}
     </header>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { CircleAlert } from "lucide-react";
+import { CircleAlert, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -11,6 +11,7 @@ import { PasswordField } from "@/components/password-field";
 import { TextField } from "@/components/text-field";
 import { ApiError } from "@/lib/api";
 import { messageFor } from "@/lib/messages";
+import { takeSessionExpired } from "@/lib/session";
 
 import { loginUser } from "../api";
 import { AuthCard } from "../components/auth-card";
@@ -41,6 +42,13 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   // Focus is moved after the error is rendered, so a screen reader reads it with the field.
   const [focusRequest, setFocusRequest] = useState<{ field: RegisterField } | null>(null);
+
+  // «Du er logget ut» only when the login ran out in this tab (lib/session.ts).
+  // Read after mounting, because sessionStorage does not exist on the server.
+  const [sessionExpired, setSessionExpired] = useState(false);
+  useEffect(() => {
+    if (takeSessionExpired()) setSessionExpired(true);
+  }, []);
 
   useEffect(() => {
     if (!focusRequest) return;
@@ -95,6 +103,15 @@ export function LoginPage() {
 
   return (
     <AuthCard title="Logg inn" footer={{ text: "Ny her?", linkText: "Opprett konto", href: "/registrer" }}>
+      {/* Always in the page, so screen readers announce the text when it appears. */}
+      <div role="status">
+        {sessionExpired ? (
+          <p className="mt-5 flex items-start gap-2 rounded-option bg-surface-note p-3 text-meta text-ink-muted">
+            <Info {...iconProps} className="mt-[3px] shrink-0" />
+            <span>{messageFor("UNAUTHENTICATED")}</span>
+          </p>
+        ) : null}
+      </div>
       <form noValidate onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
         <TextField
           ref={emailRef}

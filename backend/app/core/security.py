@@ -74,3 +74,15 @@ def set_session_cookie(response: Response, token: str) -> None:
         samesite="lax",
         secure=False,
     )
+
+
+def clear_session_cookie(response: Response) -> None:
+    """Remove the sk_session cookie. The browser only replaces a cookie with the
+    same name, path and attributes, so they match set_session_cookie."""
+    response.delete_cookie(
+        key=SESSION_COOKIE,
+        path="/",
+        httponly=True,
+        samesite="lax",
+        secure=False,
+    )
