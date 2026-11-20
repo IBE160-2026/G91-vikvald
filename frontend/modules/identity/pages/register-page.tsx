@@ -25,9 +25,10 @@ import {
 
 const FIELD_ORDER: RegisterField[] = ["email", "password"];
 
-// «Opprett konto» (a variant of mockup 01), with a link back to «Logg inn». zod checks the input before the call;
-// errors from the API are shown under the field they belong to, anything else in
-// an alert above the button. Focus moves to the first field with an error.
+// «Opprett konto» (a variant of mockup 01), with a link back to «Logg inn».
+// zod checks the input before the call; errors from the API are shown under the
+// field they belong to, anything else in an alert above the button. Focus moves
+// to the first field with an error.
 export function RegisterPage() {
   const router = useRouter();
   const emailRef = useRef<HTMLInputElement>(null);

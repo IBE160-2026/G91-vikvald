@@ -151,4 +151,13 @@ describe("siden «Logg inn»", () => {
     fireEvent.click(submit);
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
   });
+
+  it("NFR-11: etter 401 forsvinner meldingen under passordet når e-posten endres", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(401, { error: { code: "INVALID_CREDENTIALS", details: {} } }));
+    const { email, password } = fillAndSubmit("klara@eksempel.no", "hemmelig2");
+    await waitFor(() => expect(errorFor(password)).toBe(WRONG));
+    fireEvent.change(email, { target: { value: "klara@eksempel.n" } });
+    expect(password.hasAttribute("aria-invalid")).toBe(false);
+    expect(screen.queryByText(WRONG)).toBeNull();
+  });
 });

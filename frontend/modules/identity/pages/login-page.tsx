@@ -106,6 +106,10 @@ export function LoginPage() {
           onChange={(event) => {
             setEmail(event.target.value);
             clearFieldError("email");
+            // «Feil e-post eller passord» may be about the e-mail, so it goes too.
+            setFieldErrors((current) =>
+              current.password === "INVALID_CREDENTIALS" ? { ...current, password: undefined } : current,
+            );
             setFormError(null);
           }}
           error={errorText("email")}
