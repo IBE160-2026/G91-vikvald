@@ -2753,13 +2753,18 @@ slik at jeg kan prøve alle funksjonene uten å lage noe selv.
 
 **Gitt** at eksempelemnet er laget
 **Når** seed lager innhold
-**Så** kjøres det vanlige genereringsløpet med mock-modellen for hver innholdstype som er registrert og slått på, i hver forelesning, uansett hva `LLM_PROVIDER` er satt til
+**Så** starter seed genereringen for hver innholdstype som er registrert og slått på, i hver forelesning, gjennom den samme tjenesten som `POST /api/lectures/{id}/jobs`, med mock-modellen uansett hva `LLM_PROVIDER` er satt til. Seed venter på at løpet er ferdig (`await`) i stedet for å starte en bakgrunnsoppgave, så alle jobbene er `done` før jobboppryddingen kjører
 **Og** seed lagrer én eller to økter gjennom `practice`, slik at oversikten fra epic 5 viser både øvd og ikke øvd med en gang
 **Og** innholdstyper fra epic 7–9 kommer derfor med automatisk når de er bygd og bryteren er på; en test med en ekstra innholdstype i registeret viser dette, og en avslått bryter gir ingen rader av den typen
 
 **Gitt** at databasen ikke er tom, eller at `APP_ENV` ikke er `local`
 **Når** backend starter
 **Så** gjør seed ingenting, og en ny oppstart lager aldri dobbelt testbruker eller emne
+
+**Gitt** at seed feiler underveis
+**Når** feilen oppstår
+**Så** logges den, og testbrukeren slettes med den vanlige kontoslettingen fra story 2.7, slik at databasen er tom og seed prøves på nytt ved neste oppstart
+**Og** tester viser at det ikke finnes jobber med `failed` etter seed, og at en seed som feiler, etterlater en tom database
 
 **Gitt** at appen er startet med `docker compose up` uten `.env`
 **Når** sensor logger inn med testbrukeren
