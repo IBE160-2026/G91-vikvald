@@ -4,6 +4,15 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
+| 2026-11-20 | Funnene fra gjennomgangen av `epics.md` som ikke er rettet (feilkoder, kanttilfeller, struktur og språk), tas i en senere økt eller i sprintplanleggingen. | De sju funnene flere fant uavhengig av hverandre og de fire motsigelsene ville gitt feil kode og ble rettet først. Resten haster ikke før koden starter. | #32 |
+| 2026-11-20 | Nettleseren sender øktens varighet, og serveren setter `started_at`. Avvik fra AD-9, som er oppdatert. | Nettleserens klokke kan gå feil, og «øvd» sammenlignes med serverens tidspunkt for når innholdet ble laget. | `eaf53c9`, `795f0b4` |
+| 2026-11-20 | En økt på hele emnet teller bare for forelesninger med innhold av øktens type. Presiserer AD-9. | Ellers ble en forelesning med bare quiz «øvd» etter en flashcardøkt der den ikke var med. | `1bc692e` |
+| 2026-11-20 | «Øvd» og SISTE ØKT bygges bare i story 5.1, ikke også i 3.5 og 3.6. | Det skulle bare finnes én funksjon for «øvd» (avgjort 14.11). Epic 3 blir også mindre før milepælen 27.11. | `1bc692e` |
+| 2026-11-20 | Opplastede filer kan være på høyst 20 MB (`MAX_UPLOAD_MB`). | SK-7 krever at for store filer avvises, og en stor PDF kunne fylle disken eller stoppe backend. 20 MB er et skjønn og kan endres. | `442cc9c` |
+| 2026-11-20 | Seed venter på genereringen, og en seed som feiler, sletter testbrukeren så den prøves igjen. | Sensors første inntrykk er eksempelemnet. Kontoslettingen fra 2.7 gjenbrukes. | `d7d52e0` |
+| 2026-11-20 | «Øv nå» på emnekortet starter første type med innhold: flashcards, quiz og fritekst. | Lukker kanttilfellet A15/E1 uten å endre FR-58. | `c7fdebf` |
+| 2026-11-20 | Suksesskriteriene SK-1 til SK-22 står også i `epics.md`, forkortet. Ved tvil gjelder PRD-en. | Stories og testnavn viste til dem, og en byggeagent leser bare `epics.md`. | `32db2ea` |
+| 2026-11-20 | Flashcards får `kind` `qa`/`concept`/`model` og valgfri bakside fra første migrering. | Følger ordlista i arkitekturen og sparer en migrering i epic 7. | `168bfdd` |
 | 2026-11-14 | Storiene skrives av sju subagenter, én per epic, og godkjennes én epic om gangen. | Det går raskere, og godkjenningen per epic gjør at det er jeg som tar valgene. | `1c93690` |
 | 2026-11-14 | KI-utkastene til storiene lagres i `stories-utkast/` ved siden av `epics.md`. | Viser hva KI foreslo og hva som ble godkjent. | `a0e000f` |
 | 2026-11-14 | Story 1.4 deles i «Opprett konto» og «Logg inn». | Den var for stor for én økt. | `1c93690` |

@@ -4,6 +4,10 @@ Eksempler på at KI-forslag er avvist eller rettet, og på feil KI gjorde. Nyest
 
 | Dato | Hva KI gjorde | Hvem oppdaget det | Hva som ble gjort | Spor |
 |---|---|---|---|---|
+| 2026-11-20 | Skriptet som delte beslutningene i epic 7–9, fant overskriften «## Epic 8» også inne i «### Epic 8» og stoppet. | KI, fordi skriptet sjekker treff før det skriver | Rettet søket og kjørte på nytt. Ingenting ble skrevet feil. | `3af2ace` |
+| 2026-11-20 | Det første forslaget til «Øv nå» tok med fritekst uten å ta hensyn til at epic 8 kan slås av. | KI, da jeg spurte om forslaget var i tråd med sensorveiledningen | La til «bare hvis fritekst er slått på». | `c7fdebf` |
+| 2026-11-20 | Forkortet SK-13 og SK-18 slik at svaret på faglærers spørsmål om hvem som vurderer faglige feil, og semesterverdien forsvant. | KI, da jeg spurte om forslaget var i tråd med sensorveiledningen og tilbakemeldingen | Tok med regelen om usikre kort, eksempelet med fagbegrep og semesterlinja og «Neste å øve på». | `32db2ea` |
+| 2026-11-14 (funnet 2026-11-20) | Storiene KI skrev 14.11 motsa hverandre: `kind` uten `model`, «øvd» bygd to ganger med ulike regler, `vertex` både godtatt og avvist, og ufullstendige feltlister. Seed kunne få jobbene sine satt til feilet. | KI, i gjennomgangen med fire uavhengige perspektiver (bmad-review) | Rettet ett og ett punkt etter godkjenning. | `168bfdd`–`795f0b4` |
 | 2026-11-14 | Skriptet som la inn epic 4–9 åpnet `epics.md` for skriving før det leste den, så kravlista og epic 1–3 forsvant fra fila i fire commits. | KI, under sluttsjekken av dekningen | Fila satt sammen igjen fra commitene. Ingenting gikk tapt. | `415bf76` |
 | 2026-11-14 | KI la utkastene til storiene i en midlertidig mappe, og de forsvant da maskinen startet på nytt etter strømbrudd. | KI, da loggen skulle lages på nytt | Hentet tilbake fra agentenes samtalefiler og lagret i repoet. | `a0e000f` |
 | 2026-11-14 | Utkastet til story 3.2 bygde merknadsflaten på nytt, selv om epic 2 allerede bygger den. | KI, ved gjennomgangen av epic 3 | 3.2 gjenbruker komponenten fra 2.3. | `add3324` |
