@@ -55,3 +55,5 @@
 - [ ] 2026-11-20 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — gjenstående funn fra gjennomgangen av epics.md: feilkoder, kanttilfeller, struktur og språk (#32)
 - [x] 2026-11-20 [sprintoppsett-goal](994-2026-11-20-14-26-18-sprintoppsett-goal.md) — godkjenn datoene i kuttreglene (27.11, 1.12, 5.12) i PR-en før kjøringen starter (#30) (løst 2026-11-20: godtatt, med egne datoer for epic 9, 8 og 7)
 - [x] 2026-11-20 [sprintoppsett-goal](994-2026-11-20-14-26-18-sprintoppsett-goal.md) — beskytt `main` på GitHub før kjøringen starter (løst 2026-11-20: ikke tilgang, lokale git-hooker i stedet)
+- [ ] 2026-11-20 [story-1-1-skjelett](993-2026-11-20-18-40-01-story-1-1-skjelett.md) — ta med `DATABASE_UNAVAILABLE` i feillista og meldingsfila i story 1.3 (#36)
+- [ ] 2026-11-20 [story-1-1-skjelett](993-2026-11-20-18-40-01-story-1-1-skjelett.md) — prøv oppstart fra en klone på Windows og `.env` i rota i utviklingsmodus (anbefalt ny gjennomgang av story 1.1)

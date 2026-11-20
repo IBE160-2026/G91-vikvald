@@ -1,0 +1,46 @@
+# Starts the whole app with `docker compose up`. No .env is needed: every setting
+# has a local default. Only port 3000 (the frontend) is published to the host.
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: studiekamerat
+      # Local-only default for the database container; override in the environment if needed.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-studiekamerat}
+      POSTGRES_DB: studiekamerat
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U studiekamerat -d studiekamerat"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  backend:
+    build: ./backend
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      DATABASE_URL: postgresql+asyncpg://studiekamerat:${POSTGRES_PASSWORD:-studiekamerat}@db:5432/studiekamerat
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        API_INTERNAL_URL: ${API_INTERNAL_URL:-http://backend:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  pgdata:

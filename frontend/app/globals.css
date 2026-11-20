@@ -1,0 +1,24 @@
+/* Colours from DESIGN.md. Story 1.4 replaces this with the full set of design tokens. */
+:root {
+  --color-paper: #f8f7f3;
+  --color-ink: #15181f;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: system-ui, sans-serif;
+}
+
+main {
+  padding: 80px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
