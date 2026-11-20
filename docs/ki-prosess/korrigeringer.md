@@ -4,6 +4,8 @@ Eksempler på at KI-forslag er avvist eller rettet, og på feil KI gjorde. Nyest
 
 | Dato | Hva KI gjorde | Hvem oppdaget det | Hva som ble gjort | Spor |
 |---|---|---|---|---|
+| 2026-11-20 | Sperret endring av `.claude/settings.json` i samme fil som sperrene. Sperren gjaldt med en gang, så KI fikk ikke rettet en sperre som stoppet lesing av `.env.example`. | KI, da neste endring ble avvist | Jeg kopierte inn den rettede fila selv. | `.claude/settings.json` |
+| 2026-11-20 | Anbefalte Node 22 uten å si at den eneste grunnen var at technology.md bruker den. | Jeg («hvorfor node 22 og ikke node 26?») | KI forklarte grunnen og sammenlignet versjonene. Jeg valgte Node 22. | `beslutninger.md` |
 | 2026-11-20 | Skriptet som delte beslutningene i epic 7–9, fant overskriften «## Epic 8» også inne i «### Epic 8» og stoppet. | KI, fordi skriptet sjekker treff før det skriver | Rettet søket og kjørte på nytt. Ingenting ble skrevet feil. | `3af2ace` |
 | 2026-11-20 | Det første forslaget til «Øv nå» tok med fritekst uten å ta hensyn til at epic 8 kan slås av. | KI, da jeg spurte om forslaget var i tråd med sensorveiledningen | La til «bare hvis fritekst er slått på». | `c7fdebf` |
 | 2026-11-20 | Forkortet SK-13 og SK-18 slik at svaret på faglærers spørsmål om hvem som vurderer faglige feil, og semesterverdien forsvant. | KI, da jeg spurte om forslaget var i tråd med sensorveiledningen og tilbakemeldingen | Tok med regelen om usikre kort, eksempelet med fagbegrep og semesterlinja og «Neste å øve på». | `32db2ea` |

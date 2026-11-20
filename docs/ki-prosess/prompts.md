@@ -2,6 +2,22 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-20: Forberede den autonome kjøringen
+
+> jeg ønsker å bruke goal kommandoen for å gjennomføre alle epics og stories autonomisk uten human in the loop. men før vi gjør det, må vi klargjøre hva jeg må gjøre i forkant, blant annet sørge for at nødvendige API nøkler er på plass, og at nødvendige cli programmer er på plass. Lag en liste over hva jeg må gjøre, slik at du kan gjennomføre alle stories automatisk (du skal da bruke subagenter for hver story).
+
+KI lagde en liste over forberedelser og fem avgjørelser bare jeg kunne ta.
+
+> hvorfor node 22 og ikke node 26?
+
+KI innrømmet at det ikke var noen sterk teknisk grunn, bare at technology.md bruker Node 22.
+
+> vi går for node 22
+
+> 1-4. ja, 5. har ikke skrevet eksempelnotater
+
+**Resultat:** Avgjørelsene, `sprint-status.yaml` og instruksen til kjøringen (`2267b08`, `ba89386`). Se `beslutninger.md`.
+
 ## 2026-11-20: Gjennomgang av epics.md
 
 > bmad-help
