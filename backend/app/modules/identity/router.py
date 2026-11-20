@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
-from app.core.security import create_session_token, set_session_cookie
+from app.core.security import clear_session_cookie, create_session_token, set_session_cookie
 from app.modules.identity.dependencies import current_user
 from app.modules.identity.models import User
 from app.modules.identity.schemas import LoginRequest, RegisterRequest, UserOut
@@ -38,6 +38,14 @@ async def login(
     # The same cookie as after registration; the token is never in the body.
     set_session_cookie(response, create_session_token(user.id))
     return UserOut(id=user.id, email=user.email)
+
+
+@router.post("/logout", status_code=204)
+async def logout(response: Response) -> None:
+    # No current_user: logging out must work with a missing, expired or broken
+    # cookie too. The JWT itself is not revoked (stateless); removing the cookie
+    # is what logs the browser out.
+    clear_session_cookie(response)
 
 
 @router.get("/me")
