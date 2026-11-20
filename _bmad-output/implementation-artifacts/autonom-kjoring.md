@@ -4,7 +4,7 @@ Denne fila styrer kjøringen som startes med `/goal`. Hovedøkten er **orkestrat
 
 ## Avgjørelser som gjelder for hele kjøringen
 
-1. **Ingen godkjenning per endring.** Silje går gjennom PR-ene etterpå. Hver PR forklarer derfor endringen på vanlig norsk, slik at hun kan begrunne den.
+1. **Ingen godkjenning per endring.** Silje går gjennom hver epic når den er ferdig, og kjøringen venter på godkjenningen etter epic 1 (se «Siljes gjennomgang»). Hver PR forklarer derfor endringen på vanlig norsk, slik at hun kan begrunne den.
 2. **Subagenten fletter sin egen PR** når testene er grønne.
 3. **Kanttilfeller som ikke er avgjort** (#18, #32): velg den enkleste trygge løsningen, før valget i `docs/ki-prosess/beslutninger.md` og lag et GitHub-issue med etiketten `kanttilfelle` som Silje kan se over.
 4. **Kuttrekkefølge** hvis tiden blir knapp: først story 1.2, 5.2, 5.5 og 6.3, deretter epic 9, 8 og 7 (bakfra). Se «Kuttregler» under.
@@ -15,13 +15,14 @@ Denne fila styrer kjøringen som startes med `/goal`. Hovedøkten er **orkestrat
 
 Gjenta til stoppbetingelsen er nådd:
 
-1. `git switch main && git pull --ff-only`. Arbeidstreet skal være rent. Følg så «Siljes gjennomgang»: rett åpne issues med `funn-fra-silje` først, og stopp hvis epic 1 venter på godkjenning.
+1. `git switch main && git pull --ff-only`. Arbeidstreet skal være rent. Sjekk at Docker kjører (`docker info`). Gjør den ikke det, stopp med beskjeden «Start Docker Desktop». Følg så «Siljes gjennomgang»: rett åpne issues med `funn-fra-silje` først, og stopp hvis epic 1 venter på godkjenning.
 2. Les `_bmad-output/implementation-artifacts/sprint-status.yaml` og velg **første story** i fila med status `backlog`, `ready-for-dev` eller `in-progress` som ikke er kuttet etter kuttreglene.
 3. Start **én** subagent (`general-purpose`, i forgrunnen, aldri i bakgrunnen) med story-prompten under, med story-nøkkelen satt inn.
 4. Les rapporten. Sjekk selv at PR-en er flettet (`gh pr view <nr> --json state`) og at storien har status `done` på `main`.
 5. **Hvis storien ikke ble ferdig:** start én ny subagent for samme story med rapporten fra forrige forsøk som ekstra kontekst. Feiler den også, gjelder stoppregelen.
 6. **Kjør testene på `main`** etter flettingen: `uv run pytest` i `backend/` og `npm run test` i `frontend/` (når de finnes). Er noe rødt, gjelder stoppregelen.
 7. Skriv én linje i samtalen: `Story <nøkkel>: done, PR #<nr>, tester: <kommandoer og resultat>`. Det er dette `/goal` leser.
+8. **Når en epic er ferdig:** start én subagent som utvider brukerreisetestene (se «Brukerreiser»), og lag deretter gjennomgangsissuet (se «Siljes gjennomgang»).
 
 Retrospektivene (`epic-N-retrospective: optional`) hoppes over.
 
@@ -61,6 +62,23 @@ Kuttene gjelder bare stories som ikke er påbegynt. Kuttbare akseptkriterier inn
 
 En story som hoppes over, blir stående som `backlog`. Orkestratoren fører kuttet i `beslutninger.md` og lager et issue med etiketten `kuttet`, på en egen branch med PR som flettes.
 
+## Brukerreiser
+
+De fire flytene i `EXPERIENCE.md` (avsnittet «Brukerreiser (Key Flows)») skal testes fra start til slutt med Playwright:
+
+| Flyt | Innhold | Trenger epic |
+|---|---|---|
+| 1 | UJ-1: Klara etter en forelesning | 1–4, sammendrag i 9 |
+| 2 | UJ-2: Klara før eksamen | 3–5, huskeregler i 7, fritekst i 8 |
+| 3 | Klara rydder i filene | 2 |
+| 4 | Klara avslutter etter semesteret | 2 |
+
+- Én testfil per flyt i Playwright-mappa til frontenden, for eksempel `e2e/brukerreiser/flyt-1-etter-forelesning.spec.ts`. Testen går gjennom stegene i nettleseren i demomodus mot `docker compose up --build`, og kjører axe på hver side den besøker.
+- Når en epic er ferdig, utvider en subagent flyttestene med stegene som nå er bygd. Den lager egen branch og PR som lenker til flytene i `EXPERIENCE.md`, kjører alle testene og fletter når alt er grønt. Den følger de samme reglene som story-prompten.
+- `docs/testing/brukerreiser.md` har én tabell per flyt: steg, testen som dekker det, og status (`testet`, `ikke bygd ennå` eller `kuttet` med issue-nummer). Stegene hentes fra `EXPERIENCE.md`.
+- Steg som hører til en kuttet funksjon, tas ikke med i testen. De står som `kuttet` i oversikten, og kjøringen stopper ikke av den grunn.
+- En flyttest som feiler, er en feil i appen. Den rettes i appen, ikke ved å svekke testen.
+
 ## Siljes gjennomgang
 
 KI går gjennom KI-ens kode i hver story. Det siste ordet er Siljes, og gjennomgangen hennes skal synes i sporet.
@@ -97,12 +115,12 @@ Kjøringen startes igjen med den samme `/goal`-linja. Den fortsetter fra første
 
 Når alle stories er `done` eller kuttet etter reglene: kjør
 `uv run .claude/skills/bmad-sprint-planning/scripts/sprint_plan.py status --status-file _bmad-output/implementation-artifacts/sprint-status.yaml`
-og testene på `main`, og vis resultatet i samtalen. Skriv under utskriften hvilke stories som er kuttet, med issue-nummer.
+og testene på `main`, og vis resultatet i samtalen. Kjør også `npx playwright test e2e/brukerreiser` mot `docker compose up --build`, og vis resultatet og tabellene fra `docs/testing/brukerreiser.md`. Skriv under utskriften hvilke stories som er kuttet, med issue-nummer.
 
 Skriptet vil vise `"all_done": false`, fordi det teller de valgfrie retrospektivene og de kuttede storiene (`backlog`) som uferdige. Det er ventet. Kjøringen er ferdig når ingen story har status `in-progress` eller `review`, og de eneste storiene med `backlog` er de som er kuttet etter reglene. Ikke følg skriptets anbefaling om å kjøre retrospektiver eller bygge kuttede stories.
 
 ## Betingelsen til `/goal`
 
 ```
-/goal Følg _bmad-output/implementation-artifacts/autonom-kjoring.md. Målet er nådd når ingen story i sprint-status.yaml har status in-progress eller review, de eneste storiene med backlog er kuttet etter kuttreglene og har et issue med etiketten kuttet, hver ferdig story er flettet via en PR, og siste melding viser utskriften fra sprint_plan.py status og at testene på main er grønne. "all_done": false er ventet og betyr ikke at målet er uoppfylt. Målet er umulig hvis en stoppregel i instruksen er utløst.
+/goal Følg _bmad-output/implementation-artifacts/autonom-kjoring.md. Målet er nådd når ingen story i sprint-status.yaml har status in-progress eller review, de eneste storiene med backlog er kuttet etter kuttreglene og har et issue med etiketten kuttet, hver ferdig story er flettet via en PR, alle fire brukerreisene (flyt 1–4 i EXPERIENCE.md) har Playwright-tester som går grønt mot docker compose up, docs/testing/brukerreiser.md viser hvert steg som testet eller som kuttet med issue, og siste melding viser utskriften fra sprint_plan.py status, brukerreisetestene og at testene på main er grønne. "all_done": false er ventet og betyr ikke at målet er uoppfylt. Målet er umulig hvis en stoppregel i instruksen er utløst.
 ```
