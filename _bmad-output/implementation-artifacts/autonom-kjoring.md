@@ -31,7 +31,8 @@ Retrospektivene (`epic-N-retrospective: optional`) hoppes over.
 >
 > 1. `git switch main && git pull --ff-only`, deretter `git switch -c story/<epic>-<story>` (for eksempel `story/1-1`).
 > 2. Bruk skillen `bmad-build-auto` med denne hensikten: «Story <N.M> fra `_bmad-output/planning-artifacts/epics.md`: <tittel>». Følg den helt ut. Den lager spesifikasjonen, koder, kjører gjennomgang og committer.
-> 3. Kjør testene som finnes: `uv run pytest` i backend og `npm run test` i frontend, og `npx playwright test` når storien har ende-til-ende-tester. Alt skal være grønt. Rett og kjør på nytt hvis noe feiler.
+> 3. Kjør alle testene: `uv run pytest` i backend, `npm run test` i frontend, og `npx playwright test` mot appen startet med `docker compose up --build`. Playwright kjøres i hver story fra 1.1, også når storien ikke har lagt til egne Playwright-tester. Alt skal være grønt. Rett og kjør på nytt hvis noe feiler.
+> 3b. **Skjermbilder** (bare når storien endrer det brukeren ser): ta skjermbilder med Playwright av hver side storien endrer, i 1280 og 768 piksler bredde, med demodata og testbrukeren. Lagre dem i `docs/skjermbilder/story-<N>-<M>/` med beskrivende navn. Sammenlign dem med `DESIGN.md` og skissene i `_bmad-output/planning-artifacts/ux-designs/`, og rett det som avviker. Avvik du ikke retter, skrives i PR-en. Skjermbildene skal aldri vise andre data enn demodata.
 > 4. Sett storien til `done` i `sprint-status.yaml` (og epicen til `in-progress`, eller `done` når siste story er ferdig).
 > 5. Oppdater KI-sporet i `docs/ki-prosess/`:
 >    - `beslutninger.md`: hvert kanttilfelle eller valg du tok selv, med begrunnelse og commit.
@@ -39,7 +40,7 @@ Retrospektivene (`epic-N-retrospective: optional`) hoppes over.
 >    - `prompts.md`: én kort oppføring om at storien ble bygd av den autonome kjøringen med denne story-prompten. Siter aldri noe annet.
 > 6. Skriv sesjonsloggen med skillen `sesjonslogg` i `.logs/silje-krokdal-vikvald/` (fila skal ligge i branchen).
 > 7. Lag et issue med etiketten `kanttilfelle` for hvert kanttilfelle du avgjorde selv.
-> 8. `git push -u origin <branch>`, og lag PR-en med `gh pr create`. Tittelen er `Story <N.M>: <tittel>`, og beskrivelsen er på vanlig norsk: hva som er bygd, hvordan det er testet, valg du tok selv, lenker til storien i `epics.md` og til issuene (`Closes #<nr>` bare når issuet faktisk løses).
+> 8. `git push -u origin <branch>`, og lag PR-en med `gh pr create`. Tittelen er `Story <N.M>: <tittel>`, og beskrivelsen er på vanlig norsk: hva som er bygd, hvordan det er testet, valg du tok selv, skjermbildene vist i beskrivelsen (lenket fra `docs/skjermbilder/`) med eventuelle avvik fra designet, lenker til storien i `epics.md` og til issuene (`Closes #<nr>` bare når issuet faktisk løses).
 > 9. Vent på CI hvis den finnes (`gh pr checks <nr> --watch`). Flett med `gh pr merge <nr> --merge --delete-branch` når alt er grønt.
 > 10. Rapporter: story, PR-nummer, testkommandoer med resultat, issues som ble laget, og om noe er uferdig.
 >
