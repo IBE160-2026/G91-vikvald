@@ -251,6 +251,44 @@ Det finnes ingen ferdig startmal. Prosjektet er nytt, så **Epic 1 Story 1 må s
 - UX-DR45: Én h1 per side, landemerker for toppfelt, sidemeny og innhold, `lang="nb"` og `lang="en"` på engelske begreper i parentes. Tab-rekkefølgen følger leserekkefølgen.
 - UX-DR46: Kontroller har kanten `border-control` (3,2:1). `border-card` brukes aldri på noe man kan trykke på.
 
+### Suksesskriterier
+
+Hentet fra PRD-en (avsnittet Suksesskriterier) og forkortet. Ved tvil gjelder PRD-en.
+
+**Automatiske tester** (kjøres med mock-modellen, uten nøkkel):
+
+- SK-1: Hvert funksjonelt må ha-krav (FR-1 til FR-41 og FR-56 til FR-58) har minst én automatisk test. Kan et krav bare kontrolleres manuelt, står det i testplanen hvorfor.
+- SK-2: En student ser og kan endre bare sitt eget innhold (FR-4).
+- SK-3: Alle sidetall i kildene finnes i den opplastede fila (FR-20, FR-32, FR-39).
+- SK-4: Ugyldig innhold fra språkmodellen forkastes, og studenten får beskjed om at det ble laget færre (FR-38, FR-18). Testes med en mock-modell som med vilje gir ugyldige svar.
+- SK-5: Forklaringen i quizen vises først etter at svaret er bekreftet (FR-35).
+- SK-6: Kort kan redigeres og slettes av eieren (FR-27). Sletting av fil, forelesning, emne og konto krever bekreftelse, og avbrudd sletter ingenting (FR-5, FR-12, FR-14).
+- SK-7: Word-filer, for store filer og PDF-er uten tekst avvises med riktig beskjed (FR-9, FR-10, NFR-16).
+- SK-8: Feiler genereringen, lagres ingenting halvferdig (FR-21).
+- SK-9: Universell utforming kontrolleres automatisk på alle sider (NFR-13).
+- SK-10: Huskeregelen stemmer med forbokstavene, og modellkort der alle punktene har samme forbokstav, lages uten huskeregel (FR-44, FR-45). Gjelder hvis huskeregler bygges.
+- SK-20: Resultatet av en økt lagres når økten avsluttes, også når den avbrytes, mens enkeltsvar ikke lagres. «Neste å øve på» følger regelen i FR-58 (FR-56, FR-58).
+- SK-21: Mock-modellen gir det samme innholdet to ganger for samme fil, og lager flashcards, quiz og sammendrag etter reglene i NFR-2a fra en kjent testfil.
+- SK-22: Semesterlinja viser riktige forelesninger som øvd og ikke øvd, og riktig antall uker til eksamen (FR-57). Gjelder også tekstvarianten hvis semesterlinja kuttes.
+
+**Manuelle kontroller før innlevering:**
+
+- SK-11: Appen starter etter README fra en ren kopi av repoet, uten nøkler eller kontoer (NFR-1, NFR-2).
+- SK-12: Hele kjerneflyten kan gjennomføres med bare tastatur (NFR-8, NFR-13).
+
+**Kvalitet med ekte språkmodell** (måles manuelt med Gemini på eksempelnotatene og åpent lisensiert materiale. Hvert kort og spørsmål vurderes mot kilden og føres i et regneark som «riktig», «faglig feil» eller «feil kilde». Silje gjør vurderingen mot læreboka, ikke KI. Kort hun er usikker på etter å ha slått opp, teller som faglig feil):
+
+- SK-13: Faglige feil: under 5 % i en stikkprøve på 50 flashcards fra markedsføring. Feil fagbegrep, for eksempel «Promotering» der notatene sier «Påvirkning», regnes som faglig feil.
+- SK-14: Riktige kilder: minst 95 % av kortene i stikkprøven viser til en side der innholdet faktisk står.
+- SK-15: Quiz: i en stikkprøve på 20 spørsmål har hvert spørsmål nøyaktig ett riktig alternativ, og det riktige er det lengste i høyst 35 % av spørsmålene (FR-31).
+- SK-16: Formler: kort fra PDF-side 127–128 i *Principles of Economics 3e* gjengir formlene riktig. Gjelder hvis FR-40 bygges.
+- SK-17: Motvekt: minst 80 % av overskriftene i notatene har minst ett kort.
+
+**Bruk og prosess** (grunnlag for rapporten, ikke for kode):
+
+- SK-18: Stoffet i markedsføring legges inn forelesning for forelesning, og en repetisjonsøkt med flashcards, quiz og eventuelle huskeregler gjennomføres som før en eksamen. En kort egenrefleksjon vurderer om appen ga oversikt over stoffet, og om semesterlinja og «Neste å øve på» hjalp med å velge hva som skulle øves på. Dette er ikke bevis for at appen virker for andre.
+- SK-19: Bruken av KI i utviklingen er dokumentert i `docs/ki-prosess/` og sesjonsloggene.
+
 ### Åpne kanttilfeller fra UX-gjennomgangen
 
 Gruppe 3 i [review-ux-2026-11-14.md](ux-designs/ux-G91-vikvald-2026-11-10/review-ux-2026-11-14.md) (issue #18) har kanttilfeller som ikke er avgjort. De er ikke krav ennå. Noen er allerede avgjort av arkitekturen. Resten må avgjøres når storien de hører til skrives, eller føres videre i issue #18.
