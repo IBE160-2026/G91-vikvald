@@ -143,9 +143,9 @@ Alle moduler kan bruke `core` (config, db, sikkerhet, lagring, feil). `content` 
 - **Binds:** FR-25, FR-51, FR-56, FR-57, FR-58, SK-20, SK-22
 - **Prevents:** at enkeltsvar lagres, at samme økt lagres to ganger, eller at «øvd» regnes ut på flere måter
 - **Rule:** Nettleseren lager en `session_id` (UUID) når økten starter, og teller underveis. Resultatet sendes én gang til `POST /api/practice-sessions`, og bare hvis minst ett svar er gitt. Det sendes når økten er ferdig, når studenten velger «Avslutt», når studenten går til en annen side i appen, før utlogging, og ved `pagehide` (med `sendBeacon`).
-  - **Felter:** `session_id`, `subject_id`, `lecture_id` (tom betyr hele emnet), `kind` (`flashcards`, `quiz` eller `freetext`), `aborted`, `shown`, `answered`, `correct`, `partial`, `wrong` og `started_at`. I flashcardøkter er `answered` antall markerte kort, «Kunne» føres som `correct` og «Kunne ikke» som `wrong`, og første markering på hvert kort teller (FR-56).
+  - **Felter:** `session_id`, `subject_id`, `lecture_id` (tom betyr hele emnet), `kind` (`flashcards`, `quiz` eller `freetext`), `aborted`, `shown`, `answered`, `correct`, `partial`, `wrong` og `started_at`. Nettleseren sender øktens varighet (`duration_seconds`), og serveren setter `started_at` til mottakstidspunktet minus varigheten, slik at «øvd» bare sammenligner tider fra serverens klokke (endret 2026-11-20). I flashcardøkter er `answered` antall markerte kort, «Kunne» føres som `correct` og «Kunne ikke» som `wrong`, og første markering på hvert kort teller (FR-56).
   - **Backend:** godtar både JSON og `text/plain`, og lagrer med `ON CONFLICT DO NOTHING`.
-  - **«Øvd»:** En forelesning regnes som øvd når den har en økt. En økt på hele emnet teller for alle forelesningene i emnet som hadde innhold da økten startet. Dette regnes ut i én funksjon i `practice`. Semesterlinja og «Neste å øve på» bruker bare den.
+  - **«Øvd»:** En forelesning regnes som øvd når den har en økt. En økt på hele emnet teller for alle forelesningene i emnet som hadde innhold av øktens type da økten startet (presisert 2026-11-20). Dette regnes ut i én funksjon i `practice`. Semesterlinja og «Neste å øve på» bruker bare den.
 
 ### AD-10: Innlogging med app-JWT i en httpOnly-cookie
 

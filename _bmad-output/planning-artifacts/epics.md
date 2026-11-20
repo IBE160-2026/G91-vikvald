@@ -159,11 +159,11 @@ Det finnes ingen ferdig startmal. Prosjektet er nytt, så **Epic 1 Story 1 må s
 - AR-2 (AD-2): Hver rute henter brukeren fra én felles avhengighet `current_user`, og hver spørring filtrerer på brukeren. Andres data gir `404 NOT_FOUND`, ikke `403`.
 - AR-3 (AD-3): Bare `generation` kaller språkmodellen, gjennom porten `generate(kind, pages, options)`. `LLM_PROVIDER=mock|mock-invalid|vertex`, `mock` som standard. Vertex bruker pydantic-ai med `GoogleCloudProvider(location='eu')`, ADC og `NativeOutput`, med `VERTEX_MODEL` og `VERTEX_THINKING`. Aldri det globale endepunktet. `InvalidMockGenerator` gir ugyldige elementer med vilje (SK-4).
 - AR-4 (AD-4): All generering går gjennom samme løp: hent sidetekst → kall porten (løs liste) → `validate_item(item, pages)` per element → forkast og tell → lagre de gyldige i én transaksjon. Under 5 gyldige sammendragspunkter gir `TOO_FEW_SUMMARY_POINTS`, og det gamle beholdes. Quizalternativer blandes én gang ved lagring, deterministisk. Over 3 minutter (`asyncio.wait_for`) eller feil gir ingen lagring. Studentens egne endringer sjekkes bare for tomme felt.
-- AR-5 (AD-5): En jobb er en rad i `jobs` (`kind`, `params`, `status` running/done/failed, `requested`, `created`, `discarded`, `error_code`, tidsstempler). `POST /api/lectures/{id}/jobs` gir `202`; pågående jobb gir `409 JOB_ALREADY_RUNNING`, håndhevet med en delvis unik indeks for både Postgres og SQLite. Jobben kjører som asyncio-oppgave med egen databasesesjon i én Uvicorn-prosess. Ved oppstart settes `running` til `failed`. Én hook i `(app)`-layouten spør `GET /api/jobs/active` og viser ferdigmelding med sonner i et levende område.
+- AR-5 (AD-5): En jobb er en rad i `jobs` (`id`, `lecture_id`, `kind` (`flashcards`, `quiz`, `models`, `freetext` eller `summary`), `params`, `status` running/done/failed, `requested`, `created`, `discarded`, `error_code`, `started_at`, `finished_at`). `POST /api/lectures/{id}/jobs` gir `202`; pågående jobb gir `409 JOB_ALREADY_RUNNING`, håndhevet med en delvis unik indeks for både Postgres og SQLite. Jobben kjører som asyncio-oppgave med egen databasesesjon i én Uvicorn-prosess. Ved oppstart settes `running` til `failed`. Én hook i `(app)`-layouten spør `GET /api/jobs/active` og viser ferdigmelding med sonner i et levende område.
 - AR-6 (AD-6): Ved opplasting leser PyMuPDF hver side til `file_pages(file_id, page_no, text, needs_image)`, med `page_no` fra 1. Avvisning med feilkode ved manglende vilkår (`TERMS_NOT_ACCEPTED`), ikke PDF, over 50 sider, eller ingen lesbar tekst. Alt innhold lagrer `file_id`, `page_no` og `formula_flag`. Sidebilder lages ved behov og lagres ikke.
 - AR-7 (AD-7): `ON DELETE CASCADE` fra bruker til innhold. Kort og spørsmål hører til fila; sammendraget hører til forelesningen og slettes helt når en av forelesningens filer slettes eller erstattes. Erstatning er ett kall (ny `file_id`). Filer på disken slettes etter transaksjonen. `GET …/delete-preview` gir tellingene. Sletting mens en jobb pågår gir `409 JOB_ALREADY_RUNNING`.
 - AR-8 (AD-8): Bare `core/storage` leser og skriver filer, i `data/uploads/<user_id>/<file_id>.pdf` på et Docker-volum. Originalt filnavn bare i databasen.
-- AR-9 (AD-9): Nettleseren lager `session_id` (UUID) og teller. Resultatet sendes én gang til `POST /api/practice-sessions` (JSON eller `text/plain`, `ON CONFLICT DO NOTHING`) når økten er ferdig, ved «Avslutt», ved navigering, før utlogging og ved `pagehide` med `sendBeacon`. «Øvd» regnes ut i én funksjon i `practice`; en emneøkt teller for alle forelesninger som hadde innhold da den startet.
+- AR-9 (AD-9): Nettleseren lager `session_id` (UUID) og teller. Resultatet sendes én gang til `POST /api/practice-sessions` (JSON eller `text/plain`, `ON CONFLICT DO NOTHING`) når økten er ferdig, ved «Avslutt», ved navigering, før utlogging og ved `pagehide` med `sendBeacon`. Felter: `session_id`, `subject_id`, `lecture_id` (tom betyr hele emnet), `kind` (`flashcards`, `quiz` eller `freetext`), `aborted`, `shown`, `answered`, `correct`, `partial`, `wrong` og `started_at`. Eierskap sjekkes via emnet (`subject → user`), siden tabellen ikke har `user_id`. «Øvd» regnes ut i én funksjon i `practice`; en emneøkt teller for alle forelesninger som hadde innhold av øktens type da den startet. `started_at` settes av serveren ut fra varigheten nettleseren sender, ikke fra nettleserens klokke.
 - AR-10 (AD-10): bcrypt, passord 8 tegn til 72 byte (`PASSWORD_TOO_LONG`). HS256-JWT med PyJWT i cookien `sk_session` (`HttpOnly`, `SameSite=Lax`, `Path=/`), 30 dager, aldri i `localStorage`. `POST /api/identity/logout`, `GET /api/identity/me`. Uten innlogging `401 UNAUTHENTICATED`. `JWT_SECRET` har standardverdi bare når `APP_ENV=local`.
 - AR-11 (AD-11): Innstillinger med pydantic-settings; `.env` er valgfri. Brytere bare for bør ha: `FEATURE_MNEMONICS`, `FEATURE_FREETEXT`, `FEATURE_SUMMARY`. Frontend leser dem og `demo_mode` fra `GET /api/config`. Avslåtte ruter svarer `404 FEATURE_DISABLED`. Ingen hemmeligheter med `NEXT_PUBLIC_`.
 - AR-12 (AD-12): Alle API-feil har formen `{"error": {"code": "...", "details": {...}}}`, med kodene i `core/errors.py`. Globale håndterere skriver om `HTTPException` og `422`. Frontend har én meldingsfil per kode med tekstene fra EXPERIENCE.md, og en test sjekker at alle backend-kodene finnes der.
@@ -250,6 +250,44 @@ Det finnes ingen ferdig startmal. Prosjektet er nytt, så **Epic 1 Story 1 må s
 - UX-DR44: Levende områder for jobbstart og -slutt, feil, færre enn valgt, resultat etter bekreftet svar og «Økten er ferdig», uten at fokus flyttes.
 - UX-DR45: Én h1 per side, landemerker for toppfelt, sidemeny og innhold, `lang="nb"` og `lang="en"` på engelske begreper i parentes. Tab-rekkefølgen følger leserekkefølgen.
 - UX-DR46: Kontroller har kanten `border-control` (3,2:1). `border-card` brukes aldri på noe man kan trykke på.
+
+### Suksesskriterier
+
+Hentet fra PRD-en (avsnittet Suksesskriterier) og forkortet. Ved tvil gjelder PRD-en.
+
+**Automatiske tester** (kjøres med mock-modellen, uten nøkkel):
+
+- SK-1: Hvert funksjonelt må ha-krav (FR-1 til FR-41 og FR-56 til FR-58) har minst én automatisk test. Kan et krav bare kontrolleres manuelt, står det i testplanen hvorfor.
+- SK-2: En student ser og kan endre bare sitt eget innhold (FR-4).
+- SK-3: Alle sidetall i kildene finnes i den opplastede fila (FR-20, FR-32, FR-39).
+- SK-4: Ugyldig innhold fra språkmodellen forkastes, og studenten får beskjed om at det ble laget færre (FR-38, FR-18). Testes med en mock-modell som med vilje gir ugyldige svar.
+- SK-5: Forklaringen i quizen vises først etter at svaret er bekreftet (FR-35).
+- SK-6: Kort kan redigeres og slettes av eieren (FR-27). Sletting av fil, forelesning, emne og konto krever bekreftelse, og avbrudd sletter ingenting (FR-5, FR-12, FR-14).
+- SK-7: Word-filer, for store filer og PDF-er uten tekst avvises med riktig beskjed (FR-9, FR-10, NFR-16).
+- SK-8: Feiler genereringen, lagres ingenting halvferdig (FR-21).
+- SK-9: Universell utforming kontrolleres automatisk på alle sider (NFR-13).
+- SK-10: Huskeregelen stemmer med forbokstavene, og modellkort der alle punktene har samme forbokstav, lages uten huskeregel (FR-44, FR-45). Gjelder hvis huskeregler bygges.
+- SK-20: Resultatet av en økt lagres når økten avsluttes, også når den avbrytes, mens enkeltsvar ikke lagres. «Neste å øve på» følger regelen i FR-58 (FR-56, FR-58).
+- SK-21: Mock-modellen gir det samme innholdet to ganger for samme fil, og lager flashcards, quiz og sammendrag etter reglene i NFR-2a fra en kjent testfil.
+- SK-22: Semesterlinja viser riktige forelesninger som øvd og ikke øvd, og riktig antall uker til eksamen (FR-57). Gjelder også tekstvarianten hvis semesterlinja kuttes.
+
+**Manuelle kontroller før innlevering:**
+
+- SK-11: Appen starter etter README fra en ren kopi av repoet, uten nøkler eller kontoer (NFR-1, NFR-2).
+- SK-12: Hele kjerneflyten kan gjennomføres med bare tastatur (NFR-8, NFR-13).
+
+**Kvalitet med ekte språkmodell** (måles manuelt med Gemini på eksempelnotatene og åpent lisensiert materiale. Hvert kort og spørsmål vurderes mot kilden og føres i et regneark som «riktig», «faglig feil» eller «feil kilde». Silje gjør vurderingen mot læreboka, ikke KI. Kort hun er usikker på etter å ha slått opp, teller som faglig feil):
+
+- SK-13: Faglige feil: under 5 % i en stikkprøve på 50 flashcards fra markedsføring. Feil fagbegrep, for eksempel «Promotering» der notatene sier «Påvirkning», regnes som faglig feil.
+- SK-14: Riktige kilder: minst 95 % av kortene i stikkprøven viser til en side der innholdet faktisk står.
+- SK-15: Quiz: i en stikkprøve på 20 spørsmål har hvert spørsmål nøyaktig ett riktig alternativ, og det riktige er det lengste i høyst 35 % av spørsmålene (FR-31).
+- SK-16: Formler: kort fra PDF-side 127–128 i *Principles of Economics 3e* gjengir formlene riktig. Gjelder hvis FR-40 bygges.
+- SK-17: Motvekt: minst 80 % av overskriftene i notatene har minst ett kort.
+
+**Bruk og prosess** (grunnlag for rapporten, ikke for kode):
+
+- SK-18: Stoffet i markedsføring legges inn forelesning for forelesning, og en repetisjonsøkt med flashcards, quiz og eventuelle huskeregler gjennomføres som før en eksamen. En kort egenrefleksjon vurderer om appen ga oversikt over stoffet, og om semesterlinja og «Neste å øve på» hjalp med å velge hva som skulle øves på. Dette er ikke bevis for at appen virker for andre.
+- SK-19: Bruken av KI i utviklingen er dokumentert i `docs/ki-prosess/` og sesjonsloggene.
 
 ### Åpne kanttilfeller fra UX-gjennomgangen
 
@@ -507,7 +545,7 @@ slik at jeg forstår hva som gikk galt, uansett hvor i appen feilen kommer fra.
 **Gitt** innstillingene i `core/config`
 **Når** backenden starter uten `.env`
 **Så** leses alle innstillinger med pydantic-settings fra miljøet, med `APP_ENV=local`, `LLM_PROVIDER=mock` og `FEATURE_MNEMONICS`, `FEATURE_FREETEXT` og `FEATURE_SUMMARY` på som standard
-**Og** en ugyldig verdi for `LLM_PROVIDER` (ikke `mock`, `mock-invalid` eller `vertex`) stopper oppstarten med en tydelig logglinje
+**Og** en ugyldig verdi for `LLM_PROVIDER` (ikke `mock`, `mock-invalid` eller `vertex`) stopper oppstarten med en tydelig logglinje. Om en gyldig verdi også er bygd ennå, avgjøres av genereringsmodulen (story 3.1 for mock, story 6.1 for `vertex`). Testen her sjekker bare at verdien er gyldig, ikke at appen starter med `vertex`
 
 **Gitt** at appen kjører
 **Når** frontend kaller `GET /api/config`
@@ -1021,6 +1059,12 @@ slik at notatene mine er klare til å lage øvingsinnhold fra.
 **Så** avvises den med en feilkode (`TOO_MANY_PAGES`) og `details.page_count`, ingenting lagres, og meldingen er ordrett «Fila har 63 sider. Grensen er 50 sider. Del den opp og last opp delene hver for seg.» med det faktiske sidetallet (NFR-16, UX-DR42)
 **Og** en fil på nøyaktig 50 sider godtas
 
+**Gitt** en fil som er større enn 20 MB
+**Når** den lastes opp
+**Så** avvises den med en feilkode (`FILE_TOO_LARGE`) og `details.size_mb` før PyMuPDF åpner den. Backend slutter å lese når grensen er nådd, ingenting lagres, og meldingen er ordrett «Fila er på 34 MB. Grensen er 20 MB. Lagre den på nytt med mindre bilder, eller del den opp.» med den faktiske størrelsen (NFR-16, SK-7, UX-DR42)
+**Og** grensen er en innstilling i `core/config` (`MAX_UPLOAD_MB`, standard 20), slik at den bare står ett sted
+**Og** en test laster opp en fil like under grensen gjennom frontend (Next.js `rewrites`) og viser at den kommer fram, og en fil like over gir `FILE_TOO_LARGE`
+
 **Gitt** en PDF som er låst med passord eller er skadet *(E20)*
 **Når** den lastes opp
 **Så** avvises den med en egen feilkode (`PDF_UNREADABLE`), og ingenting lagres
@@ -1222,7 +1266,7 @@ slik at jeg kan rette en gammel opplasting uten å lage forelesningen på nytt.
 
 **Gitt** en fil studenten eier
 **Når** frontend sender den nye PDF-en til `POST /api/files/{id}/replace`
-**Så** sjekkes den nye fila med de samme reglene som opplasting (vilkår, ikke PDF, over 50 sider, ingen tekst, låst eller skadet)
+**Så** sjekkes den nye fila med de samme reglene som opplasting (vilkår, ikke PDF, over 50 sider, over 20 MB, ingen tekst, låst eller skadet)
 **Og** godtas den, slettes den gamle fila og lagres den nye i samme forelesning med ny `file_id` og nye `file_pages` i én transaksjon (AR-7)
 **Og** PDF-en til den gamle fila slettes fra disken med `core/storage` etter transaksjonen
 **Og** innhold registrert i `content` for den gamle fila forsvinner med kaskaden
@@ -1404,7 +1448,7 @@ slik at jeg har noe å øve på uten å lage kortene selv.
 **Gitt** at genereringen er ferdig
 **Når** løpet kjører
 **Så** går det gjennom stegene i AR-4: hent sidetekst fra `file_pages` → kall porten (løs liste) → `validate_item(item, pages)` per element → forkast og tell → lagre de gyldige i én transaksjon
-**Og** `validate_item` for flashcards forkaster elementer med tom forside eller bakside, ukjent `kind`, eller en `file_id`/`page_no` som ikke finnes i forelesningens filer (FR-38, FR-39)
+**Og** `validate_item` for flashcards forkaster elementer med tom forside, tom bakside (for `qa` og `concept`), ukjent `kind`, eller en `file_id`/`page_no` som ikke finnes i forelesningens filer (FR-38, FR-39)
 
 **Gitt** at mock-modellen finner flere gyldige kort enn det som ble bedt om
 **Når** kortene lagres
@@ -1412,7 +1456,7 @@ slik at jeg har noe å øve på uten å lage kortene selv.
 
 **Gitt** at tabellene `jobs` og `flashcards` ikke finnes
 **Når** storien er ferdig
-**Så** lager én Alembic-migrering `jobs` med feltene i AR-5 og `flashcards` (`id`, `file_id` med `ON DELETE CASCADE`, `kind` `qa`/`concept`, `front`, `back`, `page_no`, `formula_flag`, `created_at`)
+**Så** lager én Alembic-migrering `jobs` med feltene i AR-5 og `flashcards` (`id`, `file_id` med `ON DELETE CASCADE`, `kind` `qa`/`concept`/`model`, `front`, `back` (kan være tom bare for `model`), `page_no`, `formula_flag`, `created_at`)
 **Og** en delvis unik indeks på `jobs.lecture_id` der `status='running'` er skrevet for både Postgres og SQLite
 
 **Gitt** en innlogget student med en forelesning som har filer
@@ -1712,6 +1756,8 @@ slik at appen vet hva jeg har øvd på, og jeg ser hvilke kort jeg bør se på i
 **Når** økten starter
 **Så** lager nettleseren en `session_id` (UUID) og teller: `shown` er antall ulike kort vist, `answered` antall markerte kort, og første markering på hvert kort føres som `correct` («Kunne») eller `wrong` («Kunne ikke») (FR-56)
 **Og** enkeltmarkeringer sendes aldri til serveren
+**Og** nettleseren sender ikke klokkeslett, men øktens varighet i sekunder (`duration_seconds`). Serveren setter `started_at` = mottakstidspunkt minus varigheten, slik at «øvd» bare sammenligner tider fra serverens klokke (AR-9)
+**Og** en test viser at en emneøkt teller for en forelesning som fikk kort rett før økten, også når nettleserens klokke går fem minutter etter
 
 **Gitt** at minst ett kort er markert
 **Når** økten er ferdig, studenten velger «Avslutt økt» eller Esc, går til en annen side i appen, logger ut, eller lukker fanen (`pagehide`)
@@ -1726,15 +1772,6 @@ slik at appen vet hva jeg har øvd på, og jeg ser hvilke kort jeg bør se på i
 **Når** øktpanelet vises
 **Så** er alle ruter fylt, «Avslutt økt» er byttet med «✓ Økten er ferdig og lagret», og symbolforklaringen viser «Kunne ikke, repetert» (UX-DR8)
 **Og** «Økten er ferdig» leses opp i et levende område (UX-DR44)
-
-**Gitt** at «øvd» skal regnes ut ett sted (AR-9)
-**Når** storien er ferdig
-**Så** finnes én funksjon i `practice` som gir forelesningene i et emne som er øvd, med dato for siste økt
-**Og** en forelesning er øvd når den har en lagret økt; en emneøkt teller for forelesningene som hadde innhold (tellinger fra `content`) da økten startet
-
-**Gitt** at siste økt i et emne skal kunne vises
-**Når** `GET /api/subjects/{id}/practice-sessions/latest` kalles
-**Så** gir den den siste lagrede økten i emnet, eller ingenting
 
 **Gitt** en ferdig økt *(Kan kuttes, FR-26)*
 **Når** resultatsiden (08) vises
@@ -1784,10 +1821,6 @@ slik at jeg kan repetere hele pensum før eksamen.
 **Når** emnesiden vises
 **Så** vises ikke Flashcards-raden, slik at ingen tom økt kan startes *(A15/E1)*
 
-**Gitt** at emnet har en lagret økt
-**Når** emnesiden vises
-**Så** står SISTE ØKT nederst i kortet med type, omfang, dato og resultat («Flashcards · Markedsføring, hele emnet» og «12.11 · Kunne 19 av 24»)
-
 **Gitt** at studenten trykker «Øv på flashcards»
 **Når** økten starter
 **Så** gjenbruker den øktrammen fra 3.3–3.5 med kortene fra alle forelesningene i tilfeldig rekkefølge (FR-23)
@@ -1796,7 +1829,7 @@ slik at jeg kan repetere hele pensum før eksamen.
 **Gitt** en emneøkt med minst ett markert kort
 **Når** den lagres
 **Så** er `lecture_id` tom og `subject_id` satt (FR-56)
-**Og** funksjonen for «øvd» regner forelesningene som hadde kort da økten startet, som øvd, men ikke forelesninger som fikk kort senere
+**Og** hvilke forelesninger en emneøkt teller for, regnes ut av funksjonen i story 5.1
 
 **Gitt** resultatsiden etter en emneøkt
 **Når** studenten velger tilbake
@@ -2242,9 +2275,9 @@ slik at jeg vet hva jeg har gjort uten å måtte huske det selv.
 
 **Gitt** en lagret økt på hele emnet (`lecture_id` tom) med `started_at` T
 **Når** funksjonen kjøres
-**Så** teller økten for alle forelesninger i emnet som hadde øvingsinnhold (flashcards, quizspørsmål eller fritekstspørsmål) laget før eller ved T
-**Og** den teller ikke for forelesninger som fikk sitt første innhold etter T, og heller ikke for forelesninger uten innhold
-**Og** spørsmålet «hadde innhold ved T» besvares av én funksjon i `content` (gjenbruker tellingsregisteret fra epic 2–4), slik at `practice` ikke leser innholdstabellene direkte (AR-16)
+**Så** teller økten for alle forelesninger i emnet som hadde innhold av øktens type (flashcards for en flashcardøkt, quizspørsmål for en quiz og fritekstspørsmål for en fritekstøkt) laget før eller ved T
+**Og** den teller ikke for forelesninger som fikk sitt første innhold av den typen etter T, og heller ikke for forelesninger uten innhold av den typen
+**Og** spørsmålet «hadde innhold av typen ved T» besvares av én funksjon i `content` med typen som parameter (gjenbruker tellingsregisteret fra epic 2–4), slik at `practice` ikke leser innholdstabellene direkte (AR-16)
 
 **Gitt** en forelesning uten noen økt som teller
 **Når** funksjonen kjøres
@@ -2407,8 +2440,9 @@ slik at jeg kommer i gang med én knapp i stedet for å lete.
 **Gitt** et emne med øvingsinnhold *(Kan kuttes: FR-58)*
 **Når** kortet vises
 **Så** står NESTE Å ØVE PÅ med den eldste forelesningen (etter dato) som har innhold og ikke er øvd, og en grunn, for eksempel «Uke 38: Markedsmiksen» og «16 kort, ikke øvd ennå»
-**Og** hovedknappen «Øv nå» starter flashcards for den forelesningen (gjenbruker økten fra epic 3)
-**Og** har forelesningen bare quiz eller fritekst, følger knappen regelen for «Øv nå» som avgjøres i epic 3 (A15, E1)
+**Og** hovedknappen «Øv nå» starter en økt for den forelesningen med den første typen som har innhold, i rekkefølgen flashcards, quiz og fritekst (bare hvis fritekst er slått på). Den gjenbruker øktene fra epic 3, 4 og 8 og starter aldri en tom økt *(A15/E1)*
+**Og** grunnen nevner typen som startes, for eksempel «16 kort, ikke øvd ennå» eller «12 quizspørsmål, ikke øvd ennå»
+**Og** en test viser at en forelesning med bare quizspørsmål starter quiz, ikke en tom flashcardøkt
 
 **Gitt** at alle forelesninger med innhold er øvd *(Kan kuttes: FR-58)*
 **Når** kortet vises
@@ -2521,7 +2555,7 @@ Kuttes denne storien, står tekstvarianten fra story 5.3 igjen, og FR-57 er oppf
 ### Avgjort av Silje 2026-11-14
 
 1. Er det mindre enn sju dager til eksamen, vises dager: «om 3 dager» og «i morgen». «Eksamen i dag» gjelder som før.
-2. Slettes alt innholdet i en forelesning, mister den «øvd» fra emneøkter. Det godtas, fordi en ekstra tabell for å unngå det gjør MVP-en mer komplisert enn nødvendig.
+2. Slettes alt innholdet i en forelesning, mister den «øvd» fra emneøkter, også når en fil erstattes. Det godtas, fordi en ekstra tabell for å unngå det gjør MVP-en mer komplisert enn nødvendig.
 3. Tekstene «16 kort, sist øvd 03.11», «Hele emnet» i SISTE ØKT og knappene «Ny forelesning» og «Last opp PDF» i NESTE STEG.
 4. Bare flashcards, quiz og fritekst teller som «øvd». Et sammendrag er ikke en økt.
 5. Funksjonen for «øvd» lages i 5.1.
@@ -2712,13 +2746,18 @@ slik at jeg kan prøve alle funksjonene uten å lage noe selv.
 
 **Gitt** at eksempelemnet er laget
 **Når** seed lager innhold
-**Så** kjøres det vanlige genereringsløpet med mock-modellen for hver innholdstype som er registrert og slått på, i hver forelesning, uansett hva `LLM_PROVIDER` er satt til
+**Så** starter seed genereringen for hver innholdstype som er registrert og slått på, i hver forelesning, gjennom den samme tjenesten som `POST /api/lectures/{id}/jobs`, med mock-modellen uansett hva `LLM_PROVIDER` er satt til. Seed venter på at løpet er ferdig (`await`) i stedet for å starte en bakgrunnsoppgave, så alle jobbene er `done` før jobboppryddingen kjører
 **Og** seed lagrer én eller to økter gjennom `practice`, slik at oversikten fra epic 5 viser både øvd og ikke øvd med en gang
 **Og** innholdstyper fra epic 7–9 kommer derfor med automatisk når de er bygd og bryteren er på; en test med en ekstra innholdstype i registeret viser dette, og en avslått bryter gir ingen rader av den typen
 
 **Gitt** at databasen ikke er tom, eller at `APP_ENV` ikke er `local`
 **Når** backend starter
 **Så** gjør seed ingenting, og en ny oppstart lager aldri dobbelt testbruker eller emne
+
+**Gitt** at seed feiler underveis
+**Når** feilen oppstår
+**Så** logges den, og testbrukeren slettes med den vanlige kontoslettingen fra story 2.7, slik at databasen er tom og seed prøves på nytt ved neste oppstart
+**Og** tester viser at det ikke finnes jobber med `failed` etter seed, og at en seed som feiler, etterlater en tom database
 
 **Gitt** at appen er startet med `docker compose up` uten `.env`
 **Når** sensor logger inn med testbrukeren
@@ -3015,6 +3054,17 @@ slik at jeg øver på modellene sammen med de andre kortene og husker dem på mi
 | NFR-2a (modellkort) | 7.1 |
 | UX-DR28 | 7.2 |
 
+### Avgjort av Silje 2026-11-14
+
+1. «Lag modellkort» står på Flashcards-raden, som avgjort 12.11 og i UX-DR18. Skisse 04 er utdatert på dette punktet.
+2. Forsiden på modellkort i demomodus er «Forklar [linja rett over lista].», og en liste teller bare når den står på én side.
+3. Et modellkort må ha minst tre punkter, også med ekte modell.
+4. Det vises ingen egen melding når noen modellkort forkastes, bare FR-47 når ingen blir laget.
+5. Er huskeregler slått av, øves modellkort som finnes, som vanlige flashcards uten «Endre huskeregel».
+6. En tom huskeregel avvises med «Skriv inn en huskeregel.» (E33).
+7. Mock-modellen hopper over modellkort som finnes fra før, slik som for flashcards i epic 3.
+8. Kanttilfellet E33 er løst slik kriteriene beskriver.
+
 ## Epic 8: Fritekstspørsmål med selvvurdering (bør ha)
 
 Studenten øver på kortsvar- og langsvarsspørsmål, skriver svaret selv, ser modellsvaret med kilde og vurderer seg selv. Bygges etter epic 7 og kuttes før den (bryter `FEATURE_FREETEXT`).
@@ -3214,6 +3264,13 @@ slik at jeg kan repetere alt før eksamen og bare øve på spørsmål jeg stoler
 | UX-DR30 | 8.2 |
 | UX-DR35 (fritekst, ført opp i oppdraget) | 8.2 |
 
+### Avgjort av Silje 2026-11-14
+
+1. «Kortsvar» og «Vanlig» er forhåndsvalgt når fritekst lages.
+2. Valget i selvvurderingen går rett videre til neste spørsmål.
+3. Mock-modellen hopper over fritekstspørsmål som finnes fra før, slik som for flashcards i epic 3.
+4. Kanttilfellene A8, E27 og E28 er løst slik kriteriene beskriver.
+
 ## Epic 9: Sammendrag (bør ha)
 
 Studenten leser et sammendrag av forelesningen med kilde på hvert punkt, og kan lage et nytt som erstatter det gamle. Bygges sist og kuttes først (bryter `FEATURE_SUMMARY`).
@@ -3360,16 +3417,6 @@ slik at jeg kan repetere forelesningen og stole på hvor punktene kommer fra.
 
 ### Avgjort av Silje 2026-11-14
 
-1. «Lag modellkort» står på Flashcards-raden, som avgjort 12.11 og i UX-DR18. Skisse 04 er utdatert på dette punktet.
-2. Forsiden på modellkort i demomodus er «Forklar [linja rett over lista].», og en liste teller bare når den står på én side.
-3. Et modellkort må ha minst tre punkter, også med ekte modell.
-4. Det vises ingen egen melding når noen modellkort forkastes, bare FR-47 når ingen blir laget.
-5. Er huskeregler slått av, øves modellkort som finnes, som vanlige flashcards uten «Endre huskeregel».
-6. En tom huskeregel avvises med «Skriv inn en huskeregel.» (E33).
-7. «Kortsvar» og «Vanlig» er forhåndsvalgt når fritekst lages.
-8. Valget i selvvurderingen går rett videre til neste spørsmål.
-9. Sammendraget i demomodus har ett tema per fil, med filnavnet som tema.
-10. Over 15 gyldige sammendragspunkter: de 15 første beholdes, og resten telles som forkastet.
-11. Tekstene «Notatene ga ikke grunnlag for et sammendrag med minst 5 punkter. Det gamle sammendraget er beholdt.», «Les sammendrag» og «… og sammendraget av forelesningen».
-12. Mock-modellen hopper over modellkort og fritekstspørsmål som finnes fra før, slik som for flashcards i epic 3.
-13. Kanttilfellene A8, E27, E28 og E33 er løst slik kriteriene beskriver.
+1. Sammendraget i demomodus har ett tema per fil, med filnavnet som tema.
+2. Over 15 gyldige sammendragspunkter: de 15 første beholdes, og resten telles som forkastet.
+3. Tekstene «Notatene ga ikke grunnlag for et sammendrag med minst 5 punkter. Det gamle sammendraget er beholdt.», «Les sammendrag» og «… og sammendraget av forelesningen».

@@ -2,6 +2,22 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-20: Gjennomgang av epics.md
+
+> bmad-help
+
+> bmad-review
+
+KI valgte selv å gjennomgå `epics.md`, som var det den nettopp hadde foreslått. Fire subagenter brukte hvert sitt perspektiv: kritisk, kanttilfeller, struktur og språk.
+
+> ja
+
+> er dette i tråd med sensorveiledning og tilbakemelding?
+
+Spurt to ganger, om suksesskriteriene og om «Øv nå». Begge gangene fant KI noe å rette i sitt eget forslag.
+
+**Resultat:** De sju funnene flere fant uavhengig av hverandre og fire motsigelser ble rettet, ett punkt om gangen etter godkjenning (`168bfdd`–`795f0b4`). Resten er ført i issue #32.
+
 ## 2026-11-14: Epics og stories
 
 > start epics and stories
