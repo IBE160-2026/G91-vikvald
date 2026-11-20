@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-20: Story 1.6 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `1-6-bruk-appen-innlogget-logg-ut-og-få-fant-ikke-siden`. Hensikten til `bmad-build-auto` var «Story 1.6 fra `_bmad-output/planning-artifacts/epics.md`: Bruk appen innlogget, logg ut og få «Fant ikke siden»».
+
+**Resultat:** Rammen med toppfelt og forsiden «Dine emner», vakt med `/me`, utlogging, «Du er logget ut» bare i fanen som var innlogget, «Fant ikke siden», `get_owned`, rutetest for `current_user` og felles dialog. Spesifikasjon og gjennomgang i [spec-1-6](../../_bmad-output/implementation-artifacts/spec-1-6-bruk-appen-innlogget-logg-ut-og-faa-fant-ikke-siden.md).
+
 ## 2026-11-20: Story 1.5 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `1-5-logg-inn`. Hensikten til `bmad-build-auto` var «Story 1.5 fra `_bmad-output/planning-artifacts/epics.md`: Logg inn».
