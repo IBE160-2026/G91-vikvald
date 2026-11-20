@@ -3,7 +3,7 @@ title: 'Story 1.5: Logg inn'
 type: 'feature'
 created: '2026-11-20'
 baseline_revision: '7571307f551187e02b1e0eaf25c02358c5f6fb0f'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -93,6 +93,39 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-20 — Review pass
+- verdicts: 28 findings — high 0, medium 0, low 19, false 9, maybe-false 0
+- findings:
+  - `[low]` `[patch]` (blind) Reservehashen lages først ved første ukjente e-post, så den første forespørselen per prosess tar dobbelt så lang tid — hashen lages nå når modulen lastes.
+  - `[low]` `[patch]` (blind) Docstringen kaller hashen «fast», men saltet er nytt for hver prosess — omformulert sammen med raden over.
+  - `[false]` `[reject]` (blind) Overstyringen av `current_user` i en test lekker til senere tester — `client`-fixturen i `conftest.py` kjører `app.dependency_overrides.clear()` etter hver test.
+  - `[low]` `[patch]` (blind) Etter 401 blir feilen stående under passordet når studenten retter e-posten — e-postfeltet fjerner nå også `INVALID_CREDENTIALS`-feilen, med test.
+  - `[low]` `[reject]` (blind) Navnet `RegisterField` brukes også av innloggingen, og typen i `firstErrorPerField` er en union — kosmetisk; ingen feil, og omdøping er mer enn en direkte retting.
+  - `[low]` `[reject]` (blind) Ingen spiontest for passord over 72 byte med kjent og ukjent e-post — begge går til `verify_password`, som sier nei før bcrypt; svaret (likt 401) er testet med 37 «æ».
+  - `[false]` `[reject]` (blind) Byte-for-byte-testen av hodene kan bli ustabil av `date`-hode — testklienten går via `ASGITransport` uten Uvicorn, så ingen `date` eller forespørsels-ID legges til.
+  - `[low]` `[reject]` (blind) Ingen grense på antall innloggingsforsøk — ikke i storien eller arkitekturen; appen kjøres lokalt. Samme vurdering som for registreringen i 1.4.
+  - `[false]` `[reject]` (blind) KI-sporet i `docs/ki-prosess/` mangler — skrives i samme økt etter gjennomgangen (steg 5 i story-prompten).
+  - `[false]` `[reject]` (blind) Spesifikasjonen har tom logg og status `in-review` — loggen skrives nå, i denne gjennomgangen.
+  - `[low]` `[reject]` (blind) Ingen test av 422 på innloggingssiden — 422 går samme vei som 500 (standardgrenen), som er testet.
+  - `[low]` `[reject]` (blind) README sier ikke hvordan man ser at innloggingen virket — toppfeltet med initialen kommer i 1.6.
+  - `[low]` `[patch]` (blind) Kommentaren over `RegisterPage` har en for lang linje — brutt om.
+  - `[low]` `[reject]` (edge) Passord med enslig surrogat gir 500 i stedet for 401 — bare med håndskrevet JSON mot API-et, ikke fra skjemaet; samme vurdering som for registreringen i 1.4, og svaret er fortsatt i feilformatet uten detaljer.
+  - `[low]` `[reject]` (edge) E-post med enslig surrogat kan gi 500 på Postgres — samme som over.
+  - `[low]` `[patch]` (edge) Reservehashen lages lat — samme rot og retting som den første blind-raden.
+  - `[false]` `[reject]` (edge) Ødelagt `password_hash` i databasen gir 500 — bare `identity` skriver tabellen, og alltid med `hash_password`; tilstanden kan ikke nås.
+  - `[low]` `[patch]` (edge) Feilen under passordet blir stående når e-posten endres — samme rot og retting som blind-raden.
+  - `[low]` `[reject]` (edge) Knappen blir stående `aria-disabled` hvis `router.push` aldri fullfører — samme mønster som godkjent i 1.4; navigasjonen er lokal.
+  - `[low]` `[patch]` (edge, claim) Tidslikheten holder ikke for første ukjente e-post — samme rot og retting som den første blind-raden.
+  - `[low]` `[reject]` (edge, claim) Rart innhold med enslig surrogat gir 500, ikke likt 401 — samme som surrogat-raden over.
+  - `[low]` `[reject]` (intent) «Leses opp av skjermleser» er løst med fokus og `aria-describedby`, ikke et levende område — fokus til feltet gjør at skjermleseren leser etiketten og meldingen; samme mønster som i 1.4, og axe er grønn.
+  - `[false]` `[reject]` (intent) Feilen står bare under passordfeltet — valgt etter skisse 01, og e-postfeltet merkes ikke for ikke å avsløre hvilket som er feil.
+  - `[false]` `[reject]` (intent) Kommentaren i `frontend/app/page.tsx` er utdatert — den beskriver plassholderen og at 1.6 lager forsiden, som fortsatt stemmer.
+  - `[low]` `[reject]` (intent) At ingen annen kode leser cookien, er bare en konvensjon — søk viser at bare `security.py` og `dependencies.py` gjør det; en test som går gjennom alle ruter kommer i 1.6.
+  - `[low]` `[reject]` (intent) Enter i e-postfeltet er bare vist til zod-sjekken, ikke helt til API-et — Enter sender skjemaet i begge tilfeller; kallet er vist fra passordfeltet.
+  - `[low]` `[reject]` (intent) Semesterlinja finnes via siste `svg[aria-hidden]` — testen er arvet fra 1.4 og treffer linja i dag.
+  - `[false]` `[reject]` (intent) At kallene går gjennom `rewrites` er bare utledet fra vertene — bare port 3000 er åpen i Compose, så backenden kan ikke nås på annen måte.
+- verification-gap: ingen funn.
+
 ## Design Notes
 
 **Likt svar og lik tid:** Uten reservehash ville «ukjent e-post» svare på et par millisekunder og «feil passord» på rundt 200 ms, og da kan hvem som helst finne ut hvilke adresser som har konto. Derfor kjøres `verify_password` mot en fast hash også når brukeren ikke finnes.
@@ -108,3 +141,34 @@ deferred: []
 - `cd frontend && npm run test` -- expected: alle grønne
 - `cd frontend && npx tsc --noEmit` -- expected: ingen typefeil
 - `docker compose up --build -d --wait && cd frontend && npx playwright test` -- expected: alle grønne
+
+## Auto Run Result
+
+Status: done
+
+**Sammendrag:** En student med konto kan logge inn på `/logg-inn`. Backenden har `POST /api/identity/login` som setter samme HttpOnly-cookie som registreringen og svarer likt `401 INVALID_CREDENTIALS` for ukjent e-post og feil passord (også i tid, med bcrypt mot en reservehash), `decode_session_token` som eneste JWT-sjekk, den felles avhengigheten `current_user` og `GET /api/identity/me` som første rute som bruker den. Frontenden har siden «Logg inn» som skisse 01, et felles kort for begge sidene og lenker begge veier («Ny her? Opprett konto», «Har du konto? Logg inn»).
+
+**Filer:**
+- `backend/app/core/errors.py`, `frontend/lib/messages.ts` -- `INVALID_CREDENTIALS` og `UNAUTHENTICATED` med de godkjente tekstene
+- `backend/app/core/security.py` -- `decode_session_token`
+- `backend/app/modules/identity/{schemas,service,dependencies,router}.py` -- innlogging, reservehash, `current_user`, `/me`
+- `backend/tests/test_login.py`, `test_current_user.py`, `test_security.py` -- matrisen, likt svar byte for byte, reservehash, logg
+- `frontend/modules/identity/components/auth-card.tsx` -- felles kort med bunnlinje og lenke
+- `frontend/modules/identity/pages/login-page.tsx`, `frontend/app/(auth)/logg-inn/page.tsx` -- siden «Logg inn»
+- `frontend/modules/identity/{api,types,validation}.ts`, `register-page.tsx` -- `loginUser`, `loginSchema`, lenken tilbake
+- `frontend/modules/identity/*.test.ts(x)`, `frontend/lib/messages.test.ts` -- enhetstester
+- `frontend/e2e/logg-inn.spec.ts`, `frontend/e2e/opprett-konto.spec.ts` -- e2e med axe
+- `README.md` -- innlogging
+
+**Gjennomgang:** 28 funn (pluss ingen fra verification-gap). Rettet (3 grupper, alle low): reservehashen lages når modulen lastes (tidslikhet også for første forespørsel), feilen under passordet fjernes når e-posten endres (med test), lang kommentarlinje. Ingen utsatt. Avvist: 9 `false` og 13 `low` med grunner i Review Triage Log.
+
+**Anbefaling om ny gjennomgang:** `false`. Bare low-funn ble rettet (high 0, medium 0, low 3); ingen ubekreftet risiko kan navngis.
+
+**Verifisering:**
+- `cd backend && uv run pytest` -- 113 passed
+- `cd frontend && npm run test` -- 192 passed
+- `cd frontend && npx tsc --noEmit` -- ingen feil
+- `docker compose up --build -d --wait && cd frontend && npx playwright test` -- 20 passed
+- For hånd: skjermbilder av `/logg-inn` (med og uten feil) og `/registrer` i 1280 og 768 px sammenlignet med skisse 01 -- ingen avvik.
+
+**Gjenværende risiko:** Passord eller e-post med enslig surrogat (bare mulig med håndskrevet JSON) gir 500 i stedet for 401. Ingen grense på antall innloggingsforsøk. Rutevakt, utlogging og «Du er logget ut» kommer i story 1.6.
