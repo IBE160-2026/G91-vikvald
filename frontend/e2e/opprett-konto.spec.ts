@@ -128,7 +128,7 @@ test.describe("Opprett konto (story 1.4)", () => {
     await page.getByRole("button", { name: "Opprett konto" }).click();
 
     await expect(page).toHaveURL(/\/$/);
-    await expect(page.locator("main h1")).toHaveText("Studiekamerat");
+    await expect(page.locator("main h1")).toHaveText("Dine emner");
 
     const cookie = (await page.context().cookies()).find((c) => c.name === "sk_session");
     expect(cookie).toBeDefined();
