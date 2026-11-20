@@ -4,6 +4,7 @@ Viktige valg med begrunnelse. Nyeste først.
 
 | Dato | Beslutning | Begrunnelse | Spor |
 |---|---|---|---|
+| 2026-11-20 | Hver story kjører Playwright mot `docker compose up`. Stories som endrer det brukeren ser, tar skjermbilder i 1280 og 768 piksler, sammenligner dem med `DESIGN.md` og viser dem i PR-en. | Testene sjekker at appen virker, ikke at den ser ut som designet. Skjermbildene gjør gjennomgangen min enklere og er spor for design (10 %) og testing (15 %). | `2b6f4ef` |
 | 2026-11-20 | Alle epics og stories bygges i en autonom kjøring med `/goal`. Hovedøkten starter én subagent per story, og subagenten bruker `bmad-build-auto`. Instruksen står i `autonom-kjoring.md`. | Det går raskere enn å bygge story for story med meg til stede, og hver story får likevel egen branch, gjennomgang, tester og PR. | `ba89386` |
 | 2026-11-20 | Under kjøringen godkjenner jeg ikke hver endring. Jeg går gjennom PR-ene etterpå. Unntak fra regelen om godkjenning punkt for punkt. | En kjøring uten meg kan ikke vente på svar. Hver PR forklarer endringen på vanlig norsk, så jeg kan begrunne valgene. | `ba89386` |
 | 2026-11-20 | Subagentene fletter sine egne PR-er når testene er grønne. | Ellers stopper kjøringen etter første story. PR-ene er sporet og kan gås gjennom etterpå. | `ba89386` |
