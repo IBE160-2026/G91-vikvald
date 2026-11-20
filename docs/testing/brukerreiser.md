@@ -42,7 +42,7 @@ Fil: [`flyt-1-etter-forelesning.spec.ts`](../../frontend/e2e/brukerreiser/flyt-1
 | Feilvei: Word-fil avvises | FR-9, UX-DR42 | – (story 2.3) | ikke bygd ennå |
 | Feilvei: skannet PDF uten lesbar tekst | FR-10, UX-DR42 | – (story 2.3) | ikke bygd ennå |
 | Feilvei: fil over 50 sider | NFR-16, UX-DR42 | – (story 2.3) | ikke bygd ennå |
-| Feilvei: genereringen feiler, «Prøv igjen» | FR-21, UX-DR19 | – (story 3.1) | ikke bygd ennå |
+| Feilvei: genereringen feiler, «Prøv igjen» | FR-21, UX-DR19 | – (story 3.2) | ikke bygd ennå |
 | Feilvei: færre kort enn valgt | FR-18, UX-DR42 | – (story 3.2) | ikke bygd ennå |
 
 ## Flyt 2 – UJ-2: Klara før eksamen
@@ -60,7 +60,7 @@ Fil: [`flyt-2-for-eksamen.spec.ts`](../../frontend/e2e/brukerreiser/flyt-2-for-e
 | 7. Resultat med riktig, delvis riktig og feil | FR-51, FR-56, UX-DR34 | – (epic 8) | ikke bygd ennå |
 | Feilvei: slett eller rediger et feil kort | FR-27, FR-37, UX-DR22 | – (story 3.7, 4.5) | ikke bygd ennå |
 | Feilvei: «Inneholder formel – sjekk mot kilden» | FR-41, UX-DR37 | – (story 6.3) | ikke bygd ennå |
-| Feilvei: avslutter halvveis med Esc, resultatet lagres | FR-56, UX-DR33 | – (story 3.5) | ikke bygd ennå |
+| Feilvei: avslutter halvveis med Esc, resultatet lagres | FR-56, UX-DR33 | – (story 3.4, 3.5) | ikke bygd ennå |
 
 ## Flyt 3 – Klara rydder i filene (FR-12, FR-13)
 
@@ -72,7 +72,7 @@ Fil: [`flyt-3-rydder-i-filene.spec.ts`](../../frontend/e2e/brukerreiser/flyt-3-r
 | 2. «Slett» på fila, dialogen (14) viser hva som slettes sammen med den | FR-12, UX-DR22 | – (story 2.5) | ikke bygd ennå |
 | 3. Fokus på «Avbryt», Esc, ingenting er slettet | FR-12, UX-DR21, UX-DR22 | – (story 2.5) | ikke bygd ennå |
 | 4. «Erstatt» og ny fil, bekreftelsen sier hva som slettes | FR-13, UX-DR22 | – (story 2.6) | ikke bygd ennå |
-| 5. Bekrefter, den nye fila står i lista, tallene i «Lag og øv» viser hva som er igjen | FR-13, FR-16, UX-DR18 | – (story 2.6) | ikke bygd ennå |
+| 5. Bekrefter, den nye fila står i lista, tallene i «Lag og øv» viser hva som er igjen | FR-13, FR-16, UX-DR18 | – (story 2.6, 3.1, 5.2) | ikke bygd ennå |
 
 ## Flyt 4 – Klara avslutter etter semesteret (FR-3, FR-5)
 
