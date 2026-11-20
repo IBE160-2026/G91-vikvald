@@ -545,7 +545,7 @@ slik at jeg forstår hva som gikk galt, uansett hvor i appen feilen kommer fra.
 **Gitt** innstillingene i `core/config`
 **Når** backenden starter uten `.env`
 **Så** leses alle innstillinger med pydantic-settings fra miljøet, med `APP_ENV=local`, `LLM_PROVIDER=mock` og `FEATURE_MNEMONICS`, `FEATURE_FREETEXT` og `FEATURE_SUMMARY` på som standard
-**Og** en ugyldig verdi for `LLM_PROVIDER` (ikke `mock`, `mock-invalid` eller `vertex`) stopper oppstarten med en tydelig logglinje
+**Og** en ugyldig verdi for `LLM_PROVIDER` (ikke `mock`, `mock-invalid` eller `vertex`) stopper oppstarten med en tydelig logglinje. Om en gyldig verdi også er bygd ennå, avgjøres av genereringsmodulen (story 3.1 for mock, story 6.1 for `vertex`). Testen her sjekker bare at verdien er gyldig, ikke at appen starter med `vertex`
 
 **Gitt** at appen kjører
 **Når** frontend kaller `GET /api/config`
