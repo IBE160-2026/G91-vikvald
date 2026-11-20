@@ -163,7 +163,7 @@ Det finnes ingen ferdig startmal. Prosjektet er nytt, så **Epic 1 Story 1 må s
 - AR-6 (AD-6): Ved opplasting leser PyMuPDF hver side til `file_pages(file_id, page_no, text, needs_image)`, med `page_no` fra 1. Avvisning med feilkode ved manglende vilkår (`TERMS_NOT_ACCEPTED`), ikke PDF, over 50 sider, eller ingen lesbar tekst. Alt innhold lagrer `file_id`, `page_no` og `formula_flag`. Sidebilder lages ved behov og lagres ikke.
 - AR-7 (AD-7): `ON DELETE CASCADE` fra bruker til innhold. Kort og spørsmål hører til fila; sammendraget hører til forelesningen og slettes helt når en av forelesningens filer slettes eller erstattes. Erstatning er ett kall (ny `file_id`). Filer på disken slettes etter transaksjonen. `GET …/delete-preview` gir tellingene. Sletting mens en jobb pågår gir `409 JOB_ALREADY_RUNNING`.
 - AR-8 (AD-8): Bare `core/storage` leser og skriver filer, i `data/uploads/<user_id>/<file_id>.pdf` på et Docker-volum. Originalt filnavn bare i databasen.
-- AR-9 (AD-9): Nettleseren lager `session_id` (UUID) og teller. Resultatet sendes én gang til `POST /api/practice-sessions` (JSON eller `text/plain`, `ON CONFLICT DO NOTHING`) når økten er ferdig, ved «Avslutt», ved navigering, før utlogging og ved `pagehide` med `sendBeacon`. «Øvd» regnes ut i én funksjon i `practice`; en emneøkt teller for alle forelesninger som hadde innhold da den startet.
+- AR-9 (AD-9): Nettleseren lager `session_id` (UUID) og teller. Resultatet sendes én gang til `POST /api/practice-sessions` (JSON eller `text/plain`, `ON CONFLICT DO NOTHING`) når økten er ferdig, ved «Avslutt», ved navigering, før utlogging og ved `pagehide` med `sendBeacon`. «Øvd» regnes ut i én funksjon i `practice`; en emneøkt teller for alle forelesninger som hadde innhold da den startet. `started_at` settes av serveren ut fra varigheten nettleseren sender, ikke fra nettleserens klokke.
 - AR-10 (AD-10): bcrypt, passord 8 tegn til 72 byte (`PASSWORD_TOO_LONG`). HS256-JWT med PyJWT i cookien `sk_session` (`HttpOnly`, `SameSite=Lax`, `Path=/`), 30 dager, aldri i `localStorage`. `POST /api/identity/logout`, `GET /api/identity/me`. Uten innlogging `401 UNAUTHENTICATED`. `JWT_SECRET` har standardverdi bare når `APP_ENV=local`.
 - AR-11 (AD-11): Innstillinger med pydantic-settings; `.env` er valgfri. Brytere bare for bør ha: `FEATURE_MNEMONICS`, `FEATURE_FREETEXT`, `FEATURE_SUMMARY`. Frontend leser dem og `demo_mode` fra `GET /api/config`. Avslåtte ruter svarer `404 FEATURE_DISABLED`. Ingen hemmeligheter med `NEXT_PUBLIC_`.
 - AR-12 (AD-12): Alle API-feil har formen `{"error": {"code": "...", "details": {...}}}`, med kodene i `core/errors.py`. Globale håndterere skriver om `HTTPException` og `422`. Frontend har én meldingsfil per kode med tekstene fra EXPERIENCE.md, og en test sjekker at alle backend-kodene finnes der.
@@ -1750,6 +1750,8 @@ slik at appen vet hva jeg har øvd på, og jeg ser hvilke kort jeg bør se på i
 **Når** økten starter
 **Så** lager nettleseren en `session_id` (UUID) og teller: `shown` er antall ulike kort vist, `answered` antall markerte kort, og første markering på hvert kort føres som `correct` («Kunne») eller `wrong` («Kunne ikke») (FR-56)
 **Og** enkeltmarkeringer sendes aldri til serveren
+**Og** nettleseren sender ikke klokkeslett, men øktens varighet i sekunder (`duration_seconds`). Serveren setter `started_at` = mottakstidspunkt minus varigheten, slik at «øvd» bare sammenligner tider fra serverens klokke (AR-9)
+**Og** en test viser at en emneøkt teller for en forelesning som fikk kort rett før økten, også når nettleserens klokke går fem minutter etter
 
 **Gitt** at minst ett kort er markert
 **Når** økten er ferdig, studenten velger «Avslutt økt» eller Esc, går til en annen side i appen, logger ut, eller lukker fanen (`pagehide`)
@@ -2560,7 +2562,7 @@ Kuttes denne storien, står tekstvarianten fra story 5.3 igjen, og FR-57 er oppf
 ### Avgjort av Silje 2026-11-14
 
 1. Er det mindre enn sju dager til eksamen, vises dager: «om 3 dager» og «i morgen». «Eksamen i dag» gjelder som før.
-2. Slettes alt innholdet i en forelesning, mister den «øvd» fra emneøkter. Det godtas, fordi en ekstra tabell for å unngå det gjør MVP-en mer komplisert enn nødvendig.
+2. Slettes alt innholdet i en forelesning, mister den «øvd» fra emneøkter, også når en fil erstattes. Det godtas, fordi en ekstra tabell for å unngå det gjør MVP-en mer komplisert enn nødvendig.
 3. Tekstene «16 kort, sist øvd 03.11», «Hele emnet» i SISTE ØKT og knappene «Ny forelesning» og «Last opp PDF» i NESTE STEG.
 4. Bare flashcards, quiz og fritekst teller som «øvd». Et sammendrag er ikke en økt.
 5. Funksjonen for «øvd» lages i 5.1.
