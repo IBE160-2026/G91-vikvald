@@ -43,6 +43,10 @@ Har du hentet nye endringer i koden, bruker du `docker compose up --build`, slik
 
 Åpne så <http://localhost:3000>. Helsesjekken ligger på <http://localhost:3000/api/health> og svarer `{"status": "ok"}` når databasen kan nås.
 
+### Opprett en konto
+
+Åpne <http://localhost:3000/registrer>, skriv inn en e-postadresse og et passord på minst 8 tegn, og trykk «Opprett konto». Du blir logget inn med en gang og kommer til forsiden. E-postadressen sjekkes ikke, så du kan bruke en oppdiktet adresse som `klara@eksempel.no`. Passordet lagres bare som en bcrypt-hash. En ferdig testbruker kommer i en senere versjon.
+
 Backenden kjører databaseendringene (`alembic upgrade head`) før den starter. Stopp appen med `Ctrl+C`, eller med `docker compose down` hvis den kjører i bakgrunnen (`-d`).
 
 ## Utviklingsmodus
@@ -119,6 +123,7 @@ Alle innstillingene har standardverdier, så `.env` er valgfri. Vil du endre noe
 | `FEATURE_MNEMONICS` | `true` | Slår huskeregler av (`false`) eller på (`true`). Når den er av, svarer API-et `404` med koden `FEATURE_DISABLED`. |
 | `FEATURE_FREETEXT` | `true` | Slår spørsmål med fritekstsvar av eller på, på samme måte. |
 | `FEATURE_SUMMARY` | `true` | Slår sammendrag av eller på, på samme måte. |
+| `JWT_SECRET` | tom (innebygd lokal nøkkel) | Den hemmelige nøkkelen som signerer innloggingscookien `sk_session`. Med `APP_ENV=local` brukes en innebygd nøkkel som bare er ment for egen maskin. I alle andre miljøer må den settes til en lang, tilfeldig verdi (for eksempel fra `openssl rand -hex 32`), ellers stopper backenden ved oppstart med en logglinje som nevner `JWT_SECRET`. |
 | `API_INTERNAL_URL` | `http://backend:8000` | Hvor frontenden sender `/api/*`. Leses når frontenden bygges. I utviklingsmodus: `http://localhost:8000`. |
 
 ## Planleggingsdokumentene

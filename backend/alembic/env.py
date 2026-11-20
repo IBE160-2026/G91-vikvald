@@ -8,14 +8,15 @@ from sqlalchemy.engine import Connection
 
 from app.core.config import get_settings
 from app.core.db import Base, make_engine
+from app.modules.identity import models as identity_models  # noqa: F401  (registers users)
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name, disable_existing_loggers=False)
 
-# Models register themselves on Base.metadata when their modules are imported.
-# Module imports are added here when the first table arrives (story 1.4).
+# Models register themselves on Base.metadata when their modules are imported
+# (see the imports above). Add each new module's models import there.
 target_metadata = Base.metadata
 
 

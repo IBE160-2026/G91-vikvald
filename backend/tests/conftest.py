@@ -13,8 +13,9 @@ from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker  # noqa: E402
 
 from app.core.config import get_settings  # noqa: E402
-from app.core.db import get_session, make_engine  # noqa: E402
+from app.core.db import Base, get_session, make_engine  # noqa: E402
 from app.main import app  # noqa: E402
+from app.modules.identity import models as _identity_models  # noqa: E402, F401  (registers users)
 
 TEST_DATABASE_URL = "sqlite+aiosqlite://"
 
@@ -31,6 +32,9 @@ def fresh_settings() -> Iterator[None]:
 @pytest.fixture
 async def engine() -> AsyncIterator[AsyncEngine]:
     test_engine = make_engine(TEST_DATABASE_URL)
+    # Tables straight from the models (the migrations have their own test).
+    async with test_engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
     yield test_engine
     await test_engine.dispose()
 
