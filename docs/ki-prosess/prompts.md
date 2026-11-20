@@ -16,7 +16,9 @@ KI innrømmet at det ikke var noen sterk teknisk grunn, bare at technology.md br
 
 > 1-4. ja, 5. har ikke skrevet eksempelnotater
 
-**Resultat:** Avgjørelsene, `sprint-status.yaml` og instruksen til kjøringen (`2267b08`, `ba89386`). Se `beslutninger.md`.
+> vil ha som målkriterie også at alle user journeys har blitt gjennomført via playwright, slik at all ønsket funksjonalitet på nettsiden er testet
+
+**Resultat:** Avgjørelsene, `sprint-status.yaml` og instruksen til kjøringen (`2267b08`, `ba89386`). Brukerreisene ble en del av målet (`3720846`). Se `beslutninger.md`.
 
 ## 2026-11-20: Gjennomgang av epics.md
 
