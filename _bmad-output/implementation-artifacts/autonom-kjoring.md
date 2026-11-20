@@ -20,7 +20,7 @@ Gjenta til stoppbetingelsen er nådd:
 3. Start **én** subagent (`general-purpose`, i forgrunnen, aldri i bakgrunnen) med story-prompten under, med story-nøkkelen satt inn.
 4. Les rapporten. Sjekk selv at PR-en er flettet (`gh pr view <nr> --json state`) og at storien har status `done` på `main`.
 5. **Hvis storien ikke ble ferdig:** start én ny subagent for samme story med rapporten fra forrige forsøk som ekstra kontekst. Feiler den også, gjelder stoppregelen.
-6. **Kjør testene på `main`** etter flettingen: `uv run pytest` i `backend/` og `npm run test` i `frontend/` (når de finnes). Er noe rødt, gjelder stoppregelen.
+6. **Kjør testene på `main`** etter flettingen: `uv run pytest` i `backend/` og `npm run test` i `frontend/` (når de finnes). Er noe rødt, gjelder stoppregelen. Rydd deretter gamle Docker-bilder med `docker image prune -f` (sletter bare ubrukte bildeversjoner, ingen data), og stopp hvis det er under 5 GB ledig på disken (`df -h /`).
 7. Skriv én linje i samtalen: `Story <nøkkel>: done, PR #<nr>, tester: <kommandoer og resultat>`. Det er dette `/goal` leser.
 8. **Når en epic er ferdig:** start én subagent som utvider brukerreisetestene (se «Brukerreiser»), og lag deretter gjennomgangsissuet (se «Siljes gjennomgang»).
 
@@ -32,7 +32,7 @@ Retrospektivene (`epic-N-retrospective: optional`) hoppes over.
 >
 > 1. `git switch main && git pull --ff-only`, deretter `git switch -c story/<epic>-<story>` (for eksempel `story/1-1`).
 > 2. Bruk skillen `bmad-build-auto` med denne hensikten: «Story <N.M> fra `_bmad-output/planning-artifacts/epics.md`: <tittel>». Følg den helt ut. Den lager spesifikasjonen, koder, kjører gjennomgang og committer. Skriv spesifikasjonen på norsk bokmål. Kode, variabelnavn og kodekommentarer skrives på engelsk.
-> 3. Kjør alle testene: `uv run pytest` i backend, `npm run test` i frontend, og `npx playwright test` mot appen startet med `docker compose up --build`. Playwright kjøres i hver story fra 1.1, også når storien ikke har lagt til egne Playwright-tester. Alt skal være grønt. Rett og kjør på nytt hvis noe feiler.
+> 3. Kjør alle testene: `uv run pytest` i backend, `npm run test` i frontend, og `npx playwright test` mot appen startet med `docker compose up --build`. Playwright kjøres i hver story fra 1.1, også når storien ikke har lagt til egne Playwright-tester. Alt skal være grønt. Rett og kjør på nytt hvis noe feiler. Stopp appen med `docker compose down` når testene og skjermbildene er ferdige.
 > 3b. **Skjermbilder** (bare når storien endrer det brukeren ser): ta skjermbilder med Playwright av hver side storien endrer, i 1280 og 768 piksler bredde, med demodata og testbrukeren. Lagre dem i `docs/skjermbilder/story-<N>-<M>/` med beskrivende navn. Sammenlign dem med `DESIGN.md` og skissene i `_bmad-output/planning-artifacts/ux-designs/`, og rett det som avviker. Avvik du ikke retter, skrives i PR-en. Skjermbildene skal aldri vise andre data enn demodata.
 > 4. Sett storien til `done` i `sprint-status.yaml` (og epicen til `in-progress`, eller `done` når siste story er ferdig).
 > 5. Oppdater KI-sporet i `docs/ki-prosess/`:
@@ -105,10 +105,11 @@ Kjøringen stopper og melder fra i samtalen, uten å gjette videre, når:
 - samme story feiler to ganger på rad (se løkken, punkt 5)
 - testene på `main` er røde etter en fletting
 - en handling som trengs, er sperret av `.claude/settings.json`
+- det er under 5 GB ledig på disken
 - epic 1 er ferdig og issuet «Gjennomgang av epic 1» er ikke lukket (se «Siljes gjennomgang»)
 - en avgjørelse bare Silje kan ta, mangler (for eksempel ekte innhold i eksempelnotatene, faglig vurdering eller modellvalg)
 
-Ved stopp: skriv hvilken story, hva som feilet og hva som trengs, og lag et issue med etiketten `blokkert`. Stoppet etter epic 1 er planlagt og får ikke `blokkert`. Der holder det å vise til gjennomgangsissuet.
+Ved stopp: send et varsel til Silje med verktøyet `PushNotification` hvis det finnes (for eksempel «Studiekamerat-kjøringen venter på deg: gjennomgang av epic 1»). Skriv så hvilken story, hva som feilet og hva som trengs, og lag et issue med etiketten `blokkert`. Stoppet etter epic 1 er planlagt og får ikke `blokkert`. Der holder det å vise til gjennomgangsissuet.
 
 Kjøringen startes igjen med den samme `/goal`-linja. Den fortsetter fra første story som ikke er `done`.
 
