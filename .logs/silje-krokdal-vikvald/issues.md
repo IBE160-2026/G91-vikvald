@@ -52,3 +52,4 @@
 - [x] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — før godkjenningen av epic 1 og 2 og bruken av subagenter inn i KI-sporet (#29) (løst 2026-11-14: `725ee33`)
 - [x] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — fullfør de siste stegene i bmad-create-epics-and-stories og åpne pull request (#29) (løst 2026-11-14: sluttsjekk `ff1f8a8`, pull request åpnet)
 - [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — avstem omfanget mot milepælen 27.11 i sprintplanleggingen (#30)
+- [ ] 2026-11-20 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — gjenstående funn fra gjennomgangen av epics.md: feilkoder, kanttilfeller, struktur og språk (#32)
