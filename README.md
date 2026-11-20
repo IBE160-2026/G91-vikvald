@@ -51,6 +51,12 @@ Har du hentet nye endringer i koden, bruker du `docker compose up --build`, slik
 
 Åpne <http://localhost:3000/logg-inn>, skriv inn e-postadressen og passordet du brukte da du opprettet kontoen, og trykk «Logg inn». Du kommer til forsiden. Er e-postadressen eller passordet feil, står «Feil e-post eller passord. Sjekk at Caps Lock er av.» under passordfeltet. Meldingen er den samme uansett hvilken av dem som er feil, slik at ingen kan bruke innloggingen til å finne ut hvilke adresser som har konto. Lenken «Opprett konto» på siden går til registreringen, og «Logg inn» der går tilbake.
 
+Innloggingen varer i 30 dager. Alle sider i appen krever innlogging: åpner du <http://localhost:3000> uten å være logget inn, kommer du til «Logg inn». Går innloggingen ut mens du bruker appen i samme fane, står det «Du er logget ut. Logg inn igjen.» der.
+
+### Logg ut
+
+Trykk «Logg ut» øverst til høyre. Du kommer til «Logg inn» med en gang, uten spørsmål. En adresse som ikke finnes, for eksempel <http://localhost:3000/finnes-ikke>, viser «Fant ikke siden» med lenken «Gå til forsiden».
+
 Backenden kjører databaseendringene (`alembic upgrade head`) før den starter. Stopp appen med `Ctrl+C`, eller med `docker compose down` hvis den kjører i bakgrunnen (`-d`).
 
 ## Utviklingsmodus
