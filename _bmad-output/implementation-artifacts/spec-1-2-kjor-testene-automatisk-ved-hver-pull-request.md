@@ -3,7 +3,7 @@ title: 'Story 1.2: Kjør testene automatisk ved hver pull request'
 type: 'chore'
 created: '2026-11-20'
 baseline_revision: '9970b561b98b8f91685136a46503ac05b525f83f'
-status: 'in-review'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -102,3 +102,30 @@ deferred: []
 
 **Manual checks (if no CLI):**
 - `gh pr checks <nr>` på PR-en for denne storien -- expected: sjekken `tests` er grønn
+
+## Auto Run Result
+
+Status: done
+
+**Sammendrag:** Repoet har fått CI. Arbeidsflyten `CI` i GitHub Actions kjører ved hver pull request mot `main` og har én jobb, `tests` (vises som «CI / tests» i pull requesten): `uv sync --locked` og `uv run pytest` i `backend/`, så `npm ci` og `npm run test` i `frontend/`. Den bruker ingen hemmeligheter, ingen databasetjeneste og ikke Playwright, og setter `LLM_PROVIDER=mock`. En Vitest-test sjekker at arbeidsflyten har det AR-20 krever, og README forklarer hva som kjører automatisk og at Playwright kjøres lokalt.
+
+**Filer:**
+- `.github/workflows/ci.yml` -- arbeidsflyten (ny)
+- `frontend/lib/ci-workflow.test.ts` -- sju `AR-20`-tester som leser arbeidsflyten som tekst (ny)
+- `README.md` -- avsnittet «Automatisk ved hver pull request» under «Testene»
+
+**Gjennomgang:** 19 funn. Rettet: 7 (medium 2 med samme rot: CI var ikke prøvd på GitHub, nå prøvd grønn og rød; low 5 gruppert i 6 rettinger: tidsgrense, frontendstegene kjører selv om backend feiler, CRLF, escaping, `secrets[...]`, navnet på sjekken i README). Ingen utsatt. Avvist: 3 `false` og 9 `low` med grunner i Review Triage Log. To av de avviste (grenbeskyttelse og `push` til `main`) er lagt fram for Silje som issue #39 og #40.
+
+**Utenfor gjennomgangen:** `astral-sh/setup-uv@v6` ga advarsel om at Node 20 er foreldet på GitHub. Byttet til `@v7`, og advarselen forsvant.
+
+**Anbefaling om ny gjennomgang:** `false`. Bare ett medium-funn (gruppert) ble rettet, og det er nå bekreftet på GitHub.
+
+**Verifisering:**
+- `cd backend && uv run pytest` -- 4 passed
+- `cd frontend && npm run test` -- 10 passed (7 nye)
+- `docker compose up --build -d --wait && cd frontend && npx playwright test` -- 2 passed
+- PR #38, run 44786637971 -- `tests` grønn (CPython 3.12, 4 + 10 tester)
+- PR #38, run 44786765611 -- med en test som feilet med vilje: `tests` rød (`1 failed, 4 passed`), PR-en merket som feilet, frontendtestene kjørte likevel; testen tilbakestilt etterpå
+- PR #38, run 44786969930 -- grønn med `setup-uv@v7`, uten advarsel om Node 20
+
+**Gjenværende risiko:** `LLM_PROVIDER=mock` har ingen virkning før story 1.3 leser innstillingen. Grenbeskyttelse er ikke slått på (#39).
