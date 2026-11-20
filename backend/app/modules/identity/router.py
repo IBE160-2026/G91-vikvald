@@ -1,12 +1,16 @@
 """HTTP routes for the identity module (/api/identity/*)."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
 from app.core.security import create_session_token, set_session_cookie
-from app.modules.identity.schemas import RegisterRequest, UserOut
-from app.modules.identity.service import register_user
+from app.modules.identity.dependencies import current_user
+from app.modules.identity.models import User
+from app.modules.identity.schemas import LoginRequest, RegisterRequest, UserOut
+from app.modules.identity.service import authenticate, register_user
 
 router = APIRouter(prefix="/api/identity")
 
@@ -21,4 +25,21 @@ async def register(
     # The student is logged in straight away. The token only goes in the
     # HttpOnly cookie, never in the response body.
     set_session_cookie(response, create_session_token(user.id))
+    return UserOut(id=user.id, email=user.email)
+
+
+@router.post("/login")
+async def login(
+    body: LoginRequest,
+    response: Response,
+    session: AsyncSession = Depends(get_session),
+) -> UserOut:
+    user = await authenticate(session, body.email, body.password)
+    # The same cookie as after registration; the token is never in the body.
+    set_session_cookie(response, create_session_token(user.id))
+    return UserOut(id=user.id, email=user.email)
+
+
+@router.get("/me")
+async def me(user: Annotated[User, Depends(current_user)]) -> UserOut:
     return UserOut(id=user.id, email=user.email)

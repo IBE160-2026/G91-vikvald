@@ -1,1 +1,1 @@
-"""Identity: user accounts, registration and (from story 1.5) login."""
+"""Identity: user accounts, registration, login and the logged-in user (current_user)."""

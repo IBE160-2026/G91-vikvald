@@ -3,7 +3,7 @@ title: 'Story 1.5: Logg inn'
 type: 'feature'
 created: '2026-11-20'
 baseline_revision: '7571307f551187e02b1e0eaf25c02358c5f6fb0f'
-status: 'ready-for-dev'
+status: 'in-progress'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:

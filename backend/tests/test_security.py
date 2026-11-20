@@ -11,6 +11,7 @@ from app.core.security import (
     SESSION_COOKIE,
     SESSION_MAX_AGE,
     create_session_token,
+    decode_session_token,
     hash_password,
     set_session_cookie,
     verify_password,
@@ -61,3 +62,36 @@ def test_ar10_set_session_cookie_setter_attributtene() -> None:
     for attribute in ("httponly", "samesite=lax", "path=/", f"max-age={SESSION_MAX_AGE}"):
         assert attribute in header
     assert "secure" not in header
+
+
+def test_ar10_decode_session_token_gir_bruker_id() -> None:
+    user_id = uuid.uuid4()
+    assert decode_session_token(create_session_token(user_id)) == user_id
+
+
+def test_ar10_decode_session_token_avviser_alg_none() -> None:
+    token = jwt.encode({"sub": str(uuid.uuid4()), "iat": 0, "exp": 2**40}, "", algorithm="none")
+    assert decode_session_token(token) is None
+
+
+def test_ar10_decode_session_token_avviser_annen_noekkel_og_soeppel() -> None:
+    claims = {"sub": str(uuid.uuid4()), "iat": 0, "exp": 2**40}
+    assert decode_session_token(jwt.encode(claims, "en-helt-annen-noekkel-som-er-lang-nok")) is None
+    assert decode_session_token("soeppel") is None
+    assert decode_session_token("") is None
+
+
+def test_ar10_decode_session_token_krever_exp_iat_og_sub() -> None:
+    secret = get_settings().JWT_SECRET
+    full = {"sub": str(uuid.uuid4()), "iat": 0, "exp": 2**40}
+    for missing in ("sub", "iat", "exp"):
+        claims = {key: value for key, value in full.items() if key != missing}
+        assert decode_session_token(jwt.encode(claims, secret, algorithm="HS256")) is None, missing
+
+
+def test_ar10_decode_session_token_avviser_utloept_og_sub_som_ikke_er_uuid() -> None:
+    secret = get_settings().JWT_SECRET
+    expired = {"sub": str(uuid.uuid4()), "iat": 0, "exp": 1}
+    assert decode_session_token(jwt.encode(expired, secret, algorithm="HS256")) is None
+    not_uuid = {"sub": "klara", "iat": 0, "exp": 2**40}
+    assert decode_session_token(jwt.encode(not_uuid, secret, algorithm="HS256")) is None

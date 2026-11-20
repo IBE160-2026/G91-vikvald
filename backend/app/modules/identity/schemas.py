@@ -12,6 +12,12 @@ class RegisterRequest(BaseModel):
     password: str
 
 
+class LoginRequest(BaseModel):
+    # Plain strings: any wrong or odd value gives the same INVALID_CREDENTIALS.
+    email: str
+    password: str
+
+
 class UserOut(BaseModel):
     id: uuid.UUID
     email: str
