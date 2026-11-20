@@ -3,7 +3,7 @@ title: 'Story 1.2: Kjør testene automatisk ved hver pull request'
 type: 'chore'
 created: '2026-11-20'
 baseline_revision: '9970b561b98b8f91685136a46503ac05b525f83f'
-status: 'in-progress'
+status: 'in-review'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -63,6 +63,29 @@ deferred: []
 ## Spec Change Log
 
 ## Review Triage Log
+
+### 2026-11-20 — Review pass
+- verdicts: 19 findings — high 0, medium 2, low 14, false 3, maybe-false 0
+- findings:
+  - `[low]` `[reject]` (blind) Code Map sier `python-version-file` for setup-uv, men arbeidsflyten setter det ikke; uv-versjonen er ikke låst — Python-versjonen kommer likevel fra `backend/.python-version` (uv leser den i `backend/`), som intensjonen krever; rettingen ville vært å endre spesifikasjonen. Låst uv-versjon er lite sannsynlig å treffe og legger til konfigurasjon. Ført i `korrigeringer.md`.
+  - `[low]` `[reject]` (blind) Ingen `push` til `main` eller `workflow_dispatch` — storien ber om kjøring ved hver pull request; orkestratoren kjører testene på `main` etter hver fletting.
+  - `[low]` `[reject]` (blind) En rød sjekk hindrer ikke fletting (ingen grenbeskyttelse) — akseptkriteriet krever «merket som feilet», ikke sperre; grenbeskyttelse er en repo-innstilling. Valget er ført i `beslutninger.md` og lagt fram for Silje som kanttilfelle-issue.
+  - `[low]` `[patch]` (blind) Ingen `timeout-minutes` — lagt til `timeout-minutes: 15` på jobben.
+  - `[low]` `[patch]` (blind) Workflow-testen er skjør (regex-ene for `on:` og `env:`, «playwright» i kommentarer, uescapet kommando) — `escapeRegExp` lagt til; resten avvist: testen feiler høyt når arbeidsflyten endres, og skal da oppdateres sammen med den.
+  - `[false]` `[reject]` (blind) Testfila ligger i `frontend/lib/` — `vitest.config.ts` tar med `lib/**`, og ingen konkret skade er nevnt.
+  - `[false]` `[reject]` (blind) Ingen `tsc`, `next build` eller linter i CI — AR-20 ber bare om testene; byggingen prøves av `docker compose up --build`.
+  - `[false]` `[reject]` (blind) KI-sporet mangler og spesifikasjonen er ikke committet — begge gjøres i senere steg i samme økt.
+  - `[low]` `[patch]` (blind) README sier at jobben heter `tests`, men sjekken vises som «CI / tests» — README rettet.
+  - `[low]` `[patch]` (edge) Feiler backend-testene, hoppes frontendstegene over — `if: ${{ !cancelled() }}` på de tre frontendstegene.
+  - `[low]` `[patch]` (edge) CRLF ved Windows-utsjekk får regex-ene i testen til å feile — teksten normaliseres med `.replace(/\r\n/g, "\n")`.
+  - `[low]` `[reject]` (edge) `run: |`-blokker eller `defaults.run.working-directory` ville feile testen — gjelder bare framtidige omskrivinger, og testen feiler da høyt.
+  - `[low]` `[patch]` (edge) Testen fanger ikke `secrets[...]` — sjekken er nå `not.toMatch(/secrets\s*[.[]/)`.
+  - `[low]` `[reject]` (edge) `LLM_PROVIDER: mock` har ingen virkning ennå — ingen kode kaller en modell ennå; story 1.3 innfører innstillingen med dette navnet (epic-konteksten), og da virker den.
+  - `[medium]` `[patch]` (verification-gap) Arbeidsflyten er bare sjekket som tekst og har ikke kjørt på GitHub; at en feilende test gjør PR-en rød, er ikke vist — manuell kontroll på PR-en: én grønn kjøring og én kjøring med en test som feiler med vilje (rød), deretter tilbakestilt. Resultatet står i Auto Run Result.
+  - `[low]` `[reject]` (verification-gap) `LLM_PROVIDER` leses ikke av koden — samme som funnet over.
+  - `[low]` `[reject]` (verification-gap) `python-version-file` i Code Map — samme som første funn.
+  - `[medium]` `[patch]` (intent) Tolkning B (atferd på GitHub) er påstått, ikke vist — samme manuelle kontroll som verification-gap-funnet.
+  - `[low]` `[reject]` (intent) Tolkning C (sperre mot fletting) er ikke gjennomført — samme som grenbeskyttelse-funnet over.
 
 ## Design Notes
 
