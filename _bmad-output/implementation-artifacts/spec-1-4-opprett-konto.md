@@ -3,7 +3,7 @@ title: 'Story 1.4: Opprett konto'
 type: 'feature'
 created: '2026-11-20'
 baseline_revision: '3c154ec9083d5878f43cb299d9560a11773ffe11'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -106,6 +106,42 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-20 — Review pass
+- verdicts: 32 findings — high 0, medium 5, low 17, false 10, maybe-false 0
+- findings:
+  - `[low]` `[reject]` (blind) Svak `JWT_SECRET` («x», bare mellomrom) godtas utenfor `local` — stemmer, men appen kjøres bare lokalt i dette prosjektet, og en minstelengde er en ny regel som spesifikasjonen ikke har. Lagt fram for Silje som kanttilfelle.
+  - `[low]` `[reject]` (blind) `APP_ENV`-sjekken avhenger av feltrekkefølgen og eksakt `"local"`, og `str` har `None` som standard — feiler høyt ved oppstart om noe endres; typen er kosmetisk.
+  - `[false]` `[reject]` (blind) KI-sporet i `docs/ki-prosess/` mangler — skrives i samme økt etter gjennomgangen (steg 5 i story-prompten).
+  - `[false]` `[reject]` (blind) Spesifikasjonen har tomme logger og status `in-review` — loggen skrives nå, i denne gjennomgangen.
+  - `[low]` `[patch]` (blind) Ingen test sammenligner migreringen med modellene, og Postgres sjekkes ikke direkte — ny test med `compare_metadata` etter `upgrade head`. Postgres-delen avvist: e2e-testene registrerer mot Postgres i Docker, og migreringen kjører ved hver oppstart.
+  - `[low]` `[patch]` (blind) Frontend og backend teller e-postlengden ulikt (UTF-16 mot kodepunkter); ulike blanktegn-regler — lengden rettet med `characterCount`. Blanktegn og «İ» avvist: eksotiske tegn som ingen skriver i en e-postadresse.
+  - `[medium]` `[patch]` (blind) Ingen synlig ventetilstand og ingen test av dobbelt innsending — `aria-disabled:`-stil i knappen, vakt med `useRef`, ny test.
+  - `[low]` `[patch]` (blind) Gammelt varsel (`role="alert"`) blir stående etter redigering; dobbel parsing — varselet fjernes nå ved redigering. Dobbel parsing avvist: ufarlig.
+  - `[low]` `[patch]` (blind) `{...inputProps}` etter `aria-describedby` kan bryte koblingen til feilmeldingen — spredningen flyttet før de beregnede attributtene.
+  - `[false]` `[reject]` (blind) Feil JSON-typer er ikke testet, og `VALIDATION_ERROR` kan vise passordet — Pydantic gjør ikke tall om til tekst (422), og håndtereren sender bare feltnavn og feiltype, aldri verdien.
+  - `[low]` `[reject]` (blind) Ingen hastighetsgrense på `register` — ikke i storien eller arkitekturen; appen kjøres lokalt.
+  - `[false]` `[reject]` (blind) Unikhet uten `lower(email)` i databasen — bare `identity` skriver tabellen, og tjenesten normaliserer alltid før lagring.
+  - `[low]` `[reject]` (blind) README nevner ikke at ny `JWT_SECRET` logger alle ut, eller at `down -v` sletter kontoene — `down -v` står allerede i README med «det sletter den lokale databasen».
+  - `[low]` `[reject]` (edge) Enslig surrogat i passordet gir 500 i stedet for 422 — bare med håndskrevet JSON mot API-et; svaret er fortsatt i feilformatet uten detaljer.
+  - `[low]` `[reject]` (edge) NUL-tegn i e-posten gir 500 på Postgres — samme som over: kan ikke skrives i skjemaet.
+  - `[low]` `[reject]` (edge) NFC/NFD-varianter av samme adresse gir to kontoer — svært sjeldent, og retting er en ny regel.
+  - `[low]` `[patch]` (edge) zod `.max` teller UTF-16 — samme rot og retting som blind-raden om lengde.
+  - `[low]` `[reject]` (edge) Kort `JWT_SECRET` godtas utenfor `local` — samme som blind-raden; kanttilfelle-issue.
+  - `[low]` `[reject]` (edge) `APP_ENV=Local` regnes som ikke-lokal — appen nekter å starte med en tydelig linje, som er trygt.
+  - `[low]` `[reject]` (edge) Subprosess-testen feiler hvis utviklerens `.env` setter `JWT_SECRET` — ingen `.env` finnes i repoet; samme forutsetning som testene fra story 1.3.
+  - `[false]` `[reject]` (edge) `user.id` etter commit gir `MissingGreenlet` — `SessionLocal` og testene bruker `expire_on_commit=False`, og ID-en settes i Python før insert.
+  - `[medium]` `[patch]` (edge) To raske innsendinger før ny rendring sender to POST — samme rot som blind-raden om dobbel innsending; vakten er en `useRef` som settes med en gang.
+  - `[medium]` `[patch]` (edge) Ny innsending mens `router.push` navigerer gir 409 — samme rot; vakten står på etter suksess.
+  - `[low]` `[patch]` (edge) Kallerens `aria-describedby` overstyrer feilkoblingen — samme rot og retting som blind-raden.
+  - `[medium]` `[patch]` (verification-gap) Vakten mot dobbel innsending har ingen test — ny test i `register-page.test.tsx`.
+  - `[medium]` `[patch]` (verification-gap, other) `isPending` leses fra lukningen — samme rot; `useRef`.
+  - `[false]` `[reject]` (intent) Testnavn er på norsk, ikke engelsk — storien krever selv norske testnavn med krav-ID (`test_fr3_opprett_konto`).
+  - `[low]` `[reject]` (intent) Migreringen testes bare på SQLite — e2e-testene kjører registrering mot Postgres i Docker; se også `compare_metadata`-testen.
+  - `[false]` `[reject]` (intent) Ingen test viser at cookien godtas som innlogging — `/me` og `current_user` hører til story 1.5; akseptkriteriet i 1.4 er at cookien settes.
+  - `[false]` `[reject]` (intent) Loggsjekken dekker bare backendens logging — passordet går bare gjennom Next sin rewrite, som ikke logger kropper; backenden er der passordet behandles.
+  - `[false]` `[reject]` (intent) Krav-ID-er som AR-15 og UX-DR46 står ikke i noe testnavn — kravet er at hvert testnavn har ID-en det tester, ikke at hver ID har en egen test.
+  - `[false]` `[reject]` (intent) Testen av forespørsler utenfor `localhost` er merket NFR-2, som ikke står i kravlista — NFR-2 er kravet om at appen virker uten nett (DESIGN.md viser til det for fontene).
+
 ## Design Notes
 
 **Tokens og Tailwind 4:** DESIGN.md-skalaen `spacing.1–9` (4, 8, 16 … 80 px) defineres som `--spacing-1` … `--spacing-9`, så `p-3` blir 16 px som i DESIGN.md og ikke 12 px som i Tailwind. Navngitte mål (`--spacing-topbar-height`, `--spacing-button-height` …) gir klasser som `h-button-height`. Fargetesten leser `colors:` i frontmatteren i DESIGN.md og krever samme verdi for `--color-<navn>` i `globals.css`.
@@ -121,3 +157,35 @@ deferred: []
 - `cd frontend && npm run test` -- expected: alle grønne
 - `cd frontend && npx tsc --noEmit` -- expected: ingen typefeil
 - `docker compose up --build -d --wait && cd frontend && npx playwright test` -- expected: alle grønne
+
+## Auto Run Result
+
+Status: done
+
+**Sammendrag:** En student kan opprette konto på `/registrer`. Backenden har modulen `identity` med tabellen `users` (første migrering), `POST /api/identity/register` med sjekk i fast rekkefølge, bcrypt-hash og HS256-JWT i HttpOnly-cookien `sk_session` (30 dager), og innstillingen `JWT_SECRET` som bare har standardverdi når `APP_ENV=local`. Frontenden har Tailwind 4 med alle tokens fra DESIGN.md, Inter fra pakken med `tnum`, global fokusring, felles komponenter skrevet for hånd og siden «Opprett konto» med zod-sjekk, feil under feltet og fokus til første feil.
+
+**Filer:**
+- `backend/app/core/config.py` -- `JWT_SECRET` med lokal standardverdi og stopp utenfor `local`
+- `backend/app/core/errors.py`, `frontend/lib/messages.ts` -- fire nye koder med de godkjente tekstene
+- `backend/app/core/security.py` -- bcrypt, JWT og cookien (ny)
+- `backend/app/modules/identity/` -- modeller, skjema, tjeneste og rute (ny)
+- `backend/alembic/versions/0001_create_users.py`, `backend/alembic/env.py` -- tabellen `users`
+- `backend/tests/` -- `test_identity.py`, `test_security.py`, utvidet `test_migrations.py`, `test_config.py`, `conftest.py`
+- `frontend/app/globals.css`, `postcss.config.mjs`, `app/layout.tsx`, `app/page.tsx` -- tema, font, fokusring
+- `frontend/components/` -- `button`, `text-field`, `password-field`, `top-bar`, `semester-line`, `icon` med tester
+- `frontend/modules/identity/`, `frontend/app/(auth)/` -- siden «Opprett konto» med tester
+- `frontend/lib/design-tokens.test.ts`, `frontend/e2e/opprett-konto.spec.ts` -- tema mot DESIGN.md, e2e med axe
+- `README.md`, `.env.example`, `docker-compose.yml`, `package.json`, `pyproject.toml` og låsefilene
+
+**Gjennomgang:** 32 funn. Rettet (5 grupper): medium 1 (dobbel innsending: vakt med `useRef` som står på etter suksess, stil for `aria-disabled`, test), low 4 (gammelt varsel fjernes ved redigering, e-postlengde telles i tegn i frontend, `aria-*` i tekstfeltet kan ikke overstyres, test som sammenligner migreringen med modellene). Ingen utsatt. Avvist: 10 `false` og 13 `low` med grunner i Review Triage Log.
+
+**Anbefaling om ny gjennomgang:** `false`. Én medium-gruppe ble rettet og er dekket av en test; ingen ubekreftet risiko kan navngis.
+
+**Verifisering:**
+- `cd backend && uv run pytest` -- 71 passed
+- `cd frontend && npm run test` -- 169 passed
+- `cd frontend && npx tsc --noEmit` -- ingen feil
+- `docker compose up --build -d --wait && cd frontend && npx playwright test` -- 12 passed
+- For hånd: drift-testen feiler når en kolonne legges til i modellen uten migrering; skjermbilder av `/registrer` i 1280 og 768 px sammenlignet med skisse 01.
+
+**Gjenværende risiko:** `JWT_SECRET` har ingen minstelengde utenfor `local` (lagt fram som kanttilfelle). Ingen hastighetsgrense på registreringen. Lenken tilbake til «Logg inn» kommer i story 1.5.
