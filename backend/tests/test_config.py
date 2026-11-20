@@ -11,7 +11,9 @@ from httpx import AsyncClient
 
 from typing import get_args
 
-from app.core.config import Settings, get_settings
+from pydantic import ValidationError
+
+from app.core.config import LOCAL_JWT_SECRET, Settings, get_settings
 from app.core.features import Feature
 
 SWITCHES = ("FEATURE_MNEMONICS", "FEATURE_FREETEXT", "FEATURE_SUMMARY")
@@ -118,3 +120,76 @@ def test_nfr4_alle_innstillinger_staar_i_env_example() -> None:
     names = set(re.findall(r"^([A-Z][A-Z0-9_]*)=", text, flags=re.MULTILINE))
     missing = sorted(name for name in Settings.model_fields if name not in names)
     assert not missing, f"Missing in .env.example: {', '.join(missing)}"
+
+
+def _settings(monkeypatch: pytest.MonkeyPatch, app_env: str, jwt_secret: str | None) -> Settings:
+    monkeypatch.setenv("APP_ENV", app_env)
+    if jwt_secret is None:
+        monkeypatch.delenv("JWT_SECRET", raising=False)
+    else:
+        monkeypatch.setenv("JWT_SECRET", jwt_secret)
+    return Settings(_env_file=None)  # type: ignore[call-arg]
+
+
+def test_ar10_jwt_secret_har_lokal_standardverdi(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = _settings(monkeypatch, "local", None)
+    assert settings.JWT_SECRET == LOCAL_JWT_SECRET
+    assert len(LOCAL_JWT_SECRET) >= 32
+
+
+def test_ar10_jwt_secret_tom_verdi_gir_lokal_standardverdi(monkeypatch: pytest.MonkeyPatch) -> None:
+    assert _settings(monkeypatch, "local", "").JWT_SECRET == LOCAL_JWT_SECRET
+
+
+def test_ar10_jwt_secret_kan_settes_lokalt(monkeypatch: pytest.MonkeyPatch) -> None:
+    assert _settings(monkeypatch, "local", "x" * 40).JWT_SECRET == "x" * 40
+
+
+def test_ar10_jwt_secret_mangler_utenfor_local_gir_feil(monkeypatch: pytest.MonkeyPatch) -> None:
+    with pytest.raises(ValidationError) as caught:
+        _settings(monkeypatch, "production", None)
+    assert caught.value.errors()[0]["loc"] == ("JWT_SECRET",)
+
+
+def test_ar10_lokal_jwt_secret_avvises_utenfor_local(monkeypatch: pytest.MonkeyPatch) -> None:
+    with pytest.raises(ValidationError) as caught:
+        _settings(monkeypatch, "production", LOCAL_JWT_SECRET)
+    assert caught.value.errors()[0]["loc"] == ("JWT_SECRET",)
+
+
+def test_ar10_egen_jwt_secret_godtas_utenfor_local(monkeypatch: pytest.MonkeyPatch) -> None:
+    assert _settings(monkeypatch, "production", "y" * 40).JWT_SECRET == "y" * 40
+
+
+def _start_backend(env_changes: dict[str, str | None]) -> subprocess.CompletedProcess[str]:
+    env = {**os.environ}
+    for name, value in env_changes.items():
+        if value is None:
+            env.pop(name, None)
+        else:
+            env[name] = value
+    return subprocess.run(
+        [sys.executable, "-c", "import app.main"],
+        cwd=BACKEND_DIR,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+
+
+def test_ar10_prod_uten_jwt_secret_stopper_oppstart() -> None:
+    result = _start_backend({"APP_ENV": "production", "JWT_SECRET": None})
+    output = result.stdout + result.stderr
+    assert result.returncode == 1
+    assert "JWT_SECRET" in output
+    assert "Traceback" not in output
+
+
+def test_ar10_prod_med_lokal_jwt_secret_stopper_uten_aa_vise_verdien() -> None:
+    result = _start_backend({"APP_ENV": "production", "JWT_SECRET": LOCAL_JWT_SECRET})
+    output = result.stdout + result.stderr
+    assert result.returncode == 1
+    assert "JWT_SECRET" in output
+    assert LOCAL_JWT_SECRET not in output
+    assert "Traceback" not in output

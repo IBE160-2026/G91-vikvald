@@ -5,7 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import ValidationError
+from pydantic import Field, ValidationError, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
@@ -15,6 +15,10 @@ REPO_ROOT_ENV = Path(__file__).resolve().parents[3] / ".env"
 
 # Providers that only use built-in fake answers (no key, works offline).
 DEMO_PROVIDERS = ("mock", "mock-invalid")
+
+# Signing key for login cookies when APP_ENV=local (demo and development on your own
+# machine). Public on purpose, so it is refused in every other environment.
+LOCAL_JWT_SECRET = "local-only-jwt-secret-do-not-use-in-production"
 
 
 class Settings(BaseSettings):
@@ -37,6 +41,20 @@ class Settings(BaseSettings):
     FEATURE_MNEMONICS: bool = True
     FEATURE_FREETEXT: bool = True
     FEATURE_SUMMARY: bool = True
+    # Key that signs the login cookie (HS256). Has a default only when APP_ENV=local.
+    JWT_SECRET: str = Field(default=None, validate_default=True)
+
+    @field_validator("JWT_SECRET", mode="before")
+    @classmethod
+    def _jwt_secret_for_environment(cls, value: object, info: ValidationInfo) -> object:
+        # The messages never contain the value: get_settings() logs them on failure.
+        if info.data.get("APP_ENV") == "local":
+            return LOCAL_JWT_SECRET if value is None else value
+        if value is None:
+            raise ValueError("must be set when APP_ENV is not 'local'")
+        if value == LOCAL_JWT_SECRET:
+            raise ValueError("must not be the local default when APP_ENV is not 'local'")
+        return value
 
     @property
     def demo_mode(self) -> bool:
