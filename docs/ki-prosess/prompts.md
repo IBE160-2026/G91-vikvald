@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-20: Brukerreisetestene utvidet etter epic 1
+
+Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 1 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).
+
+**Resultat:** Én Playwright-fil per flyt i `frontend/e2e/brukerreiser/`, med de bygde stegene i flyt 1 (konto, innlogging, forsiden og utlogging), og oversikten [brukerreiser.md](../testing/brukerreiser.md).
+
 ## 2026-11-20: Story 1.6 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `1-6-bruk-appen-innlogget-logg-ut-og-få-fant-ikke-siden`. Hensikten til `bmad-build-auto` var «Story 1.6 fra `_bmad-output/planning-artifacts/epics.md`: Bruk appen innlogget, logg ut og få «Fant ikke siden»».
