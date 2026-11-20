@@ -15,7 +15,7 @@ Denne fila styrer kjøringen som startes med `/goal`. Hovedøkten er **orkestrat
 
 Gjenta til stoppbetingelsen er nådd:
 
-1. `git switch main && git pull --ff-only`. Arbeidstreet skal være rent.
+1. `git switch main && git pull --ff-only`. Arbeidstreet skal være rent. Følg så «Siljes gjennomgang»: rett åpne issues med `funn-fra-silje` først, og stopp hvis epic 1 venter på godkjenning.
 2. Les `_bmad-output/implementation-artifacts/sprint-status.yaml` og velg **første story** i fila med status `backlog`, `ready-for-dev` eller `in-progress` som ikke er kuttet etter kuttreglene.
 3. Start **én** subagent (`general-purpose`, i forgrunnen, aldri i bakgrunnen) med story-prompten under, med story-nøkkelen satt inn.
 4. Les rapporten. Sjekk selv at PR-en er flettet (`gh pr view <nr> --json state`) og at storien har status `done` på `main`.
@@ -61,6 +61,24 @@ Kuttene gjelder bare stories som ikke er påbegynt. Kuttbare akseptkriterier inn
 
 En story som hoppes over, blir stående som `backlog`. Orkestratoren fører kuttet i `beslutninger.md` og lager et issue med etiketten `kuttet`, på en egen branch med PR som flettes.
 
+## Siljes gjennomgang
+
+KI går gjennom KI-ens kode i hver story. Det siste ordet er Siljes, og gjennomgangen hennes skal synes i sporet.
+
+**Når en epic er ferdig**, lager orkestratoren et issue med etiketten `gjennomgang`: «Gjennomgang av epic N». Det inneholder lenker til PR-ene og skjermbildene og denne sjekklista:
+
+- [ ] Gjør appen det storiene sier? Start den med `docker compose up` og prøv.
+- [ ] Ser sidene ut som designet? Se skjermbildene i PR-ene.
+- [ ] Er valgene KI tok selv (issuene med `kanttilfelle`), greie?
+- [ ] Forstår jeg hva hver PR gjør, godt nok til å forklare det i rapporten?
+- [ ] Er KI-sporet riktig (`beslutninger.md`, `korrigeringer.md`)?
+
+Silje skriver funnene som kommentarer i issuet og lukker det når epicen er godkjent.
+
+**Etter epic 1 stopper kjøringen** og venter på godkjenning, fordi feil i grunnmuren sprer seg til alt annet. Orkestratoren starter ikke epic 2 før issuet «Gjennomgang av epic 1» er lukket. Er det åpent, stopper den igjen. For de andre epicene fortsetter kjøringen uten å vente.
+
+**Funn fra Silje:** Før hver ny story sjekker orkestratoren om det finnes åpne issues med etiketten `funn-fra-silje`. Slike issues rettes først, hvert på egen branch med PR som lenker til issuet. Funnet føres i `korrigeringer.md` med Silje som den som oppdaget det.
+
 ## Stoppregler
 
 Kjøringen stopper og melder fra i samtalen, uten å gjette videre, når:
@@ -68,9 +86,12 @@ Kjøringen stopper og melder fra i samtalen, uten å gjette videre, når:
 - samme story feiler to ganger på rad (se løkken, punkt 5)
 - testene på `main` er røde etter en fletting
 - en handling som trengs, er sperret av `.claude/settings.json`
+- epic 1 er ferdig og issuet «Gjennomgang av epic 1» er ikke lukket (se «Siljes gjennomgang»)
 - en avgjørelse bare Silje kan ta, mangler (for eksempel ekte innhold i eksempelnotatene, faglig vurdering eller modellvalg)
 
-Ved stopp: skriv hvilken story, hva som feilet og hva som trengs, og lag et issue med etiketten `blokkert`.
+Ved stopp: skriv hvilken story, hva som feilet og hva som trengs, og lag et issue med etiketten `blokkert`. Stoppet etter epic 1 er planlagt og får ikke `blokkert`. Der holder det å vise til gjennomgangsissuet.
+
+Kjøringen startes igjen med den samme `/goal`-linja. Den fortsetter fra første story som ikke er `done`.
 
 ## Slutten av kjøringen
 
