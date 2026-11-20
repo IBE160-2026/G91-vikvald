@@ -3,9 +3,9 @@ title: 'Story 1.6: Bruk appen innlogget, logg ut og få «Fant ikke siden»'
 type: 'feature'
 created: '2026-11-20'
 baseline_revision: '6f20a3b639e0d15067a49f9956272b9688da39ed'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
-followup_review_recommended: false
+followup_review_recommended: true
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-1-context.md'
   - '{project-root}/_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/DESIGN.md'
@@ -106,6 +106,44 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-20 — Review pass
+- verdicts: 33 findings — high 0, medium 10, low 21, false 2, maybe-false 0
+- findings:
+  - `[medium]` `[patch]` (verification-gap) Den ekte koblingen av 401-håndteringen i `Providers` testes bare av Playwright, som CI ikke kjører — ny `lib/providers.test.tsx` rendrer ekte `Providers` rundt `RequireLogin` og sjekker `replace("/logg-inn")` og meldingsflagget.
+  - `[false]` `[reject]` (blind) `docs/ki-prosess/` er ikke oppdatert — skrives i samme økt etter gjennomgangen (steg 5 i story-prompten).
+  - `[low]` `[reject]` (blind) Utlogging trekker ikke tilbake JWT-en, så en kopiert token virker i 30 dager — arkitekturen har bevisst tilstandsløs JWT i HttpOnly-cookie; tilbaketrekking er ikke i storien. Står som gjenværende risiko.
+  - `[low]` `[reject]` (blind) Ingen CSRF-/Origin-sjekk på `POST /logout` — verste følge er at studenten logges ut; krever ny mekanisme. Appen kjører lokalt.
+  - `[low]` `[reject]` (blind) Cookie-attributtene er kopiert for hånd i `clear_session_cookie` — testen sjekker at attributtene stemmer; en felles konstant er omskriving, ikke en direkte retting.
+  - `[low]` `[reject]` (blind) «Logg ut» gir et ekstra `/me`-kall og en ekstra navigering — ufarlig; `push` er valgt så Tilbake ender på `/logg-inn` (se beslutninger).
+  - `[low]` `[reject]` (blind) Feilmeldingen etter mislykket utlogging blir stående ved sidebytte — sjelden (krever at backend feiler), og retting krever lytter på ruteendring.
+  - `[low]` `[reject]` (blind) Knappen «Logg ut» viser ikke at den jobber — lokalt kall som tar millisekunder; vakten mot dobbelklikk finnes.
+  - `[low]` `[reject]` (blind) Blank side i opptil ~7 s før «Noe gikk galt» ved 500 — følger gjentaksregelen fra story 1.3; bare når backenden er nede.
+  - `[low]` `[patch]` (blind) `notFoundOnMissing` virker bare under rendering — kommentaren sier det nå, med eksempel.
+  - `[low]` `[patch]` (blind) `(app)/not-found.tsx` mangler tittel — eksporterer nå `metadata` med «Fant ikke siden – Studiekamerat».
+  - `[medium]` `[patch]` (blind) Dialogen mister Esc og Tab-fellen når fokus forlater panelet (klikk på sløret); i tillegg ingen `inert`, scroll-lås eller vakt mot dobbelklikk — Esc og Tab lytter nå på `document` mens dialogen er åpen, med test; `inert`/scroll-lås/dobbelklikk avvist (dialogen brukes først i epic 2, og hovedhandlingen eies av den som kaller).
+  - `[medium]` `[patch]` (blind) Rutetesten bruker private FastAPI-detaljer og hopper over `Mount`/websocket — `Mount` og websocket gir nå `AssertionError` (med negativ test); private detaljer dekkes av krysssjekken mot OpenAPI.
+  - `[low]` `[reject]` (blind) Ingen e2e for 401 midt i bruk — dekket av enhetstester av `makeQueryClient`, `RequireLogin` og den nye `Providers`-testen.
+  - `[low]` `[patch]` (blind) `type Navigator` skygger nettleserens `Navigator` — omdøpt til `RouterLike`.
+  - `[low]` `[reject]` (blind) `get_owned` bruker `type: ignore` i stedet for en `Protocol` — kosmetisk; ingen kaller ennå.
+  - `[medium]` `[patch]` (edge) Etter én håndtert 401 ignoreres neste 401, så Tilbake til en app-side gir blank side — `RequireLogin` omdirigerer nå selv ved `UNAUTHENTICATED`, med test.
+  - `[medium]` `[patch]` (edge) Låsen nullstilles av hvilken som helst vellykket spørring og kan gi løkke — nullstilles nå bare når `["me"]` lykkes, med test.
+  - `[low]` `[reject]` (edge) `MutationCache` nullstiller ikke låsen — bevisst: bare `/me` skal nullstille den (raden over).
+  - `[medium]` `[patch]` (edge) `queryClient.clear()` før navigering ved utlogging gir 401 som setter låsen og fører til blank side ved Tilbake — samme rot og retting som blank-side-raden over.
+  - `[medium]` `[patch]` (edge) Dialogen: Tab/Esc virker ikke når fokus er utenfor panelet — samme rot og retting som dialog-raden i blind.
+  - `[low]` `[reject]` (edge) Bakgrunnen er ikke `inert` og kan scrolles — som over; ingen side bruker dialogen ennå.
+  - `[low]` `[reject]` (edge) Hovedhandlingen kan klikkes to ganger — den som kaller eier handlingen og lukker dialogen.
+  - `[low]` `[patch]` (edge) `notFoundOnMissing` utenfor rendering — samme retting som blind-raden (kommentar).
+  - `[medium]` `[patch]` (edge) Rutetesten slipper gjennom `Mount`/websocket — samme retting som blind-raden.
+  - `[low]` `[reject]` (edge) Utlogging i en annen fane gir «Du er logget ut» i denne — hun er faktisk logget ut, så meldingen er sann.
+  - `[low]` `[patch]` (edge) Initialen blir et halvt tegn når e-posten starter med et tegn utenfor BMP — `Array.from(email)[0]`, med test.
+  - `[medium]` `[patch]` (edge, claim) Påstanden om at rutetesten feiler for alle nye ruter uten vakt holder ikke for `Mount`/websocket — samme retting.
+  - `[medium]` `[patch]` (edge, claim) Tilbake etter utlogging eller utløp kan gi blank side — samme retting som blank-side-raden; e2e grønn etter rettingen.
+  - `[low]` `[reject]` (intent) «Fant ikke siden» for ukjente adresser har toppfelt med bare logo, også for innloggede — valg ført som kanttilfelle; tastaturbruk av toppfeltet er testet på forsiden.
+  - `[false]` `[reject]` (intent) 404-hjelperen er ikke koblet inn i `apiFetch` — storien sier «har en hjelper»; `notFound()` må kastes under rendering og kan ikke ligge i transporten.
+  - `[low]` `[reject]` (intent) Utløpt innlogging testes i e2e med ny sidelasting, ikke midt i bruk — storiens e2e-kriterium er «sletter cookien og navigerer»; resten dekkes av enhetstester.
+  - `[low]` `[reject]` (intent) Slør, skygge og hjørner sjekkes som klassenavn — tokenene testes mot DESIGN.md i `design-tokens.test.ts`; skjermbildene er sammenlignet med skissene.
+- verification-gap: 1 funn, rettet.
+
 ## Design Notes
 
 **Flagg per fane:** Backenden kan ikke se forskjell på «utløpt» og «aldri innlogget». `sessionStorage` lever bare i én fane, så en ny fane etter utløp har ikke flagget og får ingen melding, slik storien krever. Flagget er bare `"1"`; det sier ingenting om hvem som er innlogget.
@@ -120,3 +158,33 @@ deferred: []
 - `cd backend && uv run pytest` -- expected: alle grønne
 - `cd frontend && npm run test && npx tsc --noEmit` -- expected: alle grønne, ingen typefeil
 - `docker compose up --build -d --wait && cd frontend && npx playwright test` -- expected: alle grønne
+
+## Auto Run Result
+
+Status: done
+
+**Sammendrag:** Innloggede studenter får rammen i `(app)`: toppfelt med logo-lenke, initialsirkel + «Konto» (`/konto`) og «Logg ut», og forsiden «Dine emner». Vakten avgjør innlogging bare med `GET /api/identity/me`. All `401 UNAUTHENTICATED` går gjennom én funksjon som sender studenten til `/logg-inn`, og «Du er logget ut. Logg inn igjen.» vises i et levende område bare når fanen har vært innlogget (flagg i `sessionStorage`). `POST /api/identity/logout` sletter cookien. Ukjente adresser gir «Fant ikke siden» (HTTP 404), og `notFoundOnMissing` i fetch-transporten viser samme side for `404 NOT_FOUND`. Backend har `get_owned` for «bare egne rader» og en rutetest som krever `current_user` på alle ruter unntatt de fem offentlige. Den felles dialogen er bygd og testet.
+
+**Filer:**
+- `backend/app/core/security.py`, `backend/app/modules/identity/router.py` -- `clear_session_cookie`, `POST /logout`
+- `backend/app/core/ownership.py` -- `get_owned`
+- `backend/tests/test_logout.py`, `test_ownership.py`, `test_route_guard.py` -- utlogging, likt 404, rutegjennomgang
+- `frontend/lib/{api,session,query-client,providers}.ts(x)` -- 404-hjelper, flagg, felles 401-håndtering
+- `frontend/components/{top-bar,not-found-view,dialog}.tsx` -- logo-lenke, «Fant ikke siden», dialog
+- `frontend/modules/identity/components/{require-login,account-links}.tsx`, `api.ts`, `pages/login-page.tsx` -- vakt, konto/logg ut, meldingen
+- `frontend/app/(app)/{layout,page,not-found}.tsx`, `frontend/app/not-found.tsx` (ny), `frontend/app/page.tsx` (slettet)
+- `frontend/**/*.test.ts(x)`, `frontend/lib/providers.test.tsx` -- enhetstester
+- `frontend/e2e/innlogget.spec.ts`, `skjelett.spec.ts`, `opprett-konto.spec.ts` -- e2e med axe
+- `README.md` -- logg ut, 30 dager, «Fant ikke siden»
+
+**Gjennomgang:** 33 funn. Rettet: 10 medium og 6 low (gruppert i 9 rettinger: vakten omdirigerer selv, låsen nullstilles bare av `/me`, dialogtaster på `document`, rutetesten stopper `Mount`/websocket, test av ekte `Providers`, tittel på `(app)/not-found`, kommentar på `notFoundOnMissing`, initial med `Array.from`, `RouterLike`). I tillegg `px-1` rundt «Konto»/«Logg ut» etter skjermbildet. Ingen utsatt. Avvist: 2 `false` og 15 `low`, med grunner i Review Triage Log.
+
+**Anbefaling om ny gjennomgang:** `true`. Fem medium-grupper ble rettet (high 0, medium 5 grupper/10 funn, low 6). Uprøvd risiko: samspillet mellom 401-låsen, vaktens egen omdirigering og `queryClient.clear()` er bare vist med enhetstester og én e2e-reise med ny sidelasting; en 401 midt i bruk på en side med flere spørringer er ikke kjørt i nettleser.
+
+**Verifisering:**
+- `cd backend && uv run pytest` -- 126 passed
+- `cd frontend && npm run test` -- 241 passed; `npx tsc --noEmit` -- ingen feil
+- `docker compose up --build -d --wait && cd frontend && npx playwright test` -- 24 passed (to ganger etter rettingene)
+- Skjermbilder i `docs/skjermbilder/story-1-6/` (1280 og 768 px) sammenlignet med skisse 01 og 02.
+
+**Gjenværende risiko:** JWT-en trekkes ikke tilbake ved utlogging (tilstandsløs, varer til den går ut). Dialogen har ikke `inert` eller scroll-lås (første bruk i epic 2). «Konto» gir «Fant ikke siden» til kontosiden kommer i epic 2. `(app)/not-found.tsx` nås ikke av noen e2e-test før en side bruker `notFoundOnMissing`.
