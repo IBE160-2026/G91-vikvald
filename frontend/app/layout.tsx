@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 
 import { Providers } from "@/lib/providers";
 
+// Inter as a variable font, bundled with the app (never fetched from the internet).
+import "@fontsource-variable/inter/wght.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

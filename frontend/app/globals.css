@@ -1,24 +1,191 @@
-/* Colours from DESIGN.md. Story 1.4 replaces this with the full set of design tokens. */
-:root {
-  --color-paper: #f8f7f3;
-  --color-ink: #15181f;
+/*
+ * Design tokens from DESIGN.md as a Tailwind 4 theme. Each token becomes both a
+ * CSS variable (var(--color-brand)) and utility classes (bg-brand, text-page-title,
+ * p-3, h-button-height, rounded-md, shadow-lift).
+ *
+ * The Tailwind default palettes, type scale, weights and radii are switched off
+ * (`initial`), so only the values from DESIGN.md can be used. A test
+ * (lib/design-tokens.test.ts) checks that the colours match DESIGN.md.
+ */
+@import "tailwindcss";
+
+@theme {
+  /* Colours (DESIGN.md "colors") */
+  --color-*: initial;
+  --color-paper: #F8F7F3;
+  --color-surface: #FFFFFF;
+  --color-ink: #15181F;
+  --color-ink-muted: #5A6070;
+  --color-brand: #3A3FB0;
+  --color-on-brand: #FFFFFF;
+  --color-brand-tint: #EBEBF8;
+  --color-focus-ring: #15181F;
+  --color-border-control: #858B96;
+  --color-border-card: #DDDCD5;
+  --color-divider: #EAE9E3;
+  --color-gridline: #EDECE6;
+  --color-progress-track: #E4E4DF;
+  --color-surface-note: #F0EFE9;
+  --color-surface-partial: #EEEDE7;
+  --color-row-hover: #F6F5F1;
+  --color-icon-faint: #A3A8B2;
+  --color-subject-1: #B83E0C;
+  --color-subject-2: #0B6585;
+  --color-subject-3: #2D6A3B;
+  --color-success: #1C6E36;
+  --color-success-tint: #E8F3EB;
+  --color-danger: #B42318;
+  --color-danger-tint: #FCEBE9;
+  --color-on-danger: #FFFFFF;
+  --color-scrim: #15181F;
+  /* The scrim behind dialogs: scrim colour at 42 % (class bg-scrim-veil). */
+  --color-scrim-veil: rgb(21 24 31 / 42%);
+
+  /* Font: Inter (bundled with the app), fallback system-ui. */
+  --font-*: initial;
+  --font-sans: "Inter Variable", system-ui, sans-serif;
+
+  /* Only three weights: 400 text, 500 meta text, 600 titles and buttons. */
+  --font-weight-*: initial;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* Typography (DESIGN.md "typography"). Titles: line height about 1.25, text 1.5. */
+  --text-*: initial;
+  --text-page-title: 32px;
+  --text-page-title--font-weight: 600;
+  --text-page-title--letter-spacing: -0.5px;
+  --text-page-title--line-height: 1.25;
+  --text-session-counter: 44px;
+  --text-session-counter--font-weight: 600;
+  --text-session-counter--letter-spacing: -0.5px;
+  --text-session-counter--line-height: 1.25;
+  --text-result-title: 40px;
+  --text-result-title--font-weight: 600;
+  --text-result-title--letter-spacing: -0.5px;
+  --text-result-title--line-height: 1.25;
+  --text-quiz-question: 26px;
+  --text-quiz-question--font-weight: 600;
+  --text-quiz-question--letter-spacing: -0.4px;
+  --text-quiz-question--line-height: 1.25;
+  --text-dialog-title: 24px;
+  --text-dialog-title--font-weight: 600;
+  --text-dialog-title--letter-spacing: -0.3px;
+  --text-dialog-title--line-height: 1.25;
+  --text-card-answer: 24px;
+  --text-card-answer--font-weight: 400;
+  --text-card-answer--line-height: 36px;
+  --text-card-question: 20px;
+  --text-card-question--font-weight: 600;
+  --text-card-question--letter-spacing: -0.2px;
+  --text-card-question--line-height: 1.25;
+  --text-section-title: 18px;
+  --text-section-title--font-weight: 600;
+  --text-section-title--letter-spacing: -0.2px;
+  --text-section-title--line-height: 1.25;
+  --text-item-title: 16px;
+  --text-item-title--font-weight: 600;
+  --text-item-title--letter-spacing: -0.1px;
+  --text-item-title--line-height: 1.25;
+  --text-body: 16px;
+  --text-body--font-weight: 400;
+  --text-body--line-height: 24px;
+  --text-body-sm: 15px;
+  --text-body-sm--font-weight: 400;
+  --text-body-sm--line-height: 1.5;
+  --text-label: 15px;
+  --text-label--font-weight: 600;
+  --text-label--line-height: 1.5;
+  --text-meta: 14px;
+  --text-meta--font-weight: 400;
+  --text-meta--line-height: 1.5;
+  --text-meta-strong: 14px;
+  --text-meta-strong--font-weight: 500;
+  --text-meta-strong--line-height: 1.5;
+  --text-caption: 13px;
+  --text-caption--font-weight: 500;
+  --text-caption--line-height: 1.5;
+  --text-overline: 12px;
+  --text-overline--font-weight: 600;
+  --text-overline--letter-spacing: 0.8px;
+  --text-overline--line-height: 1.5;
+  --text-kbd: 12px;
+  --text-kbd--font-weight: 500;
+  --text-kbd--line-height: 1.5;
+
+  /*
+   * Spacing (DESIGN.md "spacing"). The scale 1-9 replaces Tailwind's own numbers,
+   * so p-3 is 16 px as in DESIGN.md (not 12 px).
+   */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 16px;
+  --spacing-4: 24px;
+  --spacing-5: 32px;
+  --spacing-6: 40px;
+  --spacing-7: 48px;
+  --spacing-8: 64px;
+  --spacing-9: 80px;
+  /* Page layouts */
+  --spacing-topbar-height: 64px;
+  --spacing-sidebar-width: 288px;
+  --spacing-content-inset: 64px;
+  --spacing-content-margin-right: 48px;
+  --spacing-home-margin: 80px;
+  /* Component measures */
+  --spacing-card-gap: 16px;
+  --spacing-column-gap: 32px;
+  --spacing-menu-row: 32px;
+  --spacing-table-row: 44px;
+  --spacing-file-row: 80px;
+  --spacing-create-row: 96px;
+  --spacing-button-height: 40px;
+  --spacing-button-height-lg: 48px;
+  --spacing-field-height: 48px;
+  --spacing-grid-cell: 35px;
+  --spacing-grid-gap: 6px;
+  --spacing-flashcard-width: 768px;
+  --spacing-quiz-column: 832px;
+  --spacing-article-width: 568px;
+  /* The card on the login and register pages (mockup 01). */
+  --spacing-auth-card-width: 464px;
+
+  /* Corner radii (DESIGN.md "rounded") */
+  --radius-*: initial;
+  --radius-xs: 2px;
+  --radius-kbd: 5px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-option: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* The only two shadows (DESIGN.md "Elevation & Depth") */
+  --shadow-*: initial;
+  --shadow-lift: 0 1px 1px rgb(21 24 31 / 4%);
+  --shadow-float: 0 1px 1px rgb(21 24 31 / 4%), 0 12px 16px rgb(21 24 31 / 6%);
 }
 
-html,
-body {
-  margin: 0;
-  background: var(--color-paper);
-  color: var(--color-ink);
-  font-family: system-ui, sans-serif;
-}
+@layer base {
+  body {
+    margin: 0;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    /* Tabular numbers on all text. */
+    font-feature-settings: "tnum";
+  }
 
-main {
-  padding: 80px;
-}
-
-h1 {
-  margin: 0;
-  font-size: 32px;
-  font-weight: 600;
-  letter-spacing: -0.5px;
+  /*
+   * The focus ring: 2 px ink with 2 px space, on everything that can get keyboard
+   * focus. It is never removed or hidden (a test checks the source code).
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
 }
