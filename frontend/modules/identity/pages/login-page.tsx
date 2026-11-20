@@ -5,7 +5,7 @@ import { CircleAlert, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
-import { Button } from "@/components/button";
+import { Button } from "@/components/ui/button";
 import { iconProps } from "@/components/icon";
 import { PasswordField } from "@/components/password-field";
 import { TextField } from "@/components/text-field";

@@ -1,20 +1,28 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useId, useRef, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useRef, type ReactNode } from "react";
 
-import { Button, type ButtonVariant } from "./button";
 import { iconProps } from "./icon";
+import { Button, type ButtonVariant } from "./ui/button";
+import {
+  Dialog as DialogRoot,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "./ui/dialog";
 
 // dialog (DESIGN.md "Forms and dialogs", EXPERIENCE.md): white, rounded.xl, thin
 // border-card edge and the float shadow, over the scrim. Title and a close cross
 // at the top, the content, a divider, and the buttons «Avbryt» then the main
 // action at the bottom right. Dialogs are never stacked.
 //
-// Keyboard: focus moves into the dialog when it opens, Tab and Shift+Tab stay
-// inside it, Esc closes it without running the main action, and focus goes
-// back to the element that opened it.
+// Built on the shadcn/ui Dialog (Radix). Keyboard: focus moves into the dialog
+// when it opens, Tab and Shift+Tab stay inside it, Esc closes it without
+// running the main action, and focus goes back to the element that opened it.
+// The rest of the page is inert and cannot scroll. A click on the scrim does
+// not close the dialog (EXPERIENCE.md: Esc, the cross or «Avbryt»).
 
 export type DialogWidth = 560 | 640 | 720;
 
@@ -41,97 +49,78 @@ export type DialogProps = {
   width?: DialogWidth;
 };
 
-export function Dialog(props: DialogProps) {
-  if (!props.open || typeof document === "undefined") return null;
-  return createPortal(<DialogPanel {...props} />, document.body);
-}
-
 function focusableIn(element: HTMLElement | null): HTMLElement[] {
   return element ? [...element.querySelectorAll<HTMLElement>(FOCUSABLE)] : [];
 }
 
-function DialogPanel({ title, children, onClose, primaryAction, width = 560 }: DialogProps) {
-  const titleId = useId();
-  const panelRef = useRef<HTMLDivElement>(null);
+export function Dialog({ open, title, children, onClose, primaryAction, width = 560 }: DialogProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  // The element that had focus when the dialog opened. Focus goes back to it.
+  const openerRef = useRef<HTMLElement | null>(null);
 
-  // Keep the latest onClose for the document listener below.
-  const onCloseRef = useRef(onClose);
+  // After a click on the scrim, focus is on body. Radix still closes on Esc
+  // (it listens on the document), but its focus trap only sees Tab inside the
+  // dialog, so Tab and Shift+Tab from outside are sent into the dialog here.
   useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
-
-  useEffect(() => {
-    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    // First field or button in the content, otherwise «Avbryt» (the safe choice).
-    (focusableIn(bodyRef.current)[0] ?? cancelRef.current)?.focus();
-
-    // On the document, not the panel: after a click on the scrim, focus is on
-    // body, and Esc and Tab must still work.
+    if (!open) return;
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        onCloseRef.current();
-        return;
-      }
-      if (event.key !== "Tab") return;
-      const focusable = focusableIn(panelRef.current);
+      const content = contentRef.current;
+      if (event.key !== "Tab" || !content || content.contains(document.activeElement)) return;
+      const focusable = focusableIn(content);
       if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const active = document.activeElement;
-      const outside = !panelRef.current?.contains(active);
-      if (event.shiftKey && (active === first || outside)) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && (active === last || outside)) {
-        event.preventDefault();
-        first.focus();
-      }
+      event.preventDefault();
+      (event.shiftKey ? focusable[focusable.length - 1] : focusable[0]).focus();
     }
     document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      opener?.focus();
-    };
-  }, []);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim-veil p-4">
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className={`${widthClasses[width]} max-h-full max-w-full overflow-y-auto rounded-xl border border-border-card bg-surface shadow-float`}
+    <DialogRoot open={open} onOpenChange={(next) => (next ? undefined : onClose())}>
+      <DialogContent
+        ref={contentRef}
+        showCloseButton={false}
+        // The dialogs have no separate description; the content says it all.
+        aria-describedby={undefined}
+        className={widthClasses[width]}
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          // First field or button in the content, otherwise «Avbryt» (the safe choice).
+          (focusableIn(bodyRef.current)[0] ?? cancelRef.current)?.focus();
+        }}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          openerRef.current?.focus();
+          openerRef.current = null;
+        }}
+        // A click on the scrim does not close the dialog.
+        onPointerDownOutside={(event) => event.preventDefault()}
+        onInteractOutside={(event) => event.preventDefault()}
       >
         <div className="flex items-start justify-between gap-4 px-5 pt-5">
-          <h2 id={titleId} className="text-dialog-title">
-            {title}
-          </h2>
-          <button
-            type="button"
+          <DialogTitle>{title}</DialogTitle>
+          <DialogClose
             aria-label="Lukk"
-            onClick={onClose}
             className="-mr-2 inline-flex size-6 cursor-pointer items-center justify-center rounded-md text-ink-muted hover:bg-row-hover"
           >
             <X {...iconProps} size={20} />
-          </button>
+          </DialogClose>
         </div>
         <div ref={bodyRef} className="px-5 pt-4 pb-5">
           {children}
         </div>
-        <div className="flex justify-end gap-3 border-t border-divider px-5 py-4">
+        <DialogFooter>
           <Button ref={cancelRef} variant="outline" onClick={onClose}>
             Avbryt
           </Button>
           <Button variant={primaryAction.variant ?? "primary"} onClick={primaryAction.onClick}>
             {primaryAction.label}
           </Button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </DialogRoot>
   );
 }

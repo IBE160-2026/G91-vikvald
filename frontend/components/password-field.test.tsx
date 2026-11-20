@@ -38,6 +38,16 @@ describe("PasswordField", () => {
     expect(input.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  it("UX-DR5: «Vis» er en tekstknapp med meta-strong", () => {
+    render(<PasswordField label="Passord" />);
+    const classes = screen.getByRole("button", { name: "Vis" }).classList;
+    for (const name of ["text-meta-strong", "gap-1", "text-brand", "h-button-height"]) {
+      expect(classes).toContain(name);
+    }
+    expect(classes).not.toContain("text-label");
+    expect(classes).not.toContain("gap-2");
+  });
+
   it("NFR-11: feilmeldingen vises under passordfeltet", () => {
     render(<PasswordField label="Passord" error="Passordet må ha minst 8 tegn." />);
     const input = screen.getByLabelText("Passord");

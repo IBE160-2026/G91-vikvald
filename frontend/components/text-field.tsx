@@ -1,11 +1,16 @@
 import { CircleAlert } from "lucide-react";
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode } from "react";
 
+import { cn } from "@/lib/utils";
+
 import { iconProps } from "./icon";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 
 // text-field (DESIGN.md "Forms"): visible label above, a 48 px field with a
 // border-control edge. With an error: 1.5 px red border, and an icon and the
 // message below, linked to the field with aria-describedby and aria-invalid.
+// Built on the shadcn/ui Input and Label.
 export type TextFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id"> & {
   label: string;
   error?: string;
@@ -21,28 +26,17 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   const errorId = `${id}-error`;
   const hasError = Boolean(error);
 
-  const inputClasses = [
-    "h-field-height w-full rounded-md bg-surface px-3 text-body text-ink",
-    hasError ? "border-[1.5px] border-danger" : "border border-border-control",
-    trailing ? "pr-9" : "",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-label text-ink">
-        {label}
-      </label>
+      <Label htmlFor={id}>{label}</Label>
       <div className="relative">
-        <input
+        <Input
           {...inputProps}
           ref={ref}
           id={id}
           aria-invalid={hasError || undefined}
           aria-describedby={hasError ? errorId : undefined}
-          className={inputClasses}
+          className={cn(hasError && "border-[1.5px] border-danger", trailing && "pr-9", className)}
         />
         {trailing ? (
           <div className="absolute inset-y-0 right-2 flex items-center">{trailing}</div>

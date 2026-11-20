@@ -63,7 +63,7 @@
 - [ ] 2026-11-20 [story-1-3-feil-og-innstillinger](991-2026-11-20-19-06-59-story-1-3-feil-og-innstillinger.md) — godkjenn eller skriv egne feiltekster for kodene som viser reserveteksten (#41)
 - [ ] 2026-11-20 [story-1-3-feil-og-innstillinger](991-2026-11-20-19-06-59-story-1-3-feil-og-innstillinger.md) — se over kanttilfellene om HTTP-feilkoder, feltnavn i `/api/config` og tom verdi i `.env` (#42, #43, #44)
 - [ ] 2026-11-20 [story-1-3-feil-og-innstillinger](991-2026-11-20-19-06-59-story-1-3-feil-og-innstillinger.md) — les over forklaringene av bryterne i README (skrevet av KI)
-- [ ] 2026-11-20 [story-1-4-opprett-konto](990-2026-11-20-19-32-44-story-1-4-opprett-konto.md) — avgjør om felles komponenter uten shadcn/ui er greit (avvik fra technology.md) (#46)
+- [x] 2026-11-20 [story-1-4-opprett-konto](990-2026-11-20-19-32-44-story-1-4-opprett-konto.md) — avgjør om felles komponenter uten shadcn/ui er greit (avvik fra technology.md) (#46) (løst 2026-11-20, #68)
 - [ ] 2026-11-20 [story-1-4-opprett-konto](990-2026-11-20-19-32-44-story-1-4-opprett-konto.md) — se over e-postregelen og statuskode 422 for valideringskodene (#47, #49)
 - [ ] 2026-11-20 [story-1-4-opprett-konto](990-2026-11-20-19-32-44-story-1-4-opprett-konto.md) — avgjør om `JWT_SECRET` skal ha minstelengde utenfor `local` (#48)
 - [ ] 2026-11-20 [story-1-4-opprett-konto](990-2026-11-20-19-32-44-story-1-4-opprett-konto.md) — les over tekstene KI skrev i story 1.4 (fanetittel, README, `JWT_SECRET`) (#50)
@@ -73,4 +73,7 @@
 - [ ] 2026-11-20 [story-1-6-innlogget-logg-ut-fant-ikke-siden](988-2026-11-20-21-56-56-story-1-6-innlogget-logg-ut-fant-ikke-siden.md) — se over kanttilfellene i story 1.6: flagg per fane, push ved utlogging, mislykket utlogging, toppfelt på «Fant ikke siden», adressen /konto (#58, #59, #60, #61, #62)
 - [ ] 2026-11-20 [story-1-6-innlogget-logg-ut-fant-ikke-siden](988-2026-11-20-21-56-56-story-1-6-innlogget-logg-ut-fant-ikke-siden.md) — avgjør om utlogging skal trekke tilbake JWT-en (#63)
 - [ ] 2026-11-20 [story-1-6-innlogget-logg-ut-fant-ikke-siden](988-2026-11-20-21-56-56-story-1-6-innlogget-logg-ut-fant-ikke-siden.md) — les over tekstene KI skrev i story 1.6 (fanetitler, «Lukk», README) (#64)
-- [ ] 2026-11-20 [story-1-6-innlogget-logg-ut-fant-ikke-siden](988-2026-11-20-21-56-56-story-1-6-innlogget-logg-ut-fant-ikke-siden.md) — gi dialogen inert og scroll-lås når den tas i bruk i epic 2
+- [x] 2026-11-20 [story-1-6-innlogget-logg-ut-fant-ikke-siden](988-2026-11-20-21-56-56-story-1-6-innlogget-logg-ut-fant-ikke-siden.md) — gi dialogen inert og scroll-lås når den tas i bruk i epic 2 (løst 2026-11-20, #68)
+- [ ] 2026-11-20 [funn-68-shadcn-ui](986-2026-11-20-23-18-08-funn-68-shadcn-ui.md) — se over kanttilfellene fra funn #68: egen inert, testene venter på fokus, sløret lukker ikke, plassering og pakker (#71, #72, #73, #74)
+- [ ] 2026-11-20 [funn-68-shadcn-ui](986-2026-11-20-23-18-08-funn-68-shadcn-ui.md) — e2e-test for dialogen, og avgjør sene body-elementer, aria-describedby og fokus når åpneren er borte (#75)
+- [ ] 2026-11-20 [funn-68-shadcn-ui](986-2026-11-20-23-18-08-funn-68-shadcn-ui.md) — nye shadcn-komponenter må tilpasses DESIGN.md-tokenene (#76)
