@@ -13,6 +13,11 @@ export const messages = {
   FEATURE_DISABLED: FALLBACK_MESSAGE,
   INTERNAL_ERROR: FALLBACK_MESSAGE,
   DATABASE_UNAVAILABLE: FALLBACK_MESSAGE,
+  EMAIL_ALREADY_REGISTERED:
+    "Det finnes allerede en konto med denne e-postadressen. Logg inn i stedet.",
+  INVALID_EMAIL: "Skriv inn en gyldig e-postadresse, for eksempel klara@eksempel.no.",
+  PASSWORD_TOO_SHORT: "Passordet må ha minst 8 tegn.",
+  PASSWORD_TOO_LONG: "Passordet er for langt. Bruk færre tegn.",
   // Frontend-only: the request never reached the server.
   NETWORK_ERROR: FALLBACK_MESSAGE,
 } as const satisfies Record<string, string>;
