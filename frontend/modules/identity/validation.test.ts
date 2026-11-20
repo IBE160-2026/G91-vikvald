@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { fieldForErrorCode, registerErrorCodes, registerSchema } from "./validation";
+import { fieldForErrorCode, loginErrorCodes, loginSchema, registerErrorCodes, registerSchema } from "./validation";
 
 const VALID_PASSWORD = "hemmelig1";
 
@@ -80,10 +80,30 @@ describe("registreringsreglene (samme som backenden)", () => {
     ["EMAIL_ALREADY_REGISTERED", "email"],
     ["PASSWORD_TOO_SHORT", "password"],
     ["PASSWORD_TOO_LONG", "password"],
+    ["INVALID_CREDENTIALS", "password"],
+    ["UNAUTHENTICATED", null],
     ["INTERNAL_ERROR", null],
     ["NETWORK_ERROR", null],
     ["VALIDATION_ERROR", null],
   ])("NFR-11: feilkoden %s hører til feltet %s", (code, field) => {
     expect(fieldForErrorCode(code)).toBe(field);
+  });
+});
+
+describe("innloggingsreglene", () => {
+  it("FR-3: gyldig e-post godtas, e-posten trimmes og får små bokstaver, passordet er uendret", () => {
+    expect(loginSchema.parse({ email: "  Klara@Eksempel.NO ", password: " hemmelig " })).toEqual({
+      email: "klara@eksempel.no",
+      password: " hemmelig ",
+    });
+    expect(loginErrorCodes({ email: "klara@eksempel.no", password: VALID_PASSWORD })).toBeNull();
+  });
+
+  it.each(["klara", "klara@eksempel", "", "   "])("FR-3: «%s» gir INVALID_EMAIL", (email) => {
+    expect(loginErrorCodes({ email, password: VALID_PASSWORD })).toEqual({ email: "INVALID_EMAIL" });
+  });
+
+  it.each(["", "kort", "æ".repeat(37)])("FR-3: passordet «%s» stoppes ikke (ingen regler ved innlogging)", (password) => {
+    expect(loginErrorCodes({ email: "klara@eksempel.no", password })).toBeNull();
   });
 });
