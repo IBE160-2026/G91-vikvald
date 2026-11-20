@@ -12,6 +12,13 @@ async function expectNoAxeViolations(page: Page) {
 }
 
 test.describe("Opprett konto (story 1.4)", () => {
+  test("UX-DR25: «Logg inn» fører til /logg-inn", async ({ page }) => {
+    await page.goto("/registrer");
+    await page.getByRole("link", { name: "Logg inn" }).click();
+    await expect(page).toHaveURL(/\/logg-inn$/);
+    await expect(page.locator("main h1")).toHaveText("Logg inn");
+  });
+
   test("UX-DR45: /registrer har toppfelt med bare logoen, kortet, semesterlinja og setningen, uten axe-brudd", async ({
     page,
   }) => {
@@ -33,7 +40,8 @@ test.describe("Opprett konto (story 1.4)", () => {
     await expect(
       page.getByText("Studiekamerat lager øvingsstoff fra dine egne forelesningsnotater, med kilde på alt."),
     ).toBeVisible();
-    await expect(page.getByText("Logg inn", { exact: false })).toHaveCount(0);
+    await expect(page.getByText("Har du konto?")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Logg inn" })).toHaveAttribute("href", "/logg-inn");
 
     await expectNoAxeViolations(page);
   });
@@ -50,13 +58,16 @@ test.describe("Opprett konto (story 1.4)", () => {
     await expectNoAxeViolations(page);
   });
 
-  test("NFR-12: tastaturet går E-post → Passord → Vis → Opprett konto med synlig fokusring", async ({ page }) => {
+  test("NFR-12: tastaturet går E-post → Passord → Vis → Opprett konto → Logg inn med synlig fokusring", async ({
+    page,
+  }) => {
     await page.goto("/registrer");
     const order = [
       page.getByLabel("E-post"),
       page.getByLabel("Passord"),
       page.getByRole("button", { name: "Vis" }),
       page.getByRole("button", { name: "Opprett konto" }),
+      page.getByRole("link", { name: "Logg inn" }),
     ];
     for (const element of order) {
       await page.keyboard.press("Tab");
@@ -136,7 +147,7 @@ test.describe("Opprett konto (story 1.4)", () => {
       if (request.resourceType() === "font") fonts.push(url.pathname);
     });
 
-    for (const path of ["/registrer", "/"]) {
+    for (const path of ["/registrer", "/logg-inn", "/"]) {
       await page.goto(path);
       await page.waitForLoadState("networkidle");
       const body = await page.evaluate(() => {

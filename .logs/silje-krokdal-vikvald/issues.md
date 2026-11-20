@@ -67,3 +67,6 @@
 - [ ] 2026-11-20 [story-1-4-opprett-konto](990-2026-11-20-19-32-44-story-1-4-opprett-konto.md) — se over e-postregelen og statuskode 422 for valideringskodene (#47, #49)
 - [ ] 2026-11-20 [story-1-4-opprett-konto](990-2026-11-20-19-32-44-story-1-4-opprett-konto.md) — avgjør om `JWT_SECRET` skal ha minstelengde utenfor `local` (#48)
 - [ ] 2026-11-20 [story-1-4-opprett-konto](990-2026-11-20-19-32-44-story-1-4-opprett-konto.md) — les over tekstene KI skrev i story 1.4 (fanetittel, README, `JWT_SECRET`) (#50)
+- [ ] 2026-11-20 [story-1-5-logg-inn](989-2026-11-20-21-27-15-story-1-5-logg-inn.md) — se over kanttilfellene for innlogging: feilen under passordfeltet, bare e-postsjekk i skjemaet, lik svartid (#52, #53, #54)
+- [ ] 2026-11-20 [story-1-5-logg-inn](989-2026-11-20-21-27-15-story-1-5-logg-inn.md) — les over tekstene KI skrev i story 1.5 («Har du konto?», fanetittel, README) (#55)
+- [ ] 2026-11-20 [story-1-5-logg-inn](989-2026-11-20-21-27-15-story-1-5-logg-inn.md) — avgjør om innloggingsforsøk skal begrenses, og om rare tegn i håndskrevet JSON skal gi 401 (#56)

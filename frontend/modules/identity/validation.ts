@@ -18,14 +18,16 @@ function byteCount(value: string): number {
   return new TextEncoder().encode(value).length;
 }
 
+const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  // Counted in characters (code points), as the backend does, not UTF-16 units.
+  .refine((value) => characterCount(value) <= EMAIL_MAX_LENGTH, { error: "INVALID_EMAIL" })
+  .regex(EMAIL_PATTERN, { error: "INVALID_EMAIL" });
+
 export const registerSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .toLowerCase()
-    // Counted in characters (code points), as the backend does, not UTF-16 units.
-    .refine((value) => characterCount(value) <= EMAIL_MAX_LENGTH, { error: "INVALID_EMAIL" })
-    .regex(EMAIL_PATTERN, { error: "INVALID_EMAIL" }),
+  email: emailSchema,
   // The password is never trimmed.
   password: z
     .string()
@@ -33,12 +35,21 @@ export const registerSchema = z.object({
     .refine((value) => byteCount(value) <= PASSWORD_MAX_BYTES, { error: "PASSWORD_TOO_LONG" }),
 });
 
+// Login only checks the e-mail format before the call. The password has no rules
+// here: a wrong, empty or too long one gets INVALID_CREDENTIALS from the backend.
+export const loginSchema = z.object({
+  email: emailSchema,
+  // The password is never trimmed.
+  password: z.string(),
+});
+
 export type RegisterField = "email" | "password";
 export type FieldErrorCodes = Partial<Record<RegisterField, string>>;
 
-// The first error code per field, or null when the input is valid.
-export function registerErrorCodes(input: { email: string; password: string }): FieldErrorCodes | null {
-  const result = registerSchema.safeParse(input);
+type Credentials = { email: string; password: string };
+
+function firstErrorPerField(schema: typeof registerSchema | typeof loginSchema, input: Credentials) {
+  const result = schema.safeParse(input);
   if (result.success) return null;
   const codes: FieldErrorCodes = {};
   for (const issue of result.error.issues) {
@@ -50,6 +61,16 @@ export function registerErrorCodes(input: { email: string; password: string }): 
   return codes;
 }
 
+// The first error code per field, or null when the input is valid.
+export function registerErrorCodes(input: Credentials): FieldErrorCodes | null {
+  return firstErrorPerField(registerSchema, input);
+}
+
+// The same for the login form (only INVALID_EMAIL is possible).
+export function loginErrorCodes(input: Credentials): FieldErrorCodes | null {
+  return firstErrorPerField(loginSchema, input);
+}
+
 // Which field an error code from the API belongs to; null means a general error.
 export function fieldForErrorCode(code: string): RegisterField | null {
   switch (code) {
@@ -58,6 +79,9 @@ export function fieldForErrorCode(code: string): RegisterField | null {
       return "email";
     case "PASSWORD_TOO_SHORT":
     case "PASSWORD_TOO_LONG":
+    // Wrong e-mail or password: shown under the password (mockup 01). The e-mail
+    // field is not marked, so the message does not say which of the two is wrong.
+    case "INVALID_CREDENTIALS":
       return "password";
     default:
       return null;

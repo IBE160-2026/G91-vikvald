@@ -62,6 +62,14 @@ describe("siden «Opprett konto»", () => {
     expect(document.querySelector("form")?.noValidate).toBe(true);
   });
 
+  it("UX-DR25: «Har du konto?» med lenken «Logg inn» til /logg-inn, etter knappen", () => {
+    const { submit } = renderPage();
+    expect(screen.getByText("Har du konto?")).toBeTruthy();
+    const link = screen.getByRole("link", { name: "Logg inn" });
+    expect(link.getAttribute("href")).toBe("/logg-inn");
+    expect(submit.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("NFR-11: ugyldig e-post stopper kallet, viser meldingen og flytter fokus dit", async () => {
     const { email } = fillAndSubmit("klara", "hemmelig1");
     await waitFor(() => expect(document.activeElement).toBe(email));

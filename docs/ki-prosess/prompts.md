@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-20: Story 1.5 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `1-5-logg-inn`. Hensikten til `bmad-build-auto` var «Story 1.5 fra `_bmad-output/planning-artifacts/epics.md`: Logg inn».
+
+**Resultat:** Innlogging med likt svar for feil e-post og feil passord, `current_user`, `/me` og siden «Logg inn» med lenker begge veier. Spesifikasjon og gjennomgang i [spec-1-5](../../_bmad-output/implementation-artifacts/spec-1-5-logg-inn.md).
+
 ## 2026-11-20: Story 1.4 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `1-4-opprett-konto`. Hensikten til `bmad-build-auto` var «Story 1.4 fra `_bmad-output/planning-artifacts/epics.md`: Opprett konto».

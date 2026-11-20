@@ -13,6 +13,7 @@ import { ApiError } from "@/lib/api";
 import { messageFor } from "@/lib/messages";
 
 import { registerUser } from "../api";
+import { AuthCard } from "../components/auth-card";
 import type { RegisterInput } from "../types";
 import {
   fieldForErrorCode,
@@ -24,9 +25,10 @@ import {
 
 const FIELD_ORDER: RegisterField[] = ["email", "password"];
 
-// «Opprett konto» (a variant of mockup 01). zod checks the input before the call;
-// errors from the API are shown under the field they belong to, anything else in
-// an alert above the button. Focus moves to the first field with an error.
+// «Opprett konto» (a variant of mockup 01), with a link back to «Logg inn».
+// zod checks the input before the call; errors from the API are shown under the
+// field they belong to, anything else in an alert above the button. Focus moves
+// to the first field with an error.
 export function RegisterPage() {
   const router = useRouter();
   const emailRef = useRef<HTMLInputElement>(null);
@@ -96,10 +98,7 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="w-full max-w-auth-card-width rounded-lg border border-border-card bg-surface p-7 shadow-lift">
-      <h1 className="text-page-title">Opprett konto</h1>
-      <p className="mt-2 text-body-sm text-ink-muted">Fra forelesningsnotat til eksamen.</p>
-
+    <AuthCard title="Opprett konto" footer={{ text: "Har du konto?", linkText: "Logg inn", href: "/logg-inn" }}>
       <form noValidate onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
         <TextField
           ref={emailRef}
@@ -140,6 +139,6 @@ export function RegisterPage() {
           Opprett konto
         </Button>
       </form>
-    </div>
+    </AuthCard>
   );
 }

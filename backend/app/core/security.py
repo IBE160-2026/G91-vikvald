@@ -25,7 +25,7 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    """True when the password matches the hash. Used by login (story 1.5)."""
+    """True when the password matches the hash. Used by login."""
     encoded = password.encode("utf-8")
     if len(encoded) > PASSWORD_MAX_BYTES:
         return False
@@ -41,6 +41,25 @@ def create_session_token(user_id: uuid.UUID) -> str:
         "exp": now + timedelta(seconds=SESSION_MAX_AGE),
     }
     return jwt.encode(claims, get_settings().JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def decode_session_token(token: str) -> uuid.UUID | None:
+    """The user id in a session token, or None when the token cannot be trusted.
+
+    Only HS256 is accepted (so "none" and other algorithms are refused), the
+    signature must match JWT_SECRET, and exp, iat and sub must be present.
+    An expired, broken or tampered token gives None, never an exception.
+    """
+    try:
+        claims = jwt.decode(
+            token,
+            get_settings().JWT_SECRET,
+            algorithms=[JWT_ALGORITHM],
+            options={"require": ["exp", "iat", "sub"]},
+        )
+        return uuid.UUID(claims["sub"])
+    except (jwt.InvalidTokenError, ValueError, TypeError, AttributeError):
+        return None
 
 
 def set_session_cookie(response: Response, token: str) -> None:

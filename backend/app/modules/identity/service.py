@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError, ErrorCode
-from app.core.security import PASSWORD_MAX_BYTES, hash_password
+from app.core.security import PASSWORD_MAX_BYTES, hash_password, verify_password
 from app.modules.identity.models import EMAIL_MAX_LENGTH, User
 
 # Deliberately simple: something@something.something, no spaces. The frontend
@@ -55,4 +55,39 @@ async def register_user(session: AsyncSession, email: str, password: str) -> Use
         # index stops the second. The request's session is closed afterwards,
         # which discards the failed transaction (no rollback() on the shared session).
         raise AppError(ErrorCode.EMAIL_ALREADY_REGISTERED) from None
+    return user
+
+
+# A bcrypt hash that no password is checked against with success. Login checks
+# the password against it when the e-mail has no account, so an unknown address
+# takes as long as a wrong password and the answer time does not reveal which
+# addresses have an account. Made once per process, when the module loads, so
+# even the first login with an unknown address costs only one bcrypt check.
+_FALLBACK_PASSWORD_HASH = hash_password("no-account-has-this-password")
+
+
+def fallback_password_hash() -> str:
+    """The hash an unknown e-mail's password is checked against (made once per
+    process, when the module loads)."""
+    return _FALLBACK_PASSWORD_HASH
+
+
+def _password_matches(password: str, password_hash: str | None) -> bool:
+    # Runs in a worker thread: bcrypt takes a few hundred milliseconds on purpose.
+    return verify_password(password, password_hash or fallback_password_hash())
+
+
+async def authenticate(session: AsyncSession, email: str, password: str) -> User:
+    """The user with this e-mail and password, or INVALID_CREDENTIALS.
+
+    Unknown e-mail, wrong password, an empty or too long password and an e-mail
+    that is not an address at all all give the same error, so the answer never
+    says which part was wrong. The password is never stripped or logged.
+    """
+    user = await session.scalar(select(User).where(User.email == normalize_email(email)))
+    matches = await run_in_threadpool(
+        _password_matches, password, user.password_hash if user is not None else None
+    )
+    if user is None or not matches:
+        raise AppError(ErrorCode.INVALID_CREDENTIALS)
     return user
