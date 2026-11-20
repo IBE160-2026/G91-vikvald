@@ -100,6 +100,12 @@ npx playwright install chromium
 
 Hver test har krav-ID-en den dekker i navnet, for eksempel `test_nfr1_health_svarer_ok`.
 
+### Automatisk ved hver pull request
+
+Backend-testene (pytest) og frontend-testene (Vitest) kjører automatisk i GitHub Actions ved hver pull request mot `main`, se [`.github/workflows/ci.yml`](.github/workflows/ci.yml). Sjekken vises som «CI / tests» i pull requesten. Feiler en test, blir pull requesten merket som feilet.
+
+Playwright kjøres ikke automatisk, fordi den trenger hele appen i Docker. Den kjøres lokalt med kommandoen i tabellen over.
+
 ## Innstillinger
 
 Alle innstillingene har standardverdier, så `.env` er valgfri. Vil du endre noe, kopierer du `.env.example` til `.env` og endrer verdiene der. `.env` ligger aldri i Git.

@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-20: Story 1.2 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `1-2-kjør-testene-automatisk-ved-hver-pull-request-kan-kuttes`. Hensikten til `bmad-build-auto` var «Story 1.2 fra `_bmad-output/planning-artifacts/epics.md`: Kjør testene automatisk ved hver pull request».
+
+**Resultat:** CI i GitHub Actions som kjører pytest og Vitest ved hver pull request. Spesifikasjon og gjennomgang i [spec-1-2](../../_bmad-output/implementation-artifacts/spec-1-2-kjor-testene-automatisk-ved-hver-pull-request.md). PR #38.
+
 ## 2026-11-20: Story 1.1 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `1-1-sett-opp-skjelettet-som-starter-med-én-kommando`. Hensikten til `bmad-build-auto` var «Story 1.1 fra `_bmad-output/planning-artifacts/epics.md`: Sett opp skjelettet som starter med én kommando».
