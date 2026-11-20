@@ -59,3 +59,7 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Studiekamerat: local Docker overrides and app data
+docker-compose.override.yml
+data/

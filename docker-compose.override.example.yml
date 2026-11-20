@@ -1,0 +1,9 @@
+# Development mode: copy this file to docker-compose.override.yml (ignored by Git).
+# Docker Compose reads the override file automatically, so `docker compose up db`
+# then also publishes Postgres on 127.0.0.1:5432 (only reachable from this machine),
+# and the backend can run directly on your machine with `uv run uvicorn ...`.
+
+services:
+  db:
+    ports:
+      - "127.0.0.1:5432:5432"
