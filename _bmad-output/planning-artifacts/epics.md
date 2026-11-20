@@ -1059,6 +1059,12 @@ slik at notatene mine er klare til å lage øvingsinnhold fra.
 **Så** avvises den med en feilkode (`TOO_MANY_PAGES`) og `details.page_count`, ingenting lagres, og meldingen er ordrett «Fila har 63 sider. Grensen er 50 sider. Del den opp og last opp delene hver for seg.» med det faktiske sidetallet (NFR-16, UX-DR42)
 **Og** en fil på nøyaktig 50 sider godtas
 
+**Gitt** en fil som er større enn 20 MB
+**Når** den lastes opp
+**Så** avvises den med en feilkode (`FILE_TOO_LARGE`) og `details.size_mb` før PyMuPDF åpner den. Backend slutter å lese når grensen er nådd, ingenting lagres, og meldingen er ordrett «Fila er på 34 MB. Grensen er 20 MB. Lagre den på nytt med mindre bilder, eller del den opp.» med den faktiske størrelsen (NFR-16, SK-7, UX-DR42)
+**Og** grensen er en innstilling i `core/config` (`MAX_UPLOAD_MB`, standard 20), slik at den bare står ett sted
+**Og** en test laster opp en fil like under grensen gjennom frontend (Next.js `rewrites`) og viser at den kommer fram, og en fil like over gir `FILE_TOO_LARGE`
+
 **Gitt** en PDF som er låst med passord eller er skadet *(E20)*
 **Når** den lastes opp
 **Så** avvises den med en egen feilkode (`PDF_UNREADABLE`), og ingenting lagres
@@ -1260,7 +1266,7 @@ slik at jeg kan rette en gammel opplasting uten å lage forelesningen på nytt.
 
 **Gitt** en fil studenten eier
 **Når** frontend sender den nye PDF-en til `POST /api/files/{id}/replace`
-**Så** sjekkes den nye fila med de samme reglene som opplasting (vilkår, ikke PDF, over 50 sider, ingen tekst, låst eller skadet)
+**Så** sjekkes den nye fila med de samme reglene som opplasting (vilkår, ikke PDF, over 50 sider, over 20 MB, ingen tekst, låst eller skadet)
 **Og** godtas den, slettes den gamle fila og lagres den nye i samme forelesning med ny `file_id` og nye `file_pages` i én transaksjon (AR-7)
 **Og** PDF-en til den gamle fila slettes fra disken med `core/storage` etter transaksjonen
 **Og** innhold registrert i `content` for den gamle fila forsvinner med kaskaden
