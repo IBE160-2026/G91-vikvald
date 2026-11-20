@@ -55,8 +55,11 @@
 - [ ] 2026-11-20 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — gjenstående funn fra gjennomgangen av epics.md: feilkoder, kanttilfeller, struktur og språk (#32)
 - [x] 2026-11-20 [sprintoppsett-goal](994-2026-11-20-14-26-18-sprintoppsett-goal.md) — godkjenn datoene i kuttreglene (27.11, 1.12, 5.12) i PR-en før kjøringen starter (#30) (løst 2026-11-20: godtatt, med egne datoer for epic 9, 8 og 7)
 - [x] 2026-11-20 [sprintoppsett-goal](994-2026-11-20-14-26-18-sprintoppsett-goal.md) — beskytt `main` på GitHub før kjøringen starter (løst 2026-11-20: ikke tilgang, lokale git-hooker i stedet)
-- [ ] 2026-11-20 [story-1-1-skjelett](993-2026-11-20-18-40-01-story-1-1-skjelett.md) — ta med `DATABASE_UNAVAILABLE` i feillista og meldingsfila i story 1.3 (#36)
+- [x] 2026-11-20 [story-1-1-skjelett](993-2026-11-20-18-40-01-story-1-1-skjelett.md) — ta med `DATABASE_UNAVAILABLE` i feillista og meldingsfila i story 1.3 (#36) (løst 2026-11-20: `35b99e6`, `6305814`)
 - [ ] 2026-11-20 [story-1-1-skjelett](993-2026-11-20-18-40-01-story-1-1-skjelett.md) — prøv oppstart fra en klone på Windows og `.env` i rota i utviklingsmodus (anbefalt ny gjennomgang av story 1.1)
 - [ ] 2026-11-20 [story-1-2-ci](992-2026-11-20-18-51-11-story-1-2-ci.md) — avgjør om røde pull requests skal sperres mot fletting (grenbeskyttelse, krever admin) (#39)
 - [ ] 2026-11-20 [story-1-2-ci](992-2026-11-20-18-51-11-story-1-2-ci.md) — avgjør om CI også skal kjøre etter fletting til `main` (#40)
-- [ ] 2026-11-20 [story-1-2-ci](992-2026-11-20-18-51-11-story-1-2-ci.md) — sjekk at story 1.3 leser `LLM_PROVIDER`, slik at `mock` i CI får virkning
+- [x] 2026-11-20 [story-1-2-ci](992-2026-11-20-18-51-11-story-1-2-ci.md) — sjekk at story 1.3 leser `LLM_PROVIDER`, slik at `mock` i CI får virkning (løst 2026-11-20: `fdcbb31`)
+- [ ] 2026-11-20 [story-1-3-feil-og-innstillinger](991-2026-11-20-19-06-59-story-1-3-feil-og-innstillinger.md) — godkjenn eller skriv egne feiltekster for kodene som viser reserveteksten (#41)
+- [ ] 2026-11-20 [story-1-3-feil-og-innstillinger](991-2026-11-20-19-06-59-story-1-3-feil-og-innstillinger.md) — se over kanttilfellene om HTTP-feilkoder, feltnavn i `/api/config` og tom verdi i `.env` (#42, #43, #44)
+- [ ] 2026-11-20 [story-1-3-feil-og-innstillinger](991-2026-11-20-19-06-59-story-1-3-feil-og-innstillinger.md) — les over forklaringene av bryterne i README (skrevet av KI)
