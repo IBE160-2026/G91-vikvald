@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 const workflow = readFileSync(
   fileURLToPath(new URL("../../.github/workflows/ci.yml", import.meta.url)),
   "utf8",
-);
+).replace(/\r\n/g, "\n");
 
 // Splits the steps list into one text block per step ("- name: ...").
 function steps(): string[] {
@@ -15,8 +15,13 @@ function steps(): string[] {
   return body.split(/\n(?=\s*- name:)/).slice(1);
 }
 
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function stepRunning(command: string): string {
-  const step = steps().find((s) => new RegExp(`^\\s*run: ${command}\\s*$`, "m").test(s));
+  const pattern = new RegExp(`^\\s*run: ${escapeRegExp(command)}\\s*$`, "m");
+  const step = steps().find((s) => pattern.test(s));
   expect(step, `no step runs "${command}"`).toBeDefined();
   return step!;
 }
@@ -36,7 +41,7 @@ describe("CI workflow", () => {
   });
 
   it("AR-20: bruker ingen hemmeligheter, databasetjeneste eller Playwright", () => {
-    expect(workflow).not.toContain("secrets.");
+    expect(workflow).not.toMatch(/secrets\s*[.[]/);
     expect(workflow.toLowerCase()).not.toContain("playwright");
     expect(workflow).not.toMatch(/^\s*services:/m);
   });

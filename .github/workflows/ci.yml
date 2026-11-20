@@ -20,6 +20,7 @@ env:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check out the code
         uses: actions/checkout@v5
@@ -39,7 +40,10 @@ jobs:
         run: uv run pytest
         working-directory: backend
 
+      # The frontend steps run even if the backend tests failed,
+      # so both sets of failures show up in the same run.
       - name: Set up Node
+        if: ${{ !cancelled() }}
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
@@ -47,9 +51,11 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install frontend dependencies
+        if: ${{ !cancelled() }}
         run: npm ci
         working-directory: frontend
 
       - name: Run frontend tests
+        if: ${{ !cancelled() }}
         run: npm run test
         working-directory: frontend
