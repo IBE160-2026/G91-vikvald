@@ -74,4 +74,15 @@ describe("401 håndteres én gang per tapt innlogging", () => {
     await client.fetchQuery({ queryKey: ["c"], queryFn: unauthenticated }).catch(() => undefined);
     expect(onUnauthenticated).toHaveBeenCalledTimes(2);
   });
+
+  it("UX-DR40: en annen spørring som lykkes (f.eks. config) nullstiller ikke", async () => {
+    const onUnauthenticated = vi.fn();
+    const client = makeQueryClient(onUnauthenticated);
+    const unauthenticated = () => Promise.reject(new ApiError(401, "UNAUTHENTICATED"));
+    await client.fetchQuery({ queryKey: ["me"], queryFn: unauthenticated }).catch(() => undefined);
+    await client.fetchQuery({ queryKey: ["config"], queryFn: () => Promise.resolve({ demo_mode: true }) });
+    await client.fetchQuery({ queryKey: ["me", "x"], queryFn: () => Promise.resolve({}) });
+    await client.fetchQuery({ queryKey: ["me"], queryFn: unauthenticated, staleTime: 0 }).catch(() => undefined);
+    expect(onUnauthenticated).toHaveBeenCalledTimes(1);
+  });
 });

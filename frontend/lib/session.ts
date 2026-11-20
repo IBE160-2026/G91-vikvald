@@ -62,11 +62,11 @@ export function takeSessionExpired(): boolean {
 }
 
 type Clearable = { clear: () => void };
-type Navigator = { replace: (href: string) => void };
+type RouterLike = { replace: (href: string) => void };
 
 // The one reaction to 401 UNAUTHENTICATED from any query or mutation: note it,
 // empty the query cache (nothing from the old login is left) and go to the login page.
-export function handleSessionLost(queryClient: Clearable, router: Navigator): void {
+export function handleSessionLost(queryClient: Clearable, router: RouterLike): void {
   noteSessionLost();
   queryClient.clear();
   router.replace("/logg-inn");

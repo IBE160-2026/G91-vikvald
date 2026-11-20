@@ -8,14 +8,19 @@ from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, FastAPI, params
+import pytest
+from fastapi import APIRouter, Depends, FastAPI, WebSocket, params
 from fastapi.dependencies.models import Dependant
 from fastapi.dependencies.utils import get_dependant
 from fastapi.routing import APIRoute
+from starlette.routing import Mount, Route, WebSocketRoute
 
 from app.main import create_app
 from app.modules.identity.dependencies import current_user
 from app.modules.identity.models import User
+
+# FastAPI's own documentation pages (plain Starlette routes, no API data).
+DOCS_PATHS = {"/openapi.json", "/docs", "/docs/oauth2-redirect", "/redoc"}
 
 PUBLIC_ROUTES = {
     ("GET", "/api/health"),
@@ -48,8 +53,14 @@ def _walk(routes: Sequence[Any], prefix: str, dependencies: list[params.Depends]
                 prefix + (context.prefix or ""),
                 [*dependencies, *(context.dependencies or [])],
             )
-        elif hasattr(route, "routes") and not hasattr(route, "path"):
-            raise AssertionError(f"Unknown route container: {type(route).__name__}")
+        elif isinstance(route, (Mount, WebSocketRoute)):
+            # A mounted sub-app or a websocket (APIWebSocketRoute is a WebSocketRoute)
+            # cannot be checked here, so it must not slip through silently.
+            raise AssertionError(f"Route not checked for current_user: {type(route).__name__} {route.path}")
+        elif isinstance(route, Route) and prefix + route.path in DOCS_PATHS:
+            continue
+        else:
+            raise AssertionError(f"Unknown route: {type(route).__name__} {getattr(route, 'path', '')}")
 
 
 def _calls(dependant: Dependant) -> Iterator[Callable[..., Any]]:
@@ -140,3 +151,26 @@ def test_ar2_current_user_fra_routeren_eller_indirekte_teller() -> None:
     app.include_router(via_router)
 
     assert _unguarded(app) == []
+
+
+async def _socket(websocket: WebSocket) -> None:
+    await websocket.close()
+
+
+def test_ar2_mount_og_websocket_blir_ikke_hoppet_over() -> None:
+    mounted = create_app()
+    mounted.mount("/api/sub", FastAPI())
+    with pytest.raises(AssertionError, match="Mount /api/sub"):
+        _unguarded(mounted)
+
+    with_socket = create_app()
+    with_socket.add_api_websocket_route("/api/ws", _socket)
+    with pytest.raises(AssertionError, match="WebSocketRoute /api/ws"):
+        _unguarded(with_socket)
+
+    nested_socket = create_app()
+    router = APIRouter(prefix="/api/test")
+    router.add_api_websocket_route("/ws", _socket)
+    nested_socket.include_router(router)
+    with pytest.raises(AssertionError, match="/api/test/ws"):
+        _unguarded(nested_socket)

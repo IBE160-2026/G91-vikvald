@@ -49,8 +49,10 @@ export function AccountLinks({
   }
 
   return (
-    <div className="flex items-center gap-4">
-      <Link href="/konto" className="flex items-center gap-2 rounded-md text-meta-strong text-ink">
+    // px-1 gives the focus ring room around the text; the smaller gap and -mr-1
+    // keep the positions from mockup 02.
+    <div className="-mr-1 flex items-center gap-3">
+      <Link href="/konto" className="flex items-center gap-2 rounded-md px-1 text-meta-strong text-ink">
         <span
           aria-hidden="true"
           className="flex size-4 items-center justify-center rounded-full bg-brand-tint text-kbd font-semibold text-brand"
@@ -63,7 +65,7 @@ export function AccountLinks({
       <button
         type="button"
         onClick={handleLogout}
-        className="flex cursor-pointer items-center gap-2 rounded-md text-meta-strong text-ink-muted"
+        className="flex cursor-pointer items-center gap-2 rounded-md px-1 text-meta-strong text-ink-muted"
       >
         <LogOut {...iconProps} />
         Logg ut
@@ -72,7 +74,8 @@ export function AccountLinks({
   );
 }
 
-// The first character of the e-mail address, as a capital letter.
+// The first character of the e-mail address, as a capital letter. Array.from
+// splits by code point, so a character outside the BMP is not cut in half.
 export function initialOf(email: string): string {
-  return email.charAt(0).toLocaleUpperCase("nb");
+  return (Array.from(email)[0] ?? "").toLocaleUpperCase("nb");
 }

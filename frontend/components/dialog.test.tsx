@@ -105,6 +105,25 @@ describe("Dialog", () => {
     expect(onPrimary).toHaveBeenCalledTimes(1);
   });
 
+  it("UX-DR41: med fokus på body (etter klikk på sløret) lukker Esc, og Tab går inn i dialogen", () => {
+    const onPrimary = vi.fn();
+    const { opener } = openDialog({ onPrimary });
+    (document.activeElement as HTMLElement).blur();
+    expect(document.activeElement).toBe(document.body);
+
+    fireEvent.keyDown(document.body, { key: "Tab" });
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Lukk" }));
+    (document.activeElement as HTMLElement).blur();
+    fireEvent.keyDown(document.body, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Slett fila" }));
+
+    (document.activeElement as HTMLElement).blur();
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(onPrimary).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(opener);
+  });
+
   it.each([
     [undefined, "w-[560px]"],
     [560, "w-[560px]"],

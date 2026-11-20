@@ -74,6 +74,9 @@ export function isUnauthenticated(error: unknown): boolean {
 // For pages that load one thing by id: NOT_FOUND from the API (a missing id or
 // someone else's row, which look the same) shows the «Fant ikke siden» page.
 // Other errors are left for the caller.
+// notFound() works by throwing during render, so call this in the component
+// body, not in an effect or event handler:
+//   if (query.error) notFoundOnMissing(query.error);
 export function notFoundOnMissing(error: unknown): void {
   if (error instanceof ApiError && error.code === "NOT_FOUND") {
     notFound();

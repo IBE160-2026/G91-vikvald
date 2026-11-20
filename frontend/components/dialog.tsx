@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { Button, type ButtonVariant } from "./button";
@@ -56,37 +56,47 @@ function DialogPanel({ title, children, onClose, primaryAction, width = 560 }: D
   const bodyRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
 
+  // Keep the latest onClose for the document listener below.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     // First field or button in the content, otherwise «Avbryt» (the safe choice).
     (focusableIn(bodyRef.current)[0] ?? cancelRef.current)?.focus();
+
+    // On the document, not the panel: after a click on the scrim, focus is on
+    // body, and Esc and Tab must still work.
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = focusableIn(panelRef.current);
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      const outside = !panelRef.current?.contains(active);
+      if (event.shiftKey && (active === first || outside)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || outside)) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
+      document.removeEventListener("keydown", handleKeyDown);
       opener?.focus();
     };
   }, []);
-
-  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      event.stopPropagation();
-      onClose();
-      return;
-    }
-    if (event.key !== "Tab") return;
-    const focusable = focusableIn(panelRef.current);
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    const active = document.activeElement;
-    const outside = !panelRef.current?.contains(active);
-    if (event.shiftKey && (active === first || outside)) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && (active === last || outside)) {
-      event.preventDefault();
-      first.focus();
-    }
-  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim-veil p-4">
@@ -95,7 +105,6 @@ function DialogPanel({ title, children, onClose, primaryAction, width = 560 }: D
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        onKeyDown={handleKeyDown}
         className={`${widthClasses[width]} max-h-full max-w-full overflow-y-auto rounded-xl border border-border-card bg-surface shadow-float`}
       >
         <div className="flex items-start justify-between gap-4 px-5 pt-5">

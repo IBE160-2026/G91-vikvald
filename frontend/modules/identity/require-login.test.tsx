@@ -111,7 +111,31 @@ describe("RequireLogin (vakten)", () => {
     // Emptying the cache makes the guard ask once more, but never in a loop.
     await new Promise((r) => setTimeout(r, 100));
     expect(fetchMock.mock.calls.length).toBeLessThanOrEqual(2);
-    expect(replace).toHaveBeenCalledTimes(1);
+    expect(replace.mock.calls.length).toBeLessThanOrEqual(3);
+    expect(replace.mock.calls.every(([href]) => href === "/logg-inn")).toBe(true);
+  });
+
+  it("FR-3: en ny 401 etter en som alt er håndtert sender likevel til /logg-inn (f.eks. Tilbake)", async () => {
+    respond({ "/api/identity/me": () => jsonResponse(401, UNAUTHENTICATED) });
+    const client = renderApp();
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/logg-inn"));
+    cleanup();
+    replace.mockReset();
+
+    // Back to an app page with the same client: the shared handler stays quiet,
+    // so the guard itself must redirect, and it does not touch the flags.
+    markSignedIn();
+    render(
+      <QueryClientProvider client={client}>
+        <RequireLogin>
+          <h1>Dine emner</h1>
+        </RequireLogin>
+      </QueryClientProvider>,
+    );
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/logg-inn"));
+    expect(screen.queryByRole("main")).toBeNull();
+    expect(window.sessionStorage.getItem("sk_signed_in")).toBe("1");
+    expect(window.sessionStorage.getItem("sk_session_expired")).toBeNull();
   });
 
   it("UX-DR40: /me 401 med flagget husker «Du er logget ut»", async () => {
@@ -207,5 +231,8 @@ describe("initialOf", () => {
     expect(initialOf("klara@eksempel.no")).toBe("K");
     expect(initialOf("øyvind@eksempel.no")).toBe("Ø");
     expect(initialOf("1klara@eksempel.no")).toBe("1");
+    // A letter outside the BMP (a surrogate pair) is kept whole.
+    expect(initialOf("\u{10428}@eksempel.no")).toBe("\u{10400}");
+    expect(initialOf("")).toBe("");
   });
 });

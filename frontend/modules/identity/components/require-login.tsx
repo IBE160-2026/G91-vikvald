@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { CircleAlert } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { iconProps } from "@/components/icon";
@@ -17,16 +18,24 @@ export const ME_QUERY_KEY = ["me"] as const;
 
 // The frame around every page inside the app: it asks GET /api/identity/me and
 // shows nothing until the answer comes. Logged in: the top bar with the account
-// links and the page. 401: nothing here, because the shared 401 handling
-// (lib/query-client.ts) sends her to /logg-inn. Any other error: «Noe gikk galt».
+// links and the page. 401: nothing, and she is sent to /logg-inn. The shared 401
+// handling (lib/query-client.ts) does that too, but only once per lost login, so
+// the guard also redirects itself (e.g. after Back to an app page). It never
+// touches the flags. Any other error: «Noe gikk galt».
 export function RequireLogin({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const me = useQuery({ queryKey: ME_QUERY_KEY, queryFn: fetchMe });
+  const unauthenticated = me.isError && isUnauthenticated(me.error);
   const [logoutFailed, setLogoutFailed] = useState(false);
   const user = me.data;
 
   useEffect(() => {
     if (user) markSignedIn();
   }, [user]);
+
+  useEffect(() => {
+    if (unauthenticated) router.replace("/logg-inn");
+  }, [unauthenticated, router]);
 
   if (user) {
     return (
@@ -46,7 +55,7 @@ export function RequireLogin({ children }: { children: ReactNode }) {
     );
   }
 
-  if (me.isError && !isUnauthenticated(me.error)) {
+  if (me.isError && !unauthenticated) {
     return (
       <>
         <TopBar logoHref="/" />
