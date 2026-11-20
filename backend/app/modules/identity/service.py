@@ -1,6 +1,5 @@
 """Business logic for accounts."""
 
-import functools
 import re
 
 from fastapi.concurrency import run_in_threadpool
@@ -59,15 +58,18 @@ async def register_user(session: AsyncSession, email: str, password: str) -> Use
     return user
 
 
-@functools.cache
-def fallback_password_hash() -> str:
-    """A fixed bcrypt hash that no real password is checked against with success.
+# A bcrypt hash that no password is checked against with success. Login checks
+# the password against it when the e-mail has no account, so an unknown address
+# takes as long as a wrong password and the answer time does not reveal which
+# addresses have an account. Made once per process, when the module loads, so
+# even the first login with an unknown address costs only one bcrypt check.
+_FALLBACK_PASSWORD_HASH = hash_password("no-account-has-this-password")
 
-    Login checks the password against it when the e-mail has no account, so an
-    unknown address takes as long as a wrong password and the answer time does
-    not reveal which addresses have an account. Made once, on first use.
-    """
-    return hash_password("no-account-has-this-password")
+
+def fallback_password_hash() -> str:
+    """The hash an unknown e-mail's password is checked against (made once per
+    process, when the module loads)."""
+    return _FALLBACK_PASSWORD_HASH
 
 
 def _password_matches(password: str, password_hash: str | None) -> bool:
