@@ -18,6 +18,11 @@ describe("meldingsfila", () => {
     expect(messageFor("NOT_FOUND")).toBe("Fant ikke siden.");
   });
 
+  it("FR-3: INVALID_CREDENTIALS og UNAUTHENTICATED har de godkjente tekstene", () => {
+    expect(messageFor("INVALID_CREDENTIALS")).toBe("Feil e-post eller passord. Sjekk at Caps Lock er av.");
+    expect(messageFor("UNAUTHENTICATED")).toBe("Du er logget ut. Logg inn igjen.");
+  });
+
   it("FR-1: transportens egen kode NETWORK_ERROR har en tekst", () => {
     expect(messages).toHaveProperty("NETWORK_ERROR");
   });

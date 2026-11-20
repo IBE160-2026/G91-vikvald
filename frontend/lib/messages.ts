@@ -18,6 +18,8 @@ export const messages = {
   INVALID_EMAIL: "Skriv inn en gyldig e-postadresse, for eksempel klara@eksempel.no.",
   PASSWORD_TOO_SHORT: "Passordet må ha minst 8 tegn.",
   PASSWORD_TOO_LONG: "Passordet er for langt. Bruk færre tegn.",
+  INVALID_CREDENTIALS: "Feil e-post eller passord. Sjekk at Caps Lock er av.",
+  UNAUTHENTICATED: "Du er logget ut. Logg inn igjen.",
   // Frontend-only: the request never reached the server.
   NETWORK_ERROR: FALLBACK_MESSAGE,
 } as const satisfies Record<string, string>;
