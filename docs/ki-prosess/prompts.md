@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-20: Funn #68 rettet av den autonome kjøringen
+
+Funnet fra Siljes gjennomgang av epic 1 (#67) ble rettet av en subagent i den autonome kjøringen, etter avsnittet «Siljes gjennomgang» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md). Hensikten til `bmad-build-auto` var å ta i bruk shadcn/ui og bytte ut de håndlagde komponentene, slik issue #68 beskriver.
+
+**Resultat:** Knappene, feltene og dialogen er shadcn-komponenter tilpasset DESIGN.md, og sidene ser ut som før. Spesifikasjon: [spec-gh-68-ta-i-bruk-shadcn-ui.md](../../_bmad-output/implementation-artifacts/spec-gh-68-ta-i-bruk-shadcn-ui.md).
+
 ## 2026-11-20: Brukerreisetestene utvidet etter epic 1
 
 Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 1 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).
