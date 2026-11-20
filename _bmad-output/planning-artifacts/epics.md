@@ -1404,7 +1404,7 @@ slik at jeg har noe å øve på uten å lage kortene selv.
 **Gitt** at genereringen er ferdig
 **Når** løpet kjører
 **Så** går det gjennom stegene i AR-4: hent sidetekst fra `file_pages` → kall porten (løs liste) → `validate_item(item, pages)` per element → forkast og tell → lagre de gyldige i én transaksjon
-**Og** `validate_item` for flashcards forkaster elementer med tom forside eller bakside, ukjent `kind`, eller en `file_id`/`page_no` som ikke finnes i forelesningens filer (FR-38, FR-39)
+**Og** `validate_item` for flashcards forkaster elementer med tom forside, tom bakside (for `qa` og `concept`), ukjent `kind`, eller en `file_id`/`page_no` som ikke finnes i forelesningens filer (FR-38, FR-39)
 
 **Gitt** at mock-modellen finner flere gyldige kort enn det som ble bedt om
 **Når** kortene lagres
@@ -1412,7 +1412,7 @@ slik at jeg har noe å øve på uten å lage kortene selv.
 
 **Gitt** at tabellene `jobs` og `flashcards` ikke finnes
 **Når** storien er ferdig
-**Så** lager én Alembic-migrering `jobs` med feltene i AR-5 og `flashcards` (`id`, `file_id` med `ON DELETE CASCADE`, `kind` `qa`/`concept`, `front`, `back`, `page_no`, `formula_flag`, `created_at`)
+**Så** lager én Alembic-migrering `jobs` med feltene i AR-5 og `flashcards` (`id`, `file_id` med `ON DELETE CASCADE`, `kind` `qa`/`concept`/`model`, `front`, `back` (kan være tom bare for `model`), `page_no`, `formula_flag`, `created_at`)
 **Og** en delvis unik indeks på `jobs.lecture_id` der `status='running'` er skrevet for både Postgres og SQLite
 
 **Gitt** en innlogget student med en forelesning som har filer
