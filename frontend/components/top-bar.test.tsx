@@ -16,6 +16,13 @@ describe("TopBar og SemesterLine", () => {
     expect(header.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
   });
 
+  it("UX-DR4: med logoHref er logoen en lenke til forsiden", () => {
+    render(<TopBar logoHref="/" />);
+    const link = screen.getByRole("link", { name: "Studiekamerat" });
+    expect(link.getAttribute("href")).toBe("/");
+    expect(screen.getByRole("banner").contains(link)).toBe(true);
+  });
+
   it("NFR-12: semesterlinja er skjult for skjermleser", () => {
     const { container } = render(<SemesterLine />);
     const svg = container.querySelector("svg");

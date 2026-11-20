@@ -2,6 +2,8 @@
 // Error responses are turned into an ApiError with the code and details from
 // the shared error format {"error": {"code", "details"}}.
 
+import { notFound } from "next/navigation";
+
 export type ErrorDetails = Record<string, unknown>;
 
 export class ApiError extends Error {
@@ -60,5 +62,20 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
     return (await response.json()) as T;
   } catch {
     throw new ApiError(response.status, "INTERNAL_ERROR");
+  }
+}
+
+// True for 401 UNAUTHENTICATED: the student is not (or no longer) logged in.
+// (401 INVALID_CREDENTIALS from the login form is something else.)
+export function isUnauthenticated(error: unknown): boolean {
+  return error instanceof ApiError && error.code === "UNAUTHENTICATED";
+}
+
+// For pages that load one thing by id: NOT_FOUND from the API (a missing id or
+// someone else's row, which look the same) shows the «Fant ikke siden» page.
+// Other errors are left for the caller.
+export function notFoundOnMissing(error: unknown): void {
+  if (error instanceof ApiError && error.code === "NOT_FOUND") {
+    notFound();
   }
 }

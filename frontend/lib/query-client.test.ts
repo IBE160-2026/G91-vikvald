@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "./api";
 import { makeQueryClient, shouldRetry } from "./query-client";
@@ -21,5 +21,57 @@ describe("shouldRetry", () => {
 
   it("AR-12: QueryClient bruker regelen", () => {
     expect(makeQueryClient().getDefaultOptions().queries?.retry).toBe(shouldRetry);
+  });
+});
+
+describe("401 UNAUTHENTICATED", () => {
+  function failing(error: unknown) {
+    return () => Promise.reject(error);
+  }
+
+  it("UX-DR40: 401 fra en spørring går til onUnauthenticated", async () => {
+    const onUnauthenticated = vi.fn();
+    const client = makeQueryClient(onUnauthenticated);
+    await client
+      .fetchQuery({ queryKey: ["me"], queryFn: failing(new ApiError(401, "UNAUTHENTICATED")) })
+      .catch(() => undefined);
+    expect(onUnauthenticated).toHaveBeenCalledTimes(1);
+  });
+
+  it("UX-DR40: 401 fra en mutasjon går til onUnauthenticated", async () => {
+    const onUnauthenticated = vi.fn();
+    const client = makeQueryClient(onUnauthenticated);
+    const mutation = client
+      .getMutationCache()
+      .build(client, { mutationFn: failing(new ApiError(401, "UNAUTHENTICATED")) });
+    await mutation.execute(undefined).catch(() => undefined);
+    expect(onUnauthenticated).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["INVALID_CREDENTIALS", new ApiError(401, "INVALID_CREDENTIALS")],
+    ["NOT_FOUND", new ApiError(404, "NOT_FOUND")],
+  ])("UX-DR40: %s går ikke til onUnauthenticated", async (_name, error) => {
+    const onUnauthenticated = vi.fn();
+    const client = makeQueryClient(onUnauthenticated);
+    await client.fetchQuery({ queryKey: ["x"], queryFn: failing(error) }).catch(() => undefined);
+    const mutation = client.getMutationCache().build(client, { mutationFn: failing(error) });
+    await mutation.execute(undefined).catch(() => undefined);
+    expect(onUnauthenticated).not.toHaveBeenCalled();
+  });
+});
+
+describe("401 håndteres én gang per tapt innlogging", () => {
+  it("UX-DR40: neste 401 ignoreres til en spørring lykkes igjen", async () => {
+    const onUnauthenticated = vi.fn();
+    const client = makeQueryClient(onUnauthenticated);
+    const unauthenticated = () => Promise.reject(new ApiError(401, "UNAUTHENTICATED"));
+    await client.fetchQuery({ queryKey: ["a"], queryFn: unauthenticated }).catch(() => undefined);
+    await client.fetchQuery({ queryKey: ["b"], queryFn: unauthenticated }).catch(() => undefined);
+    expect(onUnauthenticated).toHaveBeenCalledTimes(1);
+
+    await client.fetchQuery({ queryKey: ["me"], queryFn: () => Promise.resolve({ id: "1" }) });
+    await client.fetchQuery({ queryKey: ["c"], queryFn: unauthenticated }).catch(() => undefined);
+    expect(onUnauthenticated).toHaveBeenCalledTimes(2);
   });
 });

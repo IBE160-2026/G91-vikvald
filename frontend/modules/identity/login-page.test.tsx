@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { noteSessionLost } from "@/lib/session";
+
 import { LoginPage } from "./pages/login-page";
 
 const push = vi.fn();
@@ -159,5 +161,28 @@ describe("siden «Logg inn»", () => {
     fireEvent.change(email, { target: { value: "klara@eksempel.n" } });
     expect(password.hasAttribute("aria-invalid")).toBe(false);
     expect(screen.queryByText(WRONG)).toBeNull();
+  });
+});
+
+describe("«Du er logget ut»", () => {
+  afterEach(() => {
+    window.sessionStorage.clear();
+  });
+
+  it("UX-DR40: statusområdet finnes alltid og er tomt uten flagget", () => {
+    renderPage();
+    const status = screen.getByRole("status");
+    expect(status.textContent).toBe("");
+  });
+
+  it("UX-DR40: med flagget står meldingen i statusområdet, og flagget fjernes", async () => {
+    window.sessionStorage.setItem("sk_signed_in", "1");
+    noteSessionLost();
+    renderPage();
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("Du er logget ut. Logg inn igjen."));
+    expect(window.sessionStorage.getItem("sk_session_expired")).toBeNull();
+    cleanup();
+    renderPage();
+    expect(screen.getByRole("status").textContent).toBe("");
   });
 });
