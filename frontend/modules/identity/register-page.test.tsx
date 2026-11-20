@@ -101,6 +101,22 @@ describe("siden «Opprett konto»", () => {
     expect(JSON.parse(String(init?.body))).toEqual({ email: "klara@eksempel.no", password: " hemmelig1 " });
   });
 
+  it("FR-3: to innsendinger mens kallet pågår gir bare ett kall, og knappen er aria-disabled", async () => {
+    let resolve: (response: Response) => void = () => {};
+    fetchMock.mockReturnValue(new Promise<Response>((r) => (resolve = r)));
+    const { submit } = fillAndSubmit("klara@eksempel.no", "hemmelig1");
+    fireEvent.click(submit);
+    await waitFor(() => expect(submit.getAttribute("aria-disabled")).toBe("true"));
+    fireEvent.click(submit);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    resolve(jsonResponse(201, { id: "1", email: "klara@eksempel.no" }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/"));
+    // Still blocked while the page navigates away.
+    fireEvent.click(submit);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("FR-3: 409 fra API-et vises under e-postfeltet med fokus dit", async () => {
     fetchMock.mockResolvedValue(
       jsonResponse(409, { error: { code: "EMAIL_ALREADY_REGISTERED", details: {} } }),
@@ -132,6 +148,17 @@ describe("siden «Opprett konto»", () => {
     fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
     fillAndSubmit("klara@eksempel.no", "hemmelig1");
     expect((await screen.findByRole("alert")).textContent).toBe("Noe gikk galt. Prøv igjen.");
+  });
+
+  it("FR-1: etter en feil kan skjemaet sendes igjen, og varselet forsvinner når et felt endres", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } }));
+    const { email, submit } = fillAndSubmit("klara@eksempel.no", "hemmelig1");
+    await screen.findByRole("alert");
+    expect(submit.hasAttribute("aria-disabled")).toBe(false);
+    fireEvent.change(email, { target: { value: "klara@eksempel.n" } });
+    expect(screen.queryByRole("alert")).toBeNull();
+    fireEvent.click(submit);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
   });
 
   it("NFR-11: når feltet endres, forsvinner den gamle meldingen", async () => {

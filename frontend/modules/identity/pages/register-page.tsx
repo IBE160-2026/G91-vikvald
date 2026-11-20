@@ -35,6 +35,11 @@ export function RegisterPage() {
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrorCodes>({});
   const [formError, setFormError] = useState<string | null>(null);
+  // Blocks a second submit while the request runs, and after success while the
+  // page navigates (a second POST would get 409 for the account just made).
+  // A ref is read at once; the state only drives aria-disabled.
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
   // Focus is moved after the error is rendered, so a screen reader reads it with the field.
   const [focusRequest, setFocusRequest] = useState<{ field: RegisterField } | null>(null);
 
@@ -49,6 +54,8 @@ export function RegisterPage() {
       router.push("/");
     },
     onError: (error) => {
+      submittingRef.current = false;
+      setSubmitting(false);
       const code = error instanceof ApiError ? error.code : "INTERNAL_ERROR";
       const field = fieldForErrorCode(code);
       if (field) {
@@ -62,7 +69,7 @@ export function RegisterPage() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (mutation.isPending) return;
+    if (submittingRef.current) return;
     setFormError(null);
     const codes = registerErrorCodes({ email, password });
     if (codes) {
@@ -73,6 +80,8 @@ export function RegisterPage() {
     }
     setFieldErrors({});
     // Send what zod checked: the e-mail trimmed and in lower case, the password as typed.
+    submittingRef.current = true;
+    setSubmitting(true);
     mutation.mutate(registerSchema.parse({ email, password }));
   }
 
@@ -102,6 +111,7 @@ export function RegisterPage() {
           onChange={(event) => {
             setEmail(event.target.value);
             clearFieldError("email");
+            setFormError(null);
           }}
           error={errorText("email")}
         />
@@ -114,6 +124,7 @@ export function RegisterPage() {
           onChange={(event) => {
             setPassword(event.target.value);
             clearFieldError("password");
+            setFormError(null);
           }}
           error={errorText("password")}
         />
@@ -125,7 +136,7 @@ export function RegisterPage() {
           </p>
         ) : null}
 
-        <Button type="submit" size="lg" className="mt-3 w-full" aria-disabled={mutation.isPending || undefined}>
+        <Button type="submit" size="lg" className="mt-3 w-full" aria-disabled={submitting || undefined}>
           Opprett konto
         </Button>
       </form>

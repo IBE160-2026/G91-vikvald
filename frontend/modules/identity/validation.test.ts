@@ -26,6 +26,17 @@ describe("registreringsreglene (samme som backenden)", () => {
     });
   });
 
+  it("FR-3: e-postlengden telles i tegn som i backenden, ikke i UTF-16-enheter", () => {
+    const domain = "@eksempel.no";
+    // 242 emoji + 12 = 254 characters, but 496 UTF-16 units.
+    const email = "😀".repeat(254 - domain.length) + domain;
+    expect(email.length).toBeGreaterThan(254);
+    expect(registerErrorCodes({ email, password: VALID_PASSWORD })).toBeNull();
+    expect(registerErrorCodes({ email: "😀" + email, password: VALID_PASSWORD })).toEqual({
+      email: "INVALID_EMAIL",
+    });
+  });
+
   it("FR-3: 7 tegn gir PASSWORD_TOO_SHORT, 8 godtas", () => {
     expect(registerErrorCodes({ email: "klara@eksempel.no", password: "1234567" })).toEqual({
       password: "PASSWORD_TOO_SHORT",

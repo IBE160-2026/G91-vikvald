@@ -23,7 +23,7 @@ export const buttonSizeClasses: Record<ButtonSize, string> = {
 
 const baseClasses =
   "inline-flex cursor-pointer items-center justify-center gap-2 rounded-md px-3 text-label " +
-  "disabled:cursor-not-allowed disabled:opacity-60";
+  "disabled:cursor-not-allowed disabled:opacity-60 aria-disabled:cursor-not-allowed aria-disabled:opacity-60";
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;

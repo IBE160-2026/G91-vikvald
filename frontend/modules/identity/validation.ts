@@ -23,7 +23,8 @@ export const registerSchema = z.object({
     .string()
     .trim()
     .toLowerCase()
-    .max(EMAIL_MAX_LENGTH, { error: "INVALID_EMAIL" })
+    // Counted in characters (code points), as the backend does, not UTF-16 units.
+    .refine((value) => characterCount(value) <= EMAIL_MAX_LENGTH, { error: "INVALID_EMAIL" })
     .regex(EMAIL_PATTERN, { error: "INVALID_EMAIL" }),
   // The password is never trimmed.
   password: z

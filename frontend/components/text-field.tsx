@@ -37,12 +37,12 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
       </label>
       <div className="relative">
         <input
+          {...inputProps}
           ref={ref}
           id={id}
           aria-invalid={hasError || undefined}
           aria-describedby={hasError ? errorId : undefined}
           className={inputClasses}
-          {...inputProps}
         />
         {trailing ? (
           <div className="absolute inset-y-0 right-2 flex items-center">{trailing}</div>
