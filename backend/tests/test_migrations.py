@@ -46,3 +46,27 @@ def test_ar13_downgrade_fjerner_users(tmp_path: Path) -> None:
     with sqlite3.connect(db_file) as connection:
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master")}
     assert "users" not in tables
+
+
+def test_ar13_migreringene_samsvarer_med_modellene(tmp_path: Path) -> None:
+    # The app tests build tables with create_all, so this is what catches a
+    # model change that has no migration (or a migration that differs).
+    from alembic.autogenerate import compare_metadata
+    from alembic.runtime.migration import MigrationContext
+    from sqlalchemy import create_engine
+
+    from app.core.db import Base
+    from app.modules.identity import models  # noqa: F401  (registers users)
+
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+
+    engine = create_engine(f"sqlite:///{db_file}")
+    try:
+        with engine.connect() as connection:
+            diff = compare_metadata(MigrationContext.configure(connection), Base.metadata)
+    finally:
+        engine.dispose()
+    assert diff == []
