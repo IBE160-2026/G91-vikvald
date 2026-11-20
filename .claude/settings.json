@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(rm -fr:*)",
+      "Bash(sudo:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push --force-with-lease:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push origin HEAD:main:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean:*)",
+      "Bash(git branch -D:*)",
+      "Bash(git filter-branch:*)",
+      "Bash(git config --global:*)",
+      "Bash(git config --system:*)",
+      "Bash(gh repo delete:*)",
+      "Bash(gh repo edit:*)",
+      "Bash(gh api:*)",
+      "Bash(gh secret:*)",
+      "Bash(gh release delete:*)",
+      "Bash(gh issue delete:*)",
+      "Bash(gcloud projects delete:*)",
+      "Bash(gcloud billing:*)",
+      "Bash(gcloud iam:*)",
+      "Bash(gcloud auth:*)",
+      "Bash(docker system prune:*)",
+      "Bash(brew uninstall:*)",
+      "Bash(brew unlink:*)",
+      "Read(./.env)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.ssh/**)",
+      "Edit(./.claude/settings.json)",
+      "Edit(./CLAUDE.md)"
+    ]
+  }
+}

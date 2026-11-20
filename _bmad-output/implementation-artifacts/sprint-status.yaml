@@ -1,0 +1,106 @@
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created, ready for development
+#   - in-progress: Developer actively working on implementation
+#   - review: Implementation complete, ready for review
+#   - done: Story completed
+
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+
+# Action Item Status:
+#   - open: Committed during a retrospective, not yet addressed
+#   - in-progress: Actively being worked on
+#   - done: Completed
+
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when its first story starts (via build's sprint sync)
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates the next story after the previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Retrospective appends its action items to action_items; the status view surfaces open ones
+generated: 11-20-2026 14:01
+last_updated: 11-20-2026 14:01
+project: G91-vikvald
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+development_status:
+  epic-1: backlog
+  1-1-sett-opp-skjelettet-som-starter-med-én-kommando: backlog
+  1-2-kjør-testene-automatisk-ved-hver-pull-request-kan-kuttes: backlog
+  1-3-vis-feil-på-norsk-og-les-innstillinger-fra-ett-sted: backlog
+  1-4-opprett-konto: backlog
+  1-5-logg-inn: backlog
+  1-6-bruk-appen-innlogget-logg-ut-og-få-fant-ikke-siden: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-opprett-emner-og-se-dem-på-forsiden: backlog
+  2-2-legg-til-forelesninger-og-finn-dem-i-sidemenyen: backlog
+  2-3-last-opp-pdf-notater-til-en-forelesning: backlog
+  2-4-godta-vilkårene-før-første-opplasting: backlog
+  2-5-slett-filer-forelesninger-og-emner-med-bekreftelse: backlog
+  2-6-erstatt-en-fil-med-en-ny-versjon: backlog
+  2-7-se-kontoen-og-slett-den: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-lag-flashcards-fra-en-forelesning-i-demomodus: backlog
+  3-2-velg-omfang-og-se-hvordan-genereringen-gikk: backlog
+  3-3-øv-på-flashcards-fra-én-forelesning: backlog
+  3-4-hurtigtaster-fokus-og-smal-skjerm-i-økten: backlog
+  3-5-lagre-økten-og-se-resultatet: backlog
+  3-6-øv-på-flashcards-fra-hele-emnet: backlog
+  3-7-rett-og-slett-kort-og-se-hva-som-slettes: backlog
+  epic-3-retrospective: optional
+
+  epic-4: backlog
+  4-1-lag-quizspørsmål-fra-en-forelesning: backlog
+  4-2-ta-quiz-på-en-forelesning: backlog
+  4-3-se-poengsum-og-feilsvar-etter-quizen: backlog
+  4-4-ta-quiz-på-hele-emnet: backlog
+  4-5-slett-et-dårlig-spørsmål-under-quizen: backlog
+  epic-4-retrospective: optional
+
+  epic-5: backlog
+  5-1-regn-ut-øvd-ett-sted-og-vis-det-i-sidemenyen-og-siste-økt: backlog
+  5-2-vis-tellinger-og-øvd-03-11-i-forelesningstabellen-kan-kuttes: backlog
+  5-3-vis-eksamen-04-12-om-3-uker-4-av-8-forelesninger-øvd-på-fors: backlog
+  5-4-vis-emnekort-med-neste-å-øve-på-på-forsiden: backlog
+  5-5-vis-semesterlinja-på-forsiden-emnesiden-og-forelesningssiden: backlog
+  epic-5-retrospective: optional
+
+  epic-6: backlog
+  6-1-koble-gemini-på-vertex-ai-inn-bak-språkmodellporten: backlog
+  6-2-fastsett-instruksene-til-modellen-for-flashcards-og-quiz: backlog
+  6-3-send-sider-med-formler-som-bilde-og-merk-innholdet-kan-kutte: backlog
+  6-4-lag-testbruker-og-eksempelemne-med-eksempelnotater: backlog
+  6-5-fullfør-readme-legg-til-lisens-og-vis-testdekningen: backlog
+  6-6-gjør-den-avsluttende-kontrollen-av-universell-utforming-skje: backlog
+  epic-6-retrospective: optional
+
+  epic-7: backlog
+  7-1-lag-modellkort-fra-en-forelesning: backlog
+  7-2-øv-på-modellkort-og-endre-huskeregelen: backlog
+  epic-7-retrospective: optional
+
+  epic-8: backlog
+  8-1-lag-fritekstspørsmål: backlog
+  8-2-øv-på-fritekst-og-vurder-deg-selv: backlog
+  8-3-fritekst-for-hele-emnet-og-slett-dårlige-spørsmål: backlog
+  epic-8-retrospective: optional
+
+  epic-9: backlog
+  9-1-lag-sammendrag-av-en-forelesning: backlog
+  9-2-les-sammendraget-og-lag-et-nytt: backlog
+  epic-9-retrospective: optional

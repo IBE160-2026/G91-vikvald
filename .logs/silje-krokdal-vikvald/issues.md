@@ -39,7 +39,7 @@
 - [x] 2026-11-12 [prd](998-2026-11-09-12-49-06-prd.md) — svar på refleksjonsspørsmålene i tilbakemeldingen på PRD-en (teknologistakken, vurdering av faglige feil) (#20) (løst 2026-11-13)
 - [ ] 2026-11-12 [prd](998-2026-11-09-12-49-06-prd.md) — tegn skisse 03 og 04 på nytt uten Huskeregler-raden, hvis de skal brukes i rapporten (#18)
 - [x] 2026-11-13 [prd](998-2026-11-09-12-49-06-prd.md) — i arkitekturfasen: be KI sammenligne stakken med et enklere alternativ og begrunne den opp mot sensorveiledningen (lovet i refleksjonen) (løst 2026-11-14)
-- [ ] 2026-11-13 [prd](998-2026-11-09-12-49-06-prd.md) — sett budsjettvarsel hvis Google Cloud-kontoen oppgraderes fra prøveperioden
+- [x] 2026-11-13 [prd](998-2026-11-09-12-49-06-prd.md) — sett budsjettvarsel hvis Google Cloud-kontoen oppgraderes fra prøveperioden (løst 2026-11-20: varsel på 5 kr er satt)
 - [x] 2026-11-14 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — avgjør kanttilfellene fra UX-gjennomgangen (gruppe 3) i arkitekturen eller i storiene (#18) (løst 2026-11-14: avgjort i storiene)
 - [ ] 2026-11-14 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — rydd struktur og språk i DESIGN.md og EXPERIENCE.md (gruppe 4) (#18)
 - [ ] 2026-11-14 [ux-designkonsepter](997-2026-11-10-10-49-50-ux-designkonsepter.md) — velg og mål tre nye emnefarger ved koding
@@ -53,3 +53,5 @@
 - [x] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — fullfør de siste stegene i bmad-create-epics-and-stories og åpne pull request (#29) (løst 2026-11-14: sluttsjekk `ff1f8a8`, pull request åpnet)
 - [ ] 2026-11-14 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — avstem omfanget mot milepælen 27.11 i sprintplanleggingen (#30)
 - [ ] 2026-11-20 [epics-og-stories](995-2026-11-14-16-49-49-epics-og-stories.md) — gjenstående funn fra gjennomgangen av epics.md: feilkoder, kanttilfeller, struktur og språk (#32)
+- [x] 2026-11-20 [sprintoppsett-goal](994-2026-11-20-14-26-18-sprintoppsett-goal.md) — godkjenn datoene i kuttreglene (27.11, 1.12, 5.12) i PR-en før kjøringen starter (#30) (løst 2026-11-20: godtatt, med egne datoer for epic 9, 8 og 7)
+- [x] 2026-11-20 [sprintoppsett-goal](994-2026-11-20-14-26-18-sprintoppsett-goal.md) — beskytt `main` på GitHub før kjøringen starter (løst 2026-11-20: ikke tilgang, lokale git-hooker i stedet)
