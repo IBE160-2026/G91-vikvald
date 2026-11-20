@@ -1,15 +1,31 @@
 """Shared test fixtures: in-memory SQLite (aiosqlite + StaticPool) instead of Postgres."""
 
-from collections.abc import AsyncIterator
+import os
 
-import pytest
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
+# Tests must never reach a real model provider. Set before the app (and its
+# settings) is imported, so a value from the shell or a .env file cannot win.
+os.environ["LLM_PROVIDER"] = "mock"
 
-from app.core.db import get_session, make_engine
-from app.main import app
+from collections.abc import AsyncIterator, Iterator  # noqa: E402
+
+import pytest  # noqa: E402
+from httpx import ASGITransport, AsyncClient  # noqa: E402
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker  # noqa: E402
+
+from app.core.config import get_settings  # noqa: E402
+from app.core.db import get_session, make_engine  # noqa: E402
+from app.main import app  # noqa: E402
 
 TEST_DATABASE_URL = "sqlite+aiosqlite://"
+
+
+@pytest.fixture(autouse=True)
+def fresh_settings() -> Iterator[None]:
+    """Settings are cached. Clear the cache around every test, so a test that
+    changes the environment with monkeypatch gets (and leaves) fresh settings."""
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 @pytest.fixture
