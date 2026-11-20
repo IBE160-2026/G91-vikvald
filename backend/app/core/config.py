@@ -19,7 +19,11 @@ DEMO_PROVIDERS = ("mock", "mock-invalid")
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(REPO_ROOT_ENV, ".env"), env_file_encoding="utf-8", extra="ignore"
+        env_file=(REPO_ROOT_ENV, ".env"),
+        env_file_encoding="utf-8",
+        extra="ignore",
+        # An empty value (e.g. "FEATURE_SUMMARY=") means the default, as in Docker Compose.
+        env_ignore_empty=True,
     )
 
     # "local" means demo/development mode on the developer's own machine.

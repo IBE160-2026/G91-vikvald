@@ -6,7 +6,7 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 
 import pytest
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel
 
@@ -36,6 +36,10 @@ def _make_test_app() -> FastAPI:
     @app.get("/api/test/crash")
     async def crash() -> None:
         raise RuntimeError("hemmelig")
+
+    @app.get("/api/test/unauthorized")
+    async def unauthorized() -> None:
+        raise HTTPException(401, headers={"WWW-Authenticate": "Bearer"})
 
     @app.get("/api/test/summary", dependencies=[Depends(require_feature("summary"))])
     async def summary() -> dict[str, str]:
@@ -78,6 +82,13 @@ async def test_ar12_feil_metode_gir_method_not_allowed_med_allow(test_client: As
     assert response.status_code == 405
     assert _assert_error(response.json(), "METHOD_NOT_ALLOWED") == {}
     assert "GET" in response.headers["allow"]
+
+
+async def test_ar12_httpexception_beholder_status_og_headere(test_client: AsyncClient) -> None:
+    response = await test_client.get("/api/test/unauthorized")
+    assert response.status_code == 401
+    assert _assert_error(response.json(), "BAD_REQUEST") == {}
+    assert response.headers["www-authenticate"] == "Bearer"
 
 
 async def test_ar12_valideringsfeil_navngir_feltet(test_client: AsyncClient) -> None:

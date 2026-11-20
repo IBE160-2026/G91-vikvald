@@ -54,9 +54,10 @@ def error_response(
     code: ErrorCode,
     details: dict[str, Any] | None = None,
     headers: dict[str, str] | None = None,
+    status_code: int | None = None,
 ) -> JSONResponse:
     return JSONResponse(
-        status_code=ERROR_STATUS[code],
+        status_code=status_code or ERROR_STATUS[code],
         content={"error": {"code": code.value, "details": details or {}}},
         headers=headers,
     )
@@ -79,9 +80,11 @@ async def _handle_app_error(_request: Request, exc: Exception) -> JSONResponse:
 
 async def _handle_http_exception(_request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, StarletteHTTPException)
-    # The status always follows the code, so code and status never disagree.
-    # Headers (e.g. Allow on 405) are kept.
-    return error_response(_code_for_http_status(exc.status_code), headers=exc.headers)
+    # Keep the original status (e.g. 401, 503) and headers (e.g. Allow on 405,
+    # WWW-Authenticate on 401); only the body is rewritten to the shared format.
+    return error_response(
+        _code_for_http_status(exc.status_code), headers=exc.headers, status_code=exc.status_code
+    )
 
 
 async def _handle_validation_error(_request: Request, exc: Exception) -> JSONResponse:
@@ -91,7 +94,8 @@ async def _handle_validation_error(_request: Request, exc: Exception) -> JSONRes
     for error in exc.errors():
         loc = [str(part) for part in error.get("loc", ())[1:]]
         name = ".".join(loc) if loc else str(error.get("loc", ("request",))[0])
-        fields[name] = str(error.get("type", "invalid"))
+        # Keep the first error per field.
+        fields.setdefault(name, str(error.get("type", "invalid")))
     return error_response(ErrorCode.VALIDATION_ERROR, {"fields": fields})
 
 

@@ -9,16 +9,42 @@ from pathlib import Path
 import pytest
 from httpx import AsyncClient
 
-from app.core.config import Settings
+from typing import get_args
+
+from app.core.config import Settings, get_settings
+from app.core.features import Feature
+
+SWITCHES = ("FEATURE_MNEMONICS", "FEATURE_FREETEXT", "FEATURE_SUMMARY")
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 ENV_EXAMPLE = BACKEND_DIR.parent / ".env.example"
 
 
-async def test_ar11_config_standardverdier(
+def test_ar11_standardverdiene_er_mock_og_bryterne_paa(monkeypatch: pytest.MonkeyPatch) -> None:
+    for name in ("LLM_PROVIDER", *SWITCHES):
+        monkeypatch.delenv(name, raising=False)
+    settings = Settings(_env_file=None)  # type: ignore[call-arg]
+    assert settings.LLM_PROVIDER == "mock"
+    assert settings.demo_mode is True
+    assert settings.FEATURE_MNEMONICS is True
+    assert settings.FEATURE_FREETEXT is True
+    assert settings.FEATURE_SUMMARY is True
+
+
+def test_ar11_tom_verdi_gir_standardverdien(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("FEATURE_SUMMARY", "")
+    assert Settings(_env_file=None).FEATURE_SUMMARY is True  # type: ignore[call-arg]
+
+
+def test_ar11_hver_bryter_har_en_innstilling() -> None:
+    for feature in get_args(Feature):
+        assert f"FEATURE_{feature.upper()}" in Settings.model_fields, feature
+
+
+async def test_ar11_config_med_alle_bryterne_paa(
     client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    for name in ("FEATURE_MNEMONICS", "FEATURE_FREETEXT", "FEATURE_SUMMARY"):
+    for name in SWITCHES:
         monkeypatch.setenv(name, "true")
     response = await client.get("/api/config")
     assert response.status_code == 200
@@ -65,7 +91,8 @@ async def test_ar11_bryter_av_vises_i_config(
 
 
 def test_ar17_pytest_kjoerer_med_mock() -> None:
-    assert os.environ["LLM_PROVIDER"] == "mock"
+    assert get_settings().LLM_PROVIDER == "mock"
+    assert get_settings().demo_mode is True
 
 
 def test_ar11_ugyldig_provider_stopper_oppstart() -> None:
