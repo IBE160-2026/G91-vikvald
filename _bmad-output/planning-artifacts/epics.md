@@ -3067,6 +3067,17 @@ slik at jeg øver på modellene sammen med de andre kortene og husker dem på mi
 | NFR-2a (modellkort) | 7.1 |
 | UX-DR28 | 7.2 |
 
+### Avgjort av Silje 2026-11-14
+
+1. «Lag modellkort» står på Flashcards-raden, som avgjort 12.11 og i UX-DR18. Skisse 04 er utdatert på dette punktet.
+2. Forsiden på modellkort i demomodus er «Forklar [linja rett over lista].», og en liste teller bare når den står på én side.
+3. Et modellkort må ha minst tre punkter, også med ekte modell.
+4. Det vises ingen egen melding når noen modellkort forkastes, bare FR-47 når ingen blir laget.
+5. Er huskeregler slått av, øves modellkort som finnes, som vanlige flashcards uten «Endre huskeregel».
+6. En tom huskeregel avvises med «Skriv inn en huskeregel.» (E33).
+7. Mock-modellen hopper over modellkort som finnes fra før, slik som for flashcards i epic 3.
+8. Kanttilfellet E33 er løst slik kriteriene beskriver.
+
 ## Epic 8: Fritekstspørsmål med selvvurdering (bør ha)
 
 Studenten øver på kortsvar- og langsvarsspørsmål, skriver svaret selv, ser modellsvaret med kilde og vurderer seg selv. Bygges etter epic 7 og kuttes før den (bryter `FEATURE_FREETEXT`).
@@ -3266,6 +3277,13 @@ slik at jeg kan repetere alt før eksamen og bare øve på spørsmål jeg stoler
 | UX-DR30 | 8.2 |
 | UX-DR35 (fritekst, ført opp i oppdraget) | 8.2 |
 
+### Avgjort av Silje 2026-11-14
+
+1. «Kortsvar» og «Vanlig» er forhåndsvalgt når fritekst lages.
+2. Valget i selvvurderingen går rett videre til neste spørsmål.
+3. Mock-modellen hopper over fritekstspørsmål som finnes fra før, slik som for flashcards i epic 3.
+4. Kanttilfellene A8, E27 og E28 er løst slik kriteriene beskriver.
+
 ## Epic 9: Sammendrag (bør ha)
 
 Studenten leser et sammendrag av forelesningen med kilde på hvert punkt, og kan lage et nytt som erstatter det gamle. Bygges sist og kuttes først (bryter `FEATURE_SUMMARY`).
@@ -3412,16 +3430,6 @@ slik at jeg kan repetere forelesningen og stole på hvor punktene kommer fra.
 
 ### Avgjort av Silje 2026-11-14
 
-1. «Lag modellkort» står på Flashcards-raden, som avgjort 12.11 og i UX-DR18. Skisse 04 er utdatert på dette punktet.
-2. Forsiden på modellkort i demomodus er «Forklar [linja rett over lista].», og en liste teller bare når den står på én side.
-3. Et modellkort må ha minst tre punkter, også med ekte modell.
-4. Det vises ingen egen melding når noen modellkort forkastes, bare FR-47 når ingen blir laget.
-5. Er huskeregler slått av, øves modellkort som finnes, som vanlige flashcards uten «Endre huskeregel».
-6. En tom huskeregel avvises med «Skriv inn en huskeregel.» (E33).
-7. «Kortsvar» og «Vanlig» er forhåndsvalgt når fritekst lages.
-8. Valget i selvvurderingen går rett videre til neste spørsmål.
-9. Sammendraget i demomodus har ett tema per fil, med filnavnet som tema.
-10. Over 15 gyldige sammendragspunkter: de 15 første beholdes, og resten telles som forkastet.
-11. Tekstene «Notatene ga ikke grunnlag for et sammendrag med minst 5 punkter. Det gamle sammendraget er beholdt.», «Les sammendrag» og «… og sammendraget av forelesningen».
-12. Mock-modellen hopper over modellkort og fritekstspørsmål som finnes fra før, slik som for flashcards i epic 3.
-13. Kanttilfellene A8, E27, E28 og E33 er løst slik kriteriene beskriver.
+1. Sammendraget i demomodus har ett tema per fil, med filnavnet som tema.
+2. Over 15 gyldige sammendragspunkter: de 15 første beholdes, og resten telles som forkastet.
+3. Tekstene «Notatene ga ikke grunnlag for et sammendrag med minst 5 punkter. Det gamle sammendraget er beholdt.», «Les sammendrag» og «… og sammendraget av forelesningen».
