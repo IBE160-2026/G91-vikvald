@@ -203,7 +203,7 @@ describe("«Logg ut»", () => {
 });
 
 describe("initialOf", () => {
-  it("UX-DR4: første tegn i e-posten med stor bokstav", () => {
+  it("UX-DR6: første tegn i e-posten med stor bokstav", () => {
     expect(initialOf("klara@eksempel.no")).toBe("K");
     expect(initialOf("øyvind@eksempel.no")).toBe("Ø");
     expect(initialOf("1klara@eksempel.no")).toBe("1");

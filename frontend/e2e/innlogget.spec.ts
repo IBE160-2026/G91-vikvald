@@ -122,7 +122,7 @@ test.describe("Innlogget, logg ut og «Fant ikke siden» (story 1.6)", () => {
     await expectOnLoginPage(other, "");
   });
 
-  test("UX-DR21: ukjent adresse gir 404, h1 «Fant ikke siden» og «Gå til forsiden» med Tab, uten axe-brudd", async ({
+  test("UX-DR41: ukjent adresse gir 404, h1 «Fant ikke siden» og «Gå til forsiden» med Tab, uten axe-brudd", async ({
     page,
   }) => {
     const response = await page.goto("/finnes-ikke");

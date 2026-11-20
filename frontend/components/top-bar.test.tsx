@@ -16,7 +16,7 @@ describe("TopBar og SemesterLine", () => {
     expect(header.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
   });
 
-  it("UX-DR4: med logoHref er logoen en lenke til forsiden", () => {
+  it("UX-DR6: med logoHref er logoen en lenke til forsiden", () => {
     render(<TopBar logoHref="/" />);
     const link = screen.getByRole("link", { name: "Studiekamerat" });
     expect(link.getAttribute("href")).toBe("/");

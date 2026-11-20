@@ -44,7 +44,7 @@ function openDialog(props: Parameters<typeof Harness>[0] = {}) {
 }
 
 describe("Dialog", () => {
-  it("UX-DR41: er en modal dialog med navn fra tittelen, over sløret", () => {
+  it("UX-DR21: er en modal dialog med navn fra tittelen, over sløret", () => {
     const { dialog } = openDialog();
     expect(dialog.getAttribute("aria-modal")).toBe("true");
     const title = document.getElementById(dialog.getAttribute("aria-labelledby") ?? "");
@@ -55,7 +55,7 @@ describe("Dialog", () => {
     expect(dialog.parentElement?.className).toContain("bg-scrim-veil");
   });
 
-  it("UX-DR41: lukkekrysset heter «Lukk», og knappene står «Avbryt» før hovedhandlingen", () => {
+  it("UX-DR21: lukkekrysset heter «Lukk», og knappene står «Avbryt» før hovedhandlingen", () => {
     const { dialog } = openDialog();
     const buttons = [...dialog.querySelectorAll("button")].map(
       (b) => b.getAttribute("aria-label") ?? b.textContent,
@@ -63,7 +63,7 @@ describe("Dialog", () => {
     expect(buttons).toEqual(["Lukk", "Avbryt", "Slett fila"]);
   });
 
-  it("UX-DR41: fokus går inn i dialogen når den åpnes", () => {
+  it("UX-DR21: fokus går inn i dialogen når den åpnes", () => {
     openDialog();
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Avbryt" }));
     cleanup();
@@ -71,7 +71,7 @@ describe("Dialog", () => {
     expect(document.activeElement).toBe(screen.getByLabelText("Navn"));
   });
 
-  it("UX-DR41: Tab og Shift+Tab holder fokus inne i dialogen", () => {
+  it("UX-DR21: Tab og Shift+Tab holder fokus inne i dialogen", () => {
     const { dialog } = openDialog();
     const close = screen.getByRole("button", { name: "Lukk" });
     const primary = screen.getByRole("button", { name: "Slett fila" });
@@ -82,7 +82,7 @@ describe("Dialog", () => {
     expect(document.activeElement).toBe(primary);
   });
 
-  it("UX-DR41: Esc lukker uten å kalle hovedhandlingen, og fokus går tilbake til åpneren", () => {
+  it("UX-DR21: Esc lukker uten å kalle hovedhandlingen, og fokus går tilbake til åpneren", () => {
     const onPrimary = vi.fn();
     const { opener, dialog } = openDialog({ onPrimary });
     fireEvent.keyDown(dialog, { key: "Escape" });
@@ -91,7 +91,7 @@ describe("Dialog", () => {
     expect(document.activeElement).toBe(opener);
   });
 
-  it("UX-DR41: «Avbryt» og «Lukk» lukker, og hovedhandlingen kalles bare av sin knapp", () => {
+  it("UX-DR21: «Avbryt» og «Lukk» lukker, og hovedhandlingen kalles bare av sin knapp", () => {
     const onPrimary = vi.fn();
     const { opener } = openDialog({ onPrimary });
     fireEvent.click(screen.getByRole("button", { name: "Avbryt" }));
@@ -110,7 +110,7 @@ describe("Dialog", () => {
     [560, "w-[560px]"],
     [640, "w-[640px]"],
     [720, "w-[720px]"],
-  ] as const)("UX-DR41: bredde %s gir %s", (width, expected) => {
+  ] as const)("UX-DR21: bredde %s gir %s", (width, expected) => {
     const { dialog } = openDialog({ width });
     expect(dialog.className).toContain(expected);
   });

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { iconProps } from "./icon";
 
-// «Fant ikke siden» (UX-DR21): used both for unknown addresses and for things
+// «Fant ikke siden» (UX-DR41): used both for unknown addresses and for things
 // that do not exist (or belong to someone else) inside the app.
 export function NotFoundView() {
   return (

@@ -7,7 +7,7 @@ import { NotFoundView } from "./not-found-view";
 afterEach(cleanup);
 
 describe("NotFoundView", () => {
-  it("UX-DR21: én h1 «Fant ikke siden» og lenken «Gå til forsiden» til /", () => {
+  it("UX-DR41: én h1 «Fant ikke siden» og lenken «Gå til forsiden» til /", () => {
     render(<NotFoundView />);
     const headings = screen.getAllByRole("heading");
     expect(headings).toHaveLength(1);
