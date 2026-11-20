@@ -1773,15 +1773,6 @@ slik at appen vet hva jeg har øvd på, og jeg ser hvilke kort jeg bør se på i
 **Så** er alle ruter fylt, «Avslutt økt» er byttet med «✓ Økten er ferdig og lagret», og symbolforklaringen viser «Kunne ikke, repetert» (UX-DR8)
 **Og** «Økten er ferdig» leses opp i et levende område (UX-DR44)
 
-**Gitt** at «øvd» skal regnes ut ett sted (AR-9)
-**Når** storien er ferdig
-**Så** finnes én funksjon i `practice` som gir forelesningene i et emne som er øvd, med dato for siste økt
-**Og** en forelesning er øvd når den har en lagret økt; en emneøkt teller for forelesningene som hadde innhold (tellinger fra `content`) da økten startet
-
-**Gitt** at siste økt i et emne skal kunne vises
-**Når** `GET /api/subjects/{id}/practice-sessions/latest` kalles
-**Så** gir den den siste lagrede økten i emnet, eller ingenting
-
 **Gitt** en ferdig økt *(Kan kuttes, FR-26)*
 **Når** resultatsiden (08) vises
 **Så** viser `result-summary` overlinjen «ØKT FERDIG», tittelen «Du har gått gjennom alle 24 kortene», underteksten «Uke 37: Merkevare · kortene du ikke kunne, ble repetert til slutt i økten», og to felt «Kunne 19» med «79 % av kortene» og «Kunne ikke 5» med «Repetert til slutt i økten», uten feiring (UX-DR34)
@@ -1830,10 +1821,6 @@ slik at jeg kan repetere hele pensum før eksamen.
 **Når** emnesiden vises
 **Så** vises ikke Flashcards-raden, slik at ingen tom økt kan startes *(A15/E1)*
 
-**Gitt** at emnet har en lagret økt
-**Når** emnesiden vises
-**Så** står SISTE ØKT nederst i kortet med type, omfang, dato og resultat («Flashcards · Markedsføring, hele emnet» og «12.11 · Kunne 19 av 24»)
-
 **Gitt** at studenten trykker «Øv på flashcards»
 **Når** økten starter
 **Så** gjenbruker den øktrammen fra 3.3–3.5 med kortene fra alle forelesningene i tilfeldig rekkefølge (FR-23)
@@ -1842,7 +1829,7 @@ slik at jeg kan repetere hele pensum før eksamen.
 **Gitt** en emneøkt med minst ett markert kort
 **Når** den lagres
 **Så** er `lecture_id` tom og `subject_id` satt (FR-56)
-**Og** funksjonen for «øvd» regner forelesningene som hadde kort da økten startet, som øvd, men ikke forelesninger som fikk kort senere
+**Og** hvilke forelesninger en emneøkt teller for, regnes ut av funksjonen i story 5.1
 
 **Gitt** resultatsiden etter en emneøkt
 **Når** studenten velger tilbake
@@ -2288,9 +2275,9 @@ slik at jeg vet hva jeg har gjort uten å måtte huske det selv.
 
 **Gitt** en lagret økt på hele emnet (`lecture_id` tom) med `started_at` T
 **Når** funksjonen kjøres
-**Så** teller økten for alle forelesninger i emnet som hadde øvingsinnhold (flashcards, quizspørsmål eller fritekstspørsmål) laget før eller ved T
-**Og** den teller ikke for forelesninger som fikk sitt første innhold etter T, og heller ikke for forelesninger uten innhold
-**Og** spørsmålet «hadde innhold ved T» besvares av én funksjon i `content` (gjenbruker tellingsregisteret fra epic 2–4), slik at `practice` ikke leser innholdstabellene direkte (AR-16)
+**Så** teller økten for alle forelesninger i emnet som hadde innhold av øktens type (flashcards for en flashcardøkt, quizspørsmål for en quiz og fritekstspørsmål for en fritekstøkt) laget før eller ved T
+**Og** den teller ikke for forelesninger som fikk sitt første innhold av den typen etter T, og heller ikke for forelesninger uten innhold av den typen
+**Og** spørsmålet «hadde innhold av typen ved T» besvares av én funksjon i `content` med typen som parameter (gjenbruker tellingsregisteret fra epic 2–4), slik at `practice` ikke leser innholdstabellene direkte (AR-16)
 
 **Gitt** en forelesning uten noen økt som teller
 **Når** funksjonen kjøres
