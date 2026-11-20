@@ -2445,8 +2445,9 @@ slik at jeg kommer i gang med én knapp i stedet for å lete.
 **Gitt** et emne med øvingsinnhold *(Kan kuttes: FR-58)*
 **Når** kortet vises
 **Så** står NESTE Å ØVE PÅ med den eldste forelesningen (etter dato) som har innhold og ikke er øvd, og en grunn, for eksempel «Uke 38: Markedsmiksen» og «16 kort, ikke øvd ennå»
-**Og** hovedknappen «Øv nå» starter flashcards for den forelesningen (gjenbruker økten fra epic 3)
-**Og** har forelesningen bare quiz eller fritekst, følger knappen regelen for «Øv nå» som avgjøres i epic 3 (A15, E1)
+**Og** hovedknappen «Øv nå» starter en økt for den forelesningen med den første typen som har innhold, i rekkefølgen flashcards, quiz og fritekst (bare hvis fritekst er slått på). Den gjenbruker øktene fra epic 3, 4 og 8 og starter aldri en tom økt *(A15/E1)*
+**Og** grunnen nevner typen som startes, for eksempel «16 kort, ikke øvd ennå» eller «12 quizspørsmål, ikke øvd ennå»
+**Og** en test viser at en forelesning med bare quizspørsmål starter quiz, ikke en tom flashcardøkt
 
 **Gitt** at alle forelesninger med innhold er øvd *(Kan kuttes: FR-58)*
 **Når** kortet vises
