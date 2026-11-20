@@ -5,7 +5,9 @@ import sys
 
 from fastapi import FastAPI
 
+from app.core.errors import install_error_handlers
 from app.core.health import router as health_router
+from app.core.public_config import router as public_config_router
 
 # When started by Uvicorn, app/core/logging.json configures logging. This fallback
 # makes sure app logs also reach stdout in other setups (e.g. `uvicorn --reload`).
@@ -16,6 +18,14 @@ if not logging.getLogger().handlers:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
 
-app = FastAPI(title="Studiekamerat API")
 
-app.include_router(health_router)
+def create_app() -> FastAPI:
+    """Build the app. Tests use this to make an app with extra test-only routes."""
+    app = FastAPI(title="Studiekamerat API")
+    install_error_handlers(app)
+    app.include_router(health_router)
+    app.include_router(public_config_router)
+    return app
+
+
+app = create_app()
