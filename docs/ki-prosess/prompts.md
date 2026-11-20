@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-20: Story 1.1 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `1-1-sett-opp-skjelettet-som-starter-med-én-kommando`. Hensikten til `bmad-build-auto` var «Story 1.1 fra `_bmad-output/planning-artifacts/epics.md`: Sett opp skjelettet som starter med én kommando».
+
+**Resultat:** Skjelettet med Docker Compose, backend og frontend. Spesifikasjon og gjennomgang i [spec-1-1](../../_bmad-output/implementation-artifacts/spec-1-1-sett-opp-skjelettet-som-starter-med-en-kommando.md).
+
 ## 2026-11-20: Forberede den autonome kjøringen
 
 > jeg ønsker å bruke goal kommandoen for å gjennomføre alle epics og stories autonomisk uten human in the loop. men før vi gjør det, må vi klargjøre hva jeg må gjøre i forkant, blant annet sørge for at nødvendige API nøkler er på plass, og at nødvendige cli programmer er på plass. Lag en liste over hva jeg må gjøre, slik at du kan gjennomføre alle stories automatisk (du skal da bruke subagenter for hver story).
