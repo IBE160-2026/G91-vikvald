@@ -74,6 +74,7 @@ De fire flytene i `EXPERIENCE.md` (avsnittet «Brukerreiser (Key Flows)») skal 
 | 4 | Klara avslutter etter semesteret | 2 |
 
 - Én testfil per flyt i Playwright-mappa til frontenden, for eksempel `e2e/brukerreiser/flyt-1-etter-forelesning.spec.ts`. Testen går gjennom stegene i nettleseren i demomodus mot `docker compose up --build`, og kjører axe på hver side den besøker.
+- Testnavnene har ID-ene de dekker, slik SK-1 og AR-17 krever: flyten og brukerreisen i `describe` (for eksempel `UJ-1 / flyt 1: Klara etter en forelesning`) og krav-ID-ene i hvert steg (for eksempel `FR-17: lager flashcards`). Oversikten i `docs/testing/brukerreiser.md` viser de samme ID-ene.
 - Når en epic er ferdig, utvider en subagent flyttestene med stegene som nå er bygd. Den lager egen branch og PR som lenker til flytene i `EXPERIENCE.md`, kjører alle testene og fletter når alt er grønt. Den følger de samme reglene som story-prompten.
 - `docs/testing/brukerreiser.md` har én tabell per flyt: steg, testen som dekker det, og status (`testet`, `ikke bygd ennå` eller `kuttet` med issue-nummer). Stegene hentes fra `EXPERIENCE.md`.
 - Steg som hører til en kuttet funksjon, tas ikke med i testen. De står som `kuttet` i oversikten, og kjøringen stopper ikke av den grunn.
