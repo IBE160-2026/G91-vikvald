@@ -115,6 +115,10 @@ Alle innstillingene har standardverdier, så `.env` er valgfri. Vil du endre noe
 | `APP_ENV` | `local` | Miljøet appen kjører i. `local` er demo- og utviklingsmodus på egen maskin. |
 | `DATABASE_URL` | `postgresql+asyncpg://studiekamerat:studiekamerat@localhost:5432/studiekamerat` | Databasen backenden bruker i utviklingsmodus. I Docker Compose kobler backenden seg til tjenesten `db`. |
 | `POSTGRES_PASSWORD` | `studiekamerat` | Passordet til den lokale Postgres-databasen i Docker. Bare for lokal bruk. Postgres setter passordet bare første gang databasen lages. Endrer du det senere, må du endre det både her og i `DATABASE_URL`, og kjøre `docker compose down -v` (det sletter den lokale databasen). |
+| `LLM_PROVIDER` | `mock` | Hvilken språkmodell appen bruker. `mock` og `mock-invalid` er demomodus med ferdige svar, uten nøkkel og uten nett. `vertex` er Google Vertex AI (kommer i en senere story). En annen verdi stopper backenden ved oppstart med en logglinje som nevner `LLM_PROVIDER`. |
+| `FEATURE_MNEMONICS` | `true` | Slår huskeregler av (`false`) eller på (`true`). Når den er av, svarer API-et `404` med koden `FEATURE_DISABLED`. |
+| `FEATURE_FREETEXT` | `true` | Slår spørsmål med fritekstsvar av eller på, på samme måte. |
+| `FEATURE_SUMMARY` | `true` | Slår sammendrag av eller på, på samme måte. |
 | `API_INTERNAL_URL` | `http://backend:8000` | Hvor frontenden sender `/api/*`. Leses når frontenden bygges. I utviklingsmodus: `http://localhost:8000`. |
 
 ## Planleggingsdokumentene

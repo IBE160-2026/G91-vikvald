@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-20: Story 1.3 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `1-3-vis-feil-på-norsk-og-les-innstillinger-fra-ett-sted`. Hensikten til `bmad-build-auto` var «Story 1.3 fra `_bmad-output/planning-artifacts/epics.md`: Vis feil på norsk og les innstillinger fra ett sted».
+
+**Resultat:** Felles feilformat, meldingsfil, fetch-transport, TanStack Query og innstillingene `LLM_PROVIDER` og de tre bryterne med `GET /api/config`. Spesifikasjon og gjennomgang i [spec-1-3](../../_bmad-output/implementation-artifacts/spec-1-3-vis-feil-paa-norsk-og-les-innstillinger-fra-ett-sted.md).
+
 ## 2026-11-20: Story 1.2 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `1-2-kjør-testene-automatisk-ved-hver-pull-request-kan-kuttes`. Hensikten til `bmad-build-auto` var «Story 1.2 fra `_bmad-output/planning-artifacts/epics.md`: Kjør testene automatisk ved hver pull request».
