@@ -44,7 +44,7 @@ Retrospektivene (`epic-N-retrospective: optional`) hoppes over.
 > 9. Vent på CI hvis den finnes (`gh pr checks <nr> --watch`). Flett med `gh pr merge <nr> --merge --delete-branch` når alt er grønt.
 > 10. Rapporter: story, PR-nummer, testkommandoer med resultat, issues som ble laget, og om noe er uferdig.
 >
-> Regler: små commits med beskrivende norske meldinger. Ikke rør `CLAUDE.md`, `.claude/settings.json` eller planleggingsdokumentene (PRD, arkitektur, UX, `epics.md`). Ingen hemmeligheter, personopplysninger eller hele KI-økter i repoet. Automatiske tester kaller aldri Gemini (`LLM_PROVIDER=mock`). Får du ikke storien ferdig, flett ingenting, og rapporter hvorfor.
+> Regler: små commits med beskrivende norske meldinger. Ikke rør `CLAUDE.md`, `.claude/settings.json`, `.git/hooks/` eller planleggingsdokumentene (PRD, arkitektur, UX, `epics.md`). Ingen hemmeligheter, personopplysninger eller hele KI-økter i repoet. Automatiske tester kaller aldri Gemini (`LLM_PROVIDER=mock`). Bruk aldri `--no-verify`. Git-hookene på maskinen avviser commit og push rett til `main`, og blir du stoppet av dem, er det en feil i arbeidsflyten din, ikke i hooken. Får du ikke storien ferdig, flett ingenting, og rapporter hvorfor.
 
 ## Kuttregler
 
