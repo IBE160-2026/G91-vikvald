@@ -95,7 +95,10 @@ async def lecture(client: AsyncClient) -> str:
 
 
 @pytest.fixture(autouse=True)
-async def no_jobs_left() -> AsyncIterator[None]:
+async def no_jobs_left(engine: AsyncEngine) -> AsyncIterator[None]:
+    # Depends on engine, so it is torn down first: the jobs still running must
+    # finish before the test database is closed (an autouse fixture without
+    # this is torn down last, after engine.dispose()).
     yield
     await _finish_jobs()
 
