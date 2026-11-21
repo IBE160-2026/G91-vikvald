@@ -18,7 +18,12 @@ RUN uv sync --locked --no-dev --no-install-project
 
 COPY . .
 
-RUN useradd --create-home --uid 1000 app
+# The upload folder must exist and belong to "app" before the "uploads" volume is
+# mounted on it: Docker then copies this owner to a new, empty volume, so the
+# backend can write there.
+RUN useradd --create-home --uid 1000 app \
+    && mkdir -p /app/data/uploads \
+    && chown -R app:app /app/data
 USER app
 
 EXPOSE 8000

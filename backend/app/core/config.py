@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     FEATURE_SUMMARY: bool = True
     # Key that signs the login cookie (HS256). Has a default only when APP_ENV=local.
     JWT_SECRET: str = Field(default=None, validate_default=True)
+    # Folder for the uploaded PDFs. Relative paths are relative to the working
+    # directory (/app in Docker, where the "uploads" volume is mounted). Only
+    # core/storage uses it.
+    UPLOAD_DIR: Path = Path("data/uploads")
+    # The largest PDF that can be uploaded, in MiB (1 MiB = 1024 x 1024 bytes).
+    MAX_UPLOAD_MB: int = Field(default=20, gt=0)
 
     @field_validator("JWT_SECRET", mode="before")
     @classmethod

@@ -28,6 +28,10 @@ services:
       FEATURE_SUMMARY: ${FEATURE_SUMMARY:-true}
       # Empty means the built-in local key, which is only accepted when APP_ENV=local.
       JWT_SECRET: ${JWT_SECRET:-}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-20}
+    volumes:
+      # Uploaded PDFs. A named volume, so they survive a restart or rebuild of the backend.
+      - uploads:/app/data/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -50,3 +54,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:

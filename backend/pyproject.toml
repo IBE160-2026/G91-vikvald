@@ -13,6 +13,8 @@ dependencies = [
     "pydantic-settings==2.16.3",
     "pyjwt==2.15.1",
     "bcrypt==5.0.0",
+    "pymupdf==2.1",
+    "python-multipart==0.0.34",
 ]
 
 [dependency-groups]
@@ -30,3 +32,5 @@ package = false
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
+# PyMuPDF's compiled bindings trigger these on import; they are harmless.
+filterwarnings = ["ignore:builtin type .* has no __module__ attribute:DeprecationWarning"]
