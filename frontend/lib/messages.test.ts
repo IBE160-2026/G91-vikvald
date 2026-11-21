@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { FALLBACK_MESSAGE, messageFor, messages } from "./messages";
+import { FALLBACK_MESSAGE, messageFor, messageWithDetails, messages } from "./messages";
 
 describe("meldingsfila", () => {
   it("FR-1: reserveteksten er «Noe gikk galt. Prøv igjen.»", () => {
@@ -40,5 +40,51 @@ describe("meldingsfila", () => {
     for (const text of Object.values(messages)) {
       expect(text.trim()).not.toBe("");
     }
+  });
+
+  it("FR-9: NOT_PDF har den ordrette teksten", () => {
+    expect(messageFor("NOT_PDF")).toBe(
+      "Bare PDF-filer kan lastes opp. Lagre Word-dokumentet som PDF (Fil → Lagre som → PDF) og prøv igjen.",
+    );
+  });
+
+  it("FR-10: NO_READABLE_TEXT og PDF_UNREADABLE har de ordrette tekstene", () => {
+    expect(messageFor("NO_READABLE_TEXT")).toBe(
+      "Vi fant ingen tekst i denne PDF-en. Den kan være skannet. Last opp en PDF der teksten kan merkes.",
+    );
+    expect(messageFor("PDF_UNREADABLE")).toBe(
+      "Vi klarte ikke å åpne denne PDF-en. Den kan være låst med passord eller skadet. Lagre den på nytt som PDF uten passord og prøv igjen.",
+    );
+  });
+
+  it("NFR-16: TOO_MANY_PAGES og FILE_TOO_LARGE fylles inn fra details", () => {
+    expect(messageWithDetails("TOO_MANY_PAGES", { page_count: 63 })).toBe(
+      "Fila har 63 sider. Grensen er 50 sider. Del den opp og last opp delene hver for seg.",
+    );
+    expect(messageWithDetails("FILE_TOO_LARGE", { size_mb: 34, limit_mb: 20 })).toBe(
+      "Fila er på 34 MB. Grensen er 20 MB. Lagre den på nytt med mindre bilder, eller del den opp.",
+    );
+  });
+
+  it.each([
+    ["TOO_MANY_PAGES", {}],
+    ["TOO_MANY_PAGES", { page_count: null }],
+    ["TOO_MANY_PAGES", { page_count: "" }],
+    ["FILE_TOO_LARGE", { size_mb: 34 }],
+  ])("NFR-16: %s uten verdien %j gir reserveteksten", (code, details) => {
+    expect(messageWithDetails(code, details)).toBe(FALLBACK_MESSAGE);
+  });
+
+  it("NFR-16: messageFor viser aldri en uutfylt mal", () => {
+    expect(messageFor("TOO_MANY_PAGES")).toBe(FALLBACK_MESSAGE);
+    expect(messageFor("FILE_TOO_LARGE")).toBe(FALLBACK_MESSAGE);
+    for (const code of Object.keys(messages)) {
+      expect(messageFor(code)).not.toMatch(/[{}]/);
+    }
+  });
+
+  it("FR-1: messageWithDetails gir vanlige tekster uendret og reserveteksten for ukjente koder", () => {
+    expect(messageWithDetails("NOT_FOUND", { x: 1 })).toBe("Fant ikke siden.");
+    expect(messageWithDetails("UKJENT", {})).toBe(FALLBACK_MESSAGE);
   });
 });
