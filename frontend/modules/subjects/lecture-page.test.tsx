@@ -45,6 +45,8 @@ let files: UploadedFile[] = [];
 let gate: Promise<void> = Promise.resolve();
 // The status the fake backend gives a file DELETE.
 let deleteStatus = 204;
+// How the fake backend answers a replace: a rejection code, a status, or undefined to accept.
+let replaceAnswer: { status: number; code: string } | undefined;
 
 function uploadedFile(name: string, pages: number, id = `f${files.length + 1}`): UploadedFile {
   return { id, lecture_id: "l2", original_name: name, page_count: pages, uploaded_at: "2026-09-12T08:00:00Z" };
@@ -94,6 +96,24 @@ function respond() {
       if (!files.some((file) => file.id === filePreview[1])) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
       return jsonResponse(200, { counts: [] });
     }
+    const fileReplace = path.match(/^\/api\/files\/([^/]+)\/replace$/);
+    if (fileReplace && init?.method === "POST") {
+      if (replaceAnswer) {
+        return jsonResponse(replaceAnswer.status, { error: { code: replaceAnswer.code, details: {} } });
+      }
+      const index = files.findIndex((file) => file.id === fileReplace[1]);
+      if (index < 0) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
+      const file = (init.body as FormData).get("file") as File;
+      const created: UploadedFile = {
+        id: `n${files.length + 1}`,
+        lecture_id: "l2",
+        original_name: file.name,
+        page_count: 3,
+        uploaded_at: "2026-11-21T10:00:00Z",
+      };
+      files = [...files.filter((_, other) => other !== index), created];
+      return jsonResponse(201, created);
+    }
     const fileDelete = path.match(/^\/api\/files\/([^/]+)$/);
     if (fileDelete && init?.method === "DELETE") {
       if (deleteStatus !== 204) return jsonResponse(deleteStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
@@ -139,6 +159,7 @@ beforeEach(() => {
   files = [];
   gate = Promise.resolve();
   deleteStatus = 204;
+  replaceAnswer = undefined;
   push.mockReset();
   vi.stubGlobal("fetch", fetchMock);
   respond();
@@ -274,16 +295,14 @@ describe("forelesningssiden", () => {
     const list = screen.getByRole("list", { name: "Filer" });
     const rows = within(list).getAllByRole("listitem");
     expect(rows.map((row) => row.textContent)).toEqual([
-      "merkevare-notater.pdf12 sider · lastet opp 12.09SlettSlett merkevare-notater.pdf",
-      "merkevare-forelesning2.pdf6 sider · lastet opp 12.09SlettSlett merkevare-forelesning2.pdf",
+      "merkevare-notater.pdf12 sider · lastet opp 12.09ErstattErstatt merkevare-notater.pdfSlettSlett merkevare-notater.pdf",
+      "merkevare-forelesning2.pdf6 sider · lastet opp 12.09ErstattErstatt merkevare-forelesning2.pdfSlettSlett merkevare-forelesning2.pdf",
     ]);
     // The name is cut off with CSS; the whole name is in the DOM and the tooltip.
     const name = within(rows[0]).getByText("merkevare-notater.pdf", { selector: "p" });
     expect(name.className).toContain("truncate");
     expect(name.getAttribute("title")).toBe("merkevare-notater.pdf");
-    expect(rows[0].className).toContain("h-file-row");
-    // «Erstatt» comes in story 2.6.
-    expect(screen.queryByRole("button", { name: /Erstatt/ })).toBeNull();
+    expect(rows[0].firstElementChild!.className).toContain("h-file-row");
   });
 
   it("UX-DR16: entall «1 fil · 1 side»", async () => {
@@ -695,6 +714,130 @@ describe("forelesningssiden", () => {
       expect(headingFocusPending()).toBe(true);
       // The page does not show «Fant ikke siden» before she has left it.
       expect(notFound).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("erstatning", () => {
+    function replaceCalls() {
+      return fetchMock.mock.calls.filter(([url, init]) => String(url).endsWith("/replace") && init?.method === "POST");
+    }
+
+    async function pickReplacement(name: string, replacement: File) {
+      const button = await screen.findByRole("button", { name: `Erstatt ${name}` });
+      button.focus();
+      fireEvent.click(button);
+      const id = files.find((file) => file.original_name === name)!.id;
+      fireEvent.change(screen.getByTestId(`replace-input-${id}`), { target: { files: [replacement] } });
+      return button;
+    }
+
+    it("FR-13: «Erstatt» står foran «Slett» i ultramarin og åpner sin egen skjulte filvelger", async () => {
+      files = [uploadedFile("merkevare.pdf", 2, "f1")];
+      renderPage();
+      const button = await screen.findByRole("button", { name: "Erstatt merkevare.pdf" });
+      expect(button.className).not.toContain("text-danger");
+      const row = button.closest("li")!;
+      expect(within(row).getAllByRole("button").map((other) => other.textContent)).toEqual([
+        "ErstattErstatt merkevare.pdf",
+        "SlettSlett merkevare.pdf",
+      ]);
+      const input = screen.getByTestId("replace-input-f1") as HTMLInputElement;
+      expect(input.type).toBe("file");
+      expect(input.multiple).toBe(false);
+      expect(input.hasAttribute("accept")).toBe(false);
+      const click = vi.spyOn(input, "click");
+      fireEvent.click(button);
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(row.querySelector("[aria-live=polite]")).not.toBeNull();
+    });
+
+    it("FR-13: godtatt erstatning viser den nye fila sist, oppdaterer linja og gir fokus til «Filer»", async () => {
+      files = [uploadedFile("merkevare.pdf", 2, "f1"), uploadedFile("prising.pdf", 6, "f2")];
+      renderPage();
+      await screen.findByText("Forelesning fredag 18.09.2026 · 2 filer · 8 sider");
+      await pickReplacement("merkevare.pdf", pdf("ny.pdf"));
+
+      const dialog = screen.getByRole("dialog", { name: "Erstatte fila?" });
+      expect(within(dialog).getByText("merkevare.pdf")).toBeTruthy();
+      expect(within(dialog).getByText("2 sider · Uke 38: Prising")).toBeTruthy();
+      expect(within(dialog).getByText("Erstattes med ny.pdf.")).toBeTruthy();
+      expect(document.activeElement).toBe(within(dialog).getByRole("button", { name: "Avbryt" }));
+      await within(dialog).findByText("Det kan ikke angres.");
+      expect(replaceCalls()).toHaveLength(0);
+      fireEvent.click(within(dialog).getByRole("button", { name: "Erstatt fila" }));
+
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      const list = screen.getByRole("list", { name: "Filer" });
+      const names = within(list)
+        .getAllByRole("listitem")
+        .map((item) => item.querySelector("p")?.textContent);
+      expect(names).toEqual(["prising.pdf", "ny.pdf"]);
+      expect(within(list).getByText("3 sider · lastet opp 21.11")).toBeTruthy();
+      expect(await screen.findByText("Forelesning fredag 18.09.2026 · 2 filer · 9 sider")).toBeTruthy();
+      await waitFor(() =>
+        expect(document.activeElement).toBe(screen.getByRole("heading", { level: 2, name: "Filer" })),
+      );
+      expect(replaceCalls().map(([url]) => String(url))).toEqual(["/api/files/f1/replace"]);
+      const sent = (replaceCalls()[0][1]!.body as FormData).get("file") as File;
+      expect(sent.name).toBe("ny.pdf");
+    });
+
+    it("E18: avbrutt filvelger åpner ingen dialog og sender ingenting", async () => {
+      files = [uploadedFile("merkevare.pdf", 2, "f1")];
+      renderPage();
+      await screen.findByRole("button", { name: "Erstatt merkevare.pdf" });
+      fireEvent.change(screen.getByTestId("replace-input-f1"), { target: { files: [] } });
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(replaceCalls()).toHaveLength(0);
+    });
+
+    it("FR-13: «Avbryt» sender ingenting, og fokus går tilbake til «Erstatt»", async () => {
+      files = [uploadedFile("merkevare.pdf", 2, "f1")];
+      renderPage();
+      const button = await pickReplacement("merkevare.pdf", pdf("ny.pdf"));
+      const dialog = screen.getByRole("dialog", { name: "Erstatte fila?" });
+      await within(dialog).findByText("Det kan ikke angres.");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Avbryt" }));
+      expect(screen.queryByRole("dialog")).toBeNull();
+      await waitFor(() => expect(document.activeElement).toBe(button));
+      expect(replaceCalls()).toHaveLength(0);
+    });
+
+    it("E17: avvist ny fil lukker dialogen, viser meldingen ved raden og gir fokus til «Erstatt»", async () => {
+      replaceAnswer = { status: 422, code: "NOT_PDF" };
+      files = [uploadedFile("merkevare.pdf", 2, "f1")];
+      renderPage();
+      const button = await pickReplacement("merkevare.pdf", pdf("ny.docx"));
+      const dialog = screen.getByRole("dialog", { name: "Erstatte fila?" });
+      await within(dialog).findByText("Det kan ikke angres.");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Erstatt fila" }));
+
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      const row = button.closest("li")!;
+      const live = row.querySelector("[aria-live=polite]")!;
+      expect(live.textContent).toBe(
+        "ny.docx: Bare PDF-filer kan lastes opp. Lagre Word-dokumentet som PDF (Fil → Lagre som → PDF) og prøv igjen.",
+      );
+      expect(within(row).getByText("merkevare.pdf")).toBeTruthy();
+      await waitFor(() => expect(document.activeElement).toBe(button));
+
+      // A new pick on the row clears the message.
+      replaceAnswer = undefined;
+      fireEvent.change(screen.getByTestId("replace-input-f1"), { target: { files: [pdf("ny.pdf")] } });
+      expect(live.textContent).toBe("");
+    });
+
+    it("FR-13: serverfeil viser reserveteksten i dialogen, og fila står", async () => {
+      replaceAnswer = { status: 500, code: "INTERNAL_ERROR" };
+      files = [uploadedFile("merkevare.pdf", 2, "f1")];
+      renderPage();
+      await pickReplacement("merkevare.pdf", pdf("ny.pdf"));
+      const dialog = screen.getByRole("dialog", { name: "Erstatte fila?" });
+      await within(dialog).findByText("Det kan ikke angres.");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Erstatt fila" }));
+      expect((await within(dialog).findByRole("alert")).textContent).toBe(FALLBACK_MESSAGE);
+      expect(screen.getByRole("dialog", { name: "Erstatte fila?" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Erstatt merkevare.pdf", hidden: true })).toBeTruthy();
     });
   });
 });

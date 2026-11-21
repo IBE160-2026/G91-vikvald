@@ -23,7 +23,8 @@ type Props = {
 
 type Rejection = { key: number; text: string };
 
-function rejectionText(file: File, error: unknown): string {
+// «<filename>: <message>» for a rejected file (also used when a replacement is rejected).
+export function rejectionText(file: File, error: unknown): string {
   const message =
     error instanceof ApiError ? messageWithDetails(error.code, error.details) : FALLBACK_MESSAGE;
   return `${file.name}: ${message}`;

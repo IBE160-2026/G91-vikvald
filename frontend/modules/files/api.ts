@@ -46,3 +46,16 @@ export async function fetchFileDeletePreview(fileId: string): Promise<DeleteCoun
 export function deleteFile(fileId: string): Promise<void> {
   return apiFetch<void>(`/api/files/${encodeURIComponent(fileId)}`, { method: "DELETE" });
 }
+
+// POST /api/files/{id}/replace: the new version in the multipart field «file»
+// (FR-13). 201 with the new file (a new id, same lecture). The new file passes
+// every upload check before the old one is deleted, so a rejection leaves the
+// old file as it was.
+export function replaceFile(fileId: string, file: File): Promise<UploadedFile> {
+  const body = new FormData();
+  body.append("file", file, file.name);
+  return apiFetch<UploadedFile>(`/api/files/${encodeURIComponent(fileId)}/replace`, {
+    method: "POST",
+    body,
+  });
+}
