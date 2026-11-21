@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-21: Story 2.5 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-5-slett-filer-forelesninger-og-emner-med-bekreftelse`. Hensikten til `bmad-build-auto` var «Story 2.5 fra `_bmad-output/planning-artifacts/epics.md`: Slett filer, forelesninger og emner med bekreftelse».
+
+**Resultat:** Tellerregisteret i `content`, forhåndsvisning og sletting av fil, forelesning og emne med PDF-ene på disken, og den felles slettebekreftelsen på forelesnings- og emnesiden. Spesifikasjon og gjennomgang i [spec-2-5](../../_bmad-output/implementation-artifacts/spec-2-5-slett-filer-forelesninger-og-emner-med-bekreftelse.md).
+
 ## 2026-11-21: Story 2.4 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-4-godta-vilkårene-før-første-opplasting`. Hensikten til `bmad-build-auto` var «Story 2.4 fra `_bmad-output/planning-artifacts/epics.md`: Godta vilkårene før første opplasting».
