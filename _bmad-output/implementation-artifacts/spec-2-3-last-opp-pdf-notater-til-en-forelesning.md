@@ -3,14 +3,28 @@ title: 'Story 2.3: Last opp PDF-notater til en forelesning'
 type: 'feature'
 created: '2026-11-21'
 baseline_revision: '51a3e2a17587b06002748fd58ba9b3b18d04ec7f'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-2-context.md'
   - '{project-root}/_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/DESIGN.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Opplasting gjennom Next.js-proxyen og skriving til volumet uploads sjekkes bare av Playwright, som CI ikke kjører.
+    evidence: |-
+      ci.yml kjører bare pytest og Vitest (AR-20). Fjernes chown i Dockerfile eller endrer Next.js proxyClientMaxBodySize, går CI fortsatt grønt. Samme utsatte punkt som i story 2.1 og 2.2; gjelder hele repoet.
+    location: >-
+      .github/workflows/ci.yml
+    severity: medium
+  - summary: >-
+      Sidetekst med ensomme surrogattegn fra en ødelagt ToUnicode-tabell kan kanskje gi 500 ved commit på Postgres.
+    evidence: |-
+      Uavklart om PyMuPDF 1.28 noen gang gir slike tegn fra get_text(). Avklares med en PDF med ødelagt ToUnicode-tabell mot Postgres; hvis ja, kod om teksten med errors="replace" i pdf.read_pages.
+    location: >-
+      backend/app/modules/files/pdf.py
+    severity: medium (unverified)
 ---
 
 <intent-contract>
@@ -121,6 +135,46 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-21 — Review pass
+- verdicts: 36 findings — high 0, medium 3, low 24, false 8, maybe-false 1
+- findings:
+  - `[false]` `[reject]` (blind) KI-sporet mangler i diffen — skrives og committes i samme økt etter gjennomgangen (punkt 5–6 i story-prompten), før PR-en.
+  - `[false]` `[reject]` (blind) PDF-er blir liggende på disken når rader slettes — appen har ingen sletteruter ennå; story 2.5 og 2.7 sletter fra disken etter transaksjonen (AD-7).
+  - `[low]` `[patch]` (blind) `save_pdf` skriver opptil 20 MB med fsync i hendelsesløkka — `save_pdf` og `delete_pdf` kjøres nå med `asyncio.to_thread`.
+  - `[medium]` `[patch]` (blind) Filnavn med NUL eller kontrolltegn gir 500 på Postgres — `clean_original_name` beholder bare skrivbare tegn; enhetstest og opplasting med rå NUL og tab i multipart-hodet.
+  - `[low]` `[patch]` (blind) Opplastingsløkka fortsetter etter utlogging — løkka stopper ved `UNAUTHENTICATED`; Vitest: tre filer, 401 på den første, bare ett kall.
+  - `[low]` `[reject]` (blind) Filer som slippes under en pågående opplasting forsvinner — sjeldent (opplastingen tar sekunder, «Velg PDF» er ikke aktiv); en kø eller ny melding er ny oppførsel og tekst som ikke er godkjent.
+  - `[low]` `[patch]` (blind) Feil i `file-counts` vises ikke på 03 — samme reservemelding (`role="alert"`) som for forelesningene, med test.
+  - `[low]` `[patch]` (blind) README og `.env.example` sier ikke at `UPLOAD_DIR` ikke gjelder i Docker — én setning i hver.
+  - `[low]` `[patch]` (blind) E2e FR-4 lover «Fant ikke siden» uten å åpne siden — testen åpner nå `/forelesninger/<Olas forelesning>` og sjekker h1.
+  - `[false]` `[reject]` (blind) Fil over proxygrensen på 32 MB er ikke testet — sjekket for hånd gjennom frontend: 40 MB gir `422 FILE_TOO_LARGE` med `size_mb` 41.
+  - `[low]` `[reject]` (blind) PyMuPDF har ingen tidsgrense — én bruker med egne notater; `wait_for` stopper ikke tråden uansett, så det krever en prosessgrense.
+  - `[low]` `[reject]` (blind) Feilgrenen når `save_pdf` feiler er ikke testet — rollback uten skriving; den felles 500-håndteringen er testet i epic 1.
+  - `[low]` `[reject]` (blind) «Står til neste opplasting» testes med fast ventetid i e2e — Vitest dekker at linjene står til neste opplasting starter.
+  - `[medium]` `[patch]` (edge) Filnavn med NUL — samme rot og retting som blind-raden over.
+  - `[maybe-false]` `[defer]` (edge) Ensomme surrogattegn i sideteksten kan gi feil ved commit — uavklart om PyMuPDF gir slike tegn; ført i `deferred`.
+  - `[low]` `[reject]` (edge) Patologisk PDF uten tidsgrense — samme vurdering som blind-raden.
+  - `[low]` `[reject]` (edge) `MAX_UPLOAD_MB` over 30 kolliderer med proxygrensen på 32 MB — standard er 20, og kommentaren i `next.config.ts` sier at grensen må heves sammen med innstillingen.
+  - `[low]` `[patch]` (edge) `UPLOAD_DIR` i `.env` virker ikke i Docker — samme retting som blind-raden (dokumentasjon).
+  - `[low]` `[reject]` (edge) Filer som slippes under opplasting — samme vurdering som blind-raden.
+  - `[low]` `[reject]` (edge) To `uploadAll` i samme tikk — krever to slipp eller valg innenfor samme gjengivelse; ikke realistisk.
+  - `[low]` `[patch]` (edge) 401 midt i en bunke — samme retting som blind-raden.
+  - `[low]` `[patch]` (edge) Feil i `file-counts` — samme retting som blind-raden.
+  - `[low]` `[patch]` (verification-gap) NUL-fjerning i sideteksten er ikke testet — `test_fr39_nul_tegn_fjernes_fra_sideteksten`.
+  - `[medium]` `[defer]` (verification-gap) Proxy og volum sjekkes bare av Playwright utenfor CI — gjelder hele repoet (AR-20), ført i `deferred`.
+  - `[low]` `[reject]` (verification-gap) Ingen test for at filer overlever omstart — sjekket for hånd: fila lå i volumet etter `docker compose up -d --force-recreate backend`.
+  - `[low]` `[reject]` (verification-gap) Tom tabellcelle mens tellingene lastes er ikke testet — kort visuelt blink, ingen varig feil.
+  - `[false]` `[reject]` (verification-gap) Påstanden om at filer over 32 MB får `FILE_TOO_LARGE` er usjekket — sjekket for hånd (40 MB → `size_mb` 41).
+  - `[false]` `[reject]` (intent) Forsiden er ikke endret — forsiden har ingen forelesningstabell i epic 2; akseptkriteriet gjelder tabellen.
+  - `[low]` `[reject]` (intent) Volumet etter omstart har ingen test — sjekket for hånd, som over.
+  - `[false]` `[reject]` (intent) Fil over 32 MB er ikke testet — sjekket for hånd, som over.
+  - `[low]` `[patch]` (intent) Tresidertesten heter ikke `test_fr39_…` — omdøpt til `test_fr39_tre_sider_lagres_med_tekst_per_side_og_fil_paa_disk`.
+  - `[false]` `[reject]` (intent) E2e bruker en egen PDF-bygger — kriteriet om PyMuPDF gjelder backendtesten, som bruker PyMuPDF.
+  - `[low]` `[patch]` (intent) E2e FR-4 åpner ikke siden — samme retting som blind-raden.
+  - `[low]` `[reject]` (intent) Bare to av fem meldinger vises i e2e — alle fem er testet ordrett i Vitest og koden bak i pytest.
+  - `[low]` `[reject]` (intent) Dra og slipp testes bare i Vitest — samme `uploadAll` som «Velg PDF», som e2e dekker med tastatur.
+  - `[false]` `[reject]` (intent) Ingen merknad utenfor demomodus — akseptkriteriet sier at teksten med ekte språkmodell avgjøres i epic 6.
+
 ## Design Notes
 
 - **Tellinger fra `files`:** arkitekturen lar `files` kalle `subjects`, ikke omvendt. Derfor egen rute `GET /api/subjects/{id}/file-counts` i `files` i stedet for et felt i emne- eller forelesningssvarene. Kanttilfelle.
@@ -135,3 +189,29 @@ deferred: []
 - `cd backend && uv run pytest` -- expected: alle grønne
 - `cd frontend && npm run test && npx tsc --noEmit` -- expected: alle grønne
 - `docker compose up --build -d && cd frontend && npx playwright test` -- expected: alle grønne
+
+## Auto Run Result
+
+**Sammendrag:** PDF-notater kan lastes opp til en forelesning. Backend har modulen `files` (tabellene `files` og `file_pages`, migrering `0004_create_files` med `ON DELETE CASCADE`), `core/storage` som eneste vei til disken (`<UPLOAD_DIR>/<user_id>/<file_id>.pdf`), innstillingene `UPLOAD_DIR` og `MAX_UPLOAD_MB`, og rutene `POST/GET /api/lectures/{id}/files` og `GET /api/subjects/{id}/file-counts`. Opplastingen sjekker eierskap før kroppen leses, slutter å lese ved størrelsesgrensen, og avviser med `FILE_TOO_LARGE`, `NOT_PDF`, `PDF_UNREADABLE`, `TOO_MANY_PAGES` og `NO_READABLE_TEXT` uten å lagre noe. PyMuPDF 1.28.2 leser sidene i en egen tråd. Frontend har filrad, filliste, opplastingsfelt (dra og slipp og «Velg PDF», én fil per kall, «Laster opp …» og én melding per avvist fil i levende områder), felles merknadsflate med demomerknaden, tellinger under h1 på 03 og 04, og kolonnene Filer og Status i forelesningstabellen. PDF-ene ligger i Docker-volumet `uploads`.
+
+**Filer:**
+- `backend/app/core/{config,storage,errors}.py` -- innstillinger, lagring, feilkoder
+- `backend/app/modules/files/*`, `backend/app/main.py`, `backend/alembic/{env.py,versions/0004_create_files.py}` -- modulen, rutene og migreringen
+- `backend/tests/{conftest,test_files,test_storage,test_migrations}.py` -- backendtester
+- `backend/pyproject.toml`, `backend/uv.lock` -- `pymupdf==1.28.2`, `python-multipart`
+- `backend/Dockerfile`, `backend/.dockerignore`, `docker-compose.yml`, `.env.example`, `README.md` -- volumet og innstillingene
+- `frontend/lib/messages.ts` + test -- de fem meldingene og utfylling av `{…}`
+- `frontend/components/note-surface.tsx` -- felles merknadsflate
+- `frontend/modules/files/*` -- typer, kall, filrad, filliste, opplastingsfelt
+- `frontend/modules/subjects/{format.ts,components/lecture-table.tsx,pages/*.tsx}` + tester -- linjene under h1 og kolonnene
+- `frontend/next.config.ts` + test -- Next.js slipper gjennom opptil 32 MB
+- `frontend/e2e/{pdf.ts,filer.spec.ts}`, `frontend/e2e/forelesninger.spec.ts` -- ende-til-ende og PDF-bygger
+- `docs/skjermbilder/story-2-3/` -- skjermbilder i 1280 og 768 px
+
+**Gjennomgang:** 36 funn. Rettet: filnavn uten kontrolltegn (`medium`), og `low`: disklagring i egen tråd, stopp ved utlogging, feilmelding for tellingene på 03, dokumentasjon av `UPLOAD_DIR`, e2e som åpner andres forelesningsside, test av NUL i sideteksten og testnavnet `test_fr39_`. Utsatt 2 (e2e utenfor CI; surrogattegn, uverifisert). Avvist: 8 `false` og 15 `low` med grunner i Review Triage Log. Utenom gjennomgangen rettet hovedøkten: PyMuPDF 2.1 dro inn onnxruntime, numpy og networkx, og ble byttet til 1.28.2; e2e fra story 2.2 forventet bare to kolonner; etter skjermbildene ble statusteksten satt til 14 px, kolonnene smalere under 1024 px (statusteksten bare for skjermleser der), og opplastingsikonet lagt i en hvit sirkel som i skisse 04.
+
+**Ny gjennomgang anbefales:** nei. Rettet: high 0, medium 1, low 7.
+
+**Verifisering:** `uv run pytest` 242 grønne; `npm run test` 383 grønne og `tsc --noEmit` uten feil; `docker compose up --build` + `npx playwright test` 44 grønne. For hånd: 40 MB gjennom frontend gir `FILE_TOO_LARGE` med 41 MB, og en opplastet PDF lå i volumet etter at backend-containeren ble laget på nytt.
+
+**Gjenværende risiko:** e2e kjøres ikke i CI; proxygrensen på 32 MB må heves hvis `MAX_UPLOAD_MB` settes over 30; PDF-er på disken slettes først når sletterutene kommer i 2.5 og 2.7; på 768 px vises statusteksten bare for skjermlesere.
