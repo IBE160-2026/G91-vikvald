@@ -57,6 +57,7 @@ def test_ar13_migreringene_samsvarer_med_modellene(tmp_path: Path) -> None:
 
     from app.core.db import Base
     from app.modules.identity import models  # noqa: F401  (registers users)
+    from app.modules.subjects import models as subjects_models  # noqa: F401  (registers subjects)
 
     db_file = tmp_path / "m.db"
     cfg = Config(str(BACKEND_DIR / "alembic.ini"))
@@ -70,3 +71,39 @@ def test_ar13_migreringene_samsvarer_med_modellene(tmp_path: Path) -> None:
     finally:
         engine.dispose()
     assert diff == []
+
+
+def test_ar7_upgrade_head_lager_subjects_med_cascade_og_indeks(tmp_path: Path) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+
+    with sqlite3.connect(db_file) as connection:
+        columns = {row[1]: row for row in connection.execute("PRAGMA table_info(subjects)")}
+        assert set(columns) == {"id", "user_id", "name", "exam_date", "color_index", "created_at"}
+        for name in columns:
+            assert columns[name][3] == 1, f"{name} should be NOT NULL"
+
+        foreign_keys = list(connection.execute("PRAGMA foreign_key_list(subjects)"))
+        assert [(fk[2], fk[3], fk[4], fk[6]) for fk in foreign_keys] == [
+            ("users", "user_id", "id", "CASCADE")
+        ]
+
+        indexed = [
+            [info[2] for info in connection.execute(f"PRAGMA index_info('{row[1]}')")]
+            for row in connection.execute("PRAGMA index_list(subjects)")
+        ]
+        assert ["user_id"] in indexed
+
+
+def test_ar7_downgrade_fra_0002_fjerner_subjects_men_beholder_users(tmp_path: Path) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+    command.downgrade(cfg, "0001_create_users")
+    with sqlite3.connect(db_file) as connection:
+        tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master")}
+    assert "subjects" not in tables
+    assert "users" in tables

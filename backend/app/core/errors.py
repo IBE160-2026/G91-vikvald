@@ -32,6 +32,7 @@ class ErrorCode(StrEnum):
     PASSWORD_TOO_LONG = "PASSWORD_TOO_LONG"
     INVALID_CREDENTIALS = "INVALID_CREDENTIALS"
     UNAUTHENTICATED = "UNAUTHENTICATED"
+    NAME_REQUIRED = "NAME_REQUIRED"
 
 
 # HTTP status for each code.
@@ -49,6 +50,7 @@ ERROR_STATUS: dict[ErrorCode, int] = {
     ErrorCode.PASSWORD_TOO_LONG: 422,
     ErrorCode.INVALID_CREDENTIALS: 401,
     ErrorCode.UNAUTHENTICATED: 401,
+    ErrorCode.NAME_REQUIRED: 422,
 }
 
 

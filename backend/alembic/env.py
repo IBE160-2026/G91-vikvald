@@ -9,6 +9,7 @@ from sqlalchemy.engine import Connection
 from app.core.config import get_settings
 from app.core.db import Base, make_engine
 from app.modules.identity import models as identity_models  # noqa: F401  (registers users)
+from app.modules.subjects import models as subjects_models  # noqa: F401  (registers subjects)
 
 config = context.config
 

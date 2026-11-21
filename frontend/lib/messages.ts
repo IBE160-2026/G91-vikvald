@@ -20,8 +20,11 @@ export const messages = {
   PASSWORD_TOO_LONG: "Passordet er for langt. Bruk færre tegn.",
   INVALID_CREDENTIALS: "Feil e-post eller passord. Sjekk at Caps Lock er av.",
   UNAUTHENTICATED: "Du er logget ut. Logg inn igjen.",
+  NAME_REQUIRED: "Skriv inn et navn.",
   // Frontend-only: the request never reached the server.
   NETWORK_ERROR: FALLBACK_MESSAGE,
+  // Frontend-only: the exam date field does not hold a real date as dd.mm.åååå.
+  INVALID_EXAM_DATE: "Skriv inn eksamensdatoen, for eksempel 04.12.2026.",
 } as const satisfies Record<string, string>;
 
 export type MessageCode = keyof typeof messages;

@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-21: Story 2.1 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-1-opprett-emner-og-se-dem-på-forsiden`. Hensikten til `bmad-build-auto` var «Story 2.1 fra `_bmad-output/planning-artifacts/epics.md`: Opprett emner og se dem på forsiden».
+
+**Resultat:** Tabellen `subjects` med migrering, rutene for emner, forsiden med emneliste og tom-tilstand, emnesiden med sidemeny og dialogene «Nytt emne», «Nytt navn» og «Endre eksamensdato». Spesifikasjon og gjennomgang i [spec-2-1](../../_bmad-output/implementation-artifacts/spec-2-1-opprett-emner-og-se-dem-paa-forsiden.md).
+
 ## 2026-11-21: Funn #69 rettet av den autonome kjøringen
 
 Funnet fra Siljes gjennomgang av epic 1 (#67) ble rettet av en subagent i den autonome kjøringen, etter avsnittet «Siljes gjennomgang» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md). Det var bare en endring i dokumentasjonen, så `bmad-build-auto` ble ikke brukt.
