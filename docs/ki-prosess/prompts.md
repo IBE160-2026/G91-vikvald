@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-21: Story 2.2 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-2-legg-til-forelesninger-og-finn-dem-i-sidemenyen`. Hensikten til `bmad-build-auto` var «Story 2.2 fra `_bmad-output/planning-artifacts/epics.md`: Legg til forelesninger og finn dem i sidemenyen».
+
+**Resultat:** Tabellen `lectures` med migrering, rutene for forelesninger, forelesningstabellen på emnesiden, forelesningssiden, dialogene «Ny forelesning», «Nytt navn» og «Endre dato», og en sidemeny der emner åpnes og lukkes. Spesifikasjon og gjennomgang i [spec-2-2](../../_bmad-output/implementation-artifacts/spec-2-2-legg-til-forelesninger-og-finn-dem-i-sidemenyen.md).
+
 ## 2026-11-21: Story 2.1 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-1-opprett-emner-og-se-dem-på-forsiden`. Hensikten til `bmad-build-auto` var «Story 2.1 fra `_bmad-output/planning-artifacts/epics.md`: Opprett emner og se dem på forsiden».
