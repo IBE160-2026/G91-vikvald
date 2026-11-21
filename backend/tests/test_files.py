@@ -20,7 +20,8 @@ from app.modules.files.models import File, FilePage
 from app.modules.files.service import clean_original_name
 from app.modules.subjects.models import Lecture
 from tests.test_lectures import _create_lecture, _new_subject
-from tests.test_subjects import NOT_FOUND, _code, _log_in_new_user
+from tests.test_subjects import NOT_FOUND, _code
+from tests.test_subjects import _log_in_new_user as _log_in_without_terms
 
 LECTURES = "/api/lectures"
 SUBJECTS = "/api/subjects"
@@ -49,6 +50,14 @@ def make_locked_pdf() -> bytes:
 
 # The start of a .docx file (a zip archive), enough to not be a PDF.
 DOCX_BYTES = b"PK\x03\x04\x14\x00\x06\x00" + b"word/document.xml" + b"\x00" * 200
+
+
+async def _log_in_new_user(client: AsyncClient, email: str = "klara@eksempel.no") -> str:
+    """A new, logged-in user who has accepted the terms (FR-11), so uploads are
+    allowed. Returns the user id."""
+    user_id = await _log_in_without_terms(client, email)
+    assert (await client.post("/api/identity/terms")).status_code == 200
+    return user_id
 
 
 async def _new_lecture(client: AsyncClient) -> str:

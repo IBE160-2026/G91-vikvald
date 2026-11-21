@@ -136,6 +136,9 @@ async def upload_file(
     # body is read. The route takes the raw Request (not UploadFile), because
     # FastAPI would otherwise read the whole body before this code runs.
     lecture = await get_lecture(session, user.id, lecture_id)
+    # Then the terms (FR-11): without them nothing is read or stored.
+    if user.terms_accepted_at is None:
+        raise AppError(ErrorCode.TERMS_NOT_ACCEPTED)
     name, data = await _read_upload(request)
     # PyMuPDF is slow on big files; keep it off the event loop.
     pages = await asyncio.to_thread(pdf.read_pages, data)

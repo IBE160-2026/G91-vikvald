@@ -86,3 +86,5 @@
 - [ ] 2026-11-21 [story-2-3-last-opp-pdf-notater](982-2026-11-21-07-42-08-story-2-3-last-opp-pdf-notater.md) — vurder kanttilfellene fra story 2.3 (#96–#100), særlig tekstene «Laster opp …» og «<filnavn>: <melding>» (#98)
 - [ ] 2026-11-21 [story-2-3-last-opp-pdf-notater](982-2026-11-21-07-42-08-story-2-3-last-opp-pdf-notater.md) — PDF-ene på disken må slettes av sletterutene i 2.5 og 2.7
 - [ ] 2026-11-21 [story-2-3-last-opp-pdf-notater](982-2026-11-21-07-42-08-story-2-3-last-opp-pdf-notater.md) — avklar om PyMuPDF kan gi surrogattegn i sideteksten som Postgres avviser
+- [ ] 2026-11-21 [story-2-4-godta-vilkarene](981-2026-11-21-08-10-18-story-2-4-godta-vilkarene.md) — vurder kanttilfellene fra story 2.4 (#103–#107), særlig «Du har valgt 3 filer.» (#105) og reserveteksten for TERMS_NOT_ACCEPTED (#104)
+- [ ] 2026-11-21 [story-2-4-godta-vilkarene](981-2026-11-21-08-10-18-story-2-4-godta-vilkarene.md) — kontosiden i 2.7 skal vise TermsText uten avkrysning, sammen med datoen fra terms_accepted_at

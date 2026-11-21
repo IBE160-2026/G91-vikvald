@@ -174,4 +174,42 @@ describe("Dialog", () => {
     const { dialog } = openDialog({ width });
     expect(dialog.className).toContain(expected);
   });
+
+  it("UX-DR23: hovedknappen kan være deaktivert og ha et ikon, og kalles da ikke", () => {
+    const onPrimary = vi.fn();
+    function Disabled({ disabled }: { disabled: boolean }) {
+      return (
+        <Dialog
+          open
+          title="Før du laster opp"
+          onClose={() => {}}
+          primaryAction={{
+            label: "Godta og last opp",
+            onClick: onPrimary,
+            disabled,
+            icon: <svg data-testid="ikon" aria-hidden="true" />,
+          }}
+        >
+          <p>Tekst</p>
+        </Dialog>
+      );
+    }
+    const { rerender } = render(<Disabled disabled />);
+    const primary = screen.getByRole("button", { name: "Godta og last opp" }) as HTMLButtonElement;
+    expect(primary.disabled).toBe(true);
+    expect(primary.querySelector('[data-testid="ikon"]')).not.toBeNull();
+    fireEvent.click(primary);
+    expect(onPrimary).not.toHaveBeenCalled();
+    rerender(<Disabled disabled={false} />);
+    expect(primary.disabled).toBe(false);
+    fireEvent.click(primary);
+    expect(onPrimary).toHaveBeenCalledTimes(1);
+  });
+
+  it("UX-DR21: hovedknappen er aktiv og uten ikon når ingenting er satt (de andre dialogene)", () => {
+    openDialog();
+    const primary = screen.getByRole("button", { name: "Slett fila" }) as HTMLButtonElement;
+    expect(primary.disabled).toBe(false);
+    expect(primary.querySelector("svg")).toBeNull();
+  });
 });

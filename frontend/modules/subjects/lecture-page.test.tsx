@@ -33,6 +33,9 @@ const ECONOMICS: Subject = { ...MARKETING, id: "b", name: "Samfunnsøkonomi", co
 type UploadAnswer = { code: string; details?: Record<string, unknown> } | undefined;
 
 let demoMode = true;
+// The student's terms_accepted_at in the fake backend, and the status the terms call answers with.
+let termsAcceptedAt: string | null = "2026-09-01T08:00:00Z";
+let termsStatus = 200;
 let uploadAnswer: (file: File) => UploadAnswer = () => undefined;
 let files: UploadedFile[] = [];
 // Lets a test hold the uploads until it has looked at the page.
@@ -51,6 +54,14 @@ function respond() {
   ];
   fetchMock.mockImplementation(async (url, init) => {
     const path = String(url);
+    if (path === "/api/identity/me") {
+      return jsonResponse(200, { id: "u1", email: "klara@eksempel.no", terms_accepted_at: termsAcceptedAt });
+    }
+    if (path === "/api/identity/terms" && init?.method === "POST") {
+      if (termsStatus !== 200) return jsonResponse(termsStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
+      termsAcceptedAt ??= "2026-11-21T10:00:00Z";
+      return jsonResponse(200, { id: "u1", email: "klara@eksempel.no", terms_accepted_at: termsAcceptedAt });
+    }
     if (path === "/api/subjects") return jsonResponse(200, [MARKETING, ECONOMICS]);
     if (path === "/api/subjects/a/lectures") {
       const sorted = [...lectures].sort((x, y) => x.date.localeCompare(y.date) || x.created_at.localeCompare(y.created_at));
@@ -98,6 +109,8 @@ function lectureHrefs(nav: HTMLElement): (string | null)[] {
 
 beforeEach(() => {
   demoMode = true;
+  termsAcceptedAt = "2026-09-01T08:00:00Z";
+  termsStatus = 200;
   uploadAnswer = () => undefined;
   files = [];
   gate = Promise.resolve();
@@ -111,6 +124,16 @@ function pdf(name: string): File {
 
 function choose(...chosen: File[]) {
   fireEvent.change(screen.getByTestId("upload-input"), { target: { files: chosen } });
+}
+
+function termsCalls() {
+  return fetchMock.mock.calls.filter(([url]) => String(url) === "/api/identity/terms");
+}
+
+// Waits until the page and «me» have loaded.
+async function pageReady() {
+  await screen.findByText(/^Forelesning fredag 18\.09\.2026/);
+  await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/identity/me")).toBe(true));
 }
 
 function uploadCalls() {
@@ -375,5 +398,195 @@ describe("forelesningssiden", () => {
     await waitFor(() => expect(screen.getByRole("status").textContent).toBe(""));
     expect(uploadCalls()).toHaveLength(1);
     expect(screen.queryByText(/^en\.pdf:/)).toBeNull();
+  });
+
+  describe("vilkårene før første opplasting", () => {
+    beforeEach(() => {
+      termsAcceptedAt = null;
+    });
+
+    it("FR-11: én valgt fil åpner «Før du laster opp» med filnavnet, og ingenting lastes opp ennå", async () => {
+      renderPage();
+      await pageReady();
+
+      choose(pdf("notater.pdf"));
+
+      const dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
+      expect(dialog.className).toContain("w-[640px]");
+      expect(
+        within(dialog).getByText("Du har valgt notater.pdf. Vi viser dette bare før den første opplastingen."),
+      ).toBeTruthy();
+      expect(within(dialog).getByRole("heading", { level: 3, name: "DITT ANSVAR" })).toBeTruthy();
+      expect(within(dialog).getByRole("heading", { level: 3, name: "HVOR NOTATENE SENDES" })).toBeTruthy();
+      // Focus is in the dialog, on the checkbox.
+      expect(document.activeElement).toBe(
+        within(dialog).getByRole("checkbox", {
+          name: "Jeg har lest dette og laster bare opp materiale jeg har rett til å bruke.",
+        }),
+      );
+      expect(uploadCalls()).toHaveLength(0);
+      expect(termsCalls()).toHaveLength(0);
+    });
+
+    it("FR-11: tre filer gir «Du har valgt 3 filer.»", async () => {
+      renderPage();
+      await pageReady();
+      choose(pdf("en.pdf"), pdf("to.pdf"), pdf("tre.pdf"));
+      const dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
+      expect(
+        within(dialog).getByText("Du har valgt 3 filer. Vi viser dette bare før den første opplastingen."),
+      ).toBeTruthy();
+    });
+
+    it("UX-DR23: «Godta og last opp» er ikke aktiv før boksen er krysset av", async () => {
+      renderPage();
+      await pageReady();
+      choose(pdf("notater.pdf"));
+      const dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
+      const accept = within(dialog).getByRole("button", { name: "Godta og last opp" }) as HTMLButtonElement;
+      expect(accept.disabled).toBe(true);
+      expect(accept.querySelector("svg")).not.toBeNull();
+      fireEvent.click(accept);
+      expect(termsCalls()).toHaveLength(0);
+
+      const box = within(dialog).getByRole("checkbox");
+      fireEvent.click(box);
+      expect(box.getAttribute("aria-checked")).toBe("true");
+      expect(accept.disabled).toBe(false);
+      fireEvent.click(box);
+      expect(accept.disabled).toBe(true);
+    });
+
+    it("FR-11: godta lagrer vilkårene, laster opp filene og viser avviste filer som før", async () => {
+      uploadAnswer = (file) => (file.name.endsWith(".docx") ? { code: "NOT_PDF" } : undefined);
+      renderPage();
+      await pageReady();
+      choose(pdf("notater.pdf"), new File(["PK"], "notater.docx"));
+      const dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
+      fireEvent.click(within(dialog).getByRole("checkbox"));
+      fireEvent.click(within(dialog).getByRole("button", { name: "Godta og last opp" }));
+
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(termsCalls()).toHaveLength(1);
+      expect(termsCalls()[0][1]?.body).toBeUndefined();
+      expect(await screen.findByText("Forelesning fredag 18.09.2026 · 1 fil · 3 sider")).toBeTruthy();
+      expect(
+        await screen.findByText(
+          "notater.docx: Bare PDF-filer kan lastes opp. Lagre Word-dokumentet som PDF (Fil → Lagre som → PDF) og prøv igjen.",
+        ),
+      ).toBeTruthy();
+      expect(uploadCalls()).toHaveLength(2);
+
+      // Next time: no dialog, the file goes straight up.
+      choose(pdf("neste.pdf"));
+      expect(await screen.findByText("Forelesning fredag 18.09.2026 · 2 filer · 6 sider")).toBeTruthy();
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(termsCalls()).toHaveLength(1);
+    });
+
+    it("FR-11: «Avbryt», lukkekrysset og Esc laster ingenting opp og kaller ikke vilkårsruten", async () => {
+      renderPage();
+      await pageReady();
+      const picker = screen.getByRole("button", { name: "Velg PDF" });
+      for (const close of [
+        (dialog: HTMLElement) => fireEvent.click(within(dialog).getByRole("button", { name: "Avbryt" })),
+        (dialog: HTMLElement) => fireEvent.click(within(dialog).getByRole("button", { name: "Lukk" })),
+        (dialog: HTMLElement) => fireEvent.keyDown(dialog, { key: "Escape" }),
+      ]) {
+        picker.focus();
+        choose(pdf("notater.pdf"));
+        const dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
+        fireEvent.click(within(dialog).getByRole("checkbox"));
+        close(dialog);
+        expect(screen.queryByRole("dialog")).toBeNull();
+        await waitFor(() => expect(document.activeElement).toBe(picker));
+      }
+      expect(uploadCalls()).toHaveLength(0);
+      expect(termsCalls()).toHaveLength(0);
+
+      // The tick does not survive: the box is empty when the dialog opens again.
+      choose(pdf("notater.pdf"));
+      const dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
+      expect(within(dialog).getByRole("checkbox").getAttribute("aria-checked")).toBe("false");
+      expect((within(dialog).getByRole("button", { name: "Godta og last opp" }) as HTMLButtonElement).disabled).toBe(
+        true,
+      );
+    });
+
+    it("FR-11: feiler vilkårskallet, står dialogen med «Noe gikk galt. Prøv igjen.» og ingenting lastes opp", async () => {
+      termsStatus = 500;
+      renderPage();
+      await pageReady();
+      choose(pdf("notater.pdf"));
+      const dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
+      fireEvent.click(within(dialog).getByRole("checkbox"));
+      fireEvent.click(within(dialog).getByRole("button", { name: "Godta og last opp" }));
+
+      const alert = await within(dialog).findByRole("alert");
+      expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
+      expect(screen.getByRole("dialog", { name: "Før du laster opp" })).toBeTruthy();
+      expect(uploadCalls()).toHaveLength(0);
+
+      // A new try that works uploads the file.
+      termsStatus = 200;
+      fireEvent.click(within(dialog).getByRole("button", { name: "Godta og last opp" }));
+      expect(await screen.findByText("Forelesning fredag 18.09.2026 · 1 fil · 3 sider")).toBeTruthy();
+      expect(screen.queryByRole("dialog")).toBeNull();
+    });
+
+    it("FR-11: Esc mens vilkårskallet pågår lukker ikke dialogen, og fila lastes opp når svaret kommer", async () => {
+      let release!: () => void;
+      const hold = new Promise<void>((resolve) => (release = resolve));
+      const fallback = fetchMock.getMockImplementation()!;
+      fetchMock.mockImplementation(async (url, init) => {
+        if (String(url) === "/api/identity/terms") await hold;
+        return fallback(url, init);
+      });
+      renderPage();
+      await pageReady();
+      choose(pdf("notater.pdf"));
+      const dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
+      fireEvent.click(within(dialog).getByRole("checkbox"));
+      fireEvent.click(within(dialog).getByRole("button", { name: "Godta og last opp" }));
+      await waitFor(() => expect(termsCalls()).toHaveLength(1));
+
+      fireEvent.keyDown(dialog, { key: "Escape" });
+      fireEvent.click(within(dialog).getByRole("button", { name: "Avbryt" }));
+      expect(screen.getByRole("dialog", { name: "Før du laster opp" })).toBeTruthy();
+      expect(uploadCalls()).toHaveLength(0);
+
+      release();
+      expect(await screen.findByText("Forelesning fredag 18.09.2026 · 1 fil · 3 sider")).toBeTruthy();
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(uploadCalls()).toHaveLength(1);
+    });
+
+    it("FR-11: filer sluppet på feltet går også gjennom vilkårsdialogen", async () => {
+      renderPage();
+      await pageReady();
+      const zone = document.querySelector('[data-slot="upload-zone"]')!;
+      fireEvent.drop(zone, { dataTransfer: { files: [pdf("sluppet.pdf")] } });
+      const dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
+      expect(within(dialog).getByText(/^Du har valgt sluppet\.pdf\./)).toBeTruthy();
+      expect(uploadCalls()).toHaveLength(0);
+    });
+
+    it("NFR-6: i demomodus står «I demomodus sendes ingenting ut.» i dialogen, ellers ikke", async () => {
+      renderPage();
+      await pageReady();
+      choose(pdf("notater.pdf"));
+      let dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
+      expect(await within(dialog).findByText("I demomodus sendes ingenting ut.")).toBeTruthy();
+      cleanup();
+
+      demoMode = false;
+      renderPage();
+      await pageReady();
+      await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url) === "/api/config")).toHaveLength(2));
+      choose(pdf("notater.pdf"));
+      dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
+      expect(within(dialog).getByText("Google kan logge forespørslene en periode for å oppdage misbruk.")).toBeTruthy();
+      expect(within(dialog).queryByText("I demomodus sendes ingenting ut.")).toBeNull();
+    });
   });
 });

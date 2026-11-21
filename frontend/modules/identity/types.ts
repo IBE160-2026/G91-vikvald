@@ -13,4 +13,6 @@ export type LoginInput = {
 export type User = {
   id: string;
   email: string;
+  // ISO time in UTC; null until she has accepted the terms (FR-11).
+  terms_accepted_at: string | null;
 };

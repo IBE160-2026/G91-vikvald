@@ -38,6 +38,7 @@ class ErrorCode(StrEnum):
     TOO_MANY_PAGES = "TOO_MANY_PAGES"
     FILE_TOO_LARGE = "FILE_TOO_LARGE"
     PDF_UNREADABLE = "PDF_UNREADABLE"
+    TERMS_NOT_ACCEPTED = "TERMS_NOT_ACCEPTED"
 
 
 # HTTP status for each code.
@@ -61,6 +62,8 @@ ERROR_STATUS: dict[ErrorCode, int] = {
     ErrorCode.TOO_MANY_PAGES: 422,
     ErrorCode.FILE_TOO_LARGE: 422,
     ErrorCode.PDF_UNREADABLE: 422,
+    # Logged in, but a precondition is missing (404 is for other people's data).
+    ErrorCode.TERMS_NOT_ACCEPTED: 403,
 }
 
 

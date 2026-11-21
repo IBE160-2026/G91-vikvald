@@ -1,6 +1,7 @@
 """Request and response bodies for the identity routes."""
 
 import uuid
+from datetime import datetime
 
 from pydantic import BaseModel
 
@@ -21,3 +22,5 @@ class LoginRequest(BaseModel):
 class UserOut(BaseModel):
     id: uuid.UUID
     email: str
+    # UTC; null until the student has accepted the terms.
+    terms_accepted_at: datetime | None

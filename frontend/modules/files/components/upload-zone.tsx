@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CircleAlert, Upload } from "lucide-react";
 import { useRef, useState, type DragEvent } from "react";
 
@@ -9,8 +9,11 @@ import { Button } from "@/components/ui/button";
 import { ApiError, isUnauthenticated } from "@/lib/api";
 import { FALLBACK_MESSAGE, messageWithDetails } from "@/lib/messages";
 import { cn } from "@/lib/utils";
+import { fetchMe } from "@/modules/identity/api";
+import { ME_QUERY_KEY } from "@/modules/identity/components/require-login";
 
 import { uploadFile } from "../api";
+import { TermsDialog } from "./terms-dialog";
 
 type Props = {
   lectureId: string;
@@ -37,12 +40,21 @@ function rejectionText(file: File, error: unknown): string {
 // line «<filename>: <message>» in a live region by the box. The lines stay until
 // the next upload starts or she leaves the page. Accepted files show up in the
 // list without a reload (the lecture's and the subject's queries are invalidated).
+//
+// Before the first upload (FR-11): if «me» has no terms_accepted_at, the chosen
+// files wait and the terms dialog (05) opens. «Godta og last opp» stores the
+// terms and then uploads the waiting files as above; «Avbryt», the cross and Esc
+// drop them without any call.
 export function UploadZone({ lectureId, subjectId }: Props) {
   const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [rejections, setRejections] = useState<Rejection[]>([]);
+  // Files waiting for the terms; the terms dialog is open while this is set.
+  const [pending, setPending] = useState<File[] | null>(null);
+  // The same query as the login guard around the page, so it is already loaded.
+  const me = useQuery({ queryKey: ME_QUERY_KEY, queryFn: fetchMe });
   // Through useMutation, so a lost login (401) goes to the app's one handler.
   const upload = useMutation({ mutationFn: (file: File) => uploadFile(lectureId, file) });
 
@@ -72,6 +84,23 @@ export function UploadZone({ lectureId, subjectId }: Props) {
     }
   }
 
+  // Every pick or drop goes through here: straight to upload once the terms are
+  // accepted, otherwise via the terms dialog.
+  function requestUpload(files: File[]) {
+    if (uploading || files.length === 0) return;
+    if (me.data?.terms_accepted_at) {
+      void uploadAll(files);
+    } else {
+      setPending(files);
+    }
+  }
+
+  function acceptedTerms() {
+    const files = pending ?? [];
+    setPending(null);
+    void uploadAll(files);
+  }
+
   function openPicker() {
     if (!uploading) inputRef.current?.click();
   }
@@ -85,7 +114,7 @@ export function UploadZone({ lectureId, subjectId }: Props) {
   function onDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     setDragging(false);
-    void uploadAll(Array.from(event.dataTransfer.files));
+    requestUpload(Array.from(event.dataTransfer.files));
   }
 
   return (
@@ -125,7 +154,7 @@ export function UploadZone({ lectureId, subjectId }: Props) {
             const files = Array.from(event.target.files ?? []);
             // Empty the input, so choosing the same file again also counts.
             event.target.value = "";
-            void uploadAll(files);
+            requestUpload(files);
           }}
         />
         <p role="status" className="mt-2 text-meta text-ink-muted empty:mt-0">
@@ -143,6 +172,12 @@ export function UploadZone({ lectureId, subjectId }: Props) {
           </p>
         ))}
       </div>
+      <TermsDialog
+        open={pending !== null}
+        fileNames={(pending ?? []).map((file) => file.name)}
+        onCancel={() => setPending(null)}
+        onAccepted={acceptedTerms}
+      />
     </div>
   );
 }

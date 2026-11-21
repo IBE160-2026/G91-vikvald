@@ -1,9 +1,10 @@
 """Business logic for accounts."""
 
 import re
+from datetime import UTC, datetime
 
 from fastapi.concurrency import run_in_threadpool
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -90,4 +91,22 @@ async def authenticate(session: AsyncSession, email: str, password: str) -> User
     )
     if user is None or not matches:
         raise AppError(ErrorCode.INVALID_CREDENTIALS)
+    return user
+
+
+async def accept_terms(session: AsyncSession, user: User) -> User:
+    """Record that the student accepted the terms, the first time only.
+
+    One conditional UPDATE (only while the field is empty) instead of read,
+    check, write: two calls at the same time, or a later call, can never move
+    the time of acceptance.
+    """
+    await session.execute(
+        update(User)
+        .where(User.id == user.id, User.terms_accepted_at.is_(None))
+        .values(terms_accepted_at=datetime.now(UTC))
+        .execution_options(synchronize_session=False)
+    )
+    await session.commit()
+    await session.refresh(user)
     return user

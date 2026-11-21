@@ -37,7 +37,8 @@ async def test_fr3_opprett_konto(client: AsyncClient, engine: AsyncEngine) -> No
     response = await _register(client, "  Klara@Eksempel.NO ")
     assert response.status_code == 201
     body = response.json()
-    assert set(body) == {"id", "email"}
+    assert set(body) == {"id", "email", "terms_accepted_at"}
+    assert body["terms_accepted_at"] is None
     assert body["email"] == "klara@eksempel.no"
     uuid.UUID(body["id"])
     assert await _count_users(engine) == 1

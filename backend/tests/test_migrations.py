@@ -22,9 +22,9 @@ def test_ar13_upgrade_head_lager_users_med_unik_email(tmp_path: Path) -> None:
 
     with sqlite3.connect(db_file) as connection:
         columns = {row[1]: row for row in connection.execute("PRAGMA table_info(users)")}
-        assert set(columns) == {"id", "email", "password_hash", "created_at"}
+        assert set(columns) == {"id", "email", "password_hash", "created_at", "terms_accepted_at"}
         assert columns["id"][5] == 1  # primary key
-        for name in columns:
+        for name in columns.keys() - {"terms_accepted_at"}:
             assert columns[name][3] == 1, f"{name} should be NOT NULL"
 
         unique_indexes = [
@@ -191,3 +191,33 @@ def test_ar8_downgrade_fra_0004_fjerner_files_men_beholder_lectures(tmp_path: Pa
     assert "files" not in tables
     assert "file_pages" not in tables
     assert "lectures" in tables
+
+
+def test_fr11_upgrade_head_legger_terms_accepted_at_paa_users(tmp_path: Path) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+    with sqlite3.connect(db_file) as connection:
+        columns = {row[1]: row for row in connection.execute("PRAGMA table_info(users)")}
+    assert "terms_accepted_at" in columns
+    assert columns["terms_accepted_at"][3] == 0  # nullable
+    assert columns["terms_accepted_at"][4] is None  # no default
+
+
+def test_fr11_downgrade_til_0004_fjerner_kolonnen_men_beholder_users(tmp_path: Path) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+    with sqlite3.connect(db_file) as connection:
+        connection.execute(
+            "INSERT INTO users (id, email, password_hash, created_at, terms_accepted_at) "
+            "VALUES ('a', 'klara@eksempel.no', 'x', '2026-11-21', '2026-11-21')"
+        )
+    command.downgrade(cfg, "0004_create_files")
+    with sqlite3.connect(db_file) as connection:
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(users)")}
+        emails = [row[0] for row in connection.execute("SELECT email FROM users")]
+    assert columns == {"id", "email", "password_hash", "created_at"}
+    assert emails == ["klara@eksempel.no"]

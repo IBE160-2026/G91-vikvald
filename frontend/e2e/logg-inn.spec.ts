@@ -173,7 +173,7 @@ test.describe("Logg inn (story 1.5)", () => {
 
     const me = await page.request.get("/api/identity/me");
     expect(me.status()).toBe(200);
-    expect(await me.json()).toEqual({ id: expect.any(String), email });
+    expect(await me.json()).toEqual({ id: expect.any(String), email, terms_accepted_at: null });
 
     expect(apiCalls.length).toBeGreaterThanOrEqual(2);
     expect(new Set(apiCalls)).toEqual(new Set(["http://localhost:3000"]));
