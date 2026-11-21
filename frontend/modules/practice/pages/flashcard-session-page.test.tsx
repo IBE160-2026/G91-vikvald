@@ -49,19 +49,26 @@ function card(id: string, front: string, page = 1): Flashcard {
 let cards: Flashcard[] = [];
 let lectureStatus = 200;
 let flashcardsStatus = 200;
+let saveStatus = 204;
 let client: QueryClient;
 
 beforeEach(() => {
   cards = [card("a", "Merkevare"), card("b", "Pris"), card("c", "Segment", 2)];
   lectureStatus = 200;
   flashcardsStatus = 200;
+  saveStatus = 204;
   notFound.mockReset();
   push.mockReset();
   // Just below 1: the shuffle keeps the order, so the test knows it.
   vi.spyOn(Math, "random").mockReturnValue(0.999);
   vi.stubGlobal("fetch", fetchMock);
+  fetchMock.mockReset();
   fetchMock.mockImplementation(async (url) => {
     const path = String(url);
+    if (path === "/api/practice-sessions") {
+      if (saveStatus === 204) return new Response(null, { status: 204 });
+      return jsonResponse(saveStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
+    }
     if (path === "/api/lectures/l1") {
       if (lectureStatus === 404) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
       if (lectureStatus !== 200) return jsonResponse(lectureStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
@@ -110,6 +117,19 @@ function counter(): string {
   return document.querySelector(".text-session-counter")!.textContent!;
 }
 
+// The bodies sent to POST /api/practice-sessions.
+function saved(): Record<string, unknown>[] {
+  return fetchMock.mock.calls
+    .filter(([url]) => String(url) === "/api/practice-sessions")
+    .map(([, init]) => JSON.parse(String(init?.body)) as Record<string, unknown>);
+}
+
+// Flip and mark the card shown, with the buttons.
+function markWithButtons(value: "Kunne" | "Kunne ikke") {
+  fireEvent.click(button("Snu kortet"));
+  fireEvent.click(button(value));
+}
+
 describe("FlashcardSessionPage", () => {
   it("FR-24, FR-25: hel økt med «Kunne ikke» bakerst, fokus etter snuing og markering, og ferdig økt", async () => {
     renderPage();
@@ -141,13 +161,134 @@ describe("FlashcardSessionPage", () => {
 
     fireEvent.click(button("Snu kortet"));
     fireEvent.click(button("Kunne"));
-    const finished = screen.getByRole("heading", { level: 2, name: "Økten er ferdig" });
-    expect(document.activeElement).toBe(finished);
+    const title = screen.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 3 kortene" });
+    expect(document.activeElement).toBe(title);
     expect(screen.getByRole("status").textContent).toBe("Økten er ferdig");
     expect(screen.getByText("Kunne 2 · Kunne ikke 1")).toBeTruthy();
     expect(screen.getByText("Kunne ikke, repetert")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Avslutt økt" })).toBeNull();
     expect(screen.getByRole("link", { name: "Tilbake til forelesningen" }).getAttribute("href")).toBe("/forelesninger/l1");
+  });
+
+  it("FR-26, FR-56, UX-DR8, UX-DR34: ferdig økt lagres én gang og viser resultatsiden og «Økten er ferdig og lagret»", async () => {
+    renderPage();
+    expect(await screen.findByText("/ 3")).toBeTruthy();
+    markWithButtons("Kunne ikke");
+    markWithButtons("Kunne");
+    markWithButtons("Kunne");
+    markWithButtons("Kunne");
+
+    expect(await screen.findByText("Økten er ferdig og lagret")).toBeTruthy();
+    expect(saved()).toEqual([
+      expect.objectContaining({
+        subject_id: "s1",
+        lecture_id: "l1",
+        kind: "flashcards",
+        aborted: false,
+        shown: 3,
+        answered: 3,
+        correct: 2,
+        partial: 0,
+        wrong: 1,
+      }),
+    ]);
+    expect(screen.getByText("ØKT FERDIG")).toBeTruthy();
+    expect(screen.getByText("Uke 37: Merkevare · kortene du ikke kunne, ble repetert til slutt i økten")).toBeTruthy();
+    expect(screen.getByText("67 % av kortene")).toBeTruthy();
+    expect(screen.getByText("Repetert til slutt i økten")).toBeTruthy();
+    const missed = screen.getByRole("region", { name: "Kortene du ikke kunne" });
+    expect(missed.textContent).toContain("1 kort");
+    expect(missed.textContent).toContain("Kort 1:Merkevare");
+    expect(missed.textContent).toContain("definisjoner.pdf, side 1");
+    expect(button("Øv igjen").dataset.variant).toBe("primary");
+    expect(screen.getByRole("link", { name: "Tilbake til forelesningen" }).dataset.variant).toBe("outline");
+    expect(screen.queryByRole("alert")).toBeNull();
+
+    // Leaving the result page sends nothing more.
+    cleanup();
+    expect(saved()).toHaveLength(1);
+  });
+
+  it("FR-26: uten «Kunne ikke» vises ingen liste, og ett kort står i entall", async () => {
+    cards = [card("a", "Merkevare")];
+    renderPage();
+    expect(await screen.findByText("/ 1")).toBeTruthy();
+    markWithButtons("Kunne");
+    expect(screen.getByRole("heading", { level: 2, name: "Du har gått gjennom 1 kort" })).toBeTruthy();
+    expect(screen.getByText("Uke 37: Merkevare", { selector: "[data-slot='result-summary'] p" })).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Kortene du ikke kunne" })).toBeNull();
+  });
+
+  it("FR-56: lagring som feiler gir reserveteksten på resultatsiden, og panelet sier ikke «lagret»", async () => {
+    saveStatus = 500;
+    cards = [card("a", "Merkevare")];
+    renderPage();
+    expect(await screen.findByText("/ 1")).toBeTruthy();
+    markWithButtons("Kunne");
+    expect((await screen.findByRole("alert")).textContent).toBe(FALLBACK_MESSAGE);
+    expect(screen.queryByText("Økten er ferdig og lagret")).toBeNull();
+    expect(screen.getByRole("heading", { level: 2, name: "Du har gått gjennom 1 kort" })).toBeTruthy();
+  });
+
+  it("UX-DR33, FR-56: «Avslutt økt» etter en markering lagrer økten som avbrutt og viser «Avbrutt etter 1 av 3»", async () => {
+    renderPage();
+    expect(await screen.findByText("/ 3")).toBeTruthy();
+    markWithButtons("Kunne ikke");
+    fireEvent.click(button("Avslutt økt"));
+
+    const title = screen.getByRole("heading", { level: 2, name: "Avbrutt etter 1 av 3" });
+    expect(document.activeElement).toBe(title);
+    expect(push).not.toHaveBeenCalled();
+    await waitFor(() => expect(saved()).toEqual([expect.objectContaining({ aborted: true, shown: 2, answered: 1, wrong: 1 })]));
+    expect(screen.queryByRole("button", { name: "Avslutt økt" })).toBeNull();
+    expect(screen.queryByText("Økten er ferdig og lagret")).toBeNull();
+    expect(screen.queryByText(/[Rr]epeter/)).toBeNull();
+    expect(screen.getByText("Kunne ikke", { selector: "li" })).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toBe("");
+    expect(screen.getByRole("region", { name: "Kortene du ikke kunne" })).toBeTruthy();
+    cleanup();
+    expect(saved()).toHaveLength(1);
+  });
+
+  it("FR-56: å forlate økten i appen etter en markering lagrer den som avbrutt", async () => {
+    renderPage();
+    expect(await screen.findByText("/ 3")).toBeTruthy();
+    markWithButtons("Kunne");
+    expect(saved()).toHaveLength(0);
+    cleanup();
+    expect(saved()).toEqual([expect.objectContaining({ aborted: true, answered: 1, correct: 1 })]);
+  });
+
+  it("FR-56: å forlate økten uten markeringer sender ingenting", async () => {
+    renderPage();
+    expect(await screen.findByText("/ 3")).toBeTruthy();
+    window.dispatchEvent(new Event("pagehide"));
+    cleanup();
+    expect(saved()).toHaveLength(0);
+  });
+
+  it("UX-DR35, SK-20: «Øv igjen» starter en ny blanding med kortene forelesningen har nå og en ny session_id", async () => {
+    renderPage();
+    expect(await screen.findByText("/ 3")).toBeTruthy();
+    markWithButtons("Kunne");
+    fireEvent.click(button("Avslutt økt"));
+    await waitFor(() => expect(saved()).toHaveLength(1));
+
+    cards = [...cards, card("d", "Lojalitet")];
+    await act(() => client.invalidateQueries({ queryKey: lectureFlashcardsQueryKey("l1") }));
+    await waitFor(() => expect(client.getQueryData<Flashcard[]>(lectureFlashcardsQueryKey("l1"))).toHaveLength(4));
+
+    fireEvent.click(button("Øv igjen"));
+    expect(screen.getByText("/ 4")).toBeTruthy();
+    expect(counter()).toBe("1");
+    expect(document.activeElement).toBe(button("Snu kortet"));
+    expect(button("Avslutt økt")).toBeTruthy();
+    markWithButtons("Kunne");
+    fireEvent.click(button("Avslutt økt"));
+    await waitFor(() => expect(saved()).toHaveLength(2));
+    const [first, second] = saved();
+    expect(first.session_id).not.toBe(second.session_id);
+    expect(second).toMatchObject({ aborted: true, answered: 1 });
   });
 
   it("FR-23: kortene blandes når økten starter", async () => {
@@ -198,10 +339,9 @@ describe("FlashcardSessionPage", () => {
     expect((await screen.findByRole("alert")).textContent).toBe(FALLBACK_MESSAGE);
   });
 
-  it("UX-DR33: «Avslutt økt» går rett tilbake til forelesningen og sender ingenting", async () => {
+  it("UX-DR33: «Avslutt økt» uten markerte kort går rett tilbake til forelesningen og sender ingenting", async () => {
     renderPage();
     fireEvent.click(await screen.findByRole("button", { name: "Snu kortet" }));
-    fireEvent.click(button("Kunne"));
     fetchMock.mockClear();
     fireEvent.click(button("Avslutt økt"));
     expect(push).toHaveBeenCalledWith("/forelesninger/l1");
@@ -249,7 +389,7 @@ describe("FlashcardSessionPage", () => {
         press(" ");
         press("2");
       }
-      expect(screen.getByRole("heading", { level: 2, name: "Økten er ferdig" })).toBeTruthy();
+      expect(screen.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 3 kortene" })).toBeTruthy();
       expect(screen.getByText("Kunne 2 · Kunne ikke 1")).toBeTruthy();
     });
 
@@ -326,17 +466,74 @@ describe("FlashcardSessionPage", () => {
       field.remove();
     });
 
-    it("UX-DR32: når økten er ferdig, virker bare ?", async () => {
+    it("UX-DR35: på resultatsiden er Enter «Øv igjen», Esc tilbake og ? dialogen; øktens taster virker ikke", async () => {
       cards = [card("a", "Merkevare")];
       renderPage(undefined, { frame: true });
       expect(await screen.findByText("/ 1")).toBeTruthy();
       press(" ");
       press("2");
-      expect(screen.getByRole("heading", { level: 2, name: "Økten er ferdig" })).toBeTruthy();
-      press("Escape");
-      expect(push).not.toHaveBeenCalled();
+      expect(screen.getByRole("heading", { level: 2, name: "Du har gått gjennom 1 kort" })).toBeTruthy();
+      expect(screen.getByRole("list", { name: "Hurtigtaster" }).textContent).toBe(
+        "Enter øv igjenEsc tilbake til forelesningen",
+      );
+      press(" ");
+      expect(screen.queryByRole("button", { name: "Snu kortet" })).toBeNull();
       press("?");
-      expect(screen.getByRole("dialog", { name: "Hurtigtaster" })).toBeTruthy();
+      const dialog = screen.getByRole("dialog", { name: "Hurtigtaster" });
+      fireEvent.keyDown(dialog, { key: "Escape" });
+      expect(push).not.toHaveBeenCalled();
+      press("Escape");
+      expect(push).toHaveBeenCalledWith("/forelesninger/l1");
+    });
+
+    it("UX-DR35: Enter starter en ny økt og flytter fokus til «Snu kortet»", async () => {
+      cards = [card("a", "Merkevare")];
+      renderPage(undefined, { frame: true });
+      expect(await screen.findByText("/ 1")).toBeTruthy();
+      press(" ");
+      press("2");
+      expect(screen.getByRole("heading", { level: 2, name: "Du har gått gjennom 1 kort" })).toBeTruthy();
+      press("Enter");
+      expect(document.activeElement).toBe(button("Snu kortet"));
+      expect(counter()).toBe("1");
+    });
+
+    it("UX-DR35: Enter på en knapp eller lenke i fokus gjør knappens egen handling, ikke «Øv igjen»", async () => {
+      cards = [card("a", "Merkevare")];
+      renderPage(undefined, { frame: true });
+      expect(await screen.findByText("/ 1")).toBeTruthy();
+      press(" ");
+      press("2");
+      screen.getByRole("link", { name: "Tilbake til forelesningen" }).focus();
+      press("Enter");
+      expect(screen.queryByRole("button", { name: "Snu kortet" })).toBeNull();
+    });
+
+    it("UX-DR26, UX-DR35: med bryteren av virker Enter og Esc på resultatsiden, og hint-linjen er skjult", async () => {
+      window.localStorage.setItem(SHORTCUTS_KEY, "off");
+      cards = [card("a", "Merkevare")];
+      renderPage(undefined, { frame: true });
+      expect(await screen.findByText("/ 1")).toBeTruthy();
+      markWithButtons("Kunne");
+      (document.activeElement as HTMLElement).blur();
+      expect(screen.queryByRole("list", { name: "Hurtigtaster" })).toBeNull();
+      press("Enter");
+      expect(screen.getByRole("button", { name: "Snu kortet" })).toBeTruthy();
+      markWithButtons("Kunne");
+      (document.activeElement as HTMLElement).blur();
+      press("Escape");
+      expect(push).toHaveBeenCalledWith("/forelesninger/l1");
+    });
+
+    it("UX-DR33: Esc etter en markering viser resultatsiden for en avbrutt økt", async () => {
+      renderPage(undefined, { frame: true });
+      expect(await screen.findByText("/ 3")).toBeTruthy();
+      press(" ");
+      press("2");
+      press("Escape");
+      expect(screen.getByRole("heading", { level: 2, name: "Avbrutt etter 1 av 3" })).toBeTruthy();
+      expect(push).not.toHaveBeenCalled();
+      await waitFor(() => expect(saved()).toEqual([expect.objectContaining({ aborted: true })]));
     });
 
     it("UX-DR10: på smal skjerm er panelet bak «Meny», panelets tittel er h2, og innholdet har en skjult h1", async () => {

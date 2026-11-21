@@ -54,7 +54,7 @@ describe("buildSessionPayload", () => {
 
 describe("newSessionId", () => {
   it("SK-20: bruker crypto.randomUUID når den finnes", () => {
-    expect(newSessionId({ randomUUID: () => "fra-randomUUID", getRandomValues: (array) => array })).toBe("fra-randomUUID");
+    expect(newSessionId({ randomUUID: () => "fra-randomUUID", getRandomValues: ((array: Uint8Array) => array) as Crypto["getRandomValues"] })).toBe("fra-randomUUID");
     expect(newSessionId()).toMatch(UUID_V4);
   });
 
@@ -66,7 +66,7 @@ describe("newSessionId", () => {
     const id = newSessionId({ getRandomValues: fill as Crypto["getRandomValues"] });
     expect(id).toMatch(UUID_V4);
     expect(id).toBe("ffffffff-ffff-4fff-bfff-ffffffffffff");
-    expect(newSessionId({ getRandomValues: (array) => globalThis.crypto.getRandomValues(array) })).toMatch(UUID_V4);
+    expect(newSessionId({ getRandomValues: globalThis.crypto.getRandomValues.bind(globalThis.crypto) })).toMatch(UUID_V4);
   });
 });
 

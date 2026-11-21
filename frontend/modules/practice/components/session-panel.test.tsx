@@ -17,9 +17,16 @@ function run(state: SessionState, marks: Mark[]): SessionState {
   return marks.reduce(markCurrent, state);
 }
 
-function renderPanel(state: SessionState, onEnd = vi.fn()) {
+function renderPanel(state: SessionState, onEnd = vi.fn(), extra: { aborted?: boolean; saved?: boolean } = {}) {
   return render(
-    <SessionPanel adapter={flashcardAdapter} state={state} scopeName="Uke 37: Merkevare" colorIndex={0} onEnd={onEnd} />,
+    <SessionPanel
+      adapter={flashcardAdapter}
+      state={state}
+      scopeName="Uke 37: Merkevare"
+      colorIndex={0}
+      onEnd={onEnd}
+      {...extra}
+    />,
   );
 }
 
@@ -84,6 +91,39 @@ describe("SessionPanel", () => {
     const progress = screen.getByRole("progressbar");
     expect(progress.getAttribute("aria-valuenow")).toBe("100");
     expect(progress.getAttribute("aria-valuetext")).toBe("3 / 3");
+    // Not saved (yet): nothing at the bottom.
+    expect(screen.queryByText("Økten er ferdig og lagret")).toBeNull();
+  });
+
+  it("UX-DR8: ferdig og lagret økt viser «✓ Økten er ferdig og lagret» i stedet for «Avslutt økt»", () => {
+    const state = run(startSession(["A", "B", "C"]), ["missed", "known", "known", "known"]);
+    renderPanel(state, vi.fn(), { saved: true });
+    const saved = screen.getByText("Økten er ferdig og lagret");
+    expect(saved.className).toContain("text-meta");
+    expect(saved.className).toContain("text-ink-muted");
+    expect(saved.querySelector("svg")).toBeTruthy();
+    expect(screen.getByText("Kunne ikke, repetert")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Avslutt økt" })).toBeNull();
+  });
+
+  it("UX-DR33: avbrutt økt har ingen «Avslutt økt», ingen «Repeterer», ingen gjeldende rute og egen forklaring", () => {
+    // Every card marked once, one waiting to be repeated.
+    const state = run(startSession(["A", "B", "C"]), ["missed", "known", "known"]);
+    const { container } = renderPanel(state, vi.fn(), { aborted: true, saved: true });
+    expect(screen.queryByRole("button", { name: "Avslutt økt" })).toBeNull();
+    expect(screen.queryByText(/Repeterer/)).toBeNull();
+    expect(container.querySelector("[aria-current]")).toBeNull();
+    expect(screen.queryByText("Økten er ferdig og lagret")).toBeNull();
+    const legend = Array.from(container.querySelectorAll("ul > li")).map((item) => item.textContent);
+    expect(legend).toEqual(["Kunne", "Kunne ikke", "Ikke vist ennå"]);
+  });
+
+  it("UX-DR33: en avbrutt økt med kort som ikke er vist, viser dem som tomme ruter", () => {
+    const state = run(startSession(["A", "B", "C"]), ["known"]);
+    const { container } = renderPanel(state, vi.fn(), { aborted: true });
+    expect(container.querySelector("[aria-current]")).toBeNull();
+    expect(screen.getByText("Kort 2: ikke vist ennå")).toBeTruthy();
+    expect(screen.getByText("Kort 3: ikke vist ennå")).toBeTruthy();
   });
 
   it("UX-DR9: over 120 kort vises verken rutenett eller forklaring, men teller, stolpe og tellelinje står", () => {

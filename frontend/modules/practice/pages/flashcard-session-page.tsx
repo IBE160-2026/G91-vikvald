@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Ref } from "react";
 
 import { iconProps } from "@/components/icon";
 import { SideMenu, useOpenShortcuts, useSideMenuCollapsed } from "@/components/side-menu";
@@ -18,14 +18,35 @@ import { fetchLecture, fetchSubject, lectureQueryKey, subjectQueryKey } from "@/
 import { flashcardAdapter } from "../adapter";
 import { fetchLectureFlashcards, lectureFlashcardsQueryKey } from "../api";
 import { Flashcard } from "../components/flashcard";
+import { MissedList, type MissedItem } from "../components/missed-list";
+import { ResultSummary } from "../components/result-summary";
 import { SessionPanel } from "../components/session-panel";
-import { currentCard, isFinished, markCurrent, shuffle, startSession, type SessionState } from "../session";
+import { RESULT_HINTS, ShortcutHints } from "../components/shortcut-hints";
+import {
+  currentCard,
+  gridCells,
+  isFinished,
+  markCurrent,
+  sessionCounts,
+  shuffle,
+  startSession,
+  type SessionState,
+} from "../session";
 import type { Flashcard as FlashcardData, Mark } from "../types";
+import { useSessionSaver, type SaverSnapshot } from "../use-session-saver";
 
 const FINISHED = "Økten er ferdig";
 
 // The cards of a session: copied once from the first answer, by id.
 type Session = { cards: Record<string, FlashcardData>; state: SessionState };
+
+// A new session over these cards, in a new random order.
+function newSession(cards: readonly FlashcardData[]): Session {
+  return {
+    cards: Object.fromEntries(cards.map((card) => [card.id, card])),
+    state: startSession(shuffle(cards.map((card) => card.id))),
+  };
+}
 
 // The flashcard session for one lecture (story 3.3, mockup 07), at
 // /forelesninger/<id>/flashcards. The session panel stands where the sidebar
@@ -36,20 +57,31 @@ type Session = { cards: Record<string, FlashcardData>; state: SessionState };
 // that never changes a session in progress: new cards come in the next one.
 //
 // No cards: no panel and no session, only the h1 «Det finnes ingen flashcards
-// her ennå.» and «Tilbake til forelesningen». Finished: the panel in its
-// finished state, the h2 «Økten er ferdig» (which gets focus, and is also read
-// by an always-mounted live region) and «Tilbake til forelesningen». The result
-// page and saving come in story 3.5. «Avslutt økt» goes straight back to the
-// lecture without asking and sends nothing.
+// her ennå.» and «Tilbake til forelesningen».
+//
+// Saving and the result (story 3.5, mockup 08): useSessionSaver sends the
+// result exactly once, and only when at least one card is marked. Finished:
+// sent with aborted=false, the panel in its finished state («✓ Økten er ferdig
+// og lagret» once saved), «Økten er ferdig» in the always-mounted live region,
+// and the result page (result-summary, missed-list when a card was «Kunne
+// ikke», «Tilbake til forelesningen» and «Øv igjen»); its title gets focus.
+// «Avslutt økt» or Esc without a marked card goes straight back to the lecture
+// and sends nothing; with marked cards the session is sent as aborted and the
+// result page shows «Avbrutt etter A av N». Leaving in another way (a link,
+// «Logg ut», closing the tab) sends it as aborted without a result page. A
+// failed save shows the fallback text in role="alert" on the result page.
+// «Øv igjen» starts a new session over the cards the lecture has now (a new
+// order and a new session_id) and puts focus on «Snu kortet».
 //
 // Someone else's or a missing lecture shows «Fant ikke siden»; other errors
 // show the fallback text in role="alert".
 //
 // Keys (story 3.4, lib/practice-shortcuts.ts): Space flips the card, «1» marks
 // «Kunne ikke» and «2» «Kunne» (both only after the flip, like the buttons),
-// Esc does what «Avslutt økt» does, and «?» opens the shortcut dialog. When the
-// session is finished, only «?» works. The single keys and the hint line
-// follow the switch «Bruk hurtigtaster»; Esc always works.
+// Esc does what «Avslutt økt» does, and «?» opens the shortcut dialog. On the
+// result page Enter is «Øv igjen», Esc goes back to the lecture and «?» opens
+// the dialog. The single keys and the hint lines follow the switch «Bruk
+// hurtigtaster»; Esc and Enter always work.
 //
 // Narrow screen: the panel is behind «Meny» in the top bar (SideMenu). Its
 // title is then an h2, and the content has a hidden h1 «Flashcards», so the
@@ -74,7 +106,9 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
   // (also when the same card comes straight back), and after the first mark
   // the new card puts focus on «Snu kortet».
   const [step, setStep] = useState(0);
-  const finishedRef = useRef<HTMLHeadingElement>(null);
+  // Ended with «Avslutt økt» or Esc after at least one mark: the result page.
+  const [aborted, setAborted] = useState(false);
+  const resultTitleRef = useRef<HTMLHeadingElement>(null);
   const shortcutsOn = useShortcutsEnabled();
   const openShortcuts = useOpenShortcuts();
   const collapsed = useSideMenuCollapsed();
@@ -82,17 +116,28 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
   // Lock the shuffled list the first time the cards arrive from a fetch made
   // after this page opened (a cached list from an earlier visit may be old).
   if (session === null && flashcards.data && flashcards.isFetchedAfterMount) {
-    const cards = Object.fromEntries(flashcards.data.map((card) => [card.id, card]));
-    setSession({ cards, state: startSession(shuffle(flashcards.data.map((card) => card.id))) });
+    setSession(newSession(flashcards.data));
   }
+
+  const subjectIdForSave = lecture.data?.subject_id;
+  const saver = useSessionSaver((): SaverSnapshot | null =>
+    session && subjectIdForSave
+      ? { subjectId: subjectIdForSave, lectureId, kind: "flashcards", counts: sessionCounts(session.state) }
+      : null,
+  );
 
   const name = lecture.data?.name;
   useDocumentTitle(name ? `Flashcards – ${name} – Studiekamerat` : null);
 
   const finished = session !== null && session.state.order.length > 0 && isFinished(session.state);
+  const showResult = finished || aborted;
+  const { finish } = saver;
   useEffect(() => {
-    if (finished) finishedRef.current?.focus();
-  }, [finished]);
+    if (finished) finish();
+  }, [finished, finish]);
+  useEffect(() => {
+    if (showResult) resultTitleRef.current?.focus();
+  }, [showResult]);
 
   function mark(value: Mark) {
     setSession((old) => (old ? { ...old, state: markCurrent(old.state, value) } : old));
@@ -101,7 +146,29 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
   }
 
   const lecturePath = `/forelesninger/${lectureId}`;
-  const end = () => router.push(lecturePath);
+  const back = () => router.push(lecturePath);
+  // «Avslutt økt» and Esc: nothing marked goes straight back; otherwise the
+  // session is saved as aborted and the result page is shown.
+  function end() {
+    if (!session || sessionCounts(session.state).answered === 0) {
+      back();
+      return;
+    }
+    saver.abort();
+    setAborted(true);
+  }
+
+  // «Øv igjen»: the cards the lecture has now (or the locked ones, if the
+  // query has none), a new order, a new session_id and a new start time.
+  function playAgain() {
+    const cards = flashcards.data ?? (session ? session.state.order.map((id) => session.cards[id]) : []);
+    saver.restart();
+    setSession(newSession(cards));
+    setAborted(false);
+    setFlipped(false);
+    // A new key for the card, and focus on «Snu kortet» when it appears.
+    setStep((old) => old + 1);
+  }
   // Errors count only before the session starts: a failed background refetch
   // (job watcher, window focus) never replaces a session in progress.
   if (session === null && lecture.error) notFoundOnMissing(lecture.error);
@@ -115,8 +182,12 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
 
   const bindings: ShortcutBinding[] = !practising
     ? []
-    : finished
-      ? [{ key: "?", action: openShortcuts }]
+    : showResult
+      ? [
+          { key: "Enter", action: playAgain },
+          { key: "Escape", action: back },
+          { key: "?", action: openShortcuts },
+        ]
       : [
           { key: " ", action: () => setFlipped(true) },
           { key: "1", action: () => (flipped ? mark("missed") : undefined) },
@@ -154,18 +225,28 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
           scopeName={lecture.data.name}
           colorIndex={subject.data?.color_index}
           onEnd={end}
+          aborted={aborted}
+          saved={saver.status === "saved"}
           headingLevel={collapsed ? 2 : 1}
         />
       </SideMenu>
-      <div className="flex min-w-0 flex-1 items-center justify-center px-content-inset py-7">
+      <div
+        className={
+          "flex min-w-0 flex-1 justify-center px-content-inset py-7 " + (showResult ? "items-start" : "items-center")
+        }
+      >
         {collapsed ? <h1 className="sr-only">{flashcardAdapter.kindLabel}</h1> : null}
-        {finished ? (
-          <div className="flex w-full max-w-flashcard-width flex-col items-start">
-            <h2 ref={finishedRef} tabIndex={-1} className="text-page-title">
-              {FINISHED}
-            </h2>
-            <BackToLecture href={lecturePath} className="mt-5" />
-          </div>
+        {showResult ? (
+          <ResultView
+            session={session}
+            aborted={aborted}
+            scopeName={lecture.data.name}
+            saveFailed={saver.status === "failed"}
+            titleRef={resultTitleRef}
+            backHref={lecturePath}
+            onPlayAgain={playAgain}
+            showHints={shortcutsOn}
+          />
         ) : card ? (
           <Flashcard
             key={step}
@@ -181,6 +262,69 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
       <div role="status" className="sr-only">
         {finished ? FINISHED : ""}
       </div>
+    </div>
+  );
+}
+
+type ResultViewProps = {
+  session: Session;
+  aborted: boolean;
+  scopeName: string;
+  saveFailed: boolean;
+  titleRef: Ref<HTMLHeadingElement>;
+  backHref: string;
+  onPlayAgain: () => void;
+  showHints: boolean;
+};
+
+// The result page (mockup 08) in the 768 px column: the summary, the fallback
+// text if saving failed, the cards she could not («Kunne ikke», in the grid's
+// order), the buttons «Tilbake til forelesningen» (outline link) and «Øv
+// igjen» (primary), centred, and the hint line under them.
+function ResultView({ session, aborted, scopeName, saveFailed, titleRef, backHref, onPlayAgain, showHints }: ResultViewProps) {
+  const counts = sessionCounts(session.state);
+  const missed: MissedItem[] = gridCells(session.state)
+    .filter((cell) => cell.mark === "missed")
+    .map((cell) => ({
+      id: cell.id,
+      number: cell.number,
+      front: session.cards[cell.id].front,
+      source: session.cards[cell.id].source,
+    }));
+
+  return (
+    <div className="flex w-full max-w-flashcard-width flex-col">
+      <ResultSummary
+        total={session.state.order.length}
+        counts={counts}
+        aborted={aborted}
+        scopeName={scopeName}
+        titleRef={titleRef}
+      />
+      {saveFailed ? (
+        <p role="alert" className="mt-4 flex items-start gap-2 rounded-md bg-danger-tint p-3 text-meta text-danger">
+          <CircleAlert {...iconProps} className="mt-[3px] shrink-0" />
+          <span>{FALLBACK_MESSAGE}</span>
+        </p>
+      ) : null}
+      {counts.wrong >= 1 ? (
+        <div className="mt-6">
+          <MissedList items={missed} />
+        </div>
+      ) : null}
+      <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <Button asChild variant="outline" size="lg" className="w-[224px]">
+          <Link href={backHref}>Tilbake til forelesningen</Link>
+        </Button>
+        <Button size="lg" className="w-[224px]" onClick={onPlayAgain}>
+          Øv igjen
+        </Button>
+      </div>
+      {showHints ? (
+        <div className="mt-5">
+          <ShortcutHints hints={RESULT_HINTS} />
+        </div>
+      ) : null}
     </div>
   );
 }
