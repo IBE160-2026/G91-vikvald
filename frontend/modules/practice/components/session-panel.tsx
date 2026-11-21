@@ -20,6 +20,9 @@ type Props = {
   colorIndex?: number;
   // «Avslutt økt».
   onEnd: () => void;
+  // The title is the page's h1, except on a narrow screen, where the panel is
+  // a sheet over the content and the content has its own hidden h1 (story 3.4).
+  headingLevel?: 1 | 2;
 };
 
 // session-panel (DESIGN.md "Øktpanel", mockups 07 and 08): stands where the
@@ -31,7 +34,8 @@ type Props = {
 // with its legend (both left out above 120 cards), and the outline button
 // «Avslutt økt» at the bottom. Finished: every cell filled, the finished
 // legend, and no «Avslutt økt».
-export function SessionPanel({ adapter, state, scopeName, colorIndex, onEnd }: Props) {
+export function SessionPanel({ adapter, state, scopeName, colorIndex, onEnd, headingLevel = 1 }: Props) {
+  const Heading = headingLevel === 1 ? "h1" : "h2";
   const titleId = useId();
   const counterId = useId();
   const finished = isFinished(state);
@@ -51,9 +55,9 @@ export function SessionPanel({ adapter, state, scopeName, colorIndex, onEnd }: P
       <p aria-hidden="true" className="text-overline text-ink-muted">
         ØKT
       </p>
-      <h1 id={titleId} className="mt-2 text-card-question text-ink">
+      <Heading id={titleId} className="mt-2 text-card-question text-ink">
         {adapter.kindLabel}
-      </h1>
+      </Heading>
       <p className="mt-1 flex items-center gap-2 text-meta text-ink-muted">
         {colorIndex === undefined ? null : <SubjectDot colorIndex={colorIndex} />}
         <span className="min-w-0 break-words">{scopeName}</span>

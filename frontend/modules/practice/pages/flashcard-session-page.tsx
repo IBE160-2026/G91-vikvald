@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { iconProps } from "@/components/icon";
+import { SideMenu, useOpenShortcuts, useSideMenuCollapsed } from "@/components/side-menu";
 import { Button } from "@/components/ui/button";
 import { notFoundOnMissing } from "@/lib/api";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
+import { usePracticeShortcuts, useShortcutsEnabled, type ShortcutBinding } from "@/lib/practice-shortcuts";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import { fetchLecture, fetchSubject, lectureQueryKey, subjectQueryKey } from "@/modules/subjects/api";
 
@@ -42,6 +44,16 @@ type Session = { cards: Record<string, FlashcardData>; state: SessionState };
 //
 // Someone else's or a missing lecture shows «Fant ikke siden»; other errors
 // show the fallback text in role="alert".
+//
+// Keys (story 3.4, lib/practice-shortcuts.ts): Space flips the card, «1» marks
+// «Kunne ikke» and «2» «Kunne» (both only after the flip, like the buttons),
+// Esc does what «Avslutt økt» does, and «?» opens the shortcut dialog. When the
+// session is finished, only «?» works. The single keys and the hint line
+// follow the switch «Bruk hurtigtaster»; Esc always works.
+//
+// Narrow screen: the panel is behind «Meny» in the top bar (SideMenu). Its
+// title is then an h2, and the content has a hidden h1 «Flashcards», so the
+// page always has one h1.
 export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
   const router = useRouter();
   const lecture = useQuery({ queryKey: lectureQueryKey(lectureId), queryFn: () => fetchLecture(lectureId) });
@@ -63,6 +75,9 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
   // the new card puts focus on «Snu kortet».
   const [step, setStep] = useState(0);
   const finishedRef = useRef<HTMLHeadingElement>(null);
+  const shortcutsOn = useShortcutsEnabled();
+  const openShortcuts = useOpenShortcuts();
+  const collapsed = useSideMenuCollapsed();
 
   // Lock the shuffled list the first time the cards arrive from a fetch made
   // after this page opened (a cached list from an earlier visit may be old).
@@ -86,6 +101,7 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
   }
 
   const lecturePath = `/forelesninger/${lectureId}`;
+  const end = () => router.push(lecturePath);
   // Errors count only before the session starts: a failed background refetch
   // (job watcher, window focus) never replaces a session in progress.
   if (session === null && lecture.error) notFoundOnMissing(lecture.error);
@@ -95,6 +111,20 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
   const currentId = session ? currentCard(session.state) : undefined;
   const card = currentId ? session?.cards[currentId] : undefined;
   const empty = session !== null && session.state.order.length === 0;
+  const practising = session !== null && !empty && !loadError && lecture.data !== undefined;
+
+  const bindings: ShortcutBinding[] = !practising
+    ? []
+    : finished
+      ? [{ key: "?", action: openShortcuts }]
+      : [
+          { key: " ", action: () => setFlipped(true) },
+          { key: "1", action: () => (flipped ? mark("missed") : undefined) },
+          { key: "2", action: () => (flipped ? mark("known") : undefined) },
+          { key: "Escape", action: end },
+          { key: "?", action: openShortcuts },
+        ];
+  usePracticeShortcuts(bindings, { singleKeys: shortcutsOn });
 
   if (loadError || empty || !session || !lecture.data) {
     return (
@@ -117,14 +147,18 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
 
   return (
     <div className="flex min-h-[calc(100vh-var(--spacing-topbar-height))]">
-      <SessionPanel
-        adapter={flashcardAdapter}
-        state={session.state}
-        scopeName={lecture.data.name}
-        colorIndex={subject.data?.color_index}
-        onEnd={() => router.push(lecturePath)}
-      />
+      <SideMenu title={flashcardAdapter.kindLabel}>
+        <SessionPanel
+          adapter={flashcardAdapter}
+          state={session.state}
+          scopeName={lecture.data.name}
+          colorIndex={subject.data?.color_index}
+          onEnd={end}
+          headingLevel={collapsed ? 2 : 1}
+        />
+      </SideMenu>
       <div className="flex min-w-0 flex-1 items-center justify-center px-content-inset py-7">
+        {collapsed ? <h1 className="sr-only">{flashcardAdapter.kindLabel}</h1> : null}
         {finished ? (
           <div className="flex w-full max-w-flashcard-width flex-col items-start">
             <h2 ref={finishedRef} tabIndex={-1} className="text-page-title">
@@ -140,6 +174,7 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
             onFlip={() => setFlipped(true)}
             onMark={mark}
             focusOnMount={step > 0}
+            showHints={shortcutsOn}
           />
         ) : null}
       </div>

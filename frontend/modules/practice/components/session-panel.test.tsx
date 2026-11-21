@@ -99,4 +99,18 @@ describe("SessionPanel", () => {
     const { container } = renderPanel(startSession(ids(120)));
     expect(container.querySelectorAll("ol > li")).toHaveLength(120);
   });
+  it("UX-DR32: på smal skjerm er tittelen h2, så siden har sin egen h1", () => {
+    render(
+      <SessionPanel
+        adapter={flashcardAdapter}
+        state={startSession(ids(3))}
+        scopeName="Uke 37: Merkevare"
+        onEnd={vi.fn()}
+        headingLevel={2}
+      />,
+    );
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+    expect(screen.getByRole("region", { name: "Flashcards" })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: "Flashcards" })).toBeTruthy();
+  });
 });
