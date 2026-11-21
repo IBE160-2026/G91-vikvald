@@ -26,6 +26,10 @@ describe("next.config", () => {
     expect((await apiRewrite()).destination).toBe("http://localhost:8000/api/:path*");
   });
 
+  it("NFR-16: slipper gjennom forespørsler godt over 20 MB, så en PDF like under grensen kommer fram", () => {
+    expect(nextConfig.experimental?.proxyClientMaxBodySize).toBe("32mb");
+  });
+
   it("AR-14: bygger standalone", () => {
     expect(nextConfig.output).toBe("standalone");
   });
