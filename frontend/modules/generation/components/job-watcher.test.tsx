@@ -144,6 +144,25 @@ describe("JobWatcher", () => {
     expect(calls("/api/jobs/active")).toBe(1);
   });
 
+  it("E10: etter utlogging (vakten er borte) spørres ingenting, og ingen ferdigmelding vises", async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const { rerender } = render(
+      <QueryClientProvider client={client}>
+        <JobWatcher>
+          <Follower jobId="j1" />
+        </JobWatcher>
+      </QueryClientProvider>,
+    );
+    await waitFor(() => expect(calls("/api/jobs/active")).toBe(1));
+    // Logging out: RequireLogin no longer renders its children, so the watcher goes.
+    rerender(<QueryClientProvider client={client}>{null}</QueryClientProvider>);
+    finish();
+    await act(() => new Promise((resolve) => setTimeout(resolve, 1500)));
+    expect(calls("/api/jobs/active")).toBe(1);
+    expect(calls("/api/jobs/j1")).toBe(0);
+    expect(screen.queryByText(/Flashcardene er ferdige/)).toBeNull();
+  });
+
   it("AR-5: en jobb som er borte (404), følges ikke lenger, og gir ingen melding", async () => {
     renderWatcher();
     await waitFor(() => expect(calls("/api/jobs/active")).toBe(1));
