@@ -51,6 +51,7 @@ export type MessageCode = keyof typeof messages;
 // later epics register. Singular for 1, plural otherwise. Written in lower
 // case, so the backend test that reads the error codes (upper case) skips them.
 export const countNouns: Record<string, { one: string; other: string }> = {
+  subjects: { one: "emne", other: "emner" },
   lectures: { one: "forelesning", other: "forelesninger" },
   files: { one: "fil", other: "filer" },
   flashcards: { one: "flashcard", other: "flashcards" },

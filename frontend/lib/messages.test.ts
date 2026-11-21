@@ -97,6 +97,7 @@ describe("meldingsfila", () => {
 describe("countNouns", () => {
   it("UX-DR22: navnene på det som slettes, i entall og flertall", () => {
     expect(countNouns).toEqual({
+      subjects: { one: "emne", other: "emner" },
       lectures: { one: "forelesning", other: "forelesninger" },
       files: { one: "fil", other: "filer" },
       flashcards: { one: "flashcard", other: "flashcards" },
