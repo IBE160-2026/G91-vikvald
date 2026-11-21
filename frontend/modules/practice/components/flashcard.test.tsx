@@ -16,9 +16,11 @@ const CARD: FlashcardData = {
   source: { file_id: "f1", file_name: "merkevare-notater.pdf", page_no: 4 },
 };
 
-function Harness({ card = CARD, onMark = vi.fn<(mark: Mark) => void>() }) {
+function Harness({ card = CARD, onMark = vi.fn<(mark: Mark) => void>(), showHints = false }) {
   const [flipped, setFlipped] = useState(false);
-  return <Flashcard card={card} flipped={flipped} onFlip={() => setFlipped(true)} onMark={onMark} />;
+  return (
+    <Flashcard card={card} flipped={flipped} onFlip={() => setFlipped(true)} onMark={onMark} showHints={showHints} />
+  );
 }
 
 describe("Flashcard", () => {
@@ -78,5 +80,15 @@ describe("Flashcard", () => {
   it("FR-24: med focusOnMount får «Snu kortet» fokus", () => {
     render(<Flashcard card={CARD} flipped={false} onFlip={vi.fn()} onMark={vi.fn()} focusOnMount />);
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Snu kortet" }));
+  });
+  it("UX-DR27: hint-linjen står under knappene bare når den er slått på", () => {
+    const { container, unmount } = render(<Harness />);
+    expect(container.querySelector("[data-slot='shortcut-hints']")).toBeNull();
+    unmount();
+    const shown = render(<Harness showHints />);
+    const hints = shown.container.querySelector("[data-slot='shortcut-hints']")!;
+    const known = screen.getByRole("button", { name: "Kunne" });
+    expect(known.compareDocumentPosition(hints) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(hints.textContent).toContain("Mellomrom snu kortet");
   });
 });

@@ -61,6 +61,10 @@ export type DialogProps = {
   returnFocus?: () => HTMLElement | null;
   // «Avbryt» is not active (e.g. while a delete runs and cannot be taken back).
   cancelDisabled?: boolean;
+  // A dialog without a main action whose content has a control of its own
+  // (the switch in the shortcut dialog): focus starts on that control, not on
+  // «Lukk».
+  focusContentFirst?: boolean;
 };
 
 function focusableIn(element: HTMLElement | null): HTMLElement[] {
@@ -76,6 +80,7 @@ export function Dialog({
   width = 560,
   returnFocus,
   cancelDisabled = false,
+  focusContentFirst = false,
 }: DialogProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -127,7 +132,9 @@ export function Dialog({
           // Otherwise the first field or button in the content, and without
           // one «Avbryt» (the safe choice).
           const first =
-            !primaryAction || primaryAction.variant === "danger" ? null : focusableIn(bodyRef.current)[0];
+            (!primaryAction && !focusContentFirst) || primaryAction?.variant === "danger"
+              ? null
+              : focusableIn(bodyRef.current)[0];
           (first ?? cancelRef.current)?.focus();
         }}
         onCloseAutoFocus={(event) => {

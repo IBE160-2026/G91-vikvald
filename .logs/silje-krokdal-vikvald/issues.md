@@ -79,7 +79,7 @@
 - [ ] 2026-11-20 [funn-68-shadcn-ui](986-2026-11-20-23-18-08-funn-68-shadcn-ui.md) — nye shadcn-komponenter må tilpasses DESIGN.md-tokenene (#76)
 - [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — godkjenn emnefargene subject-4 til subject-6 og før dem inn i DESIGN.md (#80)
 - [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — vurder kanttilfellene fra story 2.1 (#81–#88)
-- [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — sidemenyen skal bak en menyknapp ved 768 px (EXPERIENCE.md, «Skjermstørrelse og plattform»), ikke i noen story ennå
+- [x] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — sidemenyen skal bak en menyknapp ved 768 px (EXPERIENCE.md, «Skjermstørrelse og plattform»), ikke i noen story ennå (løst 2026-11-21, story 3.4)
 - [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — CI kjører ikke e2e, så kontrakten frontend–backend sjekkes bare lokalt
 - [ ] 2026-11-21 [story-2-2-forelesninger-og-sidemeny](983-2026-11-21-03-34-32-story-2-2-forelesninger-og-sidemeny.md) — vurder kanttilfellene fra story 2.2 (#90–#94)
 - [ ] 2026-11-21 [story-2-2-forelesninger-og-sidemeny](983-2026-11-21-03-34-32-story-2-2-forelesninger-og-sidemeny.md) — brødsmuler på forelesningssiden (skisse 04) er ikke i noen story (#93)
@@ -105,3 +105,5 @@
 - [ ] 2026-11-21 [story-3-2-velg-omfang-og-se-genereringen](975-2026-11-21-19-14-56-story-3-2-velg-omfang-og-se-genereringen.md) — oppryddingen i jobbvakten ved utlogging og layouttesten er ikke gjennomgått av et uavhengig lag (oppfølging anbefalt)
 - [ ] 2026-11-21 [story-3-3-ov-paa-flashcards](974-2026-11-21-23-15-17-story-3-3-ov-paa-flashcards.md) — vurder kanttilfellene fra story 3.3 (#153–#160), særlig «Avslutt økt» uten lagring (#153) og ferdigvisningen før resultatsiden (#154)
 - [ ] 2026-11-21 [story-3-3-ov-paa-flashcards](974-2026-11-21-23-15-17-story-3-3-ov-paa-flashcards.md) — rettelsene i `flashcard-session-page.tsx` (låsing på ferske data, feil i bakgrunnen) er ikke gjennomgått av et uavhengig lag (oppfølging anbefalt)
+- [ ] 2026-11-21 [story-3-4-hurtigtaster-fokus-og-smal-skjerm](973-2026-11-21-23-58-01-story-3-4-hurtigtaster-fokus-og-smal-skjerm.md) — vurder kanttilfellene fra story 3.4 (#162–#168), særlig Esc med bryteren av (#163) og Mellomrom på «Kunne» etter snuing (#168)
+- [ ] 2026-11-21 [story-3-4-hurtigtaster-fokus-og-smal-skjerm](973-2026-11-21-23-58-01-story-3-4-hurtigtaster-fokus-og-smal-skjerm.md) — hurtigtastene og panelet er bare prøvd i Chromium, og 200 % tekst bare via 640 px bredde

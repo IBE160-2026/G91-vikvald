@@ -6,7 +6,9 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { iconProps } from "@/components/icon";
+import { SideMenu, useOpenShortcuts } from "@/components/side-menu";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Kbd } from "@/components/ui/kbd";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +33,10 @@ import { SubjectDot } from "./subject-dot";
 // The subject of the page being shown is open from the start. The current page
 // has aria-current="page" and the selected style (brand-tint and a 2 px brand
 // line on the left): the subject on its own page, the lecture on a lecture page.
+//
+// At the bottom: the button «? Hurtigtaster» (the key in a kbd and the text in
+// muted grey, mockup 03), which opens the shortcut dialog. On a narrow screen
+// the whole menu is behind «Meny» in the top bar (SideMenu, story 3.4).
 const SELECTED =
   "bg-brand-tint hover:bg-brand-tint before:absolute before:inset-y-[6px] before:left-0 before:w-[2px] before:rounded-full before:bg-brand";
 
@@ -43,23 +49,38 @@ type Props = {
 
 export function SubjectSidebar({ currentSubjectId, currentLectureId }: Props) {
   const subjects = useQuery({ queryKey: SUBJECTS_QUERY_KEY, queryFn: fetchSubjects });
+  const openShortcuts = useOpenShortcuts();
 
   return (
-    <nav aria-label="Emner" className="w-sidebar-width shrink-0 border-r border-divider bg-paper px-2 pt-6 pb-6">
-      <p aria-hidden="true" className="px-3 pb-2 text-overline text-ink-muted">
-        EMNER
-      </p>
-      <ul className="flex flex-col">
-        {(subjects.data ?? []).map((subject) => (
-          <SubjectItem
-            key={subject.id}
-            subject={subject}
-            isCurrentSubject={subject.id === currentSubjectId}
-            currentLectureId={currentLectureId}
-          />
-        ))}
-      </ul>
-    </nav>
+    <SideMenu title="Emner">
+      <nav
+        aria-label="Emner"
+        className="flex w-sidebar-width shrink-0 flex-col border-r border-divider bg-paper px-2 pt-6 pb-6"
+      >
+        <p aria-hidden="true" className="px-3 pb-2 text-overline text-ink-muted">
+          EMNER
+        </p>
+        <ul className="flex flex-col">
+          {(subjects.data ?? []).map((subject) => (
+            <SubjectItem
+              key={subject.id}
+              subject={subject}
+              isCurrentSubject={subject.id === currentSubjectId}
+              currentLectureId={currentLectureId}
+            />
+          ))}
+        </ul>
+        <div className="mt-auto pt-6">
+          <button
+            type="button"
+            onClick={openShortcuts}
+            className="flex h-menu-row cursor-pointer items-center gap-2 rounded-sm px-3 text-body-sm text-ink-muted hover:bg-row-hover"
+          >
+            <Kbd>?</Kbd> Hurtigtaster
+          </button>
+        </div>
+      </nav>
+    </SideMenu>
   );
 }
 

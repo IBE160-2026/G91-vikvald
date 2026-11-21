@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { iconProps } from "@/components/icon";
+import { MenuButton, SideMenuProvider } from "@/components/side-menu";
 import { TopBar } from "@/components/top-bar";
 import { isUnauthenticated } from "@/lib/api";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
@@ -22,6 +23,10 @@ export const ME_QUERY_KEY = ["me"] as const;
 // handling (lib/query-client.ts) does that too, but only once per lost login, so
 // the guard also redirects itself (e.g. after Back to an app page). It never
 // touches the flags. Any other error: «Noe gikk galt».
+//
+// Logged in, the side-menu frame (components/side-menu.tsx) wraps the top bar
+// and main: the menu button «Meny» stands left of the logo on a narrow screen,
+// and the one shortcut dialog lives there.
 export function RequireLogin({ children }: { children: ReactNode }) {
   const router = useRouter();
   const me = useQuery({ queryKey: ME_QUERY_KEY, queryFn: fetchMe });
@@ -39,8 +44,8 @@ export function RequireLogin({ children }: { children: ReactNode }) {
 
   if (user) {
     return (
-      <>
-        <TopBar logoHref="/">
+      <SideMenuProvider>
+        <TopBar logoHref="/" start={<MenuButton />}>
           <AccountLinks
             email={user.email}
             onLogoutStart={() => setLogoutFailed(false)}
@@ -51,7 +56,7 @@ export function RequireLogin({ children }: { children: ReactNode }) {
           {logoutFailed ? <ErrorAlert /> : null}
           {children}
         </main>
-      </>
+      </SideMenuProvider>
     );
   }
 

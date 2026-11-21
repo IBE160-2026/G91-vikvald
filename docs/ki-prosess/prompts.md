@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-21: Story 3.4 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `3-4-hurtigtaster-fokus-og-smal-skjerm-i-økten`. Hensikten til `bmad-build-auto` var «Story 3.4 fra `_bmad-output/planning-artifacts/epics.md`: Hurtigtaster, fokus og smal skjerm i økten».
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-3-4-hurtigtaster-fokus-og-smal-skjerm-i-oekten.md), PR-en for `story/3-4`, kanttilfellene #162–#168.
+
 ## 2026-11-21: Story 3.3 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `3-3-øv-på-flashcards-fra-én-forelesning`. Hensikten til `bmad-build-auto` var «Story 3.3 fra `_bmad-output/planning-artifacts/epics.md`: Øv på flashcards fra én forelesning».

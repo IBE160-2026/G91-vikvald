@@ -8,6 +8,7 @@ import { SourceLink } from "@/components/source-link";
 import { Button } from "@/components/ui/button";
 
 import type { Flashcard as FlashcardData, Mark } from "../types";
+import { FLASHCARD_HINTS, ShortcutHints } from "./shortcut-hints";
 
 type Props = {
   card: FlashcardData;
@@ -17,6 +18,9 @@ type Props = {
   // Put focus on «Snu kortet» when the card appears (after the previous card
   // was marked), so Tab and Enter keep working. Not on the first card.
   focusOnMount?: boolean;
+  // Show the shortcut hint line under the buttons (the switch «Bruk
+  // hurtigtaster» is on).
+  showHints?: boolean;
 };
 
 // flashcard (DESIGN.md "Øving", mockup 07): white, at most 768 px, rounded.xl,
@@ -29,8 +33,8 @@ type Props = {
 //
 // Under the card: «Kunne ikke» (outline, ✗) and «Kunne» (primary, ✓), both
 // 208 × 48 px and disabled until the card is flipped. After the flip, focus
-// goes to «Kunne».
-export function Flashcard({ card, flipped, onFlip, onMark, focusOnMount = false }: Props) {
+// goes to «Kunne». Under them the shortcut hint line (story 3.4).
+export function Flashcard({ card, flipped, onFlip, onMark, focusOnMount = false, showHints = false }: Props) {
   const flipRef = useRef<HTMLButtonElement>(null);
   const knownRef = useRef<HTMLButtonElement>(null);
 
@@ -106,6 +110,7 @@ export function Flashcard({ card, flipped, onFlip, onMark, focusOnMount = false 
           Kunne
         </Button>
       </div>
+      {showHints ? <ShortcutHints hints={FLASHCARD_HINTS} /> : null}
     </div>
   );
 }
