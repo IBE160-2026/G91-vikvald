@@ -119,7 +119,7 @@ test.describe("Flashcard-økten (story 3.3)", () => {
     await page.keyboard.press("Enter");
     await page.keyboard.press("Enter");
 
-    const finished = page.getByRole("heading", { level: 2, name: "Økten er ferdig" });
+    const finished = page.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 3 kortene" });
     await expect(finished).toBeFocused();
     await expect(page.locator('[role="status"]').filter({ hasText: "Økten er ferdig" })).toHaveCount(1);
     await expect(panel(page).getByText("Kunne ikke, repetert")).toBeVisible();
@@ -132,11 +132,10 @@ test.describe("Flashcard-økten (story 3.3)", () => {
     await expect(page).toHaveURL(`/forelesninger/${lectureId}`);
   });
 
-  test("UX-DR33: «Avslutt økt» går rett tilbake til forelesningen", async ({ page }) => {
+  test("UX-DR33: «Avslutt økt» uten markerte kort går rett tilbake til forelesningen", async ({ page }) => {
     const lectureId = await lectureWithThreeCards(page);
     await page.goto(`/forelesninger/${lectureId}/flashcards`);
     await page.getByRole("button", { name: "Snu kortet" }).click();
-    await page.getByRole("button", { name: "Kunne", exact: true }).click();
     await panel(page).getByRole("button", { name: "Avslutt økt" }).click();
     await expect(page).toHaveURL(`/forelesninger/${lectureId}`);
     await expect(page.getByRole("heading", { level: 1, name: "Uke 37: Merkevare" })).toBeVisible();

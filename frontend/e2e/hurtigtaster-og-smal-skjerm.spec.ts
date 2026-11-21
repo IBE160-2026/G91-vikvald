@@ -109,7 +109,7 @@ test.describe("Hurtigtaster i økten (story 3.4)", () => {
     await expect(front(page)).toHaveText(firstFront!);
     await page.keyboard.press(" ");
     await page.keyboard.press("2");
-    await expect(page.getByRole("heading", { level: 2, name: "Økten er ferdig" })).toBeFocused();
+    await expect(page.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 3 kortene" })).toBeFocused();
     await expect(page.getByText("Kunne 2 · Kunne ikke 1")).toBeVisible();
   });
 
