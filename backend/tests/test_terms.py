@@ -73,8 +73,9 @@ async def test_fr11_godta_igjen_beholder_det_foerste_tidspunktet(
 async def test_fr11_godta_med_utdatert_bruker_overskriver_ikke(
     client: AsyncClient, engine: AsyncEngine
 ) -> None:
-    # Two calls at the same time: both loaded the user while the field was empty.
-    # The conditional UPDATE lets only the first one write.
+    # A stale in-memory user (loaded while the field was empty) cannot overwrite
+    # the stored time: the conditional UPDATE only writes while the column is
+    # empty. The two calls run one after the other, not in parallel.
     user_id = uuid.UUID(await _log_in_without_terms(client))
     maker = async_sessionmaker(engine, expire_on_commit=False)
     async with maker() as first_session, maker() as second_session:

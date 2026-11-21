@@ -534,6 +534,33 @@ describe("forelesningssiden", () => {
       expect(screen.queryByRole("dialog")).toBeNull();
     });
 
+    it("FR-11: Esc mens vilkårskallet pågår lukker ikke dialogen, og fila lastes opp når svaret kommer", async () => {
+      let release!: () => void;
+      const hold = new Promise<void>((resolve) => (release = resolve));
+      const fallback = fetchMock.getMockImplementation()!;
+      fetchMock.mockImplementation(async (url, init) => {
+        if (String(url) === "/api/identity/terms") await hold;
+        return fallback(url, init);
+      });
+      renderPage();
+      await pageReady();
+      choose(pdf("notater.pdf"));
+      const dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
+      fireEvent.click(within(dialog).getByRole("checkbox"));
+      fireEvent.click(within(dialog).getByRole("button", { name: "Godta og last opp" }));
+      await waitFor(() => expect(termsCalls()).toHaveLength(1));
+
+      fireEvent.keyDown(dialog, { key: "Escape" });
+      fireEvent.click(within(dialog).getByRole("button", { name: "Avbryt" }));
+      expect(screen.getByRole("dialog", { name: "Før du laster opp" })).toBeTruthy();
+      expect(uploadCalls()).toHaveLength(0);
+
+      release();
+      expect(await screen.findByText("Forelesning fredag 18.09.2026 · 1 fil · 3 sider")).toBeTruthy();
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(uploadCalls()).toHaveLength(1);
+    });
+
     it("FR-11: filer sluppet på feltet går også gjennom vilkårsdialogen", async () => {
       renderPage();
       await pageReady();

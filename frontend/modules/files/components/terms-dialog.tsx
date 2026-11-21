@@ -67,7 +67,9 @@ export function TermsDialog({ open, fileNames, onCancel, onAccepted }: Props) {
       open={open}
       title="Før du laster opp"
       width={640}
-      onClose={onCancel}
+      // While the terms call runs, «Avbryt», the cross and Esc do nothing: the
+      // call cannot be taken back, and its answer still uploads the files.
+      onClose={accept.isPending ? () => {} : onCancel}
       primaryAction={{
         label: "Godta og last opp",
         icon: <Upload {...iconProps} />,
