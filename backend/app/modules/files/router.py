@@ -2,12 +2,15 @@
 
 POST/GET /api/lectures/{id}/files, POST /api/files/{id}/replace,
 GET /api/subjects/{id}/file-counts, and the delete preview and DELETE for files,
-lectures and subjects. The files module may call the subjects and content
-modules, never the other way round. Deleting a lecture or a subject must know
-its files (to count them and to remove the PDFs), so those routes live here too.
+lectures and subjects, and GET /api/identity/me/delete-preview and
+DELETE /api/identity/me for the whole account. The files module may call the
+subjects, content and identity modules, never the other way round. Deleting a
+lecture, a subject or the account must know its files (to count them and to
+remove the PDFs), so those routes live here too.
 """
 
 import asyncio
+import logging
 import math
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
@@ -18,13 +21,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import UploadFile
 from starlette.formparsers import MultiPartException, MultiPartParser
 
+from app.core import storage
 from app.core.config import get_settings
 from app.core.db import get_session
 from app.core.errors import AppError, ErrorCode
+from app.core.security import clear_session_cookie
 from app.modules.files import pdf
 from app.modules.files.models import File
-from app.modules.content.registry import DeleteScope, content_counts
+from app.modules.content.registry import DeleteScope, content_counts, registered_kinds
 from app.modules.files.schemas import (
+    AccountDeletePreview,
     DeleteCount,
     DeletePreview,
     FileOut,
@@ -43,18 +49,25 @@ from app.modules.files.service import (
 )
 from app.modules.identity.dependencies import current_user
 from app.modules.identity.models import User
+from app.modules.identity.service import delete_user
 from app.modules.subjects.service import (
     delete_lecture,
     delete_subject,
     get_lecture,
     get_subject,
     lecture_ids,
+    lecture_ids_for_subjects,
     lock_lecture,
+    subject_ids_for_user,
 )
 
 files_router = APIRouter(prefix="/api/files")
 lectures_router = APIRouter(prefix="/api/lectures")
 subjects_router = APIRouter(prefix="/api/subjects")
+# The account routes count subjects and files, which identity cannot reach.
+account_router = APIRouter(prefix="/api/identity")
+
+logger = logging.getLogger(__name__)
 
 CurrentUser = Annotated[User, Depends(current_user)]
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -294,3 +307,42 @@ async def delete_one_subject(subject_id: str, user: CurrentUser, session: Sessio
     await session.commit()
     await delete_pdfs(owner_id, file_ids)
     return Response(status_code=204)
+
+
+@account_router.get("/me/delete-preview")
+async def account_delete_preview(user: CurrentUser, session: Session) -> AccountDeletePreview:
+    """subjects, lectures, files, then the registry's counts (0 left out), and
+    every registered content type for the confirmation text (FR-5)."""
+    subjects = await subject_ids_for_user(session, user.id)
+    lectures = await lecture_ids_for_subjects(session, subjects)
+    file_ids = await file_ids_for_lectures(session, lectures)
+    scope = DeleteScope(file_ids=tuple(file_ids), lecture_ids=tuple(lectures))
+    counts: list[tuple[str, int]] = [
+        ("subjects", len(subjects)),
+        ("lectures", len(lectures)),
+        ("files", len(file_ids)),
+    ]
+    counts.extend(await content_counts(session, scope))
+    return AccountDeletePreview(
+        counts=[DeleteCount(kind=kind, count=count) for kind, count in counts if count > 0],
+        content_kinds=registered_kinds(),
+    )
+
+
+@account_router.delete("/me", status_code=204)
+async def delete_account(user: CurrentUser, session: Session) -> Response:
+    """Delete the account (FR-5): one DELETE of the user row, everything under
+    it goes with ON DELETE CASCADE. Her folder on the disk is removed only after
+    the commit (AR-8); a disk error is logged with her id and the answer is
+    still 204. The session cookie is removed."""
+    owner_id = user.id
+    await delete_user(session, owner_id)
+    await session.commit()
+    try:
+        await asyncio.to_thread(storage.delete_user_dir, owner_id)
+    except OSError:
+        # The id only, never the e-mail, file names or content.
+        logger.exception("Could not remove the upload folder of deleted user %s", owner_id)
+    response = Response(status_code=204)
+    clear_session_cookie(response)
+    return response

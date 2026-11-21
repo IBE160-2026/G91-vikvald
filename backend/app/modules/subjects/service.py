@@ -177,3 +177,19 @@ async def delete_subject(session: AsyncSession, subject_id: uuid.UUID) -> None:
     """Delete the subject row in one statement; its lectures and everything
     under them go with ON DELETE CASCADE. The caller checks ownership first and commits."""
     await session.execute(delete(Subject).where(Subject.id == subject_id))
+
+
+async def subject_ids_for_user(session: AsyncSession, user_id: uuid.UUID) -> list[uuid.UUID]:
+    """The ids of all her subjects (for the account delete preview; not locked)."""
+    statement = select(Subject.id).where(Subject.user_id == user_id).order_by(Subject.id)
+    return list(await session.scalars(statement))
+
+
+async def lecture_ids_for_subjects(
+    session: AsyncSession, subject_ids: list[uuid.UUID]
+) -> list[uuid.UUID]:
+    """The ids of all lectures in these subjects (not locked)."""
+    if not subject_ids:
+        return []
+    statement = select(Lecture.id).where(Lecture.subject_id.in_(subject_ids)).order_by(Lecture.id)
+    return list(await session.scalars(statement))

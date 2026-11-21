@@ -16,7 +16,9 @@ import {
 // dialog (DESIGN.md "Forms and dialogs", EXPERIENCE.md): white, rounded.xl, thin
 // border-card edge and the float shadow, over the scrim. Title and a close cross
 // at the top, the content, a divider, and the buttons «Avbryt» then the main
-// action at the bottom right. Dialogs are never stacked.
+// action at the bottom right. A dialog that only shows something (no main
+// action, e.g. the terms on the account page) has one outline button «Lukk»
+// instead, and it gets focus first. Dialogs are never stacked.
 //
 // Built on the shadcn/ui Dialog (Radix). Keyboard: focus moves into the dialog
 // when it opens, Tab and Shift+Tab stay inside it, Esc closes it without
@@ -39,9 +41,11 @@ export type DialogProps = {
   open: boolean;
   title: string;
   children: ReactNode;
-  // Called by «Avbryt», the close cross and Esc.
+  // Called by «Avbryt» (or «Lukk»), the close cross and Esc.
   onClose: () => void;
-  primaryAction: {
+  // Left out for a dialog that only shows something: the footer then has the
+  // single button «Lukk».
+  primaryAction?: {
     label: string;
     onClick: () => void;
     variant?: Extract<ButtonVariant, "primary" | "danger">;
@@ -119,9 +123,11 @@ export function Dialog({
           event.preventDefault();
           openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
           // A delete confirmation always starts on «Avbryt», never on the danger
-          // button (UX-DR21). Otherwise the first field or button in the
-          // content, and without one «Avbryt» (the safe choice).
-          const first = primaryAction.variant === "danger" ? null : focusableIn(bodyRef.current)[0];
+          // button (UX-DR21), and a dialog without a main action on «Lukk».
+          // Otherwise the first field or button in the content, and without
+          // one «Avbryt» (the safe choice).
+          const first =
+            !primaryAction || primaryAction.variant === "danger" ? null : focusableIn(bodyRef.current)[0];
           (first ?? cancelRef.current)?.focus();
         }}
         onCloseAutoFocus={(event) => {
@@ -148,16 +154,18 @@ export function Dialog({
         </div>
         <DialogFooter>
           <Button ref={cancelRef} variant="outline" disabled={cancelDisabled} onClick={onClose}>
-            Avbryt
+            {primaryAction ? "Avbryt" : "Lukk"}
           </Button>
-          <Button
-            variant={primaryAction.variant ?? "primary"}
-            disabled={primaryAction.disabled}
-            onClick={primaryAction.onClick}
-          >
-            {primaryAction.icon}
-            {primaryAction.label}
-          </Button>
+          {primaryAction ? (
+            <Button
+              variant={primaryAction.variant ?? "primary"}
+              disabled={primaryAction.disabled}
+              onClick={primaryAction.onClick}
+            >
+              {primaryAction.icon}
+              {primaryAction.label}
+            </Button>
+          ) : null}
         </DialogFooter>
       </DialogContent>
     </DialogRoot>

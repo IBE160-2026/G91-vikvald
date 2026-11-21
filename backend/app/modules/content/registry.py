@@ -36,7 +36,7 @@ Counter = Callable[[AsyncSession, DeleteScope], Awaitable[int]]
 _counters: dict[str, Counter] = {}
 
 # Counted by the delete preview itself, so no content type may use them.
-RESERVED_KINDS = frozenset({"lectures", "files"})
+RESERVED_KINDS = frozenset({"subjects", "lectures", "files"})
 
 
 def register_counter(kind: str, count: Counter) -> None:
@@ -47,6 +47,12 @@ def register_counter(kind: str, count: Counter) -> None:
     if kind in _counters:
         raise ValueError(f"Counter already registered: {kind}")
     _counters[kind] = count
+
+
+def registered_kinds() -> list[str]:
+    """Every registered kind, in the order they were registered (the account
+    deletion text names them, also those with nothing to count yet)."""
+    return list(_counters)
 
 
 def unregister_counter(kind: str) -> None:

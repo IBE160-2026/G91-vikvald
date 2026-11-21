@@ -1,6 +1,6 @@
 import { apiFetch } from "@/lib/api";
 
-import type { LoginInput, RegisterInput, User } from "./types";
+import type { AccountDeletePreview, LoginInput, RegisterInput, User } from "./types";
 
 // POST /api/identity/register. On success the backend sets the login cookie
 // (HttpOnly, so this code never sees it) and answers with the new user.
@@ -35,4 +35,17 @@ export function logoutUser(): Promise<void> {
 // user. Idempotent: a second call keeps the first time of acceptance.
 export function acceptTerms(): Promise<User> {
   return apiFetch<User>("/api/identity/terms", { method: "POST" });
+}
+
+// GET /api/identity/me/delete-preview: what goes with the account (FR-5).
+// counts: subjects, lectures, files, then the content counts, without zeros.
+// content_kinds: every registered content type, also those with nothing yet.
+export function fetchAccountDeletePreview(): Promise<AccountDeletePreview> {
+  return apiFetch<AccountDeletePreview>("/api/identity/me/delete-preview");
+}
+
+// DELETE /api/identity/me: 204, the account and everything in it is gone, and
+// the backend removes the login cookie.
+export function deleteAccount(): Promise<void> {
+  return apiFetch<void>("/api/identity/me", { method: "DELETE" });
 }

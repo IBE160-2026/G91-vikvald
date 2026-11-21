@@ -87,11 +87,13 @@
 - [x] 2026-11-21 [story-2-3-last-opp-pdf-notater](982-2026-11-21-07-42-08-story-2-3-last-opp-pdf-notater.md) — PDF-ene på disken må slettes av sletterutene i 2.5 og 2.7 (løst 2026-11-21 for 2.5; 2.7 står som eget punkt)
 - [ ] 2026-11-21 [story-2-3-last-opp-pdf-notater](982-2026-11-21-07-42-08-story-2-3-last-opp-pdf-notater.md) — avklar om PyMuPDF kan gi surrogattegn i sideteksten som Postgres avviser
 - [ ] 2026-11-21 [story-2-4-godta-vilkarene](981-2026-11-21-08-10-18-story-2-4-godta-vilkarene.md) — vurder kanttilfellene fra story 2.4 (#103–#107), særlig «Du har valgt 3 filer.» (#105) og reserveteksten for TERMS_NOT_ACCEPTED (#104)
-- [ ] 2026-11-21 [story-2-4-godta-vilkarene](981-2026-11-21-08-10-18-story-2-4-godta-vilkarene.md) — kontosiden i 2.7 skal vise TermsText uten avkrysning, sammen med datoen fra terms_accepted_at
+- [x] 2026-11-21 [story-2-4-godta-vilkarene](981-2026-11-21-08-10-18-story-2-4-godta-vilkarene.md) — kontosiden i 2.7 skal vise TermsText uten avkrysning, sammen med datoen fra terms_accepted_at (løst 2026-11-21)
 - [ ] 2026-11-21 [story-2-5-slett-med-bekreftelse](980-2026-11-21-08-46-33-story-2-5-slett-med-bekreftelse.md) — vurder kanttilfellene fra story 2.5 (#109–#115), særlig fokus etter sletting (#111) og tekstene i bekreftelsen (#112)
 - [ ] 2026-11-21 [story-2-5-slett-med-bekreftelse](980-2026-11-21-08-46-33-story-2-5-slett-med-bekreftelse.md) — låsingen mot opplasting under sletting virker bare på Postgres og er ikke testet
 - [ ] 2026-11-21 [story-2-5-slett-med-bekreftelse](980-2026-11-21-08-46-33-story-2-5-slett-med-bekreftelse.md) — en PDF som ikke kan slettes fra disken, blir liggende uten opprydding
-- [ ] 2026-11-21 [story-2-5-slett-med-bekreftelse](980-2026-11-21-08-46-33-story-2-5-slett-med-bekreftelse.md) — brukermappa med PDF-er må slettes når kontoen slettes i 2.7
+- [x] 2026-11-21 [story-2-5-slett-med-bekreftelse](980-2026-11-21-08-46-33-story-2-5-slett-med-bekreftelse.md) — brukermappa med PDF-er må slettes når kontoen slettes i 2.7 (løst 2026-11-21)
 - [ ] 2026-11-21 [story-2-6-erstatt-en-fil](979-2026-11-21-12-51-05-story-2-6-erstatt-en-fil.md) — vurder kanttilfellene fra story 2.6 (#117–#121), særlig tekstene i bekreftelsen (#118) og filraden ved smal skjerm (#121)
 - [ ] 2026-11-21 [story-2-6-erstatt-en-fil](979-2026-11-21-12-51-05-story-2-6-erstatt-en-fil.md) — slettet fil i en annen fane under erstatning gir ingen melding om at den nye fila ikke ble lagret (#120)
 - [ ] 2026-11-21 [story-2-6-erstatt-en-fil](979-2026-11-21-12-51-05-story-2-6-erstatt-en-fil.md) — fokus tilbake til «Erstatt» etter avvisning er bare prøvd i Chromium
+- [ ] 2026-11-21 [story-2-7-se-kontoen-og-slett-den](978-2026-11-21-13-26-10-story-2-7-se-kontoen-og-slett-den.md) — vurder kanttilfellene fra story 2.7 (#123–#129), særlig dialogen «Les vilkårene» (#125) og teksten i slettebekreftelsen (#129)
+- [ ] 2026-11-21 [story-2-7-se-kontoen-og-slett-den](978-2026-11-21-13-26-10-story-2-7-se-kontoen-og-slett-den.md) — en opplasting samtidig med kontoslettingen kan etterlate en tom brukermappe

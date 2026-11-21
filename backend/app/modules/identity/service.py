@@ -1,10 +1,11 @@
 """Business logic for accounts."""
 
 import re
+import uuid
 from datetime import UTC, datetime
 
 from fastapi.concurrency import run_in_threadpool
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -110,3 +111,10 @@ async def accept_terms(session: AsyncSession, user: User) -> User:
     await session.commit()
     await session.refresh(user)
     return user
+
+
+async def delete_user(session: AsyncSession, user_id: uuid.UUID) -> None:
+    """Delete the user row in one statement; her subjects, lectures, files and
+    everything under them go with ON DELETE CASCADE. The caller commits and
+    removes her folder on the disk afterwards."""
+    await session.execute(delete(User).where(User.id == user_id))

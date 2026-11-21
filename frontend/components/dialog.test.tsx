@@ -316,4 +316,57 @@ describe("Dialog", () => {
     fireEvent.click(cancel);
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  describe("uten hovedhandling", () => {
+    function ShowOnly() {
+      const [open, setOpen] = useState(false);
+      return (
+        <>
+          <button type="button" onClick={() => setOpen(true)}>
+            Les vilkårene
+          </button>
+          <Dialog open={open} title="Vilkår og personvern" width={640} onClose={() => setOpen(false)}>
+            <p>Vilkårsteksten.</p>
+          </Dialog>
+        </>
+      );
+    }
+
+    function openShowOnly() {
+      render(<ShowOnly />);
+      const opener = screen.getByRole("button", { name: "Les vilkårene" });
+      opener.focus();
+      fireEvent.click(opener);
+      const dialog = screen.getByRole("dialog");
+      const buttons = [...dialog.querySelectorAll("button")];
+      return { opener, dialog, cross: buttons[0], footer: buttons[1] };
+    }
+
+    it("UX-DR39: foten har bare én omrissknapp «Lukk», og den har startfokus", () => {
+      const { dialog, footer } = openShowOnly();
+      const labels = [...dialog.querySelectorAll("button")].map((b) => b.getAttribute("aria-label") ?? b.textContent);
+      expect(labels).toEqual(["Lukk", "Lukk"]);
+      expect(screen.queryByRole("button", { name: "Avbryt" })).toBeNull();
+      expect(footer.getAttribute("data-variant") ?? footer.className).toMatch(/outline/);
+      expect(document.activeElement).toBe(footer);
+      expect(dialog.className).toContain("w-[640px]");
+    });
+
+    it("UX-DR39: «Lukk», krysset og Esc lukker, og fokus går tilbake til åpneren", async () => {
+      const first = openShowOnly();
+      fireEvent.click(first.footer);
+      expect(screen.queryByRole("dialog")).toBeNull();
+      await expectFocusBackOn(first.opener);
+
+      fireEvent.click(first.opener);
+      fireEvent.click(screen.getAllByRole("button", { name: "Lukk" })[0]);
+      expect(screen.queryByRole("dialog")).toBeNull();
+      await expectFocusBackOn(first.opener);
+
+      fireEvent.click(first.opener);
+      fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+      expect(screen.queryByRole("dialog")).toBeNull();
+      await expectFocusBackOn(first.opener);
+    });
+  });
 });

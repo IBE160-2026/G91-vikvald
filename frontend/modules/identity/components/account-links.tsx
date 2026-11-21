@@ -1,19 +1,15 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useRef } from "react";
 
 import { iconProps } from "@/components/icon";
-import { clearSignedIn } from "@/lib/session";
 
-import { logoutUser } from "../api";
+import { useLogout } from "../use-logout";
 
 // The right side of the top bar inside the app (mockup 02): the initial circle and
 // «Konto» as one link, a short hairline, and «Logg ut» with the exit icon.
-// Logging out has no confirmation and no message.
+// Logging out (useLogout) has no confirmation and no message.
 export function AccountLinks({
   email,
   onLogoutStart,
@@ -23,30 +19,7 @@ export function AccountLinks({
   onLogoutStart?: () => void;
   onLogoutError?: () => void;
 }) {
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  // Blocks a second click while the request runs and while the page navigates.
-  const pendingRef = useRef(false);
-
-  const mutation = useMutation({
-    mutationFn: logoutUser,
-    onSuccess: () => {
-      clearSignedIn();
-      queryClient.clear();
-      router.push("/logg-inn");
-    },
-    onError: () => {
-      pendingRef.current = false;
-      onLogoutError?.();
-    },
-  });
-
-  function handleLogout() {
-    if (pendingRef.current) return;
-    pendingRef.current = true;
-    onLogoutStart?.();
-    mutation.mutate();
-  }
+  const handleLogout = useLogout({ onStart: onLogoutStart, onError: onLogoutError });
 
   return (
     // px-1 gives the focus ring room around the text; the smaller gap and -mr-1
