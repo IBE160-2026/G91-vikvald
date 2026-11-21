@@ -1,15 +1,18 @@
-"""Business logic for files: store an accepted PDF, list files, count them."""
+"""Business logic for files: store an accepted PDF, list files, count them,
+look one up for its owner, and delete files."""
 
 import asyncio
 import logging
 import uuid
+from collections.abc import Iterable
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import storage
+from app.core.errors import AppError, ErrorCode
 from app.modules.files.models import ORIGINAL_NAME_MAX_LENGTH, File, FilePage
-from app.modules.subjects.models import Lecture
+from app.modules.subjects.models import Lecture, Subject
 
 logger = logging.getLogger(__name__)
 
@@ -86,3 +89,52 @@ async def file_counts(
         (lecture_id, int(count), int(pages or 0))
         for lecture_id, count, pages in (await session.execute(statement)).all()
     ]
+
+
+async def get_file(session: AsyncSession, user_id: uuid.UUID, file_id: str) -> File:
+    """Her file with this id. A file has no user_id of its own, so it is looked
+    up together with its lecture and subject, and the subject must be hers.
+    Someone else's, a missing and a malformed id all give the same 404 NOT_FOUND."""
+    try:
+        parsed = uuid.UUID(file_id)
+    except ValueError:
+        raise AppError(ErrorCode.NOT_FOUND) from None
+    statement = (
+        select(File)
+        .join(Lecture, File.lecture_id == Lecture.id)
+        .join(Subject, Lecture.subject_id == Subject.id)
+        .where(File.id == parsed, Subject.user_id == user_id)
+    )
+    file = (await session.execute(statement)).scalar_one_or_none()
+    if file is None:
+        raise AppError(ErrorCode.NOT_FOUND)
+    return file
+
+
+async def file_ids_for_lectures(
+    session: AsyncSession, lecture_ids: Iterable[uuid.UUID]
+) -> list[uuid.UUID]:
+    """The ids of all files in these lectures (collected before they are deleted,
+    so their PDFs can be removed from the disk afterwards)."""
+    ids = list(lecture_ids)
+    if not ids:
+        return []
+    statement = select(File.id).where(File.lecture_id.in_(ids)).order_by(File.id)
+    return list(await session.scalars(statement))
+
+
+async def delete_file(session: AsyncSession, file_id: uuid.UUID) -> None:
+    """Delete the file row in one statement; its pages go with ON DELETE CASCADE.
+    The caller commits and removes the PDF afterwards."""
+    await session.execute(delete(File).where(File.id == file_id))
+
+
+async def delete_pdfs(user_id: uuid.UUID, file_ids: Iterable[uuid.UUID]) -> None:
+    """Remove the PDFs after the commit. A disk error for one file is logged
+    (with the id only, never the content or the filename), and the others are
+    still removed."""
+    for file_id in file_ids:
+        try:
+            await asyncio.to_thread(storage.delete_pdf, user_id, file_id)
+        except OSError:
+            logger.exception("Could not remove PDF %s after it was deleted", file_id)
