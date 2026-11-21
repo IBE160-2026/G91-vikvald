@@ -3,14 +3,28 @@ title: 'Story 2.6: Erstatt en fil med en ny versjon'
 type: 'feature'
 created: '2026-11-21'
 baseline_revision: '133f5226a86cd3fae708df68812c4b73a798e9d5'
-status: 'ready-for-dev'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-2-context.md'
   - '{project-root}/_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/DESIGN.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Fokus går tilbake til åpneren i den felles Dialog, men i Safari gir klikk ikke fokus, så åpneren kan bli body.
+    evidence: |-
+      Gjelder alle dialoger fra før (frontend/components/dialog.tsx); avvist erstatning er testet med fokus på «Erstatt» i Chromium.
+    location: >-
+      frontend/components/dialog.tsx
+    severity: low
+  - summary: >-
+      Tastaturflyten og axe for erstatning kjøres bare i Playwright, som CI ikke kjører.
+    evidence: |-
+      .github/workflows/ci.yml kjører bare pytest og vitest; e2e kjøres for hånd i hver story.
+    location: >-
+      frontend/e2e/erstatt.spec.ts
+    severity: low
 ---
 
 <intent-contract>
@@ -87,6 +101,40 @@ deferred: []
 - Given 04, when hun velger en ikke-PDF og bekrefter, then står den gamle fila, «<navn>: <melding for NOT_PDF>» vises ved raden i et levende område, og fokus står på «Erstatt».
 - Given bekreftelsen åpen og avvist erstatning, when axe kjøres, then finnes ingen brudd.
 
+## Spec Change Log
+
+## Review Triage Log
+
+### 2026-11-21 — Review pass
+- verdicts: 26 findings — high 0, medium 1, low 16, false 9, maybe-false 0
+- findings:
+  - `[low]` `[reject]` (blind) 404 under erstatning ser ut som suksess, og den nye fila lagres ikke — skjer bare når fila er slettet i en annen fane; lista hentes på nytt og viser at den gamle er borte. Å vise en egen melding krever ny tekst og ny gren. Valgt i Design Notes, ført som gjenværende risiko.
+  - `[low]` `[reject]` (blind) Avvisningskodene står for hånd i `REPLACE_REJECTIONS` — ingen nye opplastingskoder er planlagt i epic 2; en felles kilde krever ny eksport. Testen for alle kodene (verification-gap) fanger en glemt kode.
+  - `[low]` `[reject]` (blind) `TERMS_NOT_ACCEPTED` vises ved raden som en filfeil — kan ikke nås i appen: en bruker med filer har alltid godtatt vilkårene, og de kan ikke trekkes tilbake.
+  - `[low]` `[patch]` (blind) Slettingen i `store_file` filtrerer bare på fil-ID — `File.lecture_id == lecture_id` er lagt til i `where`.
+  - `[false]` `[reject]` (blind) Erstatningsdialogen henter forhåndsvisningen bare for å låse opp knappen — AC krever tellingene fra `GET /api/files/{id}/delete-preview` i bekreftelsen.
+  - `[low]` `[reject]` (blind) Rekkefølgetesten kan bli ustabil ved like tidspunkt — tidspunktene har mikrosekunder og kommer fra hver sin forespørsel; lista sorteres også på ID.
+  - `[low]` `[reject]` (blind) E18-e2e kan passere uten at `change` utløses — Vitest-testen utløser `change` med tom liste og dekker grenen; e2e sjekker at ingenting skjer.
+  - `[false]` `[reject]` (blind) Avvisningsmeldinger ryddes aldri — meldingen er knyttet til fil-ID-en; når raden er borte, vises den ikke noe sted.
+  - `[low]` `[defer]` (blind) Fokus tilbake til «Erstatt» i Safari, der klikk ikke gir fokus — gjelder åpner-logikken i den felles `Dialog` fra før, for alle dialoger.
+  - `[low]` `[patch]` (blind) `onRemoveError` spørres før 401-sjekken — 401 sjekkes nå først.
+  - `[false]` `[reject]` (blind) KI-sporet i `docs/ki-prosess/` mangler — skrives i samme økt etter gjennomgangen, før PR-en.
+  - `[low]` `[patch]` (blind) Docstringen i `router.py` er over 88 tegn — brutt om.
+  - `[low]` `[reject]` (blind) Navnet `DeleteConfirmDialog` er ikke generelt — å gi nytt navn rører alle brukerne fra 2.5; kommentaren nevner erstatning.
+  - `[medium]` `[patch]` (verification-gap) Bare NOT_PDF er testet som avvist erstatning på siden — `it.each` over NO_READABLE_TEXT, TOO_MANY_PAGES, FILE_TOO_LARGE og PDF_UNREADABLE med utfylte meldinger.
+  - `[low]` `[defer]` (verification-gap) e2e kjøres ikke i CI — prosjektvalg fra før; Playwright kjøres for hånd i hver story (utsatt også i 2.5).
+  - `[low]` `[reject]` (edge) 404 midt i erstatningen lukker dialogen som om den lyktes — samme rotårsak og grunn som første rad.
+  - `[false]` `[reject]` (edge) Sletting av forelesning samtidig med erstatning etterlater en PDF uten rad — `lock_lecture`/`lecture_ids` låser forelesningsraden med `FOR UPDATE` før fil-ID-ene samles; innsettingen av den nye fila venter på låsen (FK) og feiler, og da fjernes den nye PDF-en.
+  - `[false]` `[reject]` (intent) `content`-kaskaden er ikke testet — det finnes ingen innholdstabeller i epic 2; `ON DELETE CASCADE` fra `files` er testet med `file_pages`.
+  - `[low]` `[reject]` (intent) «Skadet» PDF er ikke eget tilfelle — skadet og låst gir samme kode og kodevei (`PDF_UNREADABLE`), og svaret er sjekket mot vanlig opplasting.
+  - `[low]` `[reject]` (intent) Bare NOT_PDF-teksten er sjekket ved raden — samme rotårsak som verification-gap-raden; rettet der.
+  - `[low]` `[reject]` (intent) Ingen test viser en telling i erstatningsdialogen — registeret er tomt i epic 2; setningen er testet i den felles komponenten.
+  - `[low]` `[reject]` (intent) Tellingene på 03 etter erstatning er ikke testet — samme invalidering av `["subjects", id]` som opplastingen i 2.3.
+  - `[false]` `[reject]` (intent) Den nye fila havner sist, ikke på den gamles plass — valgt i Design Notes; intensjonen sier ikke noe om plassen.
+  - `[false]` `[reject]` (intent) E18-fokus i e2e holder trivielt — fokus står på «Erstatt» fordi ingenting skjer, som er det E18 krever.
+  - `[false]` `[reject]` (intent) Den felles dialogen er endret — endringene er valgfrie props, og 2.5-testene for sletting er grønne.
+  - `[false]` `[reject]` (intent) 404 i grensesnittet er ikke nevnt i intensjonen — beskrevet i Design Notes; ingen feil i seg selv.
+
 ## Design Notes
 
 - **Ny fil sist:** den nye fila får `uploaded_at` = nå, så den flytter seg sist i lista, og «lastet opp dd.mm» viser dagens dato. Kanttilfelle.
@@ -102,3 +150,24 @@ deferred: []
 - `cd backend && uv run pytest` -- expected: alle grønne
 - `cd frontend && npm run test && npx tsc --noEmit` -- expected: alle grønne
 - `docker compose up --build -d && cd frontend && npx playwright test` -- expected: alle grønne
+
+## Auto Run Result
+
+**Sammendrag:** Studenten kan erstatte en fil med en ny versjon. Backend har `POST /api/files/{id}/replace`, som sjekker eierskap, vilkår og den nye fila med de samme reglene som opplasting før noe slettes. Deretter slettes den gamle raden og den nye lagres (ny `file_id`, samme forelesning) i én transaksjon, og den gamle PDF-en fjernes fra disken etter commit. Er den gamle raden borte i mellomtiden, er svaret 404 uten at noe lagres. I frontend har filraden «Erstatt» (sirkelpil) foran «Slett». Den åpner filvelgeren og så den felles bekreftelsen med «Erstatte fila?», den gamle fila i boksen, «Erstattes med <filnavn>.» og fareknappen «Erstatt fila». En avvist fil gir meldingen fra 2.3 ved raden i et levende område, og fokus går tilbake til «Erstatt». En godtatt erstatning legger den nye fila sist og gir fokus til «Filer».
+
+**Filer:**
+- `backend/app/modules/files/{service,router}.py` -- `replaces` i `store_file` og ruten `replace_file`
+- `backend/tests/test_replace.py` -- 15 tester for alle backendradene i matrisen
+- `frontend/components/delete-confirm-dialog.tsx` + test -- `confirmIcon`, `note`, `onRemoveError` (401 sjekkes først)
+- `frontend/modules/files/{api.ts,components/file-row.tsx,components/file-list.tsx,components/upload-zone.tsx}` -- `replaceFile`, «Erstatt», skjult velger, levende område, felles `rejectionText`; raden vokser i høyden ved smal skjerm
+- `frontend/modules/subjects/pages/lecture-page.tsx` + `lecture-page.test.tsx` -- flyten, alle fem avvisningskodene, avbrutt velger, avbryt, 500
+- `frontend/e2e/erstatt.spec.ts` -- tastatur, axe med bekreftelsen åpen og med avvisning, tom velger
+- `docs/skjermbilder/story-2-6/` -- skjermbilder i 1280 og 768 px
+
+**Gjennomgang:** 26 funn. Rettet: alle fem avvisningskodene testet på siden (medium), lecture-filter i slettingen, 401 før `onRemoveError`, lang docstring (low). Utsatt: fokus i Safari (felles `Dialog` fra før) og e2e i CI (fra før). Avvist: 9 `false` og 12 `low` med grunner i Review Triage Log.
+
+**Ny gjennomgang anbefales:** nei. Rettet: high 0, medium 1, low 3. Ingen uprøvd risiko av betydning utover den gjenværende risikoen under.
+
+**Verifisering:** `uv run pytest` 299 grønne; `npm run test` 452 grønne og `tsc --noEmit` uten feil; `docker compose up --build` + `npx playwright test` 54 grønne.
+
+**Gjenværende risiko:** blir fila slettet i en annen fane mens bekreftelsen er åpen, lukkes dialogen som etter sletting, og den nye fila lagres ikke, uten egen melding. Fokus tilbake til «Erstatt» er bare prøvd i Chromium. Playwright kjøres ikke i CI.
