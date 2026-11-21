@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-21: Story 2.4 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-4-godta-vilkårene-før-første-opplasting`. Hensikten til `bmad-build-auto` var «Story 2.4 fra `_bmad-output/planning-artifacts/epics.md`: Godta vilkårene før første opplasting».
+
+**Resultat:** Feltet `terms_accepted_at` med migrering, `POST /api/identity/terms`, avvisningen `TERMS_NOT_ACCEPTED` i opplastingen, den felles vilkårsteksten og vilkårsdialogen «Før du laster opp» på forelesningssiden. Spesifikasjon og gjennomgang i [spec-2-4](../../_bmad-output/implementation-artifacts/spec-2-4-godta-vilkaarene-foer-foerste-opplasting.md).
+
 ## 2026-11-21: Story 2.3 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-3-last-opp-pdf-notater-til-en-forelesning`. Hensikten til `bmad-build-auto` var «Story 2.3 fra `_bmad-output/planning-artifacts/epics.md`: Last opp PDF-notater til en forelesning». Kjøringen ble avbrutt av bruksgrensen for API-et og fortsatte der den stoppet.
