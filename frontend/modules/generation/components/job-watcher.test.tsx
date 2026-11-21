@@ -36,18 +36,25 @@ function tracked(changes: Partial<TrackedJob> = {}): TrackedJob {
 // The fake backend: the job runs while `running` is true, then ends as `ended`.
 let current: TrackedJob | null;
 let ended: Partial<TrackedJob>;
+// Statuses /api/jobs/{id} answers with, one per call; then 200.
 let jobStatus = 200;
+let jobStatuses: number[] = [];
 
 beforeEach(() => {
   pathname = "/";
   current = tracked();
   ended = { status: "done", created: 18, discarded: 0, finished_at: "2026-11-21T10:00:03Z" };
   jobStatus = 200;
+  jobStatuses = [];
   fetchMock.mockImplementation(async (url) => {
     const path = String(url);
     if (path === "/api/jobs/active") return jsonResponse(200, current?.status === "running" ? [current] : []);
     if (current && path === `/api/jobs/${current.id}`) {
-      if (jobStatus !== 200) return jsonResponse(jobStatus, { error: { code: "NOT_FOUND", details: {} } });
+      const status = jobStatuses.shift() ?? jobStatus;
+      if (status !== 200) {
+        const code = status === 404 ? "NOT_FOUND" : "INTERNAL_ERROR";
+        return jsonResponse(status, { error: { code, details: {} } });
+      }
       return jsonResponse(200, current);
     }
     return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
@@ -77,14 +84,17 @@ function Follower({ jobId }: { jobId: string }) {
 
 function renderWatcher(client = new QueryClient({ defaultOptions: { queries: { retry: false } } })) {
   const invalidate = vi.spyOn(client, "invalidateQueries");
-  render(
+  const view = (watching: boolean) => (
     <QueryClientProvider client={client}>
-      <JobWatcher>
-        <Follower jobId="j1" />
-      </JobWatcher>
-    </QueryClientProvider>,
+      {watching ? (
+        <JobWatcher>
+          <Follower jobId="j1" />
+        </JobWatcher>
+      ) : null}
+    </QueryClientProvider>
   );
-  return invalidate;
+  const result = render(view(true));
+  return Object.assign(invalidate, { setWatching: (watching: boolean) => result.rerender(view(watching)) });
 }
 
 function toastRegion() {
@@ -92,7 +102,7 @@ function toastRegion() {
 }
 
 describe("JobWatcher", () => {
-  it("NFR-17: en jobb som blir ferdig mens hun er på forsiden, gir ferdigmeldingen i et levende område", async () => {
+  it("NFR-12, NFR-17: en jobb som blir ferdig mens hun er på forsiden, gir ferdigmeldingen i et levende område", async () => {
     const invalidate = renderWatcher();
     expect(toastRegion().getAttribute("aria-live")).toBe("polite");
     await waitFor(() => expect(calls("/api/jobs/active")).toBe(1));
@@ -173,5 +183,52 @@ describe("JobWatcher", () => {
     await act(() => new Promise((resolve) => setTimeout(resolve, 1500)));
     expect(calls("/api/jobs/active")).toBe(asked);
     expect(toastRegion().textContent).toBe("");
+  });
+
+  it("AR-5: en annen feil enn 404 fra jobben gir et nytt forsøk, og ferdigmeldingen kommer likevel", async () => {
+    renderWatcher();
+    await waitFor(() => expect(calls("/api/jobs/active")).toBe(1));
+    jobStatuses = [500];
+    finish();
+    expect(
+      await screen.findByText("Flashcardene er ferdige: 18 kort i Uke 37: Merkevare.", {}, { timeout: 4000 }),
+    ).toBeTruthy();
+    expect(calls("/api/jobs/j1")).toBe(2);
+  });
+
+  it("E10: en melding som står ved utlogging, vises ikke igjen når en ny vakt monteres", async () => {
+    const watcher = renderWatcher();
+    await waitFor(() => expect(calls("/api/jobs/active")).toBe(1));
+    finish();
+    await screen.findByText("Flashcardene er ferdige: 18 kort i Uke 37: Merkevare.", {}, { timeout: 3000 });
+    // Logged out: the watcher is gone. Logged in again: a new one.
+    watcher.setWatching(false);
+    current = null;
+    const asked = calls("/api/jobs/active");
+    watcher.setWatching(true);
+    await waitFor(() => expect(calls("/api/jobs/active")).toBe(asked + 1));
+    await act(() => new Promise((resolve) => setTimeout(resolve, 300)));
+    expect(toastRegion().textContent).toBe("");
+  });
+
+  it("E10: et resultat som kommer etter utlogging, gir ingen melding", async () => {
+    let answer: (response: Response) => void = () => {};
+    const watcher = renderWatcher();
+    await waitFor(() => expect(calls("/api/jobs/active")).toBe(1));
+    const original = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url, init) => {
+      if (String(url) === "/api/jobs/j1") return new Promise<Response>((resolve) => (answer = resolve));
+      return original(url, init);
+    });
+    finish();
+    await waitFor(() => expect(calls("/api/jobs/j1")).toBe(1), { timeout: 3000 });
+    watcher.setWatching(false);
+    answer(jsonResponse(200, current));
+    current = null;
+    watcher.setWatching(true);
+    await waitFor(() => expect(calls("/api/jobs/active")).toBeGreaterThan(1));
+    await act(() => new Promise((resolve) => setTimeout(resolve, 300)));
+    expect(toastRegion().textContent).toBe("");
+    expect(watcher).not.toHaveBeenCalledWith({ queryKey: ["lectures", "l1"] });
   });
 });

@@ -50,6 +50,17 @@ export function JobWatcher({ children }: { children: ReactNode }) {
   }, [pathname, followed]);
   // Jobs whose result is being fetched, so each is fetched once at a time.
   const checking = useRef(new Set<string>());
+  // False after unmount (logout): a result that arrives then is not shown.
+  // Sonner shows every message not yet dismissed to the next Toaster, so the
+  // messages are dismissed too, and none is shown at the next login.
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      toast.dismiss();
+    };
+  }, []);
   // body only exists in the browser, so the Toaster comes after the first render.
   const [toasterRoot, setToasterRoot] = useState<HTMLElement | null>(null);
   useEffect(() => setToasterRoot(document.body), []);
@@ -80,7 +91,7 @@ export function JobWatcher({ children }: { children: ReactNode }) {
       try {
         const job = await fetchJob(jobId);
         // Started after the list was fetched: still running, keep following.
-        if (job.status === "running") return;
+        if (job.status === "running" || !mounted.current) return;
         unfollow(jobId);
         void queryClient.invalidateQueries({ queryKey: ["lectures", job.lecture_id] });
         if (pathnameRef.current !== `/forelesninger/${job.lecture_id}`) {
