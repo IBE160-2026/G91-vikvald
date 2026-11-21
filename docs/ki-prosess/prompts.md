@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-21: Story 2.3 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-3-last-opp-pdf-notater-til-en-forelesning`. Hensikten til `bmad-build-auto` var «Story 2.3 fra `_bmad-output/planning-artifacts/epics.md`: Last opp PDF-notater til en forelesning». Kjøringen ble avbrutt av bruksgrensen for API-et og fortsatte der den stoppet.
+
+**Resultat:** Tabellene `files` og `file_pages` med migrering, `core/storage` og Docker-volumet `uploads`, opplastingsruten med de fem avvisningene, fillista og opplastingsfeltet på forelesningssiden, og kolonnene Filer og Status på emnesiden. Spesifikasjon og gjennomgang i [spec-2-3](../../_bmad-output/implementation-artifacts/spec-2-3-last-opp-pdf-notater-til-en-forelesning.md).
+
 ## 2026-11-21: Story 2.2 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-2-legg-til-forelesninger-og-finn-dem-i-sidemenyen`. Hensikten til `bmad-build-auto` var «Story 2.2 fra `_bmad-output/planning-artifacts/epics.md`: Legg til forelesninger og finn dem i sidemenyen».
