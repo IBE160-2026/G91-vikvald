@@ -2,14 +2,22 @@
 title: 'Story 2.5: Slett filer, forelesninger og emner med bekreftelse'
 type: 'feature'
 created: '2026-11-21'
-status: 'ready-for-dev'
+baseline_revision: 'a1b3c760ab5dcfa9216fe7e8180cff9c075f67e2'
+status: 'done'
 review_loop_iteration: 0
-followup_review_recommended: false
+followup_review_recommended: true
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-2-context.md'
   - '{project-root}/_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/DESIGN.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Axe og tastaturflyten for slettebekreftelsen kjøres bare i Playwright, som CI ikke kjører.
+    evidence: |-
+      .github/workflows/ci.yml kjører bare pytest og vitest; e2e kjøres for hånd i hver story.
+    location: >-
+      frontend/e2e/slett.spec.ts
+    severity: low
 ---
 
 <intent-contract>
@@ -114,6 +122,42 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-21 — Review pass
+- verdicts: 32 findings — high 0, medium 6, low 22, false 4, maybe-false 0
+- findings:
+  - `[medium]` `[patch]` (blind) En opplasting mellom innsamlingen av fil-ID-ene og slettingen etterlater en PDF uten rad — forelesningsradene låses nå med `with_for_update()` før ID-ene samles (`lock_lecture`, `lecture_ids`).
+  - `[low]` `[reject]` (blind) Forhåndsvisningen og slettingen er ikke knyttet sammen (filer lastet opp i en annen fane slettes uten varsel) — krever versjonering av forhåndsvisningen; sjelden situasjon.
+  - `[low]` `[patch]` (blind) `DeleteScope` sier ikke om `file_ids` dekker filene i `lecture_ids` — docstringen sier det nå.
+  - `[low]` `[reject]` (blind) Registeret har ikke noe fast innmeldingssted, og testen for tomt register leser `_counters` — innmeldingen kommer med første innholdstype i epic 3; testen skal feile da, fordi registeret ikke lenger er tomt.
+  - `[medium]` `[patch]` (blind) Ukjente typer forsvinner stille fra setningen — ny backendtest krever at hver registrert type har navn i `countNouns`.
+  - `[medium]` `[patch]` (blind) 404 på forhåndsvisningen gir reservetekst og låst fareknapp — behandles nå som slettet, som 404 på `DELETE`; ny Vitest.
+  - `[low]` `[reject]` (blind) Ingen «Prøv igjen»-knapp når forhåndsvisningen feiler — lukk og åpne henter på nytt; ny knapp er ny tekst og ny gren.
+  - `[low]` `[patch]` (blind) Lukkekrysset er aktivt mens slettingen pågår — krysset er nå `disabled` sammen med «Avbryt».
+  - `[low]` `[patch]` (blind) Fokusflagget kan bli hengende og stjele fokus senere — flagget utløper etter 5 sekunder, og testene nullstiller det.
+  - `[low]` `[reject]` (blind) Bufferen for slettede ting fjernes ikke, så Tilbake viser dem kort — siden henter på nytt og viser «Fant ikke siden»; ingen data går tapt.
+  - `[low]` `[reject]` (blind) Slettefunksjonene i servicelaget sjekker ikke eierskap selv — alle rutene sjekker eierskap først, som resten av modulene.
+  - `[low]` `[reject]` (blind) En PDF som ikke kunne slettes, blir liggende — akseptkriteriet sier «logges, og svaret er likevel 204»; står som gjenværende risiko.
+  - `[low]` `[reject]` (blind) Manglende tester (Esc og feil på forelesningsdialogen, 404 som navigerer, filtall på 03) — samme komponent er testet i `delete-confirm-dialog.test.tsx`; navigasjonen er testet i e2e.
+  - `[false]` `[reject]` (blind) KI-sporet mangler — skrives og committes i samme økt etter gjennomgangen, før PR-en.
+  - `[low]` `[patch]` (blind) Importrekkefølgen på forelesningssiden — rettet.
+  - `[medium]` `[patch]` (edge) Samme kappløp som første rad — samme retting.
+  - `[low]` `[reject]` (edge) En teller som kaster, gir 500 og stopper sletting — en feil i en teller skal synes; ingen tellere finnes ennå.
+  - `[low]` `[patch]` (edge) `register_counter` godtar «lectures» og «files» — gir nå `ValueError`.
+  - `[medium]` `[patch]` (edge) 404 på forhåndsvisningen — samme retting som blind-raden.
+  - `[low]` `[patch]` (edge) Fokusflagget lekker — samme retting som blind-raden.
+  - `[low]` `[patch]` (edge) Fokus faller til `body` når slettingen feiler — «Avbryt» får fokus når den blir aktiv igjen; ny Vitest.
+  - `[low]` `[patch]` (edge) Den falske backenden i testen kunne slette feil forelesning med `splice(-1)` — sjekker nå indeksen.
+  - `[medium]` `[patch]` (verification-gap) Commit-feil er bare testet på filruten — testen kjører nå for fil, forelesning og emne.
+  - `[low]` `[defer]` (verification-gap) Axe og tastaturflyten kjøres bare i Playwright, som CI ikke kjører — prosjektvalg fra før; Playwright kjøres for hånd i hver story.
+  - `[low]` `[reject]` (intent) FR-12 er testet i to deler (backend og komponent), ikke i én test — tellingen fra registeret og teksten er begge dekket.
+  - `[low]` `[reject]` (intent) At avbryt ikke rører disken er ikke testet direkte — avbryt sender ingen forespørsel, og det er testet.
+  - `[low]` `[reject]` (intent) Filtallene på 03 etter sletting av fil er ikke testet — samme invalidering som opplastingen fra 2.3.
+  - `[low]` `[reject]` (intent) Sidemenyen etter sletting er ikke sjekket i e2e — den leser samme spørringer som tabellen og forsiden, som er sjekket.
+  - `[low]` `[patch]` (intent) Sletting av forelesning i e2e brukte klikk og ingen axe — nå bare tastatur og axe.
+  - `[false]` `[reject]` (intent) Komponenten brukes ikke av erstatning og konto ennå — det er story 2.6 og 2.7.
+  - `[false]` `[reject]` (intent) Setningen er delt i to — slik skisse 14 viser den, med «Det kan ikke angres.» i halvfet.
+  - `[false]` `[reject]` (intent) Tillegg utover storien (fokus etter navigasjon, 404 som slettet) — står i spesifikasjonen.
+
 ## Design Notes
 
 - **Rutene ligger i `files`:** arkitekturgrafen lar `files` kalle `subjects` og `content`, men ikke omvendt. Sletting av forelesning og emne må kjenne filene for å fjerne PDF-ene og telle dem, så rutene ligger i `files`, som filtellingene fra 2.3 (#96). Hver tabell skrives fortsatt bare av eiermodulen. Kanttilfelle.
@@ -130,3 +174,25 @@ deferred: []
 - `cd backend && uv run pytest` -- expected: alle grønne
 - `cd frontend && npm run test && npx tsc --noEmit` -- expected: alle grønne
 - `docker compose up --build -d && cd frontend && npx playwright test` -- expected: alle grønne
+
+## Auto Run Result
+
+**Sammendrag:** Studenten kan slette en fil, en forelesning og et emne. Backend har en ny modul `content` med et register for tellinger (tomt i epic 2), forhåndsvisning (`GET …/delete-preview`) og `DELETE` for fil, forelesning og emne i `files`-modulen. Slettingen låser forelesningsradene, sletter raden i én transaksjon med `ON DELETE CASCADE` og fjerner PDF-ene med `core/storage` etter commit. En diskfeil logges med fil-ID, og svaret er likevel 204. Frontend har en felles `DeleteConfirmDialog` (560 px, «Avbryt» har startfokus) og én setningsfunksjon i `frontend/lib/delete-text.ts`. Filrader har rød «Slett», 04 har «Slett forelesningen», og 03 har «Slett emnet». Etter sletting går fokus til «Filer» eller til `h1` på siden hun kommer til (#75).
+
+**Filer:**
+- `backend/app/modules/content/{__init__,registry}.py` -- tellerregisteret
+- `backend/app/modules/files/{router,schemas,service}.py`, `backend/app/modules/subjects/service.py`, `backend/app/main.py` -- forhåndsvisning, sletting, låsing og disk etter commit
+- `backend/tests/test_delete.py` -- 31 tester
+- `frontend/components/{dialog,delete-confirm-dialog}.tsx` + tester -- startfokus, `returnFocus`, `cancelDisabled`, felles bekreftelse
+- `frontend/lib/{delete-text,focus-heading,messages}.ts` + tester -- setning, fokusflagg, `countNouns`
+- `frontend/modules/files/{api.ts,components/file-row.tsx,components/file-list.tsx}`, `frontend/modules/subjects/{api.ts,pages/*.tsx}` + sidetestene -- knappene og flytene
+- `frontend/e2e/slett.spec.ts` -- tastatur, axe, avbryt og fokus
+- `docs/skjermbilder/story-2-5/` -- skjermbilder i 1280 og 768 px
+
+**Gjennomgang:** 32 funn. Rettet: kappløpet med opplasting (medium), 404 på forhåndsvisningen (medium), navn for registrerte typer (medium), commit-feil på alle tre rutene (medium), og ni `low`. Utsatt: e2e i CI (fra før). Avvist: 4 `false` og 12 `low` med grunner i Review Triage Log.
+
+**Ny gjennomgang anbefales:** ja. Rettet: high 0, medium 4 (grupper: kappløp, 404 på forhåndsvisning, typenavn, commit-feil), low 9. Uprøvd risiko: låsingen med `with_for_update()` mot kappløpet med opplasting virker bare på Postgres og er ikke testet, fordi testene bruker SQLite.
+
+**Verifisering:** `uv run pytest` 284 grønne; `npm run test` 438 grønne og `tsc --noEmit` uten feil; `docker compose up --build` + `npx playwright test` 51 grønne.
+
+**Gjenværende risiko:** låsingen virker bare på Postgres (SQLite i testene ignorerer den). En PDF som ikke kan slettes fra disken, blir liggende uten rad. Playwright kjøres ikke i CI.
