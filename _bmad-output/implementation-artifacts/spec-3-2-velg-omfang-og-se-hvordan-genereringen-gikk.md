@@ -2,9 +2,10 @@
 title: 'Story 3.2: Velg omfang og se hvordan genereringen gikk'
 type: 'feature'
 created: '2026-11-21'
-status: 'ready-for-dev'
+baseline_revision: '4e2e745cca44aa989d5f1257948488dd3921e20d'
+status: 'done'
 review_loop_iteration: 0
-followup_review_recommended: false
+followup_review_recommended: true
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-3-context.md'
   - '{project-root}/_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/DESIGN.md'
@@ -113,6 +114,38 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-21 — Review pass
+- verdicts: 28 findings — high 0, medium 2, low 23, false 3, maybe-false 0
+- findings:
+  - `[low]` `[patch]` Blind: `except TimeoutError` fanger også tidsavbrudd utenfor modellkallet (f.eks. databasen) som `GENERATION_TIMEOUT` — tidsavbruddet fanges nå bare rundt `wait_for` og blir et eget unntak; test for at et tidsavbrudd i lagringen gir `GENERATION_FAILED`.
+  - `[low]` `[reject]` Blind: meldingen på andre sider sier ikke hvilken forelesning som feilet — tekstene er godkjent ordrett i storien; ny tekst kan ikke lages uten Silje.
+  - `[low]` `[reject]` Blind: stisjekken er eksakt (skråstrek, undersider, flere faner) — Next lager ikke avsluttende skråstrek, og undersider kommer først i 3.3; to faner som begge viser meldingen, er ufarlig.
+  - `[low]` `[patch]` Blind: fokus havner på en beholder uten navn — beholderen har nå `role="group"` og `aria-label="Flashcards"`.
+  - `[low]` `[reject]` Blind: backendtestene kan henge hvis en påstand feiler før `release.set()` — bare testkode, og testene går grønt.
+  - `[low]` `[reject]` Blind: tester som venter på ekte tid — korte ventetider (1,5–2,2 s), stabile i alle kjøringer.
+  - `[low]` `[patch]` Blind: ingen test har krav-ID-ene NFR-12 og UX-DR44 — lagt til i titlene på testene for levende område.
+  - `[false]` `[reject]` Blind: KI-sporet mangler i diffen — det oppdateres i senere steg i samme branch (story-prompten punkt 5).
+  - `[low]` `[reject]` Blind: vakten ugyldiggjør hele forelesningen — én gang per jobb; da oppdateres også tellinger og filer, få ekstra kall.
+  - `[low]` `[reject]` Blind: samme feiltekst står tre ganger i `messages.ts` — meldingsfila har én nøkkel per kode med vilje (testen fra epic 1 krever det).
+  - `[low]` `[reject]` Blind: «Prøv igjen» stoler på lagret `requested` — backenden lagrer bare 10/20/30 (`Literal`), så andre verdier finnes ikke.
+  - `[low]` `[reject]` Blind: vakten spør hvert sekund uten tak ved feil som ikke er 404 — 401 gir utlogging (vakten avmonteres); varige 5xx betyr at backenden er nede, og ett kall i sekundet er greit.
+  - `[medium]` `[patch]` Kant: sonner viser aktive meldinger på nytt når `Toaster` monteres igjen (bekreftet i `sonner/dist/index.mjs`), så en melding fra før utlogging kan vises for neste bruker — vakten viser ingen melding etter at den er avmontert, og fjerner meldingene ved avmontering; test.
+  - `[low]` `[reject]` Kant: `jobs/active` som feiler, gir spørring hvert sekund — samme som Blind 12.
+  - `[low]` `[reject]` Kant: `jobs/{id}` som feiler varig med annet enn 404, holder jobben fulgt — samme som Blind 12.
+  - `[false]` `[reject]` Kant: 409 gjør at raden aldri får vite om jobben som kjører — `catch` i `start` ugyldiggjør `jobs/latest` for alle feil, og effekten følger da jobben.
+  - `[low]` `[reject]` Kant: jobb startet i en annen fane etter at siden lastet, oppdages ikke — eget valg, ført i `beslutninger.md` og eget kanttilfelle-issue; neste sidelasting finner den.
+  - `[low]` `[reject]` Kant: start fra dialogen som feiler raskt, lar fokus stå på radbeholderen — beholderen er i raden, og neste Tab går til knappen; sjelden.
+  - `[low]` `[patch]` Kant: tidsavbrudd utenfor `wait_for` lagres som `GENERATION_TIMEOUT` — samme rettelse som Blind 1.
+  - `[false]` `[reject]` Kant: ukjent `kind` i `generationTexts` gir TypeError — registeret og `JobKind` har bare `flashcards`; ingen annen type kan komme fra backenden i dag.
+  - `[medium]` `[patch]` Verifisering: koblingen av `JobWatcher` i `(app)`-layouten testes bare i e2e, som CI ikke kjører — ny vitest som rendrer `AppLayout` innlogget.
+  - `[low]` `[patch]` Verifisering: «prøv igjen etter feil som ikke er 404» er ikke testet — ny test med 500 og så 200.
+  - `[low]` `[patch]` Verifisering: fokus etter «Prøv igjen» er ikke testet — påstand lagt til i FR-21-testen.
+  - `[low]` `[patch]` Verifisering (annet): `TimeoutError` fanges for bredt — samme rettelse som Blind 1.
+  - `[low]` `[reject]` Intensjon: SK-4 testes i to deler (backend med `mock-invalid`, raden med falsk backend) — leverandøren kan ikke byttes mens appen kjører i e2e; delene dekker hele kjeden.
+  - `[low]` `[reject]` Intensjon: feilet jobb i e2e er laget med `page.route` — mock-generatoren feiler ikke i Docker; backendløpet for feil er testet i pytest.
+  - `[low]` `[reject]` Intensjon: E10 testes ved avmontering, ikke ekte utlogging — `RequireLogin` viser ikke barna uten innlogging; at jobben fortsetter, følger av at den er en egen asyncio-oppgave (3.1).
+  - `[low]` `[reject]` Intensjon: jobber startet utenfor fanen etter montering — samme som Kant 5.
+
 ## Design Notes
 
 - **Hvorfor meldingen utledes fra siste jobb:** storien krever at «færre» står til neste jobb og at resultatet vises etter ny innlogging (E10). Siste jobb ligger i databasen, så raden trenger ingen egen lagring.
@@ -125,3 +158,28 @@ deferred: []
 - `cd backend && uv run pytest && uv run ruff check .` -- grønne
 - `cd frontend && npm run test && npx tsc --noEmit` -- grønne
 - `docker compose up --build -d && cd frontend && npx playwright test` -- grønne
+
+## Auto Run Result
+
+**Sammendrag:** Story 3.2 er bygd. Backenden har tidsgrensen `GENERATION_TIMEOUT` (3 min, bare rundt modellkallet, eget unntak) og rutene `GET /api/jobs/active` og `GET /api/jobs/{id}` (bare egne jobber, 404 ellers). Frontenden har dialogen «Lag flashcards» med Rask/Vanlig/Dyp, meldingene for færre, ingenting og feil med «Prøv igjen» (utledet fra siste jobb, så de står etter omlasting), og én jobbvakt i `(app)`-layouten som følger jobbene og viser ferdigmeldingen med sonner på andre sider.
+
+**Filer:**
+- `backend/app/core/errors.py` -- `GENERATION_TIMEOUT` (504).
+- `backend/app/modules/generation/service.py` -- tidsgrense, `GenerationTimeoutError`, feilkode til `_mark_failed`, `active_jobs`, `get_job_for_user`.
+- `backend/app/modules/generation/{router,schemas}.py`, `backend/app/main.py` -- `jobs_router`, `TrackedJobOut`.
+- `backend/tests/test_jobs.py` -- tidsgrense, jobbrutene, omdøping med krav-ID.
+- `frontend/lib/messages.ts` -- felles feilmal med `{content}`.
+- `frontend/components/{choice-option,note-surface,create-row}.tsx`, `ui/{radio-group,sonner}.tsx` -- valgkort, ikon på merknadsflaten, «Prøv igjen».
+- `frontend/modules/generation/{texts,api,types}.ts`, `components/{scope-dialog,job-watcher,flashcards-row}.tsx` -- dialogen, jobbvakten og raden.
+- `frontend/app/(app)/layout.tsx` (+ test), `frontend/vitest.config.ts` -- vakten i layouten; vitest tar med `app/`.
+- `frontend/modules/subjects/pages/lecture-page.tsx` (+ test), `frontend/e2e/flashcards.spec.ts` -- fil- og sideantall til raden; e2e for dialog, færre, feil, ferdigmelding.
+- `frontend/package.json` -- `sonner` 2.0.8 (versjonen i arkitekturen).
+- `README.md` -- `mock-invalid` gir nå beskjed om færre kort.
+
+**Gjennomgang:** 28 funn. 7 rettet (2 medium: meldinger som kom igjen etter utlogging, layoutkoblingen uten test; 5 low: tidsavbrudd fanget for bredt, navn på fokusmålet, krav-ID-er, test for feil som ikke er 404, fokus etter «Prøv igjen»). Ingen utsatt. 18 avvist med begrunnelse og 3 falske, se loggen over.
+
+**Oppfølging anbefalt:** ja. To medium-rettelser ble gjort etter gjennomgangen: oppryddingen ved avmontering i `job-watcher.tsx` (`mounted`-ref og `toast.dismiss()`) og den nye layouttesten. De er testet, men ikke gjennomgått av et uavhengig lag. Rettet etter verdi: medium 2, low 5.
+
+**Verifisering:** `uv run pytest` 386 bestått, `ruff check` rent, `npm run test` 524 bestått, `tsc --noEmit` rent, `npx playwright test` 88 bestått mot `docker compose up --build`. Skjermbilder i `docs/skjermbilder/story-3-2/`, sammenlignet med DESIGN.md og skisse 06.
+
+**Gjenstående risiko:** en jobb startet i en annen fane etter at siden lastet, oppdages først ved neste sidelasting (eget valg). Feiltekst på andre sider sier ikke hvilken forelesning det gjelder (godkjent ordlyd).
