@@ -46,11 +46,13 @@ function card(id: string, front: string, page = 1): Flashcard {
 
 let cards: Flashcard[] = [];
 let lectureStatus = 200;
+let flashcardsStatus = 200;
 let client: QueryClient;
 
 beforeEach(() => {
   cards = [card("a", "Merkevare"), card("b", "Pris"), card("c", "Segment", 2)];
   lectureStatus = 200;
+  flashcardsStatus = 200;
   notFound.mockReset();
   push.mockReset();
   // Just below 1: the shuffle keeps the order, so the test knows it.
@@ -64,7 +66,10 @@ beforeEach(() => {
       return jsonResponse(200, LECTURE);
     }
     if (path === "/api/subjects/s1") return jsonResponse(200, SUBJECT);
-    if (path === "/api/lectures/l1/flashcards") return jsonResponse(200, cards);
+    if (path === "/api/lectures/l1/flashcards") {
+      if (flashcardsStatus !== 200) return jsonResponse(flashcardsStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
+      return jsonResponse(200, cards);
+    }
     return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
   });
 });
@@ -76,8 +81,9 @@ afterEach(() => {
   document.title = "";
 });
 
-function renderPage() {
+function renderPage(cached?: Flashcard[]) {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  if (cached) client.setQueryData(lectureFlashcardsQueryKey("l1"), cached);
   render(
     <QueryClientProvider client={client}>
       <FlashcardSessionPage lectureId="l1" />
@@ -147,7 +153,7 @@ describe("FlashcardSessionPage", () => {
     expect(screen.queryByRole("link", { name: /definisjoner/ })).toBeNull();
   });
 
-  it("FR-24: nye kort under økten endrer ikke økten (E41)", async () => {
+  it("E41: nye kort under økten endrer ikke økten", async () => {
     renderPage();
     expect(await screen.findByText("/ 3")).toBeTruthy();
     cards = [...cards, card("d", "Lojalitet")];
@@ -156,7 +162,32 @@ describe("FlashcardSessionPage", () => {
     expect(screen.getByText("/ 3")).toBeTruthy();
   });
 
-  it("FR-24: «Avslutt økt» går rett tilbake til forelesningen og sender ingenting", async () => {
+  it("E41: en ny økt bruker kortene hentet nå, ikke en gammel liste fra hurtigbufferen", async () => {
+    const old = [card("a", "Merkevare")];
+    renderPage(old);
+    expect(await screen.findByText("/ 3")).toBeTruthy();
+  });
+
+  it("E41: en omhenting som feiler midt i økten erstatter ikke økten", async () => {
+    renderPage();
+    expect(await screen.findByText("/ 3")).toBeTruthy();
+    lectureStatus = 500;
+    flashcardsStatus = 500;
+    await act(() => client.invalidateQueries({ queryKey: ["lectures", "l1"] }));
+    await waitFor(() => expect(client.getQueryState(lectureFlashcardsQueryKey("l1"))?.status).toBe("error"));
+    expect(screen.getByText("/ 3")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Snu kortet" })).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(notFound).not.toHaveBeenCalled();
+  });
+
+  it("FR-24: feil når kortene hentes gir reserveteksten i role=alert", async () => {
+    flashcardsStatus = 500;
+    renderPage();
+    expect((await screen.findByRole("alert")).textContent).toBe(FALLBACK_MESSAGE);
+  });
+
+  it("UX-DR33: «Avslutt økt» går rett tilbake til forelesningen og sender ingenting", async () => {
     renderPage();
     fireEvent.click(await screen.findByRole("button", { name: "Snu kortet" }));
     fireEvent.click(button("Kunne"));
@@ -166,7 +197,7 @@ describe("FlashcardSessionPage", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("FR-24: uten kort vises «Det finnes ingen flashcards her ennå.» og ingen panel", async () => {
+  it("A15/E1: uten kort vises «Det finnes ingen flashcards her ennå.» og ingen panel", async () => {
     cards = [];
     renderPage();
     expect(await screen.findByRole("heading", { level: 1, name: "Det finnes ingen flashcards her ennå." })).toBeTruthy();

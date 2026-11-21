@@ -33,7 +33,7 @@ describe("Flashcard", () => {
     expect(screen.getByText("Hva er <b>merkevare</b>?")).toBeTruthy();
     expect(card.querySelector("b")).toBeNull();
     expect(screen.queryByText("SVAR")).toBeNull();
-    expect(screen.queryByText(CARD.back!)).toBeNull();
+    expect(screen.queryByText(CARD.back)).toBeNull();
     expect(screen.getByRole("button", { name: "Snu kortet" }).dataset.variant).toBe("outline");
     const missed = screen.getByRole("button", { name: "Kunne ikke" }) as HTMLButtonElement;
     const known = screen.getByRole("button", { name: "Kunne" }) as HTMLButtonElement;
@@ -49,7 +49,7 @@ describe("Flashcard", () => {
     render(<Harness onMark={onMark} />);
     fireEvent.click(screen.getByRole("button", { name: "Snu kortet" }));
     expect(screen.getByText("SVAR")).toBeTruthy();
-    expect(screen.getByText(CARD.back!)).toBeTruthy();
+    expect(screen.getByText(CARD.back)).toBeTruthy();
     expect(screen.getByText("merkevare-notater.pdf, side 4")).toBeTruthy();
     expect(screen.queryByRole("link")).toBeNull();
     expect(screen.queryByRole("button", { name: "Snu kortet" })).toBeNull();
@@ -60,6 +60,13 @@ describe("Flashcard", () => {
     expect(onMark).toHaveBeenCalledWith("missed");
     fireEvent.click(known);
     expect(onMark).toHaveBeenLastCalledWith("known");
+  });
+
+  it("FR-24: ett klikk på «Snu kortet» snur kortet én gang", () => {
+    const onFlip = vi.fn();
+    render(<Flashcard card={CARD} flipped={false} onFlip={onFlip} onMark={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Snu kortet" }));
+    expect(onFlip).toHaveBeenCalledOnce();
   });
 
   it("FR-24: et klikk på kortet snur det også", () => {

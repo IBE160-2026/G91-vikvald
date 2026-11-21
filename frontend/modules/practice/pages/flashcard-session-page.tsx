@@ -64,8 +64,9 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
   const [step, setStep] = useState(0);
   const finishedRef = useRef<HTMLHeadingElement>(null);
 
-  // Lock the shuffled list the first time the cards arrive.
-  if (session === null && flashcards.data) {
+  // Lock the shuffled list the first time the cards arrive from a fetch made
+  // after this page opened (a cached list from an earlier visit may be old).
+  if (session === null && flashcards.data && flashcards.isFetchedAfterMount) {
     const cards = Object.fromEntries(flashcards.data.map((card) => [card.id, card]));
     setSession({ cards, state: startSession(shuffle(flashcards.data.map((card) => card.id))) });
   }
@@ -85,10 +86,12 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
   }
 
   const lecturePath = `/forelesninger/${lectureId}`;
-  if (lecture.error) notFoundOnMissing(lecture.error);
-  if (flashcards.error) notFoundOnMissing(flashcards.error);
+  // Errors count only before the session starts: a failed background refetch
+  // (job watcher, window focus) never replaces a session in progress.
+  if (session === null && lecture.error) notFoundOnMissing(lecture.error);
+  if (session === null && flashcards.error) notFoundOnMissing(flashcards.error);
 
-  const loadError = lecture.isError || flashcards.isError;
+  const loadError = session === null && (lecture.isError || flashcards.isError);
   const currentId = session ? currentCard(session.state) : undefined;
   const card = currentId ? session?.cards[currentId] : undefined;
   const empty = session !== null && session.state.order.length === 0;

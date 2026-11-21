@@ -132,7 +132,7 @@ test.describe("Flashcard-økten (story 3.3)", () => {
     await expect(page).toHaveURL(`/forelesninger/${lectureId}`);
   });
 
-  test("FR-24: «Avslutt økt» går rett tilbake til forelesningen", async ({ page }) => {
+  test("UX-DR33: «Avslutt økt» går rett tilbake til forelesningen", async ({ page }) => {
     const lectureId = await lectureWithThreeCards(page);
     await page.goto(`/forelesninger/${lectureId}/flashcards`);
     await page.getByRole("button", { name: "Snu kortet" }).click();
@@ -142,7 +142,7 @@ test.describe("Flashcard-økten (story 3.3)", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Uke 37: Merkevare" })).toBeVisible();
   });
 
-  test("FR-24: en øktadresse uten kort viser «Det finnes ingen flashcards her ennå.»", async ({ page }) => {
+  test("A15/E1: en øktadresse uten kort viser «Det finnes ingen flashcards her ennå.»", async ({ page }) => {
     const lectureId = await newLecture(page);
     await page.goto(`/forelesninger/${lectureId}/flashcards`);
     await expect(page.getByRole("heading", { level: 1, name: "Det finnes ingen flashcards her ennå." })).toBeVisible();

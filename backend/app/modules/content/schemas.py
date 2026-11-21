@@ -1,6 +1,7 @@
 """Response bodies for the content routes."""
 
 import uuid
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -20,8 +21,9 @@ class FlashcardSource(BaseModel):
 
 class FlashcardOut(BaseModel):
     id: uuid.UUID
-    # "qa" or "concept" (both are shown the same way).
-    kind: str
+    # "qa" or "concept" (both are shown the same way). Model cards are not listed.
+    kind: Literal["qa", "concept"]
     front: str
-    back: str | None
+    # Always set for qa and concept cards.
+    back: str
     source: FlashcardSource

@@ -58,7 +58,16 @@ export function Flashcard({ card, flipped, onFlip, onMark, focusOnMount = false 
           <p className="text-overline text-ink-muted">SPØRSMÅL</p>
           <p className="mt-2 text-card-question break-words whitespace-pre-line text-ink">{card.front}</p>
           {flipped ? null : (
-            <Button ref={flipRef} variant="outline" className="mt-5" onClick={onFlip}>
+            <Button
+              ref={flipRef}
+              variant="outline"
+              className="mt-5"
+              onClick={(event) => {
+                // The card itself also flips on click: flip once, not twice.
+                event.stopPropagation();
+                onFlip();
+              }}
+            >
               Snu kortet
             </Button>
           )}

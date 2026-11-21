@@ -42,7 +42,7 @@ describe("shuffle", () => {
 });
 
 describe("økten", () => {
-  it("FR-24: start viser første kort, teller 1 av 3", () => {
+  it("UX-DR8: start viser første kort, teller 1 av 3", () => {
     const state = startSession(["A", "B", "C"]);
     expect(currentCard(state)).toBe("A");
     expect(shownCount(state)).toBe(1);
@@ -51,7 +51,7 @@ describe("økten", () => {
     expect(repeatingLeft(state)).toBeNull();
   });
 
-  it("FR-24: «Kunne ikke» legger kortet bakerst, telleren går 1→2→3 og aldri til 4", () => {
+  it("FR-25: «Kunne ikke» legger kortet bakerst, telleren går 1→2→3 og aldri til 4", () => {
     let state = startSession(["A", "B", "C"]);
     state = markCurrent(state, "missed");
     expect(state.queue).toEqual(["B", "C", "A"]);
@@ -72,7 +72,7 @@ describe("økten", () => {
     expect(repeatingLeft(state)).toBeNull();
   });
 
-  it("FR-24: kortet kommer igjen til det markeres «Kunne»", () => {
+  it("FR-25: kortet kommer igjen til det markeres «Kunne»", () => {
     let state = run(["A", "B"], ["missed", "known", "missed"]);
     expect(currentCard(state)).toBe("A");
     expect(repeatingLeft(state)).toBe(1);
@@ -95,7 +95,7 @@ describe("økten", () => {
     expect(repeatingLeft(state)).toBe(2);
   });
 
-  it("FR-24: rutenettet følger den låste rekkefølgen med første markering og gjeldende kort", () => {
+  it("UX-DR9: rutenettet følger den låste rekkefølgen med første markering og gjeldende kort", () => {
     const state = run(["A", "B", "C"], ["missed"]);
     expect(gridCells(state)).toEqual([
       { id: "A", number: 1, mark: "missed", current: false },
@@ -106,7 +106,7 @@ describe("økten", () => {
     expect(gridCells(repeating)[0]).toEqual({ id: "A", number: 1, mark: "missed", current: true });
   });
 
-  it("FR-24: markering etter ferdig økt endrer ingenting, og en tom økt er ferdig", () => {
+  it("FR-25: markering etter ferdig økt endrer ingenting, og en tom økt er ferdig", () => {
     const finished = run(["A"], ["known"]);
     expect(markCurrent(finished, "missed")).toBe(finished);
     const empty = startSession([]);
@@ -114,7 +114,7 @@ describe("økten", () => {
     expect(shownCount(empty)).toBe(0);
   });
 
-  it("FR-24: tilstanden endres ikke på stedet", () => {
+  it("FR-25: tilstanden endres ikke på stedet", () => {
     const state = startSession(["A", "B"]);
     markCurrent(state, "missed");
     expect(state.queue).toEqual(["A", "B"]);

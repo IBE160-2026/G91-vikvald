@@ -11,7 +11,7 @@ export type Flashcard = {
   // "qa" (question/answer) or "concept" (term/explanation); both are shown the same way.
   kind: "qa" | "concept";
   front: string;
-  back: string | null;
+  back: string;
   source: FlashcardSource;
 };
 

@@ -10,7 +10,7 @@ import type { Mark } from "../types";
 // the progress bar and the counts line are enough.
 export const GRID_MAX_CARDS = 120;
 
-const MARK_CLASSES: Record<Mark, string> = {
+export const MARK_CLASSES: Record<Mark, string> = {
   known: "bg-success-tint text-success",
   missed: "bg-danger-tint text-danger",
 };

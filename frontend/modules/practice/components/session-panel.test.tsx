@@ -45,6 +45,9 @@ describe("SessionPanel", () => {
     const progress = screen.getByRole("progressbar");
     expect(progress.getAttribute("aria-labelledby")).toBe(counter.parentElement!.id);
     expect(progress.className).toContain("bg-progress-track");
+    expect(Number(progress.getAttribute("aria-valuenow"))).toBeCloseTo((7 / 24) * 100);
+    expect(progress.getAttribute("aria-valuemax")).toBe("100");
+    expect(progress.getAttribute("aria-valuetext")).toBe("7 / 24");
     expect(progress.querySelector("[data-slot='progress-indicator']")!.className).toContain("bg-brand");
     expect(screen.getByText("Kunne 5 · Kunne ikke 1")).toBeTruthy();
     expect(screen.queryByText(/Repeterer/)).toBeNull();
@@ -59,7 +62,7 @@ describe("SessionPanel", () => {
     expect(onEnd).toHaveBeenCalledOnce();
   });
 
-  it("FR-24: telleren går aldri over totalen, og repetisjonen viser «Repeterer: 1 kort igjen»", () => {
+  it("FR-25: telleren går aldri over totalen, og repetisjonen viser «Repeterer: 1 kort igjen»", () => {
     const state = run(startSession(["A", "B", "C"]), ["missed", "known", "known"]);
     renderPanel(state);
     expect(screen.getByText("3", { selector: ".text-session-counter" })).toBeTruthy();
@@ -78,6 +81,9 @@ describe("SessionPanel", () => {
     expect(screen.queryByText("Kunne ikke, kommer igjen")).toBeNull();
     expect(screen.queryByRole("button", { name: "Avslutt økt" })).toBeNull();
     expect(screen.getByText("Kunne 2 · Kunne ikke 1")).toBeTruthy();
+    const progress = screen.getByRole("progressbar");
+    expect(progress.getAttribute("aria-valuenow")).toBe("100");
+    expect(progress.getAttribute("aria-valuetext")).toBe("3 / 3");
   });
 
   it("UX-DR9: over 120 kort vises verken rutenett eller forklaring, men teller, stolpe og tellelinje står", () => {

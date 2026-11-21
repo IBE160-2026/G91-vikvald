@@ -4,11 +4,12 @@ import { useId } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 import { SubjectDot } from "@/modules/subjects/components/subject-dot";
 
 import type { PracticeAdapter } from "../adapter";
 import { gridCells, isFinished, repeatingLeft, sessionCounts, shownCount, totalCount, type SessionState } from "../session";
-import { AnswerGrid, GRID_MAX_CARDS, MarkIcon } from "./answer-grid";
+import { AnswerGrid, GRID_MAX_CARDS, MARK_CLASSES, MarkIcon } from "./answer-grid";
 
 type Props = {
   adapter: PracticeAdapter;
@@ -68,6 +69,9 @@ export function SessionPanel({ adapter, state, scopeName, colorIndex, onEnd }: P
       <Progress
         className="mt-3"
         value={total === 0 ? 0 : (shown / total) * 100}
+        max={100}
+        // Read as the visible counter («7 / 24»), not as a percentage.
+        getValueLabel={() => `${shown} / ${total}`}
         aria-labelledby={counterId}
       />
       <p className="mt-3 text-caption font-normal text-ink-muted">{adapter.countsText(counts)}</p>
@@ -85,11 +89,10 @@ export function SessionPanel({ adapter, state, scopeName, colorIndex, onEnd }: P
                 ) : (
                   <span
                     aria-hidden="true"
-                    className={
-                      item.cell === "known"
-                        ? "flex size-[20px] shrink-0 items-center justify-center rounded-[4px] bg-success-tint text-success"
-                        : "flex size-[20px] shrink-0 items-center justify-center rounded-[4px] bg-danger-tint text-danger"
-                    }
+                    className={cn(
+                      "flex size-[20px] shrink-0 items-center justify-center rounded-[4px]",
+                      MARK_CLASSES[item.cell],
+                    )}
                   >
                     <MarkIcon mark={item.cell} />
                   </span>
