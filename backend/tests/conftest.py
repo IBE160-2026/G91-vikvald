@@ -16,6 +16,7 @@ from app.core.config import get_settings  # noqa: E402
 from app.core.db import Base, get_session, make_engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.modules.identity import models as _identity_models  # noqa: E402, F401  (registers users)
+from app.modules.subjects import models as _subjects_models  # noqa: E402, F401  (registers subjects)
 
 TEST_DATABASE_URL = "sqlite+aiosqlite://"
 
