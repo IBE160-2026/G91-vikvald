@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { CreateRow, type CreateRowState } from "@/components/create-row";
@@ -31,6 +32,9 @@ function flashcardJob(jobs: Job[] | undefined): Job | undefined {
 
 // The Flashcards row in «Lag og øv» (stories 3.1 and 3.2, mockup 04).
 //
+// «Øv nå» (shown only when the lecture has cards) opens the flashcard session
+// at /forelesninger/<id>/flashcards (story 3.3).
+//
 // «Lag flashcards» and «Lag flere» open the dialog «Lag flashcards», where she
 // chooses the scope (10, 20 or 30 cards). The started job is handed to the job
 // watcher in the (app) layout, which refreshes this lecture's queries when the
@@ -51,6 +55,7 @@ function flashcardJob(jobs: Job[] | undefined): Job | undefined {
 // message.
 export function FlashcardsRow({ lectureId, lectureName, fileCount, pageCount }: Props) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const followJob = useFollowJob();
   const jobs = useQuery({ queryKey: latestJobsQueryKey(lectureId), queryFn: () => fetchLatestJobs(lectureId) });
   const counts = useQuery({ queryKey: contentCountsQueryKey(lectureId), queryFn: () => fetchContentCounts(lectureId) });
@@ -149,6 +154,7 @@ export function FlashcardsRow({ lectureId, lectureName, fileCount, pageCount }: 
         createLabel="Lag flashcards"
         onCreate={() => setDialogOpen(true)}
         onCreateMore={() => setDialogOpen(true)}
+        onPractice={() => router.push(`/forelesninger/${lectureId}/flashcards`)}
         jobText={texts.jobText}
         announcement={announcement}
         message={message}

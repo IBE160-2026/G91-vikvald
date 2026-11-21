@@ -35,7 +35,7 @@ describe("CreateRow", () => {
     expect(screen.queryByRole("button", { name: "Øv nå" })).toBeNull();
   });
 
-  it("UX-DR18: med innhold står «24 kort», fylt prikk, «Lag flere» og «Øv nå» (ikke aktiv før 3.3)", () => {
+  it("UX-DR18: med innhold står «24 kort», fylt prikk, «Lag flere» og «Øv nå» (ikke aktiv uten onPractice)", () => {
     const onCreateMore = vi.fn();
     render(<CreateRow {...props({ hasContent: true, countText: "24 kort", onCreateMore })} />);
     expect(screen.getByText("24 kort")).toBeTruthy();
@@ -47,6 +47,15 @@ describe("CreateRow", () => {
     const practice = screen.getByRole("button", { name: "Øv nå" }) as HTMLButtonElement;
     expect(practice.dataset.variant).toBe("primary");
     expect(practice.disabled).toBe(true);
+  });
+
+  it("FR-23: med onPractice er «Øv nå» aktiv og kaller den", () => {
+    const onPractice = vi.fn();
+    render(<CreateRow {...props({ hasContent: true, countText: "24 kort", onPractice })} />);
+    const practice = screen.getByRole("button", { name: "Øv nå" }) as HTMLButtonElement;
+    expect(practice.disabled).toBe(false);
+    fireEvent.click(practice);
+    expect(onPractice).toHaveBeenCalledOnce();
   });
 
   it("UX-DR19: running viser job-status i stedet for knappene", () => {

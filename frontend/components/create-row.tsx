@@ -26,7 +26,8 @@ export type CreateRowProps = {
   onCreate: () => void;
   // The text button with content: «Lag flere».
   onCreateMore: () => void;
-  // «Øv nå». Without it the button is shown but not active (practice comes in story 3.3).
+  // «Øv nå»: opens the session (the Flashcards row gives it from story 3.3).
+  // Without it the button is shown but not active (for types without practice yet).
   onPractice?: () => void;
   // The job-status text, e.g. «Lager flashcards …».
   jobText: string;

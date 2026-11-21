@@ -996,6 +996,17 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
     expect(region.parentElement!.className).toContain("flex-wrap");
   });
 
+  it("FR-23: «Øv nå» åpner flashcard-økten for forelesningen", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    cardCount = 24;
+    renderPage();
+    const region = await waitFor(() => createRegion());
+    const practice = (await within(region).findByRole("button", { name: "Øv nå" })) as HTMLButtonElement;
+    expect(practice.disabled).toBe(false);
+    fireEvent.click(practice);
+    expect(push).toHaveBeenCalledWith("/forelesninger/l2/flashcards");
+  });
+
   it("UX-DR24: dialogen viser forelesningen med filer og sider, Omfang med «Vanlig» valgt og fokusert, og ventetiden i demomodus", async () => {
     files = [uploadedFile("merkevare.pdf", 3), uploadedFile("pris.pdf", 15)];
     renderPage();
