@@ -189,6 +189,16 @@ async def test_fr6_patch_med_tomt_navn_gir_name_required_og_endrer_ingenting(cli
     assert (await client.get(url)).json() == created
 
 
+async def test_fr6_patch_med_201_tegn_gir_validation_error_og_endrer_ingenting(client: AsyncClient) -> None:
+    await _log_in_new_user(client)
+    created = (await _create(client)).json()
+    url = f"{SUBJECTS}/{created['id']}"
+    response = await client.patch(url, json={"name": "æ" * 201})
+    assert response.status_code == 422
+    assert _code(response) == "VALIDATION_ERROR"
+    assert (await client.get(url)).json()["name"] == "Markedsføring"
+
+
 async def test_fr6_patch_med_ugyldig_dato_gir_validation_error(client: AsyncClient) -> None:
     await _log_in_new_user(client)
     created = (await _create(client)).json()
