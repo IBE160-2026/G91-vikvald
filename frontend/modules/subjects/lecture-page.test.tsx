@@ -146,4 +146,24 @@ describe("forelesningssiden", () => {
     renderPage("finnes-ikke");
     await waitFor(() => expect(notFound).toHaveBeenCalled());
   });
+
+  it("FR-7: datofeil fra backenden vises under «Dato» med forelesningsteksten, og fokus flyttes dit", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: "Endre dato" }));
+    fetchMock.mockImplementation(async (url, init) => {
+      if (init?.method === "PATCH") {
+        return jsonResponse(422, { error: { code: "VALIDATION_ERROR", details: { fields: { date: "value_error" } } } });
+      }
+      return jsonResponse(200, []);
+    });
+    const date = screen.getByLabelText("Dato");
+    fireEvent.change(date, { target: { value: "12.09.2026" } });
+    fireEvent.click(screen.getByRole("button", { name: "Lagre" }));
+    await waitFor(() => expect(date.getAttribute("aria-invalid")).toBe("true"));
+    expect(document.getElementById(date.getAttribute("aria-describedby")!)?.textContent).toBe(
+      "Skriv inn datoen, for eksempel 11.09.2026.",
+    );
+    await waitFor(() => expect(document.activeElement).toBe(date));
+    expect(screen.getByRole("dialog", { name: "Endre dato" })).toBeTruthy();
+  });
 });

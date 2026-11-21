@@ -231,9 +231,26 @@ test.describe("Forelesninger (story 2.2)", () => {
     await expect(sidebarLectures(page).first()).toHaveAccessibleDescription("Uke 34");
     await expect(sidebarLectures(page).first()).toHaveAttribute("aria-current", "page");
 
+    // «Nytt navn» with only the keyboard: the new name in h1, the tab title and the sidebar.
+    const rename = page.getByRole("button", { name: "Nytt navn" });
+    await tabTo(page, rename);
+    await expectFocusRing(rename);
+    await page.keyboard.press("Enter");
+    const nameDialog = page.getByRole("dialog", { name: "Nytt navn" });
+    await expect(nameDialog.getByLabel("Navn")).toBeFocused();
+    await expect(nameDialog.getByLabel("Navn")).toHaveValue("Uke 38: Prising");
+    await expectNoAxeViolations(page);
+    await nameDialog.getByLabel("Navn").fill("Uke 34: Prising");
+    await page.keyboard.press("Enter");
+    await expect(nameDialog).toHaveCount(0);
+    await expect(rename).toBeFocused();
+    await expect(page.locator("main h1")).toHaveText("Uke 34: Prising");
+    await expect(page).toHaveTitle("Uke 34: Prising – Studiekamerat");
+    await expect(sidebarLectures(page)).toHaveText(["Uke 34: Prising", "Uke 37: Merkevare"].map((n) => new RegExp(n)));
+
     await page.getByRole("navigation", { name: "Emner" }).getByRole("link", { name: "Markedsføring" }).click();
     await expect(page.locator("main h1")).toHaveText("Markedsføring");
-    await expect(page.locator("main tbody tr").getByRole("link")).toHaveText(["Uke 38: Prising", "Uke 37: Merkevare"]);
+    await expect(page.locator("main tbody tr").getByRole("link")).toHaveText(["Uke 34: Prising", "Uke 37: Merkevare"]);
     expect(await page.evaluate(() => (window as unknown as { marker?: number }).marker)).toBe(1);
   });
 

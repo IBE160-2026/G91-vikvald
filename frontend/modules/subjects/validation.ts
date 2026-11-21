@@ -32,13 +32,6 @@ export function nameErrorCode(name: string): string | null {
   return name.trim() === "" ? "NAME_REQUIRED" : null;
 }
 
-export function examDateErrorCode(text: string): string | null {
-  return parseNorwegianDate(text) === null ? "INVALID_EXAM_DATE" : null;
-}
-
-export function lectureDateErrorCode(text: string): string | null {
-  return parseNorwegianDate(text) === null ? "INVALID_DATE" : null;
-}
 
 // Which field an API error belongs to; null means a general error. The backend
 // names the date exam_date (subjects) or date (lectures).

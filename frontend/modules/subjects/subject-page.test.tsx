@@ -198,8 +198,10 @@ describe("emnesiden", () => {
         : jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } }),
     );
     renderPage();
-    const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
+    // The page's own message (the sidebar may show one more for its lectures).
+    const alerts = await screen.findAllByRole("alert");
+    const pageAlert = alerts.find((alert) => !alert.closest("nav"));
+    expect(pageAlert?.textContent).toBe("Noe gikk galt. Prøv igjen.");
     expect(notFound).not.toHaveBeenCalled();
   });
 
@@ -323,5 +325,33 @@ describe("emnesiden", () => {
   it("FR-4: ukjent eller andres emne gir «Fant ikke siden»", async () => {
     renderPage("finnes-ikke");
     await waitFor(() => expect(notFound).toHaveBeenCalled());
+  });
+
+  it("FR-15: tabellen og sidemenyen sorterer ikke på nytt, men viser API-rekkefølgen", async () => {
+    // The fake backend gives the later date first; the frontend must keep that order.
+    respond([LECTURES[1], LECTURES[0]]);
+    renderPage();
+    const table = await screen.findByRole("table");
+    const rows = within(table).getAllByRole("row").slice(1);
+    expect(rows.map((row) => within(row).getAllByRole("cell")[0].textContent)).toEqual(["18.09", "11.09"]);
+    const nav = screen.getByRole("navigation", { name: "Emner" });
+    await within(nav).findByRole("link", { name: LECTURES[0].name });
+    const hrefs = within(nav)
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"))
+      .filter((href) => href?.startsWith("/forelesninger/"));
+    expect(hrefs).toEqual(["/forelesninger/l2", "/forelesninger/l1"]);
+  });
+
+  it("FR-1: feil når forelesningene hentes gir reserveteksten i sidemenyen, ikke et tomt emne", async () => {
+    fetchMock.mockImplementation(async (url) => {
+      const path = String(url);
+      if (path === "/api/subjects") return jsonResponse(200, [MARKETING]);
+      if (path === "/api/subjects/a") return jsonResponse(200, MARKETING);
+      return jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } });
+    });
+    renderPage();
+    const nav = await screen.findByRole("navigation", { name: "Emner" });
+    expect((await within(nav).findByRole("alert")).textContent).toBe("Noe gikk galt. Prøv igjen.");
   });
 });

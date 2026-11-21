@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  examDateErrorCode,
-  fieldForApiError,
-  lectureDateErrorCode,
-  nameErrorCode,
-  parseNorwegianDate,
-} from "./validation";
+import { fieldForApiError, nameErrorCode, parseNorwegianDate } from "./validation";
 
 describe("emnereglene (samme som backenden)", () => {
   it.each([
@@ -23,15 +17,8 @@ describe("emnereglene (samme som backenden)", () => {
     "FR-6: «%s» er ikke en dato",
     (text) => {
       expect(parseNorwegianDate(text)).toBeNull();
-      expect(examDateErrorCode(text)).toBe("INVALID_EXAM_DATE");
-      expect(lectureDateErrorCode(text)).toBe("INVALID_DATE");
     },
   );
-
-  it("FR-6: gyldig dato gir ingen feil", () => {
-    expect(examDateErrorCode("04.12.2026")).toBeNull();
-    expect(lectureDateErrorCode("11.09.2026")).toBeNull();
-  });
 
   it.each(["", "   ", "\t"])("E35: navnet «%s» gir NAME_REQUIRED", (name) => {
     expect(nameErrorCode(name)).toBe("NAME_REQUIRED");
