@@ -34,6 +34,7 @@ Bygge story 3.2 i den autonome kjøringen. Studenten skal kunne velge hvor mange
   - Sprintstatus er satt til `done` (`8e91f57`).
   - KI-sporet er oppdatert (`42a59a1`).
   - Kanttilfelle-issuene er #143–#151, og #140 har fått en kommentar om at 3.2 har tatt over meldingene.
+- **CI:** CI på PR #152 feilet først i teardown av `test_ar14_…`. En `autouse`-fixture fra 3.1 ventet på jobbene etter at testdatabasen var lukket. Rettet ved at fixturen avhenger av `engine` (`4db0564`).
 - **Disk:** under 5 GB ledig etter bygget. `docker builder prune -f` ga 8,0 GB ledig.
 
 ### Åpne punkter
