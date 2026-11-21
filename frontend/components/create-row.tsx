@@ -1,8 +1,9 @@
-import { CircleAlert, Plus } from "lucide-react";
+import { CircleAlert, Info, Plus } from "lucide-react";
 import { useId } from "react";
 
 import { iconProps } from "@/components/icon";
 import { JobStatus } from "@/components/job-status";
+import { NoteSurface } from "@/components/note-surface";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -31,10 +32,13 @@ export type CreateRowProps = {
   jobText: string;
   // Read out by the live region (start and end of a job).
   announcement: string;
-  // A calm message under the row (e.g. «nothing was made»).
+  // A calm message under the row on the note surface (e.g. «fewer than
+  // chosen»). Never an error.
   message?: string | null;
   // An error under the row (role="alert").
   error?: string | null;
+  // With an error: the outline button «Prøv igjen» under it.
+  onRetry?: () => void;
 };
 
 // create-row (DESIGN.md "Forelesning", mockup 04): one row in «Lag og øv»,
@@ -43,6 +47,8 @@ export type CreateRowProps = {
 // with content the primary «Øv nå» and the text button «Lag flere» with a plus;
 // without, the outline button «Lag …». While a job runs, job-status stands in
 // place of the buttons. An always-mounted live region reads `announcement`.
+// Under the row: `message` on the note surface with the info icon, and
+// `error` in red (role="alert"), with «Prøv igjen» when `onRetry` is given.
 export function CreateRow({
   title,
   countText,
@@ -57,6 +63,7 @@ export function CreateRow({
   announcement,
   message,
   error,
+  onRetry,
 }: CreateRowProps) {
   const reasonId = useId();
   const blocked = state === "waiting" || state === "disabled";
@@ -119,12 +126,23 @@ export function CreateRow({
       <div role="status" className="sr-only">
         {announcement}
       </div>
-      {message ? <p className="pb-4 text-meta text-ink-muted">{message}</p> : null}
+      {message ? (
+        <NoteSurface icon={Info} className="mb-4">
+          <p>{message}</p>
+        </NoteSurface>
+      ) : null}
       {error ? (
-        <p role="alert" className="mb-4 flex items-start gap-2 rounded-md bg-danger-tint p-3 text-meta text-danger">
-          <CircleAlert {...iconProps} className="mt-[3px] shrink-0" />
-          <span>{error}</span>
-        </p>
+        <div className="mb-4 flex flex-col items-start gap-2">
+          <p role="alert" className="flex w-full items-start gap-2 rounded-md bg-danger-tint p-3 text-meta text-danger">
+            <CircleAlert {...iconProps} className="mt-[3px] shrink-0" />
+            <span>{error}</span>
+          </p>
+          {onRetry ? (
+            <Button variant="outline" onClick={onRetry}>
+              Prøv igjen
+            </Button>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
