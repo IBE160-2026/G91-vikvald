@@ -1,4 +1,5 @@
-"""Business logic for stored content: save generated flashcards and count them."""
+"""Business logic for stored content: save generated flashcards, count them
+and list them with their source."""
 
 import uuid
 from dataclasses import dataclass
@@ -7,6 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.content.models import PLAIN_FLASHCARD_KINDS, Flashcard
+from app.modules.content.schemas import FlashcardOut, FlashcardSource
 from app.modules.files.models import File
 
 
@@ -55,3 +57,24 @@ async def flashcard_count(session: AsyncSession, lecture_id: uuid.UUID) -> int:
         .where(File.lecture_id == lecture_id, Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS))
     )
     return int(await session.scalar(statement) or 0)
+
+
+async def lecture_flashcards(session: AsyncSession, lecture_id: uuid.UUID) -> list[FlashcardOut]:
+    """The lecture's flashcards (qa and concept) with their source, ordered by
+    file (upload order), then page, then the order they were made in."""
+    statement = (
+        select(Flashcard, File.original_name)
+        .join(File, Flashcard.file_id == File.id)
+        .where(File.lecture_id == lecture_id, Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS))
+        .order_by(File.uploaded_at, File.id, Flashcard.page_no, Flashcard.created_at, Flashcard.id)
+    )
+    return [
+        FlashcardOut(
+            id=card.id,
+            kind=card.kind,
+            front=card.front,
+            back=card.back,
+            source=FlashcardSource(file_id=card.file_id, file_name=file_name, page_no=card.page_no),
+        )
+        for card, file_name in (await session.execute(statement)).all()
+    ]
