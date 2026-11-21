@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-21: Brukerreisetestene utvidet etter epic 2
+
+Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 2 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).
+
+**Resultat:** flyt 4 er testet fra start til slutt, flyt 3 med alt epic 2 har bygd, og flyt 1 og 2 har fått stegene med emne, forelesning, opplasting, vilkårsdialogen, sidemenyen og tre avvisninger. Oversikten [brukerreiser.md](../testing/brukerreiser.md) viser status for hvert steg.
+
 ## 2026-11-21: Story 2.7 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-7-se-kontoen-og-slett-den`. Hensikten til `bmad-build-auto` var «Story 2.7 fra `_bmad-output/planning-artifacts/epics.md`: Se kontoen og slett den».
