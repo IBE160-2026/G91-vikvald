@@ -32,6 +32,11 @@
   --color-subject-1: #B83E0C;
   --color-subject-2: #0B6585;
   --color-subject-3: #2D6A3B;
+  /* Subject colours 4-6 (story 2.1): not in DESIGN.md yet, so the design-token
+     test does not cover them; lib/subject-colors.test.ts checks them instead. */
+  --color-subject-4: #A8326E;
+  --color-subject-5: #8A6A00;
+  --color-subject-6: #00766E;
   --color-success: #1C6E36;
   --color-success-tint: #E8F3EB;
   --color-danger: #B42318;
