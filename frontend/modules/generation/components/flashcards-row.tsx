@@ -139,7 +139,7 @@ export function FlashcardsRow({ lectureId, lectureName, fileCount, pageCount }: 
   const failedJob = failed && !startError ? job : undefined;
 
   return (
-    <div ref={rowRef} tabIndex={-1} data-testid="flashcards-row">
+    <div ref={rowRef} tabIndex={-1} role="group" aria-label="Flashcards" data-testid="flashcards-row">
       <CreateRow
         title="Flashcards"
         countText={count > 0 ? `${count} kort` : "Ingen ennå"}

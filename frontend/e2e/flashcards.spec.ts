@@ -75,7 +75,7 @@ function job(lectureId: string, changes: Record<string, unknown> = {}) {
 }
 
 test.describe("Flashcards (story 3.1 og 3.2)", () => {
-  test("FR-17: dialogen med bare tastaturet: «Rask» gir 3 av inntil 10, færre-meldingen står på merknadsflaten og leses opp", async ({
+  test("FR-17, FR-18, UX-DR44: dialogen med bare tastaturet: «Rask» gir 3 av inntil 10, færre-meldingen står på merknadsflaten og leses opp", async ({
     page,
   }) => {
     const lectureId = await newLecture(page);
@@ -193,7 +193,7 @@ test.describe("Flashcards (story 3.1 og 3.2)", () => {
     );
   });
 
-  test("NFR-17: en jobb som blir ferdig mens hun er på forsiden, gir ferdigmeldingen i et levende område", async ({ page }) => {
+  test("NFR-12, NFR-17: en jobb som blir ferdig mens hun er på forsiden, gir ferdigmeldingen i et levende område", async ({ page }) => {
     const lectureId = await newLecture(page);
     await uploadDefinitions(page, lectureId);
     // The job is shown as running until she is on the front page.

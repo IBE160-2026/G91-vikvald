@@ -1050,7 +1050,7 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
     await waitFor(() => expect(rowStatus().textContent).toBe("Lager flashcards …"));
     expect(posts()).toEqual([{ kind: "flashcards", params: { requested: 10 } }]);
     // Focus is on the row, not lost, now that the button is gone.
-    expect(document.activeElement).toBe(screen.getByTestId("flashcards-row"));
+    expect(document.activeElement).toBe(screen.getByRole("group", { name: "Flashcards" }));
 
     expect(await within(region).findByText("10 kort", {}, { timeout: 3000 })).toBeTruthy();
     expect(within(region).getByRole("button", { name: "Øv nå" })).toBeTruthy();
@@ -1059,7 +1059,7 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
     expect(within(region).queryByRole("alert")).toBeNull();
   });
 
-  it("FR-18: færre enn valgt står på merknadsflaten og leses opp, og står til neste jobb starter", async () => {
+  it("FR-18, UX-DR44: færre enn valgt står på merknadsflaten og leses opp, og står til neste jobb starter", async () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     jobOutcome = { status: "done", created: 1, error_code: null };
     renderPage();
@@ -1088,7 +1088,7 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
     expect(rowStatus().textContent).toBe("");
   });
 
-  it("FR-19: ingen nye kort gir «Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.» synlig og opplest", async () => {
+  it("FR-19, UX-DR44: ingen nye kort gir «Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.» synlig og opplest", async () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     cardCount = 24;
     jobOutcome = { status: "done", created: 0, error_code: null };
@@ -1103,7 +1103,7 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
   });
 
   it.each(["GENERATION_FAILED", "GENERATION_TIMEOUT", "JOB_INTERRUPTED"])(
-    "FR-21: en jobb som feiler med %s, gir feilteksten som varsel og «Prøv igjen» med samme omfang",
+    "FR-21, UX-DR44: en jobb som feiler med %s, gir feilteksten som varsel og «Prøv igjen» med samme omfang",
     async (code) => {
       files = [uploadedFile("merkevare.pdf", 3)];
       jobOutcome = { status: "failed", created: null, error_code: code };
@@ -1118,6 +1118,8 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
 
       jobOutcome = { status: "done", created: 3, error_code: null };
       fireEvent.click(within(region).getByRole("button", { name: "Prøv igjen" }));
+      // The button goes away: focus is on the row, not lost.
+      expect(document.activeElement).toBe(screen.getByRole("group", { name: "Flashcards" }));
       // No dialog: a new job with the same scope at once.
       expect(screen.queryByRole("dialog")).toBeNull();
       await waitFor(() => expect(posts()).toHaveLength(2));
@@ -1134,6 +1136,7 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
     const region = await screen.findByRole("region", { name: "Lag og øv" });
     expect((await within(region).findByRole("alert")).textContent).toBe(FAILED);
     fireEvent.click(within(region).getByRole("button", { name: "Prøv igjen" }));
+    expect(document.activeElement).toBe(screen.getByRole("group", { name: "Flashcards" }));
     await waitFor(() => expect(posts()).toEqual([{ kind: "flashcards", params: { requested: 10 } }]));
   });
 
