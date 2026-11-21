@@ -5,6 +5,8 @@ import { makePdf } from "./pdf";
 
 const PASSWORD = "hemmelig1";
 const NOTHING_MADE = "Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.";
+const FAILED = "Vi klarte ikke å lage flashcardene. Ingenting er lagret. Prøv igjen.";
+const FEWER_3_OF_10 = "Det ble laget 3 av inntil 10 flashcards. Notatene ga ikke grunnlag for flere.";
 
 function uniqueEmail(): string {
   return `klara-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@eksempel.no`;
@@ -52,8 +54,28 @@ function createSection(page: Page): Locator {
   return page.getByRole("region", { name: "Lag og øv" });
 }
 
-test.describe("Flashcards (story 3.1)", () => {
-  test("FR-38: «Lag flashcards» med tastaturet gir «Lager flashcards …», så «3 kort» og «Øv nå» uten omlasting", async ({
+function scopeDialog(page: Page): Locator {
+  return page.getByRole("dialog", { name: "Lag flashcards" });
+}
+
+function job(lectureId: string, changes: Record<string, unknown> = {}) {
+  return {
+    id: "00000000-0000-0000-0000-000000000001",
+    lecture_id: lectureId,
+    kind: "flashcards",
+    status: "running",
+    requested: 20,
+    created: null,
+    discarded: null,
+    error_code: null,
+    started_at: "2026-11-21T10:00:00Z",
+    finished_at: null,
+    ...changes,
+  };
+}
+
+test.describe("Flashcards (story 3.1 og 3.2)", () => {
+  test("FR-17: dialogen med bare tastaturet: «Rask» gir 3 av inntil 10, færre-meldingen står på merknadsflaten og leses opp", async ({
     page,
   }) => {
     const lectureId = await newLecture(page);
@@ -66,18 +88,50 @@ test.describe("Flashcards (story 3.1)", () => {
     await expect(create).toBeEnabled();
     await expectNoAxeViolations(page);
 
+    // Esc closes without a job, and focus goes back to the button.
     await tabTo(page, create);
     await page.keyboard.press("Enter");
-    await expect(section.getByText("Lager flashcards …")).toBeVisible();
+    const dialog = scopeDialog(page);
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("radio", { name: "Vanlig" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(create).toBeFocused();
+    await expect(section.getByText("Ingen ennå")).toBeVisible();
+
+    await page.keyboard.press("Enter");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText("Uke 37: Merkevare · 1 fil, 2 sider")).toBeVisible();
+    await expect(dialog.getByText("Tar noen sekunder.")).toBeVisible();
+    await expect(dialog.getByRole("radio", { name: "Vanlig" })).toBeChecked();
+    await expectNoAxeViolations(page);
+    await page.keyboard.press("ArrowLeft");
+    await expect(dialog.getByRole("radio", { name: "Rask" })).toBeChecked();
+    await expect(dialog.getByRole("radio", { name: "Rask" })).toBeFocused();
+    await tabTo(page, dialog.getByRole("button", { name: "Lag flashcards" }), 4);
+    const started = page.waitForRequest(
+      (request) => request.method() === "POST" && request.url().endsWith(`/api/lectures/${lectureId}/jobs`),
+    );
+    await page.keyboard.press("Enter");
+    expect((await started).postDataJSON()).toEqual({ kind: "flashcards", params: { requested: 10 } });
+    await expect(dialog).toBeHidden();
+
     await expect(section.getByText("3 kort", { exact: true })).toBeVisible({ timeout: 10_000 });
     await expect(section.getByRole("button", { name: "Øv nå" })).toBeVisible();
-    await expect(section.getByRole("status")).toHaveText("Flashcardene er ferdige: 3 kort i Uke 37: Merkevare.");
+    await expect(section.getByRole("status")).toHaveText(FEWER_3_OF_10);
+    await expect(section.locator('[data-slot="note-surface"]')).toHaveText(FEWER_3_OF_10);
     await expectNoAxeViolations(page);
+
+    // Still there after a reload, until the next job starts.
+    await page.reload();
+    await expect(section.locator('[data-slot="note-surface"]')).toHaveText(FEWER_3_OF_10);
 
     // «Lag flere» with the same file makes nothing new.
     await section.getByRole("button", { name: "Lag flere" }).click();
-    await expect(section.getByText(NOTHING_MADE, { exact: true }).first()).toBeVisible({ timeout: 10_000 });
-    await expect(section.getByRole("status")).toHaveText(NOTHING_MADE);
+    await expect(dialog.getByText("Nye kort legges til de 3 du har fra før.")).toBeVisible();
+    await dialog.getByRole("button", { name: "Lag flashcards" }).click();
+    await expect(section.getByRole("status")).toHaveText(NOTHING_MADE, { timeout: 10_000 });
+    await expect(section.locator('[data-slot="note-surface"]')).toHaveText(NOTHING_MADE);
     await expect(section.getByText("3 kort", { exact: true })).toBeVisible();
   });
 
@@ -95,30 +149,75 @@ test.describe("Flashcards (story 3.1)", () => {
     await uploadDefinitions(page, lectureId);
     // The latest job is held as running, so the state can be checked.
     await page.route("**/api/lectures/*/jobs/latest", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify([
-          {
-            id: "00000000-0000-0000-0000-000000000001",
-            lecture_id: lectureId,
-            kind: "flashcards",
-            status: "running",
-            requested: 20,
-            created: null,
-            discarded: null,
-            error_code: null,
-            started_at: "2026-11-21T10:00:00Z",
-            finished_at: null,
-          },
-        ]),
-      }),
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([job(lectureId)]) }),
     );
     await page.goto(`/forelesninger/${lectureId}`);
     const section = createSection(page);
-    await expect(section.getByText("Lager flashcards …")).toBeVisible();
+    await expect(section.getByText("Lager flashcards …", { exact: true }).first()).toBeVisible();
     await expect(section.getByText("Du kan bruke resten av appen imens.")).toBeVisible();
     await expect(section.getByRole("button")).toHaveCount(0);
+    await expectNoAxeViolations(page);
+  });
+
+  test("FR-21: en feilet jobb gir feilteksten og «Prøv igjen», som starter med samme omfang; axe finner ingen brudd", async ({
+    page,
+  }) => {
+    const lectureId = await newLecture(page);
+    await uploadDefinitions(page, lectureId);
+    // The latest job failed on a time limit (scope «Dyp»), until a new one starts.
+    let failed = true;
+    await page.route("**/api/lectures/*/jobs/latest", async (route) => {
+      if (!failed) return route.continue();
+      const body = [job(lectureId, { status: "failed", requested: 30, error_code: "GENERATION_TIMEOUT", finished_at: "2026-11-21T10:00:05Z" })];
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
+    });
+    await page.goto(`/forelesninger/${lectureId}`);
+    const section = createSection(page);
+    await expect(section.getByRole("alert")).toHaveText(FAILED);
+    const retry = section.getByRole("button", { name: "Prøv igjen" });
+    await expect(retry).toBeVisible();
+    await expect(section.locator('[data-slot="note-surface"]')).toHaveCount(0);
+    await expectNoAxeViolations(page);
+
+    failed = false;
+    const started = page.waitForRequest(
+      (request) => request.method() === "POST" && request.url().endsWith(`/api/lectures/${lectureId}/jobs`),
+    );
+    await retry.click();
+    expect((await started).postDataJSON()).toEqual({ kind: "flashcards", params: { requested: 30 } });
+    await expect(scopeDialog(page)).toHaveCount(0);
+    await expect(section.getByText("3 kort", { exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(section.getByRole("alert")).toHaveCount(0);
+    await expect(section.getByRole("status")).toHaveText(
+      "Det ble laget 3 av inntil 30 flashcards. Notatene ga ikke grunnlag for flere.",
+    );
+  });
+
+  test("NFR-17: en jobb som blir ferdig mens hun er på forsiden, gir ferdigmeldingen i et levende område", async ({ page }) => {
+    const lectureId = await newLecture(page);
+    await uploadDefinitions(page, lectureId);
+    // The job is shown as running until she is on the front page.
+    let running: Record<string, unknown> | null = null;
+    let hold = true;
+    await page.route("**/api/jobs/active", async (route) => {
+      if (!hold || !running) return route.continue();
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([running]) });
+    });
+    await page.goto(`/forelesninger/${lectureId}`);
+    const section = createSection(page);
+    await section.getByRole("button", { name: "Lag flashcards" }).click();
+    const answer = page.waitForResponse(
+      (response) => response.request().method() === "POST" && response.url().endsWith(`/api/lectures/${lectureId}/jobs`),
+    );
+    await scopeDialog(page).getByRole("button", { name: "Lag flashcards" }).click();
+    running = { ...(await (await answer).json()), lecture_name: "Uke 37: Merkevare" };
+
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1, name: "Dine emner" })).toBeVisible();
+    const toasts = page.getByRole("region", { name: /Varsler/ });
+    await expect(toasts).toHaveAttribute("aria-live", "polite");
+    hold = false;
+    await expect(toasts).toContainText("Flashcardene er ferdige: 3 kort i Uke 37: Merkevare.", { timeout: 10_000 });
     await expectNoAxeViolations(page);
   });
 });

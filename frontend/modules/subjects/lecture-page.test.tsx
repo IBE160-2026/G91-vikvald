@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { headingFocusPending, resetHeadingFocus } from "@/lib/focus-heading";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import type { UploadedFile } from "@/modules/files/types";
+import { JobWatcher } from "@/modules/generation/components/job-watcher";
 import type { Job } from "@/modules/generation/types";
 
 import { LecturePage } from "./pages/lecture-page";
@@ -14,7 +15,13 @@ import type { Lecture, Subject } from "./types";
 // The real notFound() throws to show app/(app)/not-found.tsx; here it only records the call.
 const notFound = vi.fn();
 const push = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }), notFound: () => notFound() }));
+// The page the job watcher thinks she is on.
+let pathname = "/forelesninger/l2";
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push }),
+  notFound: () => notFound(),
+  usePathname: () => pathname,
+}));
 
 const fetchMock = vi.fn<typeof fetch>();
 
@@ -51,12 +58,14 @@ let replaceAnswer: { status: number; code: string; details?: Record<string, unkn
 // Flashcards in lecture l2 and its latest flashcards job.
 let cardCount = 0;
 let latestJob: Job | null = null;
-// What a started job ends as the next time the latest job is asked for.
+// What a started job ends as. It ends the first time the job watcher asks for
+// the running jobs after the start (unless holdJob is set).
 let jobOutcome: { status: "done" | "failed"; created: number | null; error_code: string | null } = {
   status: "done",
-  created: 24,
+  created: 20,
   error_code: null,
 };
+let holdJob = false;
 let startStatus = 202;
 
 function job(changes: Partial<Job> = {}): Job {
@@ -123,17 +132,20 @@ function respond() {
         const code = startStatus === 409 ? "JOB_ALREADY_RUNNING" : "LECTURE_HAS_NO_FILES";
         return jsonResponse(startStatus, { error: { code, details: {} } });
       }
-      latestJob = job({ id: `j${Date.now()}` });
+      const body = JSON.parse(String(init.body)) as { params: { requested: number } };
+      latestJob = job({ id: `j${Date.now()}`, requested: body.params.requested });
       return jsonResponse(202, latestJob);
     }
-    if (path === "/api/lectures/l2/jobs/latest") {
-      const answer = latestJob ? [latestJob] : [];
-      // The job is done the next time it is asked for.
-      if (latestJob?.status === "running") {
+    if (path === "/api/lectures/l2/jobs/latest") return jsonResponse(200, latestJob ? [latestJob] : []);
+    if (path === "/api/jobs/active") {
+      if (latestJob?.status === "running" && !holdJob) {
         latestJob = { ...latestJob, ...jobOutcome, discarded: 0, finished_at: "2026-11-21T10:00:03Z" };
         if (jobOutcome.status === "done") cardCount += jobOutcome.created ?? 0;
       }
-      return jsonResponse(200, answer);
+      return jsonResponse(200, latestJob?.status === "running" ? [{ ...latestJob, lecture_name: "Uke 38: Prising" }] : []);
+    }
+    if (latestJob && path === `/api/jobs/${latestJob.id}`) {
+      return jsonResponse(200, { ...latestJob, lecture_name: "Uke 38: Prising" });
     }
     if (path === "/api/lectures/l2/content-counts") return jsonResponse(200, { flashcards: cardCount });
     if (/^\/api\/lectures\/l1\/(jobs\/latest|content-counts)$/.test(path)) {
@@ -189,7 +201,9 @@ function renderPage(id = "l2") {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
-      <LecturePage lectureId={id} />
+      <JobWatcher>
+        <LecturePage lectureId={id} />
+      </JobWatcher>
     </QueryClientProvider>,
   );
 }
@@ -212,7 +226,9 @@ beforeEach(() => {
   replaceAnswer = undefined;
   cardCount = 0;
   latestJob = null;
-  jobOutcome = { status: "done", created: 24, error_code: null };
+  jobOutcome = { status: "done", created: 20, error_code: null };
+  holdJob = false;
+  pathname = "/forelesninger/l2";
   startStatus = 202;
   push.mockReset();
   vi.stubGlobal("fetch", fetchMock);
@@ -937,12 +953,33 @@ describe("forelesningssiden", () => {
   });
 });
 
-describe("Lag og øv (story 3.1)", () => {
+describe("Lag og øv (story 3.1 og 3.2)", () => {
+  const FAILED = "Vi klarte ikke å lage flashcardene. Ingenting er lagret. Prøv igjen.";
+
   function createRegion() {
     return screen.getByRole("region", { name: "Lag og øv" });
   }
   function rowStatus() {
     return within(createRegion()).getByRole("status");
+  }
+  function posts() {
+    return fetchMock.mock.calls
+      .filter(([url, init]) => String(url) === "/api/lectures/l2/jobs" && init?.method === "POST")
+      .map(([, init]) => JSON.parse(String(init!.body)));
+  }
+  async function openDialog(name = "Lag flashcards") {
+    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    const button = await within(region).findByRole("button", { name });
+    await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
+    button.focus();
+    fireEvent.click(button);
+    return { button, dialog: await screen.findByRole("dialog", { name: "Lag flashcards" }) };
+  }
+  async function startJobWith(scope: "Rask" | "Vanlig" | "Dyp", opener = "Lag flashcards") {
+    const { dialog } = await openDialog(opener);
+    fireEvent.click(within(dialog).getByRole("radio", { name: scope }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Lag flashcards" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   }
 
   it("UX-DR18: «Lag og øv» står ved siden av «Filer» med Flashcards-raden, «Ingen ennå» og «Lag flashcards»", async () => {
@@ -959,25 +996,96 @@ describe("Lag og øv (story 3.1)", () => {
     expect(region.parentElement!.className).toContain("flex-wrap");
   });
 
-  it("FR-38: «Lag flashcards» viser «Lager flashcards …», og så «24 kort» og «Øv nå» uten omlasting; start og slutt leses opp", async () => {
+  it("UX-DR24: dialogen viser forelesningen med filer og sider, Omfang med «Vanlig» valgt og fokusert, og ventetiden i demomodus", async () => {
+    files = [uploadedFile("merkevare.pdf", 3), uploadedFile("pris.pdf", 15)];
+    renderPage();
+    const { dialog } = await openDialog();
+    expect(within(dialog).getByText("Uke 38: Prising · 2 filer, 18 sider")).toBeTruthy();
+    expect(within(dialog).queryByText(/legges til/)).toBeNull();
+    const group = within(dialog).getByRole("radiogroup", { name: "Omfang" });
+    const radios = within(group).getAllByRole("radio");
+    expect(radios.map((radio) => radio.getAttribute("aria-labelledby") && document.getElementById(radio.getAttribute("aria-labelledby")!)!.textContent)).toEqual(["Rask", "Vanlig", "Dyp"]);
+    expect(within(dialog).getByText("Inntil 10 kort")).toBeTruthy();
+    expect(within(dialog).getByText("Inntil 20 kort")).toBeTruthy();
+    expect(within(dialog).getByText("Inntil 30 kort")).toBeTruthy();
+    const usual = within(group).getByRole("radio", { name: "Vanlig" });
+    expect(usual.getAttribute("aria-checked")).toBe("true");
+    await waitFor(() => expect(document.activeElement).toBe(usual));
+    expect(within(dialog).getByText("Tar noen sekunder.")).toBeTruthy();
+    expect(within(dialog).getByText("Du kan bruke resten av appen imens.")).toBeTruthy();
+    const buttons = within(dialog).getAllByRole("button").map((button) => button.textContent);
+    expect(buttons.slice(-2)).toEqual(["Avbryt", "Lag flashcards"]);
+    expect(group.className).toContain("min-[640px]:grid-cols-3");
+  });
+
+  it("UX-DR24: med kort står «Nye kort legges til de 24 du har fra før.», og uten demomodus den lengre ventetiden", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    cardCount = 24;
+    demoMode = false;
+    renderPage();
+    await screen.findByText("24 kort");
+    const { dialog } = await openDialog("Lag flere");
+    expect(within(dialog).getByText("Nye kort legges til de 24 du har fra før.")).toBeTruthy();
+    expect(await within(dialog).findByText("Tar vanligvis under to minutter.")).toBeTruthy();
+  });
+
+  it("UX-DR21: Esc lukker dialogen uten å starte noe, og fokus går tilbake til knappen", async () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     renderPage();
-    const region = await screen.findByRole("region", { name: "Lag og øv" });
-    const create = await within(region).findByRole("button", { name: "Lag flashcards" });
-    await waitFor(() => expect((create as HTMLButtonElement).disabled).toBe(false));
-    fireEvent.click(create);
+    const { button, dialog } = await openDialog();
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(button));
+    expect(posts()).toEqual([]);
+  });
 
-    expect(await within(region).findByText("Lager flashcards …")).toBeTruthy();
+  it("FR-17: «Rask» sender requested 10; «Lager flashcards …», så kortene og ferdigteksten uten omlasting", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    jobOutcome = { status: "done", created: 10, error_code: null };
+    renderPage();
+    await startJobWith("Rask");
+    const region = createRegion();
+    expect(await within(region).findByText("Lager flashcards …", { selector: "p" })).toBeTruthy();
     expect(within(region).getByText("Du kan bruke resten av appen imens.")).toBeTruthy();
     await waitFor(() => expect(rowStatus().textContent).toBe("Lager flashcards …"));
-    const post = fetchMock.mock.calls.find(([url, init]) => String(url) === "/api/lectures/l2/jobs" && init?.method === "POST");
-    expect(JSON.parse(String(post![1]!.body))).toEqual({ kind: "flashcards" });
+    expect(posts()).toEqual([{ kind: "flashcards", params: { requested: 10 } }]);
+    // Focus is on the row, not lost, now that the button is gone.
+    expect(document.activeElement).toBe(screen.getByTestId("flashcards-row"));
 
-    expect(await within(region).findByText("24 kort", {}, { timeout: 3000 })).toBeTruthy();
+    expect(await within(region).findByText("10 kort", {}, { timeout: 3000 })).toBeTruthy();
     expect(within(region).getByRole("button", { name: "Øv nå" })).toBeTruthy();
-    expect(within(region).getByRole("button", { name: "Lag flere" })).toBeTruthy();
     expect(within(region).queryByText("Lager flashcards …")).toBeNull();
-    expect(rowStatus().textContent).toBe("Flashcardene er ferdige: 24 kort i Uke 38: Prising.");
+    expect(rowStatus().textContent).toBe("Flashcardene er ferdige: 10 kort i Uke 38: Prising.");
+    expect(within(region).queryByRole("alert")).toBeNull();
+  });
+
+  it("FR-18: færre enn valgt står på merknadsflaten og leses opp, og står til neste jobb starter", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    jobOutcome = { status: "done", created: 1, error_code: null };
+    renderPage();
+    await startJobWith("Vanlig");
+    const text = "Det ble laget 1 av inntil 20 flashcards. Notatene ga ikke grunnlag for flere.";
+    await waitFor(() => expect(rowStatus().textContent).toBe(text), { timeout: 3000 });
+    const note = within(createRegion()).getByText(text, { selector: "p" });
+    expect(note.closest('[data-slot="note-surface"]')).toBeTruthy();
+    expect(within(createRegion()).queryByRole("alert")).toBeNull();
+
+    // The next job takes the message away.
+    holdJob = true;
+    await startJobWith("Vanlig", "Lag flere");
+    expect(await within(createRegion()).findByText("Lager flashcards …", { selector: "p" })).toBeTruthy();
+    expect(within(createRegion()).queryByText(text, { selector: "p" })).toBeNull();
+  });
+
+  it("FR-18: færre enn valgt fra en tidligere jobb står etter omlasting, uten å leses opp", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    cardCount = 12;
+    latestJob = job({ status: "done", created: 12, discarded: 0, finished_at: "2026-11-21T10:00:03Z" });
+    renderPage();
+    const text = "Det ble laget 12 av inntil 20 flashcards. Notatene ga ikke grunnlag for flere.";
+    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    expect(await within(region).findByText(text)).toBeTruthy();
+    expect(rowStatus().textContent).toBe("");
   });
 
   it("FR-19: ingen nye kort gir «Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.» synlig og opplest", async () => {
@@ -985,49 +1093,84 @@ describe("Lag og øv (story 3.1)", () => {
     cardCount = 24;
     jobOutcome = { status: "done", created: 0, error_code: null };
     renderPage();
-    const region = await screen.findByRole("region", { name: "Lag og øv" });
-    expect(await within(region).findByText("24 kort")).toBeTruthy();
-    const more = within(region).getByRole("button", { name: "Lag flere" });
-    await waitFor(() => expect((more as HTMLButtonElement).disabled).toBe(false));
-    fireEvent.click(more);
+    await screen.findByText("24 kort");
+    await startJobWith("Vanlig", "Lag flere");
     const text = "Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.";
     await waitFor(() => expect(rowStatus().textContent).toBe(text), { timeout: 3000 });
-    expect(within(region).getByText(text, { selector: "p" })).toBeTruthy();
-    expect(within(region).getByText("24 kort")).toBeTruthy();
+    const note = within(createRegion()).getByText(text, { selector: "p" });
+    expect(note.closest('[data-slot="note-surface"]')).toBeTruthy();
+    expect(within(createRegion()).getByText("24 kort")).toBeTruthy();
   });
 
-  it("FR-18: en jobb som feiler, gir reserveteksten som varsel", async () => {
+  it.each(["GENERATION_FAILED", "GENERATION_TIMEOUT", "JOB_INTERRUPTED"])(
+    "FR-21: en jobb som feiler med %s, gir feilteksten som varsel og «Prøv igjen» med samme omfang",
+    async (code) => {
+      files = [uploadedFile("merkevare.pdf", 3)];
+      jobOutcome = { status: "failed", created: null, error_code: code };
+      renderPage();
+      await startJobWith("Dyp");
+      const region = createRegion();
+      expect((await within(region).findByRole("alert", {}, { timeout: 3000 })).textContent).toBe(FAILED);
+      // Read by the alert, not twice.
+      expect(rowStatus().textContent).toBe("");
+      expect(within(region).getByText("Ingen ennå")).toBeTruthy();
+      expect(region.querySelector('[data-slot="note-surface"]')).toBeNull();
+
+      jobOutcome = { status: "done", created: 3, error_code: null };
+      fireEvent.click(within(region).getByRole("button", { name: "Prøv igjen" }));
+      // No dialog: a new job with the same scope at once.
+      expect(screen.queryByRole("dialog")).toBeNull();
+      await waitFor(() => expect(posts()).toHaveLength(2));
+      expect(posts()[1]).toEqual({ kind: "flashcards", params: { requested: 30 } });
+      expect(await within(region).findByText("Lager flashcards …", { selector: "p" })).toBeTruthy();
+      expect(within(region).queryByRole("alert")).toBeNull();
+    },
+  );
+
+  it("FR-21: en feilet jobb fra før står med «Prøv igjen» når siden åpnes", async () => {
     files = [uploadedFile("merkevare.pdf", 3)];
-    jobOutcome = { status: "failed", created: null, error_code: "GENERATION_FAILED" };
+    latestJob = job({ status: "failed", requested: 10, error_code: "JOB_INTERRUPTED", finished_at: "2026-11-21T10:00:03Z" });
     renderPage();
     const region = await screen.findByRole("region", { name: "Lag og øv" });
-    const create = await within(region).findByRole("button", { name: "Lag flashcards" });
-    await waitFor(() => expect((create as HTMLButtonElement).disabled).toBe(false));
-    fireEvent.click(create);
-    expect((await within(region).findByRole("alert", {}, { timeout: 3000 })).textContent).toBe(FALLBACK_MESSAGE);
-    expect(within(region).getByText("Ingen ennå")).toBeTruthy();
+    expect((await within(region).findByRole("alert")).textContent).toBe(FAILED);
+    fireEvent.click(within(region).getByRole("button", { name: "Prøv igjen" }));
+    await waitFor(() => expect(posts()).toEqual([{ kind: "flashcards", params: { requested: 10 } }]));
   });
 
-  it("SK-21: en jobb som allerede pågår, gir teksten fra 3.7", async () => {
+  it("SK-21: en jobb som allerede pågår, gir teksten fra 3.7, uten «Prøv igjen»", async () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     startStatus = 409;
     renderPage();
-    const region = await screen.findByRole("region", { name: "Lag og øv" });
-    const create = await within(region).findByRole("button", { name: "Lag flashcards" });
-    await waitFor(() => expect((create as HTMLButtonElement).disabled).toBe(false));
-    fireEvent.click(create);
+    await startJobWith("Vanlig");
+    const region = createRegion();
     expect((await within(region).findByRole("alert")).textContent).toBe(
       "Det lages innhold i denne forelesningen nå. Vent til det er ferdig, og prøv igjen.",
     );
+    expect(within(region).queryByRole("button", { name: "Prøv igjen" })).toBeNull();
   });
 
   it("UX-DR19: en jobb som kjører når siden åpnes, vises med job-status", async () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     latestJob = job();
+    holdJob = true;
     renderPage();
     const region = await screen.findByRole("region", { name: "Lag og øv" });
-    expect(await within(region).findByText("Lager flashcards …")).toBeTruthy();
+    expect(await within(region).findByText("Lager flashcards …", { selector: "p" })).toBeTruthy();
     expect(within(region).queryByRole("button")).toBeNull();
+  });
+
+  it("AR-5: raden spør ikke etter siste jobb hvert sekund mens jobben kjører", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    latestJob = job();
+    holdJob = true;
+    renderPage();
+    await within(await screen.findByRole("region", { name: "Lag og øv" })).findByText("Lager flashcards …", { selector: "p" });
+    const latestCalls = () => fetchMock.mock.calls.filter(([url]) => String(url) === "/api/lectures/l2/jobs/latest").length;
+    const before = latestCalls();
+    const activeBefore = fetchMock.mock.calls.filter(([url]) => String(url) === "/api/jobs/active").length;
+    await new Promise((resolve) => setTimeout(resolve, 2200));
+    expect(latestCalls()).toBe(before);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url) === "/api/jobs/active").length).toBeGreaterThan(activeBefore);
   });
 
   it("FR-14: tellingen i «Lag og øv» hentes på nytt når fila slettes", async () => {

@@ -48,7 +48,8 @@ const REPLACE_REJECTIONS = new Set([
 // dato» and «Slett forelesningen». Under them the h2 «Filer» with one file-row
 // per file (each with «Erstatt» and «Slett»), the upload-zone, and in demo mode the note «I
 // demomodus sendes ingenting ut.». Next to it the h2 «Lag og øv» with the
-// Flashcards create-row (story 3.1). Someone else's or a missing lecture shows
+// Flashcards create-row (stories 3.1 and 3.2), which gets the file and page
+// counts for its dialog «Lag flashcards». Someone else's or a missing lecture shows
 // «Fant ikke siden».
 //
 // Deleting (FR-7, FR-14) goes through the shared delete confirmation. After a
@@ -222,7 +223,8 @@ export function LecturePage({ lectureId }: { lectureId: string }) {
                     key={lectureId}
                     lectureId={lectureId}
                     lectureName={lecture.data.name}
-                    hasFiles={files.data ? files.data.length > 0 : undefined}
+                    fileCount={files.data?.length}
+                    pageCount={files.data?.reduce((sum, file) => sum + file.page_count, 0)}
                   />
                 </div>
               </section>
