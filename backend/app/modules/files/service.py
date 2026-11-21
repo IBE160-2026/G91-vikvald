@@ -152,3 +152,17 @@ async def delete_pdfs(user_id: uuid.UUID, file_ids: Iterable[uuid.UUID]) -> None
             await asyncio.to_thread(storage.delete_pdf, user_id, file_id)
         except OSError:
             logger.exception("Could not remove PDF %s after it was deleted", file_id)
+
+
+async def pages_for_lecture(
+    session: AsyncSession, lecture_id: uuid.UUID
+) -> list[tuple[uuid.UUID, int, str]]:
+    """(file_id, page_no, text) for every page of the lecture's files: files in
+    upload order (then by id), each file's pages from page 1. Always the same order."""
+    statement = (
+        select(FilePage.file_id, FilePage.page_no, FilePage.text)
+        .join(File, FilePage.file_id == File.id)
+        .where(File.lecture_id == lecture_id)
+        .order_by(File.uploaded_at, File.id, FilePage.page_no)
+    )
+    return [(file_id, page_no, text) for file_id, page_no, text in (await session.execute(statement)).all()]
