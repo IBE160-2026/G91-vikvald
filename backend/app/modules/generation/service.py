@@ -39,6 +39,12 @@ JOB_TASKS: set[asyncio.Task[None]] = set()
 GENERATION_TIMEOUT_SECONDS: float = 180
 
 
+class GenerationTimeoutError(Exception):
+    """The model call ran past GENERATION_TIMEOUT_SECONDS. Only this gives
+    GENERATION_TIMEOUT; any other TimeoutError (e.g. from the database) is an
+    ordinary failure."""
+
+
 def _now() -> datetime:
     return datetime.now(UTC)
 
@@ -133,7 +139,7 @@ async def run_job(
     try:
         async with sessionmaker() as session:
             await _generate_and_save(session, job_id, generator)
-    except TimeoutError:
+    except GenerationTimeoutError:
         logger.error("Generation job %s timed out", job_id)
         await _mark_failed(job_id, sessionmaker, ErrorCode.GENERATION_TIMEOUT)
     except Exception as exc:
@@ -155,10 +161,13 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
     # End the read transaction before the (possibly slow) model call.
     await session.commit()
 
-    # Only the model call has the time limit. TimeoutError goes up to run_job.
-    items = await asyncio.wait_for(
-        generator.generate(job.kind, pages, options), timeout=GENERATION_TIMEOUT_SECONDS
-    )
+    # Only the model call has the time limit.
+    try:
+        items = await asyncio.wait_for(
+            generator.generate(job.kind, pages, options), timeout=GENERATION_TIMEOUT_SECONDS
+        )
+    except TimeoutError:
+        raise GenerationTimeoutError from None
 
     order = {(page.file_id, page.page_no): position for position, page in enumerate(pages)}
     valid: list[Any] = []

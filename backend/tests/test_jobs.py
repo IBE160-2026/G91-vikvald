@@ -403,6 +403,28 @@ async def test_sk8_lagring_som_feiler_lagrer_ingenting(
     assert await _cards(engine) == []
 
 
+async def test_fr21_timeouterror_fra_lagringen_gir_generation_failed(
+    client: AsyncClient, lecture: str, engine: AsyncEngine
+) -> None:
+    # Only the model call has the time limit: a TimeoutError elsewhere is an ordinary failure.
+    async def timing_out_save(session: AsyncSession, items: list[Any]) -> None:
+        raise TimeoutError
+
+    from app.modules.generation import registry
+
+    content_type = registry.get_content_type("flashcards")
+    patched = registry.ContentType(**{**content_type.__dict__, "save": timing_out_save})
+    registry._types["flashcards"] = patched
+    try:
+        await _start(client, lecture)
+        await _finish_jobs()
+    finally:
+        registry._types["flashcards"] = content_type
+    [job] = await _latest(client, lecture)
+    assert (job["status"], job["error_code"]) == ("failed", "GENERATION_FAILED")
+    assert await _cards(engine) == []
+
+
 async def test_sk21_pagaende_jobb_i_databasen_gir_409(
     client: AsyncClient, lecture: str, session: AsyncSession
 ) -> None:
