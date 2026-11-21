@@ -1,5 +1,6 @@
 """HTTP routes for generation jobs (AR-4):
-POST /api/lectures/{id}/jobs and GET /api/lectures/{id}/jobs/latest.
+POST /api/lectures/{id}/jobs, GET /api/lectures/{id}/jobs/latest,
+GET /api/jobs/active and GET /api/jobs/{id}.
 
 A job always runs in the background, so no request waits for a model (no
 HTTP request may last over 30 s). The answer to POST is 202 with the running job.
@@ -17,13 +18,22 @@ from app.modules.files.service import list_files
 from app.modules.generation.models import Job
 from app.modules.generation.port import Generator
 from app.modules.generation.providers import get_generator
-from app.modules.generation.schemas import JobCreate, JobOut, JobParams
-from app.modules.generation.service import create_job, latest_jobs, run_job, start_task
+from app.modules.generation.schemas import JobCreate, JobOut, JobParams, TrackedJobOut
+from app.modules.generation.service import (
+    active_jobs,
+    create_job,
+    get_job_for_user,
+    latest_jobs,
+    run_job,
+    start_task,
+)
 from app.modules.identity.dependencies import current_user
 from app.modules.identity.models import User
 from app.modules.subjects.service import get_lecture
 
 lectures_router = APIRouter(prefix="/api/lectures")
+# The job watcher in the (app) layout follows the student's jobs through these.
+jobs_router = APIRouter(prefix="/api/jobs")
 
 CurrentUser = Annotated[User, Depends(current_user)]
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -78,3 +88,18 @@ async def start_job(
 async def latest_lecture_jobs(lecture_id: str, user: CurrentUser, session: Session) -> list[JobOut]:
     lecture = await get_lecture(session, user.id, lecture_id)
     return [_job_out(job) for job in await latest_jobs(session, lecture.id)]
+
+
+def _tracked_job_out(job: Job, lecture_name: str) -> TrackedJobOut:
+    return TrackedJobOut(**_job_out(job).model_dump(), lecture_name=lecture_name)
+
+
+@jobs_router.get("/active")
+async def active_user_jobs(user: CurrentUser, session: Session) -> list[TrackedJobOut]:
+    return [_tracked_job_out(job, name) for job, name in await active_jobs(session, user.id)]
+
+
+@jobs_router.get("/{job_id}")
+async def get_user_job(job_id: str, user: CurrentUser, session: Session) -> TrackedJobOut:
+    job, name = await get_job_for_user(session, user.id, job_id)
+    return _tracked_job_out(job, name)

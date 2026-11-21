@@ -88,6 +88,17 @@ describe("meldingsfila", () => {
     }
   });
 
+  it.each(["GENERATION_FAILED", "GENERATION_TIMEOUT", "JOB_INTERRUPTED"])(
+    "FR-21: %s gir «Vi klarte ikke å lage flashcardene. …» med innholdet fylt inn",
+    (code) => {
+      expect(messageWithDetails(code, { content: "flashcardene" })).toBe(
+        "Vi klarte ikke å lage flashcardene. Ingenting er lagret. Prøv igjen.",
+      );
+      // Without what was being made, never an unfilled template.
+      expect(messageFor(code)).toBe(FALLBACK_MESSAGE);
+    },
+  );
+
   it("FR-1: messageWithDetails gir vanlige tekster uendret og reserveteksten for ukjente koder", () => {
     expect(messageWithDetails("NOT_FOUND", { x: 1 })).toBe("Fant ikke siden.");
     expect(messageWithDetails("UKJENT", {})).toBe(FALLBACK_MESSAGE);
