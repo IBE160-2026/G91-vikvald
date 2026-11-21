@@ -39,6 +39,10 @@ class ErrorCode(StrEnum):
     FILE_TOO_LARGE = "FILE_TOO_LARGE"
     PDF_UNREADABLE = "PDF_UNREADABLE"
     TERMS_NOT_ACCEPTED = "TERMS_NOT_ACCEPTED"
+    JOB_ALREADY_RUNNING = "JOB_ALREADY_RUNNING"
+    LECTURE_HAS_NO_FILES = "LECTURE_HAS_NO_FILES"
+    GENERATION_FAILED = "GENERATION_FAILED"
+    JOB_INTERRUPTED = "JOB_INTERRUPTED"
 
 
 # HTTP status for each code.
@@ -64,6 +68,13 @@ ERROR_STATUS: dict[ErrorCode, int] = {
     ErrorCode.PDF_UNREADABLE: 422,
     # Logged in, but a precondition is missing (404 is for other people's data).
     ErrorCode.TERMS_NOT_ACCEPTED: 403,
+    # Only one generation job per lecture at a time.
+    ErrorCode.JOB_ALREADY_RUNNING: 409,
+    ErrorCode.LECTURE_HAS_NO_FILES: 422,
+    # The next two are stored on a failed job (error_code), not sent as an answer
+    # to the request that started it; the status says what kind of failure it is.
+    ErrorCode.GENERATION_FAILED: 500,
+    ErrorCode.JOB_INTERRUPTED: 500,
 }
 
 

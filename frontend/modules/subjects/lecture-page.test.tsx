@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { headingFocusPending, resetHeadingFocus } from "@/lib/focus-heading";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import type { UploadedFile } from "@/modules/files/types";
+import type { Job } from "@/modules/generation/types";
 
 import { LecturePage } from "./pages/lecture-page";
 import type { Lecture, Subject } from "./types";
@@ -47,6 +48,32 @@ let gate: Promise<void> = Promise.resolve();
 let deleteStatus = 204;
 // How the fake backend answers a replace: a rejection code, a status, or undefined to accept.
 let replaceAnswer: { status: number; code: string; details?: Record<string, unknown> } | undefined;
+// Flashcards in lecture l2 and its latest flashcards job.
+let cardCount = 0;
+let latestJob: Job | null = null;
+// What a started job ends as the next time the latest job is asked for.
+let jobOutcome: { status: "done" | "failed"; created: number | null; error_code: string | null } = {
+  status: "done",
+  created: 24,
+  error_code: null,
+};
+let startStatus = 202;
+
+function job(changes: Partial<Job> = {}): Job {
+  return {
+    id: "j1",
+    lecture_id: "l2",
+    kind: "flashcards",
+    status: "running",
+    requested: 20,
+    created: null,
+    discarded: null,
+    error_code: null,
+    started_at: "2026-11-21T10:00:00Z",
+    finished_at: null,
+    ...changes,
+  };
+}
 
 function uploadedFile(name: string, pages: number, id = `f${files.length + 1}`): UploadedFile {
   return { id, lecture_id: "l2", original_name: name, page_count: pages, uploaded_at: "2026-09-12T08:00:00Z" };
@@ -91,6 +118,27 @@ function respond() {
       return jsonResponse(200, files);
     }
     if (path === "/api/lectures/l1/files") return jsonResponse(200, []);
+    if (path === "/api/lectures/l2/jobs" && init?.method === "POST") {
+      if (startStatus !== 202) {
+        const code = startStatus === 409 ? "JOB_ALREADY_RUNNING" : "LECTURE_HAS_NO_FILES";
+        return jsonResponse(startStatus, { error: { code, details: {} } });
+      }
+      latestJob = job({ id: `j${Date.now()}` });
+      return jsonResponse(202, latestJob);
+    }
+    if (path === "/api/lectures/l2/jobs/latest") {
+      const answer = latestJob ? [latestJob] : [];
+      // The job is done the next time it is asked for.
+      if (latestJob?.status === "running") {
+        latestJob = { ...latestJob, ...jobOutcome, discarded: 0, finished_at: "2026-11-21T10:00:03Z" };
+        if (jobOutcome.status === "done") cardCount += jobOutcome.created ?? 0;
+      }
+      return jsonResponse(200, answer);
+    }
+    if (path === "/api/lectures/l2/content-counts") return jsonResponse(200, { flashcards: cardCount });
+    if (/^\/api\/lectures\/l1\/(jobs\/latest|content-counts)$/.test(path)) {
+      return jsonResponse(200, path.endsWith("latest") ? [] : { flashcards: 0 });
+    }
     const filePreview = path.match(/^\/api\/files\/([^/]+)\/delete-preview$/);
     if (filePreview) {
       if (!files.some((file) => file.id === filePreview[1])) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
@@ -162,6 +210,10 @@ beforeEach(() => {
   gate = Promise.resolve();
   deleteStatus = 204;
   replaceAnswer = undefined;
+  cardCount = 0;
+  latestJob = null;
+  jobOutcome = { status: "done", created: 24, error_code: null };
+  startStatus = 202;
   push.mockReset();
   vi.stubGlobal("fetch", fetchMock);
   respond();
@@ -183,6 +235,11 @@ function termsCalls() {
 async function pageReady() {
   await screen.findByText(/^Forelesning fredag 18\.09\.2026/);
   await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/identity/me")).toBe(true));
+}
+
+// The upload zone's live region (the «Lag og øv» row has its own).
+function uploadStatus() {
+  return within(screen.getByRole("region", { name: "Filer" })).getByRole("status");
 }
 
 function uploadCalls() {
@@ -335,7 +392,7 @@ describe("forelesningssiden", () => {
 
     choose(pdf("en.pdf"), pdf("to.pdf"));
 
-    const status = screen.getByRole("status");
+    const status = uploadStatus();
     await waitFor(() => expect(status.textContent).toBe("Laster opp …"));
     const button = screen.getByRole("button", { name: "Velg PDF" });
     expect(button.getAttribute("aria-disabled")).toBe("true");
@@ -370,7 +427,7 @@ describe("forelesningssiden", () => {
     const message = await screen.findByText(line);
     expect(message.closest("[aria-live]")).toBeTruthy();
     expect(await screen.findByText("Forelesning fredag 18.09.2026 · 1 fil · 3 sider")).toBeTruthy();
-    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(""));
+    await waitFor(() => expect(uploadStatus().textContent).toBe(""));
     // Still there after the upload has finished.
     expect(screen.getByText(line)).toBeTruthy();
 
@@ -444,7 +501,7 @@ describe("forelesningssiden", () => {
     choose(pdf("en.pdf"), pdf("to.pdf"), pdf("tre.pdf"));
 
     await waitFor(() => expect(uploadCalls()).toHaveLength(1));
-    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(""));
+    await waitFor(() => expect(uploadStatus().textContent).toBe(""));
     expect(uploadCalls()).toHaveLength(1);
     expect(screen.queryByText(/^en\.pdf:/)).toBeNull();
   });
@@ -877,5 +934,124 @@ describe("forelesningssiden", () => {
       expect(screen.getByRole("dialog", { name: "Erstatte fila?" })).toBeTruthy();
       expect(screen.getByRole("button", { name: "Erstatt merkevare.pdf", hidden: true })).toBeTruthy();
     });
+  });
+});
+
+describe("Lag og øv (story 3.1)", () => {
+  function createRegion() {
+    return screen.getByRole("region", { name: "Lag og øv" });
+  }
+  function rowStatus() {
+    return within(createRegion()).getByRole("status");
+  }
+
+  it("UX-DR18: «Lag og øv» står ved siden av «Filer» med Flashcards-raden, «Ingen ennå» og «Lag flashcards»", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    renderPage();
+    expect(await screen.findByRole("heading", { level: 2, name: "Lag og øv" })).toBeTruthy();
+    const region = createRegion();
+    expect(within(region).getByRole("heading", { level: 3, name: "Flashcards" })).toBeTruthy();
+    expect(await within(region).findByText("Ingen ennå")).toBeTruthy();
+    const create = await within(region).findByRole("button", { name: "Lag flashcards" });
+    await waitFor(() => expect((create as HTMLButtonElement).disabled).toBe(false));
+    expect(create.dataset.variant).toBe("outline");
+    expect(within(region).queryByRole("button", { name: "Øv nå" })).toBeNull();
+    expect(region.parentElement!.className).toContain("flex-wrap");
+  });
+
+  it("FR-38: «Lag flashcards» viser «Lager flashcards …», og så «24 kort» og «Øv nå» uten omlasting; start og slutt leses opp", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    renderPage();
+    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    const create = await within(region).findByRole("button", { name: "Lag flashcards" });
+    await waitFor(() => expect((create as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(create);
+
+    expect(await within(region).findByText("Lager flashcards …")).toBeTruthy();
+    expect(within(region).getByText("Du kan bruke resten av appen imens.")).toBeTruthy();
+    await waitFor(() => expect(rowStatus().textContent).toBe("Lager flashcards …"));
+    const post = fetchMock.mock.calls.find(([url, init]) => String(url) === "/api/lectures/l2/jobs" && init?.method === "POST");
+    expect(JSON.parse(String(post![1]!.body))).toEqual({ kind: "flashcards" });
+
+    expect(await within(region).findByText("24 kort", {}, { timeout: 3000 })).toBeTruthy();
+    expect(within(region).getByRole("button", { name: "Øv nå" })).toBeTruthy();
+    expect(within(region).getByRole("button", { name: "Lag flere" })).toBeTruthy();
+    expect(within(region).queryByText("Lager flashcards …")).toBeNull();
+    expect(rowStatus().textContent).toBe("Flashcardene er ferdige: 24 kort i Uke 38: Prising.");
+  });
+
+  it("FR-19: ingen nye kort gir «Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.» synlig og opplest", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    cardCount = 24;
+    jobOutcome = { status: "done", created: 0, error_code: null };
+    renderPage();
+    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    expect(await within(region).findByText("24 kort")).toBeTruthy();
+    const more = within(region).getByRole("button", { name: "Lag flere" });
+    await waitFor(() => expect((more as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(more);
+    const text = "Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.";
+    await waitFor(() => expect(rowStatus().textContent).toBe(text), { timeout: 3000 });
+    expect(within(region).getByText(text, { selector: "p" })).toBeTruthy();
+    expect(within(region).getByText("24 kort")).toBeTruthy();
+  });
+
+  it("FR-18: en jobb som feiler, gir reserveteksten som varsel", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    jobOutcome = { status: "failed", created: null, error_code: "GENERATION_FAILED" };
+    renderPage();
+    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    const create = await within(region).findByRole("button", { name: "Lag flashcards" });
+    await waitFor(() => expect((create as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(create);
+    expect((await within(region).findByRole("alert", {}, { timeout: 3000 })).textContent).toBe(FALLBACK_MESSAGE);
+    expect(within(region).getByText("Ingen ennå")).toBeTruthy();
+  });
+
+  it("SK-21: en jobb som allerede pågår, gir teksten fra 3.7", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    startStatus = 409;
+    renderPage();
+    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    const create = await within(region).findByRole("button", { name: "Lag flashcards" });
+    await waitFor(() => expect((create as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(create);
+    expect((await within(region).findByRole("alert")).textContent).toBe(
+      "Det lages innhold i denne forelesningen nå. Vent til det er ferdig, og prøv igjen.",
+    );
+  });
+
+  it("UX-DR19: en jobb som kjører når siden åpnes, vises med job-status", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    latestJob = job();
+    renderPage();
+    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    expect(await within(region).findByText("Lager flashcards …")).toBeTruthy();
+    expect(within(region).queryByRole("button")).toBeNull();
+  });
+
+  it("FR-14: tellingen i «Lag og øv» hentes på nytt når fila slettes", async () => {
+    files = [uploadedFile("merkevare.pdf", 3, "f1")];
+    cardCount = 5;
+    renderPage();
+    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    expect(await within(region).findByText("5 kort")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Slett merkevare.pdf" }));
+    const dialog = screen.getByRole("dialog", { name: "Slette fila?" });
+    await within(dialog).findByText("Det kan ikke angres.");
+    // The cards go with the file in the backend (ON DELETE CASCADE).
+    cardCount = 0;
+    fireEvent.click(within(dialog).getByRole("button", { name: "Slett fila" }));
+    expect(await within(region).findByText("Ingen ennå")).toBeTruthy();
+    expect(within(region).queryByText("5 kort")).toBeNull();
+  });
+
+  it("UX-DR18: uten filer er knappen ikke aktiv, og «Last opp notater først.» er koblet til den", async () => {
+    renderPage();
+    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    const reason = await within(region).findByText("Last opp notater først.");
+    const create = within(region).getByRole("button", { name: "Lag flashcards" }) as HTMLButtonElement;
+    expect(create.disabled).toBe(true);
+    expect(create.getAttribute("aria-describedby")).toBe(reason.id);
   });
 });

@@ -98,3 +98,6 @@
 - [ ] 2026-11-21 [story-2-7-se-kontoen-og-slett-den](978-2026-11-21-13-26-10-story-2-7-se-kontoen-og-slett-den.md) — vurder kanttilfellene fra story 2.7 (#123–#129), særlig dialogen «Les vilkårene» (#125) og teksten i slettebekreftelsen (#129)
 - [ ] 2026-11-21 [story-2-7-se-kontoen-og-slett-den](978-2026-11-21-13-26-10-story-2-7-se-kontoen-og-slett-den.md) — en opplasting samtidig med kontoslettingen kan etterlate en tom brukermappe
 - [ ] 2026-11-21 [brukerreiser-etter-epic-2](977-2026-11-21-13-43-10-brukerreiser-etter-epic-2.md) — se over valget om flyt 3: tallene for generert innhold venter på epic 3, 4 og 7 (#131)
+- [ ] 2026-11-21 [story-3-1-lag-flashcards-i-demomodus](976-2026-11-21-18-26-23-story-3-1-lag-flashcards-i-demomodus.md) — vurder kanttilfellene fra story 3.1 (#134–#141), særlig slette-registeret (#134) og «Øv nå» (#135)
+- [ ] 2026-11-21 [story-3-1-lag-flashcards-i-demomodus](976-2026-11-21-18-26-23-story-3-1-lag-flashcards-i-demomodus.md) — flyt 4 må vente «… slettes for godt: flashcards.» når story 3.7 melder flashcards inn i slette-registeret (#134)
+- [ ] 2026-11-21 [story-3-1-lag-flashcards-i-demomodus](976-2026-11-21-18-26-23-story-3-1-lag-flashcards-i-demomodus.md) — følg med på om `vilkar.spec.ts` (FR-11, tastatur) er ustabil under full parallell kjøring

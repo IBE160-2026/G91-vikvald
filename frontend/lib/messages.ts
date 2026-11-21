@@ -36,6 +36,12 @@ export const messages = {
   // No approved text: the frontend asks for the terms before the first upload,
   // so this only shows if the cache and the database disagree.
   TERMS_NOT_ACCEPTED: FALLBACK_MESSAGE,
+  // Generation jobs (story 3.1).
+  LECTURE_HAS_NO_FILES: "Last opp notater først.",
+  JOB_ALREADY_RUNNING: "Det lages innhold i denne forelesningen nå. Vent til det er ferdig, og prøv igjen.",
+  // A failed job. Story 3.2 gives these their own texts.
+  GENERATION_FAILED: FALLBACK_MESSAGE,
+  JOB_INTERRUPTED: FALLBACK_MESSAGE,
   // Frontend-only: the request never reached the server.
   NETWORK_ERROR: FALLBACK_MESSAGE,
   // Frontend-only: the exam date field does not hold a real date as dd.mm.åååå.

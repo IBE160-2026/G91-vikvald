@@ -18,6 +18,7 @@ import { deleteFile, fetchFileDeletePreview, fetchFiles, filesQueryKey, replaceF
 import { FileList } from "@/modules/files/components/file-list";
 import { UploadZone, rejectionText } from "@/modules/files/components/upload-zone";
 import type { UploadedFile } from "@/modules/files/types";
+import { FlashcardsRow } from "@/modules/generation/components/flashcards-row";
 
 import {
   SUBJECTS_QUERY_KEY,
@@ -46,7 +47,8 @@ const REPLACE_REJECTIONS = new Set([
 // 11.09.2026 · 2 filer · 18 sider», and the buttons «Nytt navn», «Endre
 // dato» and «Slett forelesningen». Under them the h2 «Filer» with one file-row
 // per file (each with «Erstatt» and «Slett»), the upload-zone, and in demo mode the note «I
-// demomodus sendes ingenting ut.». Someone else's or a missing lecture shows
+// demomodus sendes ingenting ut.». Next to it the h2 «Lag og øv» with the
+// Flashcards create-row (story 3.1). Someone else's or a missing lecture shows
 // «Fant ikke siden».
 //
 // Deleting (FR-7, FR-14) goes through the shared delete confirmation. After a
@@ -183,31 +185,48 @@ export function LecturePage({ lectureId }: { lectureId: string }) {
               </Button>
             </div>
 
-            {/* The left column of mockup 04 (496 px); «Lag og øv» comes to the right in epic 3. */}
-            <section aria-labelledby="files-heading" className="mt-6 max-w-[496px]">
-              <h2 id="files-heading" ref={filesHeadingRef} tabIndex={-1} className="text-section-title">
-                Filer
-              </h2>
-              <div className="mt-3 flex flex-col gap-4">
-                {files.isError ? (
-                  <p role="alert" className="flex items-start gap-2 rounded-md bg-danger-tint p-3 text-meta text-danger">
-                    <CircleAlert {...iconProps} className="mt-[3px] shrink-0" />
-                    <span>{FALLBACK_MESSAGE}</span>
-                  </p>
-                ) : null}
-                {files.data ? (
-                  <FileList
-                    files={files.data}
-                    onDelete={openFileDialog}
-                    onReplace={openReplaceDialog}
-                    rejections={replaceRejections}
+            {/* Mockup 04: «Filer» (up to 496 px) and «Lag og øv» (up to 512 px) side by
+                side, each at least 360 px; below that they wrap, «Lag og øv» under «Filer». */}
+            <div className="mt-6 flex flex-wrap items-start gap-column-gap">
+              <section aria-labelledby="files-heading" className="min-w-0 max-w-[496px] flex-1 basis-[360px]">
+                <h2 id="files-heading" ref={filesHeadingRef} tabIndex={-1} className="text-section-title">
+                  Filer
+                </h2>
+                <div className="mt-3 flex flex-col gap-4">
+                  {files.isError ? (
+                    <p role="alert" className="flex items-start gap-2 rounded-md bg-danger-tint p-3 text-meta text-danger">
+                      <CircleAlert {...iconProps} className="mt-[3px] shrink-0" />
+                      <span>{FALLBACK_MESSAGE}</span>
+                    </p>
+                  ) : null}
+                  {files.data ? (
+                    <FileList
+                      files={files.data}
+                      onDelete={openFileDialog}
+                      onReplace={openReplaceDialog}
+                      rejections={replaceRejections}
+                    />
+                  ) : null}
+                  {/* A new key per lecture, so the messages never follow her to another lecture. */}
+                  <UploadZone key={lectureId} lectureId={lectureId} subjectId={lecture.data.subject_id} />
+                  {config.data?.demo_mode ? <NoteSurface>I demomodus sendes ingenting ut.</NoteSurface> : null}
+                </div>
+              </section>
+
+              <section aria-labelledby="create-heading" className="min-w-0 max-w-[512px] flex-1 basis-[360px]">
+                <h2 id="create-heading" className="text-section-title">
+                  Lag og øv
+                </h2>
+                <div className="mt-3 rounded-lg border border-border-card bg-surface shadow-lift">
+                  <FlashcardsRow
+                    key={lectureId}
+                    lectureId={lectureId}
+                    lectureName={lecture.data.name}
+                    hasFiles={files.data ? files.data.length > 0 : undefined}
                   />
-                ) : null}
-                {/* A new key per lecture, so the messages never follow her to another lecture. */}
-                <UploadZone key={lectureId} lectureId={lectureId} subjectId={lecture.data.subject_id} />
-                {config.data?.demo_mode ? <NoteSurface>I demomodus sendes ingenting ut.</NoteSurface> : null}
-              </div>
-            </section>
+                </div>
+              </section>
+            </div>
 
             <LectureFormDialog
               mode={dialogMode}

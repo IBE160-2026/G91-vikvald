@@ -14,9 +14,11 @@ from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker  # noqa: E402
 
 from app.core.config import get_settings  # noqa: E402
-from app.core.db import Base, get_session, make_engine  # noqa: E402
+from app.core.db import Base, get_session, get_sessionmaker, make_engine  # noqa: E402
 from app.main import app  # noqa: E402
+from app.modules.content import models as _content_models  # noqa: E402, F401  (registers flashcards)
 from app.modules.files import models as _files_models  # noqa: E402, F401  (registers files)
+from app.modules.generation import models as _generation_models  # noqa: E402, F401  (registers jobs)
 from app.modules.identity import models as _identity_models  # noqa: E402, F401  (registers users)
 from app.modules.subjects import models as _subjects_models  # noqa: E402, F401  (registers subjects)
 
@@ -66,6 +68,8 @@ async def client(engine: AsyncEngine) -> AsyncIterator[AsyncClient]:
             yield test_session
 
     app.dependency_overrides[get_session] = override_get_session
+    # Generation jobs open their own sessions; they must use the test database too.
+    app.dependency_overrides[get_sessionmaker] = lambda: test_sessionmaker
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
         yield test_client
     app.dependency_overrides.clear()
