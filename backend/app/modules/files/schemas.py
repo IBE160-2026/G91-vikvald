@@ -37,3 +37,11 @@ class DeletePreview(BaseModel):
     # What else goes when the item is deleted: lectures, files, then the
     # registry's counts. Counts of 0 are left out.
     counts: list[DeleteCount]
+
+
+class AccountDeletePreview(BaseModel):
+    # subjects, lectures, files, then the registry's counts; 0 is left out.
+    counts: list[DeleteCount]
+    # Every registered content type, in registration order, also those with 0
+    # (the confirmation names what kinds of content go with the account).
+    content_kinds: list[str]
