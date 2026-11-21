@@ -19,7 +19,8 @@ import type { Lecture } from "../types";
 export function LectureTable({ lectures }: { lectures: Lecture[] }) {
   return (
     <div className="rounded-lg border border-border-card bg-surface shadow-lift">
-      <Table>
+      {/* Fixed layout, so a long name is cut off with «…» instead of pushing the arrow out. */}
+      <Table className="table-fixed">
         <TableHeader>
           <TableRow>
             <TableHead className="w-[96px] pl-4">Dato</TableHead>

@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { iconProps } from "@/components/icon";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { cn } from "@/lib/utils";
 
 import { SUBJECTS_QUERY_KEY, fetchLectures, fetchSubjects, lecturesQueryKey } from "../api";
@@ -48,7 +49,7 @@ export function SubjectSidebar({ currentSubjectId, currentLectureId }: Props) {
       <p aria-hidden="true" className="px-3 pb-2 text-overline text-ink-muted">
         EMNER
       </p>
-      <ul className="flex flex-col gap-1">
+      <ul className="flex flex-col">
         {(subjects.data ?? []).map((subject) => (
           <SubjectItem
             key={subject.id}
@@ -92,10 +93,12 @@ function SubjectItem({
   return (
     <li>
       <Collapsible open={open} onOpenChange={setOpen}>
-        <div className="flex items-center gap-1">
+        <div className="relative">
           <CollapsibleTrigger
             aria-label={subject.name}
-            className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm text-ink-muted hover:bg-row-hover hover:text-ink"
+            // Lies over the left padding of the subject link, so the row (and its
+            // selected style) spans the whole width, as in mockup 03.
+            className="absolute top-[4px] left-[4px] z-10 flex size-[24px] cursor-pointer items-center justify-center rounded-sm text-ink-muted hover:bg-row-hover hover:text-ink"
           >
             <ChevronRight
               {...iconProps}
@@ -107,7 +110,7 @@ function SubjectItem({
             aria-current={subjectIsPage ? "page" : undefined}
             aria-describedby={countId}
             className={cn(
-              "relative flex h-menu-row min-w-0 flex-1 items-center gap-3 rounded-sm px-3 text-ink hover:bg-row-hover",
+              "relative flex h-menu-row min-w-0 items-center gap-[10px] rounded-sm pr-3 pl-[30px] text-ink hover:bg-row-hover",
               subjectIsPage && SELECTED,
             )}
           >
@@ -122,8 +125,13 @@ function SubjectItem({
           </Link>
         </div>
         <CollapsibleContent>
+          {lectures.isError ? (
+            <p role="alert" className="py-1 pr-3 pl-[48px] text-meta text-danger">
+              {FALLBACK_MESSAGE}
+            </p>
+          ) : null}
           {lectures.data && lectures.data.length > 0 ? (
-            <ul className="mt-1 flex flex-col gap-1 pl-7">
+            <ul className="flex flex-col pb-2">
               {lectures.data.map((lecture) => {
                 const current = lecture.id === currentLectureId;
                 const week = isoWeek(lecture.date);
@@ -135,14 +143,14 @@ function SubjectItem({
                       aria-current={current ? "page" : undefined}
                       aria-describedby={weekId}
                       className={cn(
-                        "relative flex h-menu-row items-center gap-3 rounded-sm px-3 text-body-sm text-ink hover:bg-row-hover",
+                        "relative flex h-menu-row items-center rounded-sm pr-3 pl-[48px] text-body-sm text-ink hover:bg-row-hover",
                         current && SELECTED,
                       )}
                     >
-                      <span aria-hidden="true" className="w-5 shrink-0 text-caption text-ink-muted">
+                      <span aria-hidden="true" className="w-[24px] shrink-0 text-caption text-ink-muted">
                         {week}
                       </span>
-                      <span className="min-w-0 flex-1 truncate">{lecture.name}</span>
+                      <span className="min-w-0 flex-1 truncate pr-2">{lecture.name}</span>
                       <span
                         aria-hidden="true"
                         data-status="not-practised"
