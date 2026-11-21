@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SubjectPage } from "./pages/subject-page";
+import type { SubjectFileCounts } from "@/modules/files/types";
 import type { Lecture, Subject } from "./types";
 
 // The real notFound() throws to show app/(app)/not-found.tsx; here it only records the call.
@@ -39,8 +40,14 @@ const LECTURES: Lecture[] = [
   },
 ];
 
-// A small fake backend for the two subjects and their lectures.
-function respond(lectures: Lecture[] = LECTURES) {
+// Two files in Uke 37, none in Uke 38.
+const FILE_COUNTS: SubjectFileCounts = {
+  file_count: 2,
+  lectures: [{ lecture_id: "l1", file_count: 2, page_count: 18 }],
+};
+
+// A small fake backend for the two subjects, their lectures and file counts.
+function respond(lectures: Lecture[] = LECTURES, fileCounts: SubjectFileCounts = FILE_COUNTS) {
   const store = new Map([MARKETING, ECONOMICS].map((s) => [s.id, { ...s }]));
   const lectureStore = [...lectures];
   fetchMock.mockImplementation(async (url, init) => {
@@ -64,6 +71,11 @@ function respond(lectures: Lecture[] = LECTURES) {
         200,
         lectureStore.filter((lecture) => lecture.subject_id === subjectId),
       );
+    }
+    const counts = path.match(/^\/api\/subjects\/([^/]+)\/file-counts$/);
+    if (counts) {
+      if (!store.has(counts[1])) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
+      return jsonResponse(200, counts[1] === "a" ? fileCounts : { file_count: 0, lectures: [] });
     }
     const id = path.split("/").pop()!;
     const found = store.get(id);
@@ -110,10 +122,10 @@ afterEach(() => {
 });
 
 describe("emnesiden", () => {
-  it("FR-6: h1 navnet, «Eksamen fredag 04.12.2026», knappene og tittelen", async () => {
+  it("UX-DR13: h1 navnet, «2 forelesninger · 2 filer · eksamen fredag 04.12.2026», knappene og tittelen", async () => {
     renderPage();
     expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe("Markedsføring");
-    expect(screen.getByText("Eksamen fredag 04.12.2026")).toBeTruthy();
+    expect(await screen.findByText("2 forelesninger · 2 filer · eksamen fredag 04.12.2026")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Nytt navn" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Endre eksamensdato" })).toBeTruthy();
     expect((screen.getByRole("button", { name: "Ny forelesning" }) as HTMLButtonElement).disabled).toBe(false);
@@ -176,7 +188,7 @@ describe("emnesiden", () => {
     expect(within(dialog).queryByLabelText("Navn")).toBeNull();
     fireEvent.change(date, { target: { value: "11.12.2026" } });
     fireEvent.keyDown(date, { key: "Enter" });
-    expect(await screen.findByText("Eksamen fredag 11.12.2026")).toBeTruthy();
+    expect(await screen.findByText("2 forelesninger · 2 filer · eksamen fredag 11.12.2026")).toBeTruthy();
     expect(JSON.parse(String(patchCalls()[0][1]?.body))).toEqual({ exam_date: "2026-12-11" });
   });
 
@@ -227,7 +239,7 @@ describe("emnesiden", () => {
     expect(await screen.findByRole("heading", { level: 2, name: "Forelesninger etter dato" })).toBeTruthy();
     const table = await screen.findByRole("table");
     const headers = within(table).getAllByRole("columnheader").map((header) => header.textContent);
-    expect(headers).toEqual(["Dato", "Forelesning"]);
+    expect(headers).toEqual(["Dato", "Forelesning", "Filer", "Status"]);
     const rows = within(table).getAllByRole("row").slice(1);
     expect(rows.map((row) => within(row).getAllByRole("cell")[0].textContent)).toEqual(["11.09", "18.09"]);
     const links = rows.map((row) => within(row).getByRole("link"));
@@ -239,6 +251,54 @@ describe("emnesiden", () => {
     expect(links[0].className).toContain("after:inset-0");
     expect(rows[0].querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
     expect(screen.queryByText("Ingen forelesninger ennå.")).toBeNull();
+  });
+
+  it("UX-DR13: Filer og Status: tallet og «Ikke øvd ennå» med hul prikk, ellers «–» og «Ingen filer ennå»", async () => {
+    renderPage();
+    const table = await screen.findByRole("table");
+    await waitFor(() => expect(within(table).getAllByText("Ingen filer ennå")).toHaveLength(1));
+    const rows = within(table).getAllByRole("row").slice(1);
+    const cells = rows.map((row) => within(row).getAllByRole("cell").map((cell) => cell.textContent));
+    expect(cells).toEqual([
+      ["11.09", "Uke 37: Merkevare", "2", "Ikke øvd ennå"],
+      ["18.09", "Uke 38: Prising og et veldig langt navn som kortes av", "–", "Ingen filer ennå"],
+    ]);
+    const filesCell = within(rows[0]).getAllByRole("cell")[2];
+    expect(filesCell.className).toContain("text-right");
+    const dot = rows[0].querySelector('[data-status="not-practised"]');
+    expect(dot?.getAttribute("aria-hidden")).toBe("true");
+    expect(rows[1].querySelector("[data-status]")).toBeNull();
+    // The arrow is still at the far right, and the whole row is still the link.
+    const lastCell = within(rows[0]).getAllByRole("cell")[3];
+    expect(lastCell.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
+    expect(within(rows[0]).getByRole("link").className).toContain("after:inset-0");
+  });
+
+  it("UX-DR13: entall «1 forelesning · 1 fil» og «0 filer» uten filer", async () => {
+    respond([LECTURES[0]], { file_count: 1, lectures: [{ lecture_id: "l1", file_count: 1, page_count: 3 }] });
+    renderPage();
+    expect(await screen.findByText("1 forelesning · 1 fil · eksamen fredag 04.12.2026")).toBeTruthy();
+    cleanup();
+    respond([], { file_count: 0, lectures: [] });
+    renderPage();
+    expect(await screen.findByText("0 forelesninger · 0 filer · eksamen fredag 04.12.2026")).toBeTruthy();
+  });
+
+  it("FR-1: feil når filtellingene hentes gir reserveteksten ved tabellen", async () => {
+    respond();
+    const fake = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url, init) =>
+      String(url).endsWith("/file-counts")
+        ? jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } })
+        : fake(url, init),
+    );
+    renderPage();
+    const section = (await screen.findByRole("heading", { level: 2, name: "Forelesninger etter dato" })).closest(
+      "section",
+    )!;
+    const alert = await within(section).findByRole("alert");
+    expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
+    expect(screen.getByText("2 forelesninger · eksamen fredag 04.12.2026")).toBeTruthy();
   });
 
   it("UX-DR7: det åpne emnet viser forelesningene i samme rekkefølge med uke, hel tilgjengelig tittel og hul prikk", async () => {

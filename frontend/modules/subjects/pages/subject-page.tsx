@@ -9,16 +9,17 @@ import { Button } from "@/components/ui/button";
 import { notFoundOnMissing } from "@/lib/api";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { useDocumentTitle } from "@/lib/use-document-title";
+import { fetchFileCounts, fileCountsQueryKey } from "@/modules/files/api";
 
 import { fetchLectures, fetchSubject, lecturesQueryKey, subjectQueryKey } from "../api";
 import { LectureFormDialog } from "../components/lecture-form-dialog";
 import { LectureTable } from "../components/lecture-table";
 import { SubjectFormDialog, type SubjectFormMode } from "../components/subject-form-dialog";
 import { SubjectSidebar } from "../components/subject-sidebar";
-import { formatWeekdayDate } from "../format";
+import { fileCountLabel, formatWeekdayDate, lectureCountLabel } from "../format";
 
 // The subject page (mockup 03): the sidebar on the left; h1 with the name, the
-// line «Eksamen fredag 04.12.2026», and the buttons «Ny forelesning», «Nytt navn»
+// line «8 forelesninger · 11 filer · eksamen fredag 04.12.2026», and the buttons «Ny forelesning», «Nytt navn»
 // and «Endre eksamensdato». Under them the h2 «Forelesninger» («etter dato» in
 // muted grey) and the lecture table, or «Ingen forelesninger ennå.». Someone
 // else's or a missing subject shows «Fant ikke siden».
@@ -27,6 +28,11 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
   const lectures = useQuery({
     queryKey: lecturesQueryKey(subjectId),
     queryFn: () => fetchLectures(subjectId),
+    enabled: subject.isSuccess,
+  });
+  const fileCounts = useQuery({
+    queryKey: fileCountsQueryKey(subjectId),
+    queryFn: () => fetchFileCounts(subjectId),
     enabled: subject.isSuccess,
   });
   const [lectureDialogOpen, setLectureDialogOpen] = useState(false);
@@ -60,7 +66,9 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
               <div className="min-w-0">
                 <h1 className="text-page-title break-words">{subject.data.name}</h1>
                 <p className="mt-1 text-body-sm text-ink-muted">
-                  Eksamen {formatWeekdayDate(subject.data.exam_date)}
+                  {lectureCountLabel(subject.data.lecture_count)}
+                  {fileCounts.data ? ` · ${fileCountLabel(fileCounts.data.file_count)}` : null}
+                  {` · eksamen ${formatWeekdayDate(subject.data.exam_date)}`}
                 </p>
               </div>
               <Button variant="outline" className="shrink-0" onClick={() => setLectureDialogOpen(true)}>
@@ -82,13 +90,13 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
                 Forelesninger <span className="text-body-sm font-normal text-ink-muted">etter dato</span>
               </h2>
               <div className="mt-3">
-                {lectures.isError ? (
+                {lectures.isError || fileCounts.isError ? (
                   <p role="alert" className="flex items-start gap-2 rounded-md bg-danger-tint p-3 text-meta text-danger">
                     <CircleAlert {...iconProps} className="mt-[3px] shrink-0" />
                     <span>{FALLBACK_MESSAGE}</span>
                   </p>
                 ) : null}
-                {lectures.data && lectures.data.length > 0 ? <LectureTable lectures={lectures.data} /> : null}
+                {lectures.data && lectures.data.length > 0 ? <LectureTable lectures={lectures.data} fileCounts={fileCounts.data} /> : null}
                 {lectures.data && lectures.data.length === 0 ? (
                   <p className="text-body-sm text-ink-muted">Ingen forelesninger ennå.</p>
                 ) : null}

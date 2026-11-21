@@ -7,6 +7,7 @@ import os
 os.environ["LLM_PROVIDER"] = "mock"
 
 from collections.abc import AsyncIterator, Iterator  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 import pytest  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
@@ -15,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from app.core.config import get_settings  # noqa: E402
 from app.core.db import Base, get_session, make_engine  # noqa: E402
 from app.main import app  # noqa: E402
+from app.modules.files import models as _files_models  # noqa: E402, F401  (registers files)
 from app.modules.identity import models as _identity_models  # noqa: E402, F401  (registers users)
 from app.modules.subjects import models as _subjects_models  # noqa: E402, F401  (registers subjects)
 
@@ -28,6 +30,15 @@ def fresh_settings() -> Iterator[None]:
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def upload_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Uploaded PDFs go to a temporary folder in every test, never data/uploads."""
+    folder = tmp_path / "uploads"
+    monkeypatch.setenv("UPLOAD_DIR", str(folder))
+    get_settings.cache_clear()
+    return folder
 
 
 @pytest.fixture

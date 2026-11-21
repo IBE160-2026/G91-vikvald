@@ -5,7 +5,9 @@ import {
   formatDayMonth,
   formatWeekdayDate,
   isoWeek,
+  fileCountLabel,
   lectureCountLabel,
+  pageCountLabel,
   semesterLabel,
   todayNorwegian,
 } from "./format";
@@ -42,6 +44,16 @@ describe("datoer og antall", () => {
     [11, "11 forelesninger"],
   ])("UX-DR25: %s gir «%s»", (count, expected) => {
     expect(lectureCountLabel(count)).toBe(expected);
+  });
+
+  it.each([
+    [0, "0 filer", "0 sider"],
+    [1, "1 fil", "1 side"],
+    [2, "2 filer", "2 sider"],
+    [18, "18 filer", "18 sider"],
+  ])("UX-DR16: %i gir «%s» og «%s»", (count, files, pages) => {
+    expect(fileCountLabel(count)).toBe(files);
+    expect(pageCountLabel(count)).toBe(pages);
   });
 
   it("UX-DR25: datokolonnen i tabellen er dd.mm", () => {

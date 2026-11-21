@@ -56,6 +56,7 @@ def test_ar13_migreringene_samsvarer_med_modellene(tmp_path: Path) -> None:
     from sqlalchemy import create_engine
 
     from app.core.db import Base
+    from app.modules.files import models as files_models  # noqa: F401  (registers files, file_pages)
     from app.modules.identity import models  # noqa: F401  (registers users)
     from app.modules.subjects import models as subjects_models  # noqa: F401  (registers subjects, lectures)
 
@@ -143,3 +144,50 @@ def test_ar7_downgrade_fra_0003_fjerner_lectures_men_beholder_subjects(tmp_path:
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master")}
     assert "lectures" not in tables
     assert "subjects" in tables
+
+
+def test_ar8_upgrade_head_lager_files_og_file_pages_med_cascade_og_indeks(tmp_path: Path) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+
+    with sqlite3.connect(db_file) as connection:
+        columns = {row[1]: row for row in connection.execute("PRAGMA table_info(files)")}
+        assert set(columns) == {"id", "lecture_id", "original_name", "page_count", "uploaded_at"}
+        for name in columns:
+            assert columns[name][3] == 1, f"{name} should be NOT NULL"
+        foreign_keys = list(connection.execute("PRAGMA foreign_key_list(files)"))
+        assert [(fk[2], fk[3], fk[4], fk[6]) for fk in foreign_keys] == [
+            ("lectures", "lecture_id", "id", "CASCADE")
+        ]
+        indexed = [
+            [info[2] for info in connection.execute(f"PRAGMA index_info('{row[1]}')")]
+            for row in connection.execute("PRAGMA index_list(files)")
+        ]
+        assert ["lecture_id"] in indexed
+
+        page_columns = {row[1]: row for row in connection.execute("PRAGMA table_info(file_pages)")}
+        assert set(page_columns) == {"file_id", "page_no", "text", "needs_image"}
+        for name in page_columns:
+            assert page_columns[name][3] == 1, f"{name} should be NOT NULL"
+        # Primary key (file_id, page_no): column 5 is the position in the key.
+        assert page_columns["file_id"][5] == 1
+        assert page_columns["page_no"][5] == 2
+        page_keys = list(connection.execute("PRAGMA foreign_key_list(file_pages)"))
+        assert [(fk[2], fk[3], fk[4], fk[6]) for fk in page_keys] == [
+            ("files", "file_id", "id", "CASCADE")
+        ]
+
+
+def test_ar8_downgrade_fra_0004_fjerner_files_men_beholder_lectures(tmp_path: Path) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+    command.downgrade(cfg, "0003_create_lectures")
+    with sqlite3.connect(db_file) as connection:
+        tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master")}
+    assert "files" not in tables
+    assert "file_pages" not in tables
+    assert "lectures" in tables
