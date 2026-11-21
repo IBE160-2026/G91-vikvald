@@ -81,3 +81,5 @@
 - [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — vurder kanttilfellene fra story 2.1 (#81–#88)
 - [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — sidemenyen skal bak en menyknapp ved 768 px (EXPERIENCE.md, «Skjermstørrelse og plattform»), ikke i noen story ennå
 - [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — CI kjører ikke e2e, så kontrakten frontend–backend sjekkes bare lokalt
+- [ ] 2026-11-21 [story-2-2-forelesninger-og-sidemeny](983-2026-11-21-03-34-32-story-2-2-forelesninger-og-sidemeny.md) — vurder kanttilfellene fra story 2.2 (#90–#94)
+- [ ] 2026-11-21 [story-2-2-forelesninger-og-sidemeny](983-2026-11-21-03-34-32-story-2-2-forelesninger-og-sidemeny.md) — brødsmuler på forelesningssiden (skisse 04) er ikke i noen story (#93)
