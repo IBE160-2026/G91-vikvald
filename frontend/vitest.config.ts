@@ -13,7 +13,7 @@ export default defineConfig({
     alias: { "@": fileURLToPath(new URL(".", import.meta.url)) },
   },
   test: {
-    include: ["lib/**/*.test.{ts,tsx}", "modules/**/*.test.{ts,tsx}", "components/**/*.test.{ts,tsx}"],
+    include: ["app/**/*.test.{ts,tsx}", "lib/**/*.test.{ts,tsx}", "modules/**/*.test.{ts,tsx}", "components/**/*.test.{ts,tsx}"],
     // Component tests switch to jsdom with a "// @vitest-environment jsdom" comment.
     environment: "node",
   },

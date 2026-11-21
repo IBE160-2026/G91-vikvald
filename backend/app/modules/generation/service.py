@@ -6,6 +6,8 @@ the keys of existing content -> the port -> validate_item per item (invalid
 items are thrown away and counted) -> the valid items in a fixed order (file,
 page) -> at most `requested` of them -> saved together with the finished job in
 one commit. If anything fails, nothing is stored and the job becomes failed.
+The model call has a time limit (GENERATION_TIMEOUT_SECONDS); when it runs
+out, the job becomes failed with GENERATION_TIMEOUT.
 """
 
 import asyncio
@@ -24,12 +26,23 @@ from app.modules.files.service import pages_for_lecture
 from app.modules.generation.models import JOB_DONE, JOB_FAILED, JOB_RUNNING, Job
 from app.modules.generation.port import GenerationOptions, Generator, Page
 from app.modules.generation.registry import get_content_type
+from app.modules.subjects.models import Lecture, Subject
 
 logger = logging.getLogger(__name__)
 
 # The running job tasks. asyncio keeps only weak references to tasks, so they
 # are held here until they finish.
 JOB_TASKS: set[asyncio.Task[None]] = set()
+
+# The longest a model call may take (3 minutes). Read when the call is made, so
+# tests can lower it with monkeypatch.
+GENERATION_TIMEOUT_SECONDS: float = 180
+
+
+class GenerationTimeoutError(Exception):
+    """The model call ran past GENERATION_TIMEOUT_SECONDS. Only this gives
+    GENERATION_TIMEOUT; any other TimeoutError (e.g. from the database) is an
+    ordinary failure."""
 
 
 def _now() -> datetime:
@@ -87,6 +100,38 @@ async def latest_jobs(session: AsyncSession, lecture_id: uuid.UUID) -> list[Job]
     return list(newest.values())
 
 
+async def active_jobs(session: AsyncSession, user_id: uuid.UUID) -> list[tuple[Job, str]]:
+    """The user's running jobs with their lecture's name, oldest first. A job
+    has no user_id of its own: it belongs to her through lecture and subject."""
+    statement = (
+        select(Job, Lecture.name)
+        .join(Lecture, Job.lecture_id == Lecture.id)
+        .join(Subject, Lecture.subject_id == Subject.id)
+        .where(Subject.user_id == user_id, Job.status == JOB_RUNNING)
+        .order_by(Job.started_at, Job.id)
+    )
+    return [(job, name) for job, name in (await session.execute(statement)).all()]
+
+
+async def get_job_for_user(session: AsyncSession, user_id: uuid.UUID, job_id: str) -> tuple[Job, str]:
+    """Her job with this id, with its lecture's name. Someone else's, a missing
+    and a malformed id all give the same 404 NOT_FOUND."""
+    try:
+        parsed = uuid.UUID(job_id)
+    except ValueError:
+        raise AppError(ErrorCode.NOT_FOUND) from None
+    statement = (
+        select(Job, Lecture.name)
+        .join(Lecture, Job.lecture_id == Lecture.id)
+        .join(Subject, Lecture.subject_id == Subject.id)
+        .where(Job.id == parsed, Subject.user_id == user_id)
+    )
+    row = (await session.execute(statement)).first()
+    if row is None:
+        raise AppError(ErrorCode.NOT_FOUND)
+    return row[0], row[1]
+
+
 async def run_job(
     job_id: uuid.UUID, generator: Generator, sessionmaker: async_sessionmaker[AsyncSession]
 ) -> None:
@@ -94,10 +139,13 @@ async def run_job(
     try:
         async with sessionmaker() as session:
             await _generate_and_save(session, job_id, generator)
+    except GenerationTimeoutError:
+        logger.error("Generation job %s timed out", job_id)
+        await _mark_failed(job_id, sessionmaker, ErrorCode.GENERATION_TIMEOUT)
     except Exception as exc:
         # Only ids and the kind of error: never page text or generated content.
         logger.error("Generation job %s failed (%s)", job_id, type(exc).__name__)
-        await _mark_failed(job_id, sessionmaker)
+        await _mark_failed(job_id, sessionmaker, ErrorCode.GENERATION_FAILED)
 
 
 async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator: Generator) -> None:
@@ -113,7 +161,13 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
     # End the read transaction before the (possibly slow) model call.
     await session.commit()
 
-    items = await generator.generate(job.kind, pages, options)
+    # Only the model call has the time limit.
+    try:
+        items = await asyncio.wait_for(
+            generator.generate(job.kind, pages, options), timeout=GENERATION_TIMEOUT_SECONDS
+        )
+    except TimeoutError:
+        raise GenerationTimeoutError from None
 
     order = {(page.file_id, page.page_no): position for position, page in enumerate(pages)}
     valid: list[Any] = []
@@ -145,13 +199,15 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
         raise
 
 
-async def _mark_failed(job_id: uuid.UUID, sessionmaker: async_sessionmaker[AsyncSession]) -> None:
+async def _mark_failed(
+    job_id: uuid.UUID, sessionmaker: async_sessionmaker[AsyncSession], code: ErrorCode
+) -> None:
     try:
         async with sessionmaker() as session:
             await session.execute(
                 update(Job)
                 .where(Job.id == job_id, Job.status == JOB_RUNNING)
-                .values(status=JOB_FAILED, error_code=ErrorCode.GENERATION_FAILED.value, finished_at=_now())
+                .values(status=JOB_FAILED, error_code=code.value, finished_at=_now())
             )
             await session.commit()
     except Exception as exc:

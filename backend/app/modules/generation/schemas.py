@@ -8,7 +8,7 @@ from pydantic import BaseModel, field_validator
 
 from app.modules.generation.registry import is_registered
 
-# The scopes «Rask», «Vanlig» and «Dyp» (story 3.2 adds the choice).
+# The scopes «Rask» (10), «Vanlig» (20, the default) and «Dyp» (30).
 DEFAULT_REQUESTED = 20
 
 
@@ -39,3 +39,10 @@ class JobOut(BaseModel):
     error_code: str | None
     started_at: datetime
     finished_at: datetime | None
+
+
+class TrackedJobOut(JobOut):
+    """A job for the job watcher in the frontend, which also needs the lecture's
+    name for its message on other pages."""
+
+    lecture_name: str

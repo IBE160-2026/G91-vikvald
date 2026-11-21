@@ -42,6 +42,7 @@ class ErrorCode(StrEnum):
     JOB_ALREADY_RUNNING = "JOB_ALREADY_RUNNING"
     LECTURE_HAS_NO_FILES = "LECTURE_HAS_NO_FILES"
     GENERATION_FAILED = "GENERATION_FAILED"
+    GENERATION_TIMEOUT = "GENERATION_TIMEOUT"
     JOB_INTERRUPTED = "JOB_INTERRUPTED"
 
 
@@ -71,9 +72,10 @@ ERROR_STATUS: dict[ErrorCode, int] = {
     # Only one generation job per lecture at a time.
     ErrorCode.JOB_ALREADY_RUNNING: 409,
     ErrorCode.LECTURE_HAS_NO_FILES: 422,
-    # The next two are stored on a failed job (error_code), not sent as an answer
+    # The next three are stored on a failed job (error_code), not sent as an answer
     # to the request that started it; the status says what kind of failure it is.
     ErrorCode.GENERATION_FAILED: 500,
+    ErrorCode.GENERATION_TIMEOUT: 504,
     ErrorCode.JOB_INTERRUPTED: 500,
 }
 

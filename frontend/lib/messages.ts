@@ -39,9 +39,11 @@ export const messages = {
   // Generation jobs (story 3.1).
   LECTURE_HAS_NO_FILES: "Last opp notater først.",
   JOB_ALREADY_RUNNING: "Det lages innhold i denne forelesningen nå. Vent til det er ferdig, og prøv igjen.",
-  // A failed job. Story 3.2 gives these their own texts.
-  GENERATION_FAILED: FALLBACK_MESSAGE,
-  JOB_INTERRUPTED: FALLBACK_MESSAGE,
+  // A failed job (error, time limit, restart). {content} is what was being
+  // made, e.g. «flashcardene» (modules/generation/texts.ts fills it in).
+  GENERATION_FAILED: "Vi klarte ikke å lage {content}. Ingenting er lagret. Prøv igjen.",
+  GENERATION_TIMEOUT: "Vi klarte ikke å lage {content}. Ingenting er lagret. Prøv igjen.",
+  JOB_INTERRUPTED: "Vi klarte ikke å lage {content}. Ingenting er lagret. Prøv igjen.",
   // Frontend-only: the request never reached the server.
   NETWORK_ERROR: FALLBACK_MESSAGE,
   // Frontend-only: the exam date field does not hold a real date as dd.mm.åååå.

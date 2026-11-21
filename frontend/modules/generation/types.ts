@@ -13,12 +13,18 @@ export type Job = {
   // Empty until the job is done.
   created: number | null;
   discarded: number | null;
-  // An error code when the job failed, e.g. GENERATION_FAILED.
+  // An error code when the job failed: GENERATION_FAILED, GENERATION_TIMEOUT or JOB_INTERRUPTED.
   error_code: string | null;
   // ISO date-times in UTC.
   started_at: string;
   finished_at: string | null;
 };
+
+// A job as the job watcher sees it (GET /api/jobs/active and /api/jobs/{id}).
+export type TrackedJob = Job & { lecture_name: string };
+
+// The scopes «Rask», «Vanlig» (the default) and «Dyp».
+export type Requested = 10 | 20 | 30;
 
 export type ContentCounts = {
   // Flashcards (qa and concept) made from the lecture's files.

@@ -91,4 +91,25 @@ describe("CreateRow", () => {
     expect(screen.getByText("Ingenting er lagret.")).toBeTruthy();
     expect(within(screen.getByRole("alert")).getByText("Feil.")).toBeTruthy();
   });
+
+  it("UX-DR20: meldingen står på merknadsflaten med infoikon, aldri feilen", () => {
+    const { container } = render(<CreateRow {...props({ message: "Det ble laget 1 av inntil 20 flashcards." })} />);
+    const surface = container.querySelector('[data-slot="note-surface"]')!;
+    expect(surface.textContent).toBe("Det ble laget 1 av inntil 20 flashcards.");
+    expect(surface.querySelector("svg")!.getAttribute("class")).toContain("lucide-info");
+    cleanup();
+    const other = render(<CreateRow {...props({ error: "Feil." })} />);
+    expect(other.container.querySelector('[data-slot="note-surface"]')).toBeNull();
+  });
+
+  it("FR-21: med onRetry står «Prøv igjen» under feilen, utenfor varselet; uten står den ikke", () => {
+    const onRetry = vi.fn();
+    const { rerender } = render(<CreateRow {...props({ error: "Feil.", onRetry })} />);
+    const retry = screen.getByRole("button", { name: "Prøv igjen" });
+    expect(screen.getByRole("alert").contains(retry)).toBe(false);
+    fireEvent.click(retry);
+    expect(onRetry).toHaveBeenCalledOnce();
+    rerender(<CreateRow {...props({ error: "Feil." })} />);
+    expect(screen.queryByRole("button", { name: "Prøv igjen" })).toBeNull();
+  });
 });

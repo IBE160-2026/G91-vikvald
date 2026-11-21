@@ -17,6 +17,7 @@ from app.modules.files.router import account_router, files_router
 from app.modules.files.router import lectures_router as files_lectures_router
 from app.modules.files.router import subjects_router as files_subjects_router
 from app.modules.generation.providers import UnsupportedProviderError, select_generator
+from app.modules.generation.router import jobs_router
 from app.modules.generation.router import lectures_router as generation_lectures_router
 from app.modules.generation.service import fail_interrupted_jobs
 from app.modules.identity.router import router as identity_router
@@ -69,6 +70,7 @@ def create_app() -> FastAPI:
     app.include_router(files_router)
     app.include_router(account_router)
     app.include_router(generation_lectures_router)
+    app.include_router(jobs_router)
     app.include_router(content_lectures_router)
     return app
 

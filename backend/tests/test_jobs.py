@@ -1,6 +1,7 @@
 """Jobs and flashcards over HTTP: POST /api/lectures/{id}/jobs,
-GET /api/lectures/{id}/jobs/latest and GET /api/lectures/{id}/content-counts
-(FR-2, FR-18, FR-19, FR-22, FR-38, NFR-2a, SK-4, SK-21, AR-4, AR-5, AR-14)."""
+GET /api/lectures/{id}/jobs/latest, GET /api/jobs/active, GET /api/jobs/{id}
+and GET /api/lectures/{id}/content-counts
+(FR-2, FR-17, FR-18, FR-19, FR-21, FR-22, FR-38, NFR-2a, SK-4, SK-8, SK-21, AR-4, AR-5, AR-14)."""
 
 import asyncio
 import logging
@@ -21,11 +22,13 @@ from app.modules.content.models import Flashcard
 from app.modules.generation.models import Job
 from app.modules.generation.port import GenerationOptions, Page
 from app.modules.generation.providers import get_generator
+from app.modules.generation import service
 from app.modules.generation.service import JOB_TASKS, fail_interrupted_jobs
 from tests.test_files import _log_in_new_user, _new_lecture, _upload
 from tests.test_subjects import NOT_FOUND, _code
 
 LECTURES = "/api/lectures"
+JOBS = "/api/jobs"
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "definisjoner.pdf"
 JOB_FIELDS = {
     "id",
@@ -39,6 +42,7 @@ JOB_FIELDS = {
     "started_at",
     "finished_at",
 }
+TRACKED_JOB_FIELDS = JOB_FIELDS | {"lecture_name"}
 
 
 def pdf_with_pages(texts: list[str]) -> bytes:
@@ -91,7 +95,10 @@ async def lecture(client: AsyncClient) -> str:
 
 
 @pytest.fixture(autouse=True)
-async def no_jobs_left() -> AsyncIterator[None]:
+async def no_jobs_left(engine: AsyncEngine) -> AsyncIterator[None]:
+    # Depends on engine, so it is torn down first: the jobs still running must
+    # finish before the test database is closed (an autouse fixture without
+    # this is torn down last, after engine.dispose()).
     yield
     await _finish_jobs()
 
@@ -208,7 +215,25 @@ async def test_nfr17_demojobb_med_20_kort_tar_under_5_sekunder(client: AsyncClie
     assert elapsed < 5
 
 
-async def test_fr38_requested_10_og_30(client: AsyncClient, engine: AsyncEngine) -> None:
+@pytest.mark.parametrize("requested", [10, 20, 30])
+async def test_fr17_omfanget_bestemmer_hvor_mange_kort_som_lages(
+    client: AsyncClient, engine: AsyncEngine, requested: int
+) -> None:
+    await _log_in_new_user(client)
+    lecture_id = await _new_lecture(client)
+    terms = [f"Begrep{number:02d}" for number in range(1, 36)]
+    assert (await _upload(client, lecture_id, pdf_with_pages([definitions(terms)]))).status_code == 201
+
+    response = await _start(client, lecture_id, {"kind": "flashcards", "params": {"requested": requested}})
+    assert response.status_code == 202
+    assert response.json()["requested"] == requested
+    await _finish_jobs()
+    [job] = await _latest(client, lecture_id)
+    assert (job["status"], job["requested"], job["created"]) == ("done", requested, requested)
+    assert [card.front for card in await _cards(engine)] == terms[:requested]
+
+
+async def test_fr17_dyp_etter_rask_lager_bare_de_nye(client: AsyncClient, engine: AsyncEngine) -> None:
     await _log_in_new_user(client)
     lecture_id = await _new_lecture(client)
     terms = [f"Begrep{number:02d}" for number in range(1, 13)]
@@ -216,16 +241,15 @@ async def test_fr38_requested_10_og_30(client: AsyncClient, engine: AsyncEngine)
 
     response = await _start(client, lecture_id, {"kind": "flashcards", "params": {"requested": 10}})
     assert response.status_code == 202
-    assert response.json()["requested"] == 10
     await _finish_jobs()
     assert await _card_count(client, lecture_id) == 10
 
     response = await _start(client, lecture_id, {"kind": "flashcards", "params": {"requested": 30}})
     assert response.json()["requested"] == 30
     await _finish_jobs()
-    # Only the two cards that were not made before.
+    # Only the two cards that were not made before: fewer than chosen (FR-18).
     [job] = await _latest(client, lecture_id)
-    assert job["created"] == 2
+    assert (job["requested"], job["created"]) == (30, 2)
     assert await _card_count(client, lecture_id) == 12
 
 
@@ -260,7 +284,7 @@ async def test_fr19_nye_kort_legges_til_de_gamle(
     assert [card.front for card in await _cards(engine)][-2:] == ["Pris", "Kanal"]
 
 
-async def test_sk4_mock_invalid_forkaster_tre_av_fire(
+async def test_sk4_mock_invalid_forkaster_tre_av_fire_og_gir_faerre(
     client: AsyncClient, monkeypatch: pytest.MonkeyPatch, engine: AsyncEngine
 ) -> None:
     monkeypatch.setenv("LLM_PROVIDER", "mock-invalid")
@@ -272,7 +296,7 @@ async def test_sk4_mock_invalid_forkaster_tre_av_fire(
     await _start(client, lecture_id)
     await _finish_jobs()
     [job] = await _latest(client, lecture_id)
-    assert (job["status"], job["created"], job["discarded"]) == ("done", 1, 3)
+    assert (job["status"], job["requested"], job["created"], job["discarded"]) == ("done", 20, 1, 3)
     assert [card.front for card in await _cards(engine)] == ["En"]
 
 
@@ -288,7 +312,7 @@ async def test_ar4_ingen_gyldige_gir_done_med_null(client: AsyncClient, engine: 
     assert await _cards(engine) == []
 
 
-async def test_ar4_generator_som_feiler_gir_failed_og_ingen_kort(
+async def test_fr21_generator_som_feiler_gir_failed_og_ingen_kort(
     client: AsyncClient, lecture: str, engine: AsyncEngine, caplog: pytest.LogCaptureFixture
 ) -> None:
     class BrokenGenerator:
@@ -303,12 +327,60 @@ async def test_ar4_generator_som_feiler_gir_failed_og_ingen_kort(
     assert (job["status"], job["error_code"], job["created"]) == ("failed", "GENERATION_FAILED", None)
     assert job["finished_at"] is not None
     assert await _cards(engine) == []
+    assert await _card_count(client, lecture) == 0
     # Logged with the job id, never with the page text.
     assert job["id"] in caplog.text
     assert "Merkevare" not in caplog.text
 
 
-async def test_ar4_lagring_som_feiler_lagrer_ingenting(
+async def test_fr21_port_som_feiler_endrer_ikke_antallet(client: AsyncClient, lecture: str) -> None:
+    await _start(client, lecture)
+    await _finish_jobs()
+    assert await _card_count(client, lecture) == 5
+
+    class BrokenGenerator:
+        async def generate(self, kind: str, pages: list[Page], options: GenerationOptions) -> list[dict[str, Any]]:
+            raise RuntimeError("modellen svarte ikke")
+
+    app.dependency_overrides[get_generator] = BrokenGenerator
+    await _start(client, lecture)
+    await _finish_jobs()
+    [job] = await _latest(client, lecture)
+    assert (job["status"], job["error_code"]) == ("failed", "GENERATION_FAILED")
+    assert await _card_count(client, lecture) == 5
+
+
+async def test_fr21_tidsgrensen_gir_generation_timeout_og_ingen_kort(
+    client: AsyncClient,
+    lecture: str,
+    engine: AsyncEngine,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    # The app uses 3 minutes; the test lowers the limit so it runs fast.
+    assert service.GENERATION_TIMEOUT_SECONDS == 180
+    monkeypatch.setattr(service, "GENERATION_TIMEOUT_SECONDS", 0.05)
+
+    class SlowGenerator:
+        async def generate(self, kind: str, pages: list[Page], options: GenerationOptions) -> list[dict[str, Any]]:
+            await asyncio.sleep(5)
+            return [{"kind": "qa", "front": pages[0].text, "back": "Det.", "file_id": pages[0].file_id, "page_no": 1}]
+
+    app.dependency_overrides[get_generator] = SlowGenerator
+    started = time.monotonic()
+    with caplog.at_level(logging.INFO):
+        assert (await _start(client, lecture)).status_code == 202
+        await _finish_jobs()
+    assert time.monotonic() - started < 2
+    [job] = await _latest(client, lecture)
+    assert (job["status"], job["error_code"], job["created"]) == ("failed", "GENERATION_TIMEOUT", None)
+    assert job["finished_at"] is not None
+    assert await _cards(engine) == []
+    assert job["id"] in caplog.text
+    assert "Merkevare" not in caplog.text
+
+
+async def test_sk8_lagring_som_feiler_lagrer_ingenting(
     client: AsyncClient, lecture: str, engine: AsyncEngine
 ) -> None:
     class OneCardGenerator:
@@ -323,6 +395,28 @@ async def test_ar4_lagring_som_feiler_lagrer_ingenting(
     content_type = registry.get_content_type("flashcards")
     patched = registry.ContentType(**{**content_type.__dict__, "save": failing_save})
     app.dependency_overrides[get_generator] = OneCardGenerator
+    registry._types["flashcards"] = patched
+    try:
+        await _start(client, lecture)
+        await _finish_jobs()
+    finally:
+        registry._types["flashcards"] = content_type
+    [job] = await _latest(client, lecture)
+    assert (job["status"], job["error_code"]) == ("failed", "GENERATION_FAILED")
+    assert await _cards(engine) == []
+
+
+async def test_fr21_timeouterror_fra_lagringen_gir_generation_failed(
+    client: AsyncClient, lecture: str, engine: AsyncEngine
+) -> None:
+    # Only the model call has the time limit: a TimeoutError elsewhere is an ordinary failure.
+    async def timing_out_save(session: AsyncSession, items: list[Any]) -> None:
+        raise TimeoutError
+
+    from app.modules.generation import registry
+
+    content_type = registry.get_content_type("flashcards")
+    patched = registry.ContentType(**{**content_type.__dict__, "save": timing_out_save})
     registry._types["flashcards"] = patched
     try:
         await _start(client, lecture)
@@ -453,3 +547,95 @@ async def test_fr38_tellingen_teller_bare_forelesningens_filer(client: AsyncClie
     await _finish_jobs()
     assert await _card_count(client, lecture) == 5
     assert await _card_count(client, other) == 0
+
+
+async def _active(client: AsyncClient) -> list[dict[str, Any]]:
+    response = await client.get(f"{JOBS}/active")
+    assert response.status_code == 200
+    return response.json()
+
+
+class _WaitingGenerator:
+    """Waits until the test releases it, so the job stays running."""
+
+    release = asyncio.Event()
+
+    async def generate(self, kind: str, pages: list[Page], options: GenerationOptions) -> list[dict[str, Any]]:
+        await self.release.wait()
+        return []
+
+
+async def test_ar5_active_gir_bare_egne_pagaende_jobber(client: AsyncClient) -> None:
+    _WaitingGenerator.release = asyncio.Event()
+    app.dependency_overrides[get_generator] = _WaitingGenerator
+
+    await _log_in_new_user(client, "kari@eksempel.no")
+    karis = await _new_lecture(client)
+    assert (await _upload(client, karis, FIXTURE.read_bytes())).status_code == 201
+    karis_job = (await _start(client, karis)).json()
+    karis_cookies = dict(client.cookies)
+
+    await _log_in_new_user(client, "ola@eksempel.no")
+    olas = await _new_lecture(client)
+    assert (await _upload(client, olas, FIXTURE.read_bytes())).status_code == 201
+    olas_job = (await _start(client, olas)).json()
+
+    [job] = await _active(client)
+    assert set(job) == TRACKED_JOB_FIELDS
+    assert (job["id"], job["status"], job["lecture_id"]) == (olas_job["id"], "running", olas)
+    assert job["lecture_name"]
+
+    client.cookies.clear()
+    client.cookies.update(karis_cookies)
+    [job] = await _active(client)
+    assert job["id"] == karis_job["id"]
+
+    _WaitingGenerator.release.set()
+    await _finish_jobs()
+    assert await _active(client) == []
+
+
+async def test_ar5_active_er_sortert_eldste_forst(client: AsyncClient) -> None:
+    _WaitingGenerator.release = asyncio.Event()
+    app.dependency_overrides[get_generator] = _WaitingGenerator
+    await _log_in_new_user(client)
+    first = await _new_lecture(client)
+    second = await _new_lecture(client)
+    for lecture_id in (first, second):
+        assert (await _upload(client, lecture_id, FIXTURE.read_bytes())).status_code == 201
+    first_job = (await _start(client, first)).json()
+    second_job = (await _start(client, second)).json()
+    assert [job["id"] for job in await _active(client)] == [first_job["id"], second_job["id"]]
+    _WaitingGenerator.release.set()
+    await _finish_jobs()
+
+
+async def test_ar5_jobb_etter_id_gir_resultatet_med_forelesningsnavn(client: AsyncClient, lecture: str) -> None:
+    started = (await _start(client, lecture)).json()
+    await _finish_jobs()
+    response = await client.get(f"{JOBS}/{started['id']}")
+    assert response.status_code == 200
+    job = response.json()
+    assert set(job) == TRACKED_JOB_FIELDS
+    assert (job["id"], job["status"], job["created"]) == (started["id"], "done", 5)
+    lecture_response = await client.get(f"{LECTURES}/{lecture}")
+    assert job["lecture_name"] == lecture_response.json()["name"]
+
+
+async def test_ar5_andres_ukjent_eller_ugyldig_jobb_gir_404(client: AsyncClient, lecture: str) -> None:
+    started = (await _start(client, lecture)).json()
+    await _finish_jobs()
+    await _log_in_new_user(client, "ola@eksempel.no")
+    for job_id in (started["id"], str(uuid.uuid4()), "ikke-en-id"):
+        response = await client.get(f"{JOBS}/{job_id}")
+        assert response.status_code == 404
+        assert response.json() == NOT_FOUND
+    assert await _active(client) == []
+
+
+async def test_ar5_jobbrutene_krever_innlogging(client: AsyncClient, lecture: str) -> None:
+    started = (await _start(client, lecture)).json()
+    await _finish_jobs()
+    client.cookies.clear()
+    assert (await client.get(f"{JOBS}/active")).status_code == 401
+    assert (await client.get(f"{JOBS}/{started['id']}")).status_code == 401
