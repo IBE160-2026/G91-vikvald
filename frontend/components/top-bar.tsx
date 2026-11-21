@@ -4,16 +4,20 @@ import type { ReactNode } from "react";
 // top-bar (DESIGN.md "Frame"): the logo on the left, and on the right whatever
 // the page puts there (the account links inside the app, nothing on the login
 // and register pages). With `logoHref` the logo is a link (to / inside the app).
-export function TopBar({ children, logoHref }: { children?: ReactNode; logoHref?: string }) {
+// `start` stands left of the logo: the menu button «Meny» on a narrow screen.
+export function TopBar({ children, logoHref, start }: { children?: ReactNode; logoHref?: string; start?: ReactNode }) {
   return (
-    <header className="flex h-topbar-height items-center justify-between border-b border-divider bg-paper px-4">
-      {logoHref ? (
-        <Link href={logoHref} className="rounded-sm">
+    <header className="flex h-topbar-height items-center justify-between gap-3 border-b border-divider bg-paper px-4">
+      <div className="flex min-w-0 items-center gap-2">
+        {start}
+        {logoHref ? (
+          <Link href={logoHref} className="rounded-sm">
+            <Logo />
+          </Link>
+        ) : (
           <Logo />
-        </Link>
-      ) : (
-        <Logo />
-      )}
+        )}
+      </div>
       {children}
     </header>
   );

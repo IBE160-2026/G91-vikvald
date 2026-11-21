@@ -11,7 +11,7 @@ import { RequireLogin } from "./components/require-login";
 
 const push = vi.fn();
 const replace = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace }), usePathname: () => "/" }));
 
 const fetchMock = vi.fn<typeof fetch>();
 const EMAIL = "klara@eksempel.no";
