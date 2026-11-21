@@ -57,7 +57,7 @@ def test_ar13_migreringene_samsvarer_med_modellene(tmp_path: Path) -> None:
 
     from app.core.db import Base
     from app.modules.identity import models  # noqa: F401  (registers users)
-    from app.modules.subjects import models as subjects_models  # noqa: F401  (registers subjects)
+    from app.modules.subjects import models as subjects_models  # noqa: F401  (registers subjects, lectures)
 
     db_file = tmp_path / "m.db"
     cfg = Config(str(BACKEND_DIR / "alembic.ini"))
@@ -107,3 +107,39 @@ def test_ar7_downgrade_fra_0002_fjerner_subjects_men_beholder_users(tmp_path: Pa
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master")}
     assert "subjects" not in tables
     assert "users" in tables
+
+
+def test_ar7_upgrade_head_lager_lectures_med_cascade_og_indeks(tmp_path: Path) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+
+    with sqlite3.connect(db_file) as connection:
+        columns = {row[1]: row for row in connection.execute("PRAGMA table_info(lectures)")}
+        assert set(columns) == {"id", "subject_id", "name", "date", "created_at"}
+        for name in columns:
+            assert columns[name][3] == 1, f"{name} should be NOT NULL"
+
+        foreign_keys = list(connection.execute("PRAGMA foreign_key_list(lectures)"))
+        assert [(fk[2], fk[3], fk[4], fk[6]) for fk in foreign_keys] == [
+            ("subjects", "subject_id", "id", "CASCADE")
+        ]
+
+        indexed = [
+            [info[2] for info in connection.execute(f"PRAGMA index_info('{row[1]}')")]
+            for row in connection.execute("PRAGMA index_list(lectures)")
+        ]
+        assert ["subject_id"] in indexed
+
+
+def test_ar7_downgrade_fra_0003_fjerner_lectures_men_beholder_subjects(tmp_path: Path) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+    command.downgrade(cfg, "0002_create_subjects")
+    with sqlite3.connect(db_file) as connection:
+        tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master")}
+    assert "lectures" not in tables
+    assert "subjects" in tables
