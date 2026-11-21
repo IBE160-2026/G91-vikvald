@@ -34,6 +34,32 @@ export function formatDate(iso: string): string {
   return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
 }
 
+// "2026-09-11" -> "11.09" (the date column in the lecture table).
+export function formatDayMonth(iso: string): string {
+  const date = fromIso(iso);
+  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}`;
+}
+
+// Today's date as the student types it, "21.11.2026" (the default in «Ny forelesning»).
+export function todayNorwegian(now: Date = new Date()): string {
+  return `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()}`;
+}
+
+// The ISO 8601 week number: weeks start on Monday, and week 1 is the week with
+// the year's first Thursday. "2026-09-11" -> 37, "2027-01-01" -> 53.
+export function isoWeek(iso: string): number {
+  const date = fromIso(iso);
+  // Move to the Thursday in the same week; its year owns the week.
+  const weekday = (date.getDay() + 6) % 7; // Monday 0 ... Sunday 6
+  const thursday = new Date(date.getFullYear(), date.getMonth(), date.getDate() - weekday + 3);
+  const firstThursday = new Date(thursday.getFullYear(), 0, 4);
+  const firstWeekday = (firstThursday.getDay() + 6) % 7;
+  const firstWeekThursday = new Date(firstThursday.getFullYear(), 0, 4 - firstWeekday + 3);
+  // Whole days between the two Thursdays (rounded, so a daylight saving change does not matter).
+  const days = Math.round((thursday.getTime() - firstWeekThursday.getTime()) / 86_400_000);
+  return 1 + days / 7;
+}
+
 // "2026-12-04" -> "fredag 04.12.2026".
 export function formatWeekdayDate(iso: string): string {
   return `${WEEKDAYS[fromIso(iso).getDay()]} ${formatDate(iso)}`;

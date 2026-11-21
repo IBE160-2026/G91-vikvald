@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDate, formatWeekdayDate, lectureCountLabel, semesterLabel } from "./format";
+import {
+  formatDate,
+  formatDayMonth,
+  formatWeekdayDate,
+  isoWeek,
+  lectureCountLabel,
+  semesterLabel,
+  todayNorwegian,
+} from "./format";
 
 describe("datoer og antall", () => {
   it("UX-DR25: ISO-dato vises som dd.mm.åååå", () => {
@@ -34,5 +42,31 @@ describe("datoer og antall", () => {
     [11, "11 forelesninger"],
   ])("UX-DR25: %s gir «%s»", (count, expected) => {
     expect(lectureCountLabel(count)).toBe(expected);
+  });
+
+  it("UX-DR25: datokolonnen i tabellen er dd.mm", () => {
+    expect(formatDayMonth("2026-09-11")).toBe("11.09");
+    expect(formatDayMonth("2027-01-04")).toBe("04.01");
+  });
+
+  it("FR-7: dagens dato fylles inn som dd.mm.åååå", () => {
+    expect(todayNorwegian(new Date(2026, 10, 21))).toBe("21.11.2026");
+    expect(todayNorwegian(new Date(2027, 0, 4))).toBe("04.01.2027");
+  });
+
+  it.each([
+    ["2026-09-11", 37],
+    ["2026-09-07", 37],
+    ["2026-09-13", 37],
+    ["2026-09-14", 38],
+    ["2026-01-01", 1],
+    ["2026-12-28", 53],
+    ["2027-01-01", 53],
+    ["2027-01-04", 1],
+    ["2025-12-29", 1],
+    ["2026-03-30", 14],
+    ["2026-10-26", 44],
+  ])("UX-DR7: ISO-ukenummeret for %s er %s", (iso, week) => {
+    expect(isoWeek(iso)).toBe(week);
   });
 });

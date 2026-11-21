@@ -1,4 +1,5 @@
-// Types for the subjects module, mirroring backend/app/modules/subjects/schemas.py.
+// Types for the subjects module (subjects and lectures), mirroring
+// backend/app/modules/subjects/schemas.py.
 
 export type Subject = {
   id: string;
@@ -18,3 +19,20 @@ export type SubjectCreateInput = {
 
 // Only the name and the exam date can be changed.
 export type SubjectUpdateInput = Partial<SubjectCreateInput>;
+
+export type Lecture = {
+  id: string;
+  subject_id: string;
+  name: string;
+  // ISO date, "2026-09-11".
+  date: string;
+  created_at: string;
+};
+
+export type LectureCreateInput = {
+  name: string;
+  date: string;
+};
+
+// Only the name and the date can be changed.
+export type LectureUpdateInput = Partial<LectureCreateInput>;

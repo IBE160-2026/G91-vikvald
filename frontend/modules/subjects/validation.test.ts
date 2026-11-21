@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { examDateErrorCode, fieldForApiError, nameErrorCode, parseNorwegianDate } from "./validation";
+import {
+  examDateErrorCode,
+  fieldForApiError,
+  lectureDateErrorCode,
+  nameErrorCode,
+  parseNorwegianDate,
+} from "./validation";
 
 describe("emnereglene (samme som backenden)", () => {
   it.each([
@@ -18,11 +24,13 @@ describe("emnereglene (samme som backenden)", () => {
     (text) => {
       expect(parseNorwegianDate(text)).toBeNull();
       expect(examDateErrorCode(text)).toBe("INVALID_EXAM_DATE");
+      expect(lectureDateErrorCode(text)).toBe("INVALID_DATE");
     },
   );
 
   it("FR-6: gyldig dato gir ingen feil", () => {
     expect(examDateErrorCode("04.12.2026")).toBeNull();
+    expect(lectureDateErrorCode("11.09.2026")).toBeNull();
   });
 
   it.each(["", "   ", "\t"])("E35: navnet «%s» gir NAME_REQUIRED", (name) => {
@@ -35,7 +43,8 @@ describe("emnereglene (samme som backenden)", () => {
 
   it.each([
     ["NAME_REQUIRED", {}, "name"],
-    ["VALIDATION_ERROR", { fields: { exam_date: "value_error" } }, "examDate"],
+    ["VALIDATION_ERROR", { fields: { exam_date: "value_error" } }, "date"],
+    ["VALIDATION_ERROR", { fields: { date: "value_error" } }, "date"],
     ["VALIDATION_ERROR", { fields: { name: "string_too_long" } }, null],
     ["VALIDATION_ERROR", {}, null],
     ["INTERNAL_ERROR", {}, null],
