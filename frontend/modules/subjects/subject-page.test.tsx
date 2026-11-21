@@ -163,6 +163,16 @@ describe("emnesiden", () => {
     expect(nav.className).toContain("border-divider");
   });
 
+  it("UX-DR31: nederst i sidemenyen står knappen «? Hurtigtaster» med tasten i kbd og teksten i dempet grå", async () => {
+    renderPage();
+    const nav = await screen.findByRole("navigation", { name: "Emner" });
+    const shortcuts = within(nav).getByRole("button", { name: "? Hurtigtaster" });
+    expect(shortcuts.querySelector("kbd")?.textContent).toBe("?");
+    expect(shortcuts.className).toContain("text-ink-muted");
+    expect(shortcuts.parentElement?.className).toContain("mt-auto");
+    expect(nav.lastElementChild?.contains(shortcuts)).toBe(true);
+  });
+
   it("UX-DR7: lenkens tilgjengelige navn er hele emnenavnet, navnet kortes av med CSS, antallet står til høyre", async () => {
     renderPage();
     const nav = await screen.findByRole("navigation", { name: "Emner" });
