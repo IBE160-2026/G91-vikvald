@@ -27,6 +27,11 @@ describe("meldingsfila", () => {
     expect(messages).toHaveProperty("NETWORK_ERROR");
   });
 
+  it("E35: NAME_REQUIRED og datofeilen har de godkjente tekstene", () => {
+    expect(messageFor("NAME_REQUIRED")).toBe("Skriv inn et navn.");
+    expect(messageFor("INVALID_EXAM_DATE")).toBe("Skriv inn eksamensdatoen, for eksempel 04.12.2026.");
+  });
+
   it("FR-1: alle tekstene er ikke-tomme", () => {
     for (const text of Object.values(messages)) {
       expect(text.trim()).not.toBe("");
