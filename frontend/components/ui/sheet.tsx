@@ -24,10 +24,6 @@ function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
 }
 
-function SheetClose({ ...props }: React.ComponentProps<typeof SheetPrimitive.Close>) {
-  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
-}
-
 function SheetTitle({ className, ...props }: React.ComponentProps<typeof SheetPrimitive.Title>) {
   return <SheetPrimitive.Title data-slot="sheet-title" className={cn("text-section-title", className)} {...props} />;
 }
@@ -88,4 +84,4 @@ function SheetContent({
   );
 }
 
-export { Sheet, SheetClose, SheetContent, SheetTitle };
+export { Sheet, SheetContent, SheetTitle };

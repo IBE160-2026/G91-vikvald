@@ -104,10 +104,12 @@ const listeners = new Set<() => void>();
 let fallback: boolean | null = null;
 
 export function readShortcutsEnabled(): boolean {
+  // Storage could not be written last time: the switch's value lives here.
+  if (fallback !== null) return fallback;
   try {
     return window.localStorage.getItem(SHORTCUTS_KEY) !== "off";
   } catch {
-    return fallback ?? true;
+    return true;
   }
 }
 
