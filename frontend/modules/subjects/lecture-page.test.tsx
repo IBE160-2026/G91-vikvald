@@ -363,4 +363,17 @@ describe("forelesningssiden", () => {
     expect(await screen.findByText("Forelesning fredag 18.09.2026 · 1 fil · 3 sider")).toBeTruthy();
     expect(screen.getByText("sluppet.pdf")).toBeTruthy();
   });
+
+  it("FR-4: utlogget under opplasting stopper løkka, så resten av filene sendes ikke", async () => {
+    uploadAnswer = () => ({ code: "UNAUTHENTICATED" });
+    renderPage();
+    await screen.findByText("Forelesning fredag 18.09.2026 · 0 filer · 0 sider");
+
+    choose(pdf("en.pdf"), pdf("to.pdf"), pdf("tre.pdf"));
+
+    await waitFor(() => expect(uploadCalls()).toHaveLength(1));
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(""));
+    expect(uploadCalls()).toHaveLength(1);
+    expect(screen.queryByText(/^en\.pdf:/)).toBeNull();
+  });
 });

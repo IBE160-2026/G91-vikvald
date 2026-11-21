@@ -6,7 +6,7 @@ import { useRef, useState, type DragEvent } from "react";
 
 import { iconProps } from "@/components/icon";
 import { Button } from "@/components/ui/button";
-import { ApiError } from "@/lib/api";
+import { ApiError, isUnauthenticated } from "@/lib/api";
 import { FALLBACK_MESSAGE, messageWithDetails } from "@/lib/messages";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +60,9 @@ export function UploadZone({ lectureId, subjectId }: Props) {
           void queryClient.invalidateQueries({ queryKey: ["lectures", lectureId] });
           void queryClient.invalidateQueries({ queryKey: ["subjects", subjectId] });
         } catch (error) {
+          // Logged out: the app's handler takes her to the login page, so the
+          // remaining files are not sent and get no lines.
+          if (isUnauthenticated(error)) break;
           rejected.push({ key: index, text: rejectionText(file, error) });
           setRejections([...rejected]);
         }

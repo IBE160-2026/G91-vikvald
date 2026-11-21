@@ -90,7 +90,7 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
                 Forelesninger <span className="text-body-sm font-normal text-ink-muted">etter dato</span>
               </h2>
               <div className="mt-3">
-                {lectures.isError ? (
+                {lectures.isError || fileCounts.isError ? (
                   <p role="alert" className="flex items-start gap-2 rounded-md bg-danger-tint p-3 text-meta text-danger">
                     <CircleAlert {...iconProps} className="mt-[3px] shrink-0" />
                     <span>{FALLBACK_MESSAGE}</span>

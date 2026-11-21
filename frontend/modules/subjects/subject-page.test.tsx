@@ -284,6 +284,23 @@ describe("emnesiden", () => {
     expect(await screen.findByText("0 forelesninger · 0 filer · eksamen fredag 04.12.2026")).toBeTruthy();
   });
 
+  it("FR-1: feil når filtellingene hentes gir reserveteksten ved tabellen", async () => {
+    respond();
+    const fake = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url, init) =>
+      String(url).endsWith("/file-counts")
+        ? jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } })
+        : fake(url, init),
+    );
+    renderPage();
+    const section = (await screen.findByRole("heading", { level: 2, name: "Forelesninger etter dato" })).closest(
+      "section",
+    )!;
+    const alert = await within(section).findByRole("alert");
+    expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
+    expect(screen.getByText("2 forelesninger · eksamen fredag 04.12.2026")).toBeTruthy();
+  });
+
   it("UX-DR7: det åpne emnet viser forelesningene i samme rekkefølge med uke, hel tilgjengelig tittel og hul prikk", async () => {
     renderPage();
     const nav = await screen.findByRole("navigation", { name: "Emner" });
