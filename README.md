@@ -43,6 +43,10 @@ Har du hentet nye endringer i koden, bruker du `docker compose up --build`, slik
 
 Åpne så <http://localhost:3000>. Helsesjekken ligger på <http://localhost:3000/api/health> og svarer `{"status": "ok"}` når databasen kan nås.
 
+En adresse som ikke finnes, for eksempel <http://localhost:3000/finnes-ikke>, viser «Fant ikke siden» med lenken «Gå til forsiden».
+
+Backenden kjører databaseendringene (`alembic upgrade head`) før den starter. Stopp appen med `Ctrl+C`, eller med `docker compose down` hvis den kjører i bakgrunnen (`-d`).
+
 ### Opprett en konto
 
 Åpne <http://localhost:3000/registrer>, skriv inn en e-postadresse og et passord på minst 8 tegn, og trykk «Opprett konto». Du blir logget inn med en gang og kommer til forsiden. E-postadressen sjekkes ikke, så du kan bruke en oppdiktet adresse som `klara@eksempel.no`. Passordet lagres bare som en bcrypt-hash. En ferdig testbruker kommer i en senere versjon.
@@ -55,9 +59,7 @@ Innloggingen varer i 30 dager. Alle sider i appen krever innlogging: åpner du <
 
 ### Logg ut
 
-Trykk «Logg ut» øverst til høyre. Du kommer til «Logg inn» med en gang, uten spørsmål. En adresse som ikke finnes, for eksempel <http://localhost:3000/finnes-ikke>, viser «Fant ikke siden» med lenken «Gå til forsiden».
-
-Backenden kjører databaseendringene (`alembic upgrade head`) før den starter. Stopp appen med `Ctrl+C`, eller med `docker compose down` hvis den kjører i bakgrunnen (`-d`).
+Trykk «Logg ut» øverst til høyre. Du kommer til «Logg inn» med en gang, uten spørsmål.
 
 ## Utviklingsmodus
 

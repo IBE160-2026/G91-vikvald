@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-21: Funn #69 rettet av den autonome kjøringen
+
+Funnet fra Siljes gjennomgang av epic 1 (#67) ble rettet av en subagent i den autonome kjøringen, etter avsnittet «Siljes gjennomgang» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md). Det var bare en endring i dokumentasjonen, så `bmad-build-auto` ble ikke brukt.
+
+**Resultat:** Teksten om «Fant ikke siden», databaseendringene og hvordan appen stoppes, er flyttet ordrett fra «Logg ut» til «Start appen» i README. Commit `329223e`.
+
 ## 2026-11-20: Funn #68 rettet av den autonome kjøringen
 
 Funnet fra Siljes gjennomgang av epic 1 (#67) ble rettet av en subagent i den autonome kjøringen, etter avsnittet «Siljes gjennomgang» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md). Hensikten til `bmad-build-auto` var å ta i bruk shadcn/ui og bytte ut de håndlagde komponentene, slik issue #68 beskriver.
