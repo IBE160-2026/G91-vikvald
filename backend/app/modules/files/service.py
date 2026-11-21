@@ -1,5 +1,6 @@
 """Business logic for files: store an accepted PDF, list files, count them."""
 
+import asyncio
 import logging
 import uuid
 
@@ -17,6 +18,9 @@ def clean_original_name(filename: str) -> str:
     """Only the filename (no folder, from either kind of slash), trimmed and cut
     to the column width. Empty means the name is missing."""
     name = filename.replace("\\", "/").rsplit("/", 1)[-1]
+    # Control characters (NUL, newlines, ...) cannot be shown, and Postgres
+    # refuses NUL in a text column.
+    name = "".join(char for char in name if char.isprintable())
     return name.strip()[:ORIGINAL_NAME_MAX_LENGTH].strip()
 
 
@@ -40,7 +44,8 @@ async def store_file(
         for number, text in enumerate(pages, start=1)
     )
     try:
-        storage.save_pdf(user_id, file.id, data)
+        # Writing up to MAX_UPLOAD_MB with fsync; keep it off the event loop.
+        await asyncio.to_thread(storage.save_pdf, user_id, file.id, data)
     except BaseException:
         await session.rollback()
         raise
@@ -49,7 +54,7 @@ async def store_file(
     except BaseException:
         await session.rollback()
         try:
-            storage.delete_pdf(user_id, file.id)
+            await asyncio.to_thread(storage.delete_pdf, user_id, file.id)
         except OSError:
             # Never log file content or the filename; the ids are enough to find it.
             logger.exception("Could not remove PDF %s after a failed commit", file.id)

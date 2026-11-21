@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from app.core.errors import AppError, ErrorCode
 from app.modules.files import pdf as pdf_module
 from app.modules.files.models import File, FilePage
+from app.modules.files.service import clean_original_name
 from app.modules.subjects.models import Lecture
 from tests.test_lectures import _create_lecture, _new_subject
 from tests.test_subjects import NOT_FOUND, _code, _log_in_new_user
@@ -78,7 +79,7 @@ async def _assert_nothing_stored(engine: AsyncEngine, upload_dir: Path) -> None:
     assert [path for path in _stored_pdfs(upload_dir) if path.is_file()] == []
 
 
-async def test_fr8_tre_sider_lagres_med_tekst_per_side_og_fil_paa_disk(
+async def test_fr39_tre_sider_lagres_med_tekst_per_side_og_fil_paa_disk(
     client: AsyncClient, engine: AsyncEngine, upload_dir: Path
 ) -> None:
     user_id = await _log_in_new_user(client)
@@ -444,3 +445,34 @@ def test_fr39_pdf_leseren_ser_paa_innholdet_ikke_navnet() -> None:
         pdf_module.read_pages(b"hei" * 400 + b"%PDF-")
     assert not_pdf.value.code == ErrorCode.NOT_PDF
     assert pdf_module.read_pages(make_pdf(["Side én", "Side to"])) == ["Side én\n", "Side to\n"]
+
+
+def test_fr39_nul_tegn_fjernes_fra_sideteksten(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(pymupdf.Page, "get_text", lambda _self, *args, **kwargs: "a\x00b")
+    assert pdf_module.read_pages(make_pdf(["x"])) == ["ab"]
+
+
+def test_fr8_kontrolltegn_fjernes_fra_filnavnet() -> None:
+    assert clean_original_name("note\x00r\n.pdf") == "noter.pdf"
+    assert clean_original_name("\x00\n\t") == ""
+
+
+async def test_fr8_filnavn_med_nul_tegn_lagres_uten_dem(client: AsyncClient) -> None:
+    # httpx percent-encodes odd filenames, so the multipart body is written by hand
+    # with a raw NUL and a tab in the filename.
+    await _log_in_new_user(client)
+    lecture_id = await _new_lecture(client)
+    boundary = "grense"
+    body = (
+        f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; ".encode()
+        + b'filename="note\x00r\t.pdf"\r\nContent-Type: application/pdf\r\n\r\n'
+        + make_pdf(["Tekst"])
+        + f"\r\n--{boundary}--\r\n".encode()
+    )
+    response = await client.post(
+        f"{LECTURES}/{lecture_id}/files",
+        content=body,
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+    )
+    assert response.status_code == 201
+    assert response.json()["original_name"] == "noter.pdf"
