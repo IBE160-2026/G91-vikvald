@@ -97,11 +97,14 @@ export function UploadZone({ lectureId, subjectId }: Props) {
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         className={cn(
-          "flex flex-col items-center gap-1 rounded-lg border border-dashed border-border-control px-4 py-6 text-center",
+          "flex flex-col items-center gap-1 rounded-lg border border-dashed border-border-control px-4 pt-5 pb-4 text-center",
           dragging && !uploading && "bg-brand-tint",
         )}
       >
-        <Upload {...iconProps} size={24} className="mb-2 text-ink-muted" />
+        {/* The upload icon in a white circle (48 px), as in mockup 04. */}
+        <span className="mb-3 flex size-7 items-center justify-center rounded-full border border-border-card bg-surface text-ink">
+          <Upload {...iconProps} size={20} />
+        </span>
         <p className="text-item-title text-ink">Dra og slipp PDF-filer hit</p>
         <p className="text-meta text-ink-muted">Bare PDF. Hver fil får sin egen kilde med sidetall.</p>
         <Button
@@ -125,7 +128,7 @@ export function UploadZone({ lectureId, subjectId }: Props) {
             void uploadAll(files);
           }}
         />
-        <p role="status" className="mt-2 min-h-[1.5em] text-meta text-ink-muted">
+        <p role="status" className="mt-2 text-meta text-ink-muted empty:mt-0">
           {uploading ? "Laster opp …" : ""}
         </p>
       </div>

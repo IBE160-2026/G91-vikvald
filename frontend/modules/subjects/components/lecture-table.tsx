@@ -33,14 +33,18 @@ export function LectureTable({ lectures, fileCounts }: Props) {
 
   return (
     <div className="rounded-lg border border-border-card bg-surface shadow-lift">
-      {/* Fixed layout, so a long name is cut off with «…» instead of pushing the arrow out. */}
+      {/* Fixed layout, so a long name is cut off with «…» instead of pushing the arrow out.
+          Below 1024 px the columns are narrower and the status text is only read by
+          screen readers (the Filer column already shows «–»), so the name keeps room at 768 px. */}
       <Table className="table-fixed">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[96px] pl-4">Dato</TableHead>
+            <TableHead className="w-[72px] pl-4 lg:w-[96px]">Dato</TableHead>
             <TableHead>Forelesning</TableHead>
-            <TableHead className="w-[72px] text-right">Filer</TableHead>
-            <TableHead className="w-[208px] pl-6">Status</TableHead>
+            <TableHead className="w-[56px] text-right lg:w-[72px]">Filer</TableHead>
+            <TableHead className="w-[48px] pl-3 lg:w-[224px] lg:pl-6">
+              <span className="sr-only lg:not-sr-only">Status</span>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -60,9 +64,9 @@ export function LectureTable({ lectures, fileCounts }: Props) {
                 <TableCell className="text-right tabular-nums" data-column="files">
                   {files === undefined ? null : files === 0 ? "–" : files}
                 </TableCell>
-                <TableCell className="pr-4 pl-6">
+                <TableCell className="pr-4 pl-3 lg:pl-6">
                   <div className="flex items-center gap-3">
-                    <span className="flex min-w-0 flex-1 items-center gap-2 text-ink-muted" data-column="status">
+                    <span className="sr-only lg:not-sr-only lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:gap-2 lg:text-meta lg:text-ink-muted" data-column="status">
                       {files === undefined ? null : files > 0 ? (
                         <>
                           <span
