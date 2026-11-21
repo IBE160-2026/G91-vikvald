@@ -167,25 +167,29 @@ test.describe("Konto (story 2.7)", () => {
   test("FR-5: avbryt sletter ingenting", async ({ page }) => {
     await setUp(page);
     await openAccountPage(page);
-    let deletes = 0;
-    page.on("request", (request) => {
-      if (request.method() === "DELETE") deletes += 1;
-    });
+    const expected = [
+      { kind: "subjects", count: 2 },
+      { kind: "lectures", count: 3 },
+      { kind: "files", count: 2 },
+    ];
     const opener = page.locator("main").getByRole("button", { name: "Slett kontoen …" });
     await opener.click();
     const dialog = page.getByRole("dialog", { name: "Slette kontoen?" });
     await expect(dialog.getByText("Dette sletter også 2 emner, 3 forelesninger og 2 filer.")).toBeVisible();
-    await dialog.getByRole("button", { name: "Avbryt" }).click();
+    // «Avbryt» has focus first; Enter on it closes without deleting.
+    await expect(dialog.getByRole("button", { name: "Avbryt" })).toBeFocused();
+    await page.keyboard.press("Enter");
     await expect(dialog).toBeHidden();
     await expect(opener).toBeFocused();
 
-    await opener.click();
+    await page.keyboard.press("Enter");
+    await expect(dialog).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
-    await page.waitForTimeout(300);
-    expect(deletes).toBe(0);
-    expect((await page.request.get("/api/identity/me")).status()).toBe(200);
-    expect((await page.request.get("/api/subjects")).status()).toBe(200);
+
+    const preview = await page.request.get("/api/identity/me/delete-preview");
+    expect(preview.status()).toBe(200);
+    expect((await preview.json()).counts).toEqual(expected);
   });
 
   test("FR-5: slett kontoen med bare tastatur → innloggingen; samme e-post og passord gir feilmeldingen", async ({
@@ -207,6 +211,7 @@ test.describe("Konto (story 2.7)", () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Avbryt" })).toBeFocused();
     await expect(dialog.getByText(email)).toBeVisible();
+    await expect(dialog.getByText("Alle emner, filer og alt generert innhold slettes for godt.")).toBeVisible();
     await expect(dialog.getByText("Dette sletter også 2 emner, 3 forelesninger og 2 filer.")).toBeVisible();
     await expect(dialog.getByText("Det kan ikke angres.")).toBeVisible();
     await expectNoAxeViolations(page);
@@ -231,7 +236,8 @@ test.describe("Konto (story 2.7)", () => {
     await registerNewUser(page);
     await openAccountPage(page);
     const card = page.getByRole("region", { name: "Innlogging" });
-    await card.getByRole("button", { name: "Logg ut" }).click();
+    await tabTo(page, card.getByRole("button", { name: "Logg ut" }));
+    await page.keyboard.press("Enter");
     await expectOnLoginPage(page);
     expect((await page.request.get("/api/identity/me")).status()).toBe(401);
   });

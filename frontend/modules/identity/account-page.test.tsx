@@ -201,6 +201,7 @@ describe("AccountPage", () => {
     const dialog = screen.getByRole("dialog", { name: "Slette kontoen?" });
     expect(within(dialog).getByText(EMAIL)).toBeTruthy();
     expect(await within(dialog).findByText("Dette sletter også 3 emner, 15 forelesninger og 18 filer.")).toBeTruthy();
+    expect(within(dialog).getByText("Alle emner, filer og alt generert innhold slettes for godt.")).toBeTruthy();
     expect(within(dialog).getByText("Det kan ikke angres.")).toBeTruthy();
     expect(document.activeElement).toBe(within(dialog).getByRole("button", { name: "Avbryt" }));
 

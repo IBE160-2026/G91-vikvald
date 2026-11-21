@@ -152,6 +152,7 @@ export function AccountPage() {
               title="Slette kontoen?"
               confirmLabel="Slett kontoen"
               item={{ name: user.email }}
+              note={accountDeletedText(preview.data?.content_kinds ?? [])}
               target="account"
               previewKey={["account"]}
               loadCounts={async () => (await fetchAccountDeletePreview()).counts}
