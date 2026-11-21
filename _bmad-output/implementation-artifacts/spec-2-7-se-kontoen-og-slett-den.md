@@ -2,14 +2,22 @@
 title: 'Story 2.7: Se kontoen og slett den'
 type: 'feature'
 created: '2026-11-21'
-status: 'ready-for-dev'
+baseline_revision: 'ba74d84826cb1dcfcb6a4fe6e96bc76482327c33'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-2-context.md'
   - '{project-root}/_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/DESIGN.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Ruten /konto og hele kontoflyten kontrolleres bare av Playwright, som CI ikke kjører.
+    evidence: |-
+      .github/workflows/ci.yml kjører bare pytest og vitest; e2e kjøres for hånd i hver story (utsatt også i 2.5 og 2.6).
+    location: >-
+      frontend/e2e/konto.spec.ts
+    severity: low
 ---
 
 <intent-contract>
@@ -98,6 +106,40 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-21 — Review pass
+- verdicts: 30 findings — high 0, medium 1, low 18, false 11, maybe-false 0
+- findings:
+  - `[false]` `[reject]` (blind) Tellingen på kontosiden blir utdatert — `staleTime` er standard 0 i `lib/query-client.ts`, så forhåndsvisningen hentes på nytt hver gang siden åpnes; bekreftelsen henter alltid ferske tall.
+  - `[false]` `[reject]` (blind) Ingen feiltilstand for `me` — siden vises bare inne i `RequireLogin`, som selv viser reserveteksten ved feil på `/me` og ikke viser barna; dataene er alltid i bufferen her.
+  - `[low]` `[reject]` (blind) `router.push` i stedet for `replace` etter utlogging/sletting — samme flyt som i 1.6 (spesifikasjonen krever samme flyt); Tilbake gir 401 og sender til innloggingen igjen.
+  - `[low]` `[reject]` (blind) To knapper heter «Lukk» i visningsdialogen — valgt i Design Notes (kanttilfelle); axe finner ingen brudd.
+  - `[false]` `[reject]` (blind) Teksten nevner ikke forelesningene — teksten er ordrett fra akseptkriteriet.
+  - `[false]` `[reject]` (blind) `DeleteScope` mangler emne-ID-er — AD-7 lar sammendraget høre til forelesningen; ingen innholdstype hører til et emne.
+  - `[low]` `[reject]` (blind) Forhåndsvisningen henter ID-lister for å telle — listene trengs som `DeleteScope` for registeret; mengdene er små (én students semester).
+  - `[low]` `[reject]` (blind) `test_ar7_registered_kinds_er_tom_i_epic_2` feiler i epic 3 — bevisst epic-markør, samme mønster som `test_ar7_registeret_er_tomt_i_epic_2` fra 2.5.
+  - `[low]` `[patch]` (blind) Fast pause `waitForTimeout(300)` i e2e — byttet med sjekk av at forhåndsvisningen gir de samme tellingene etter avbrudd.
+  - `[false]` `[reject]` (blind) Svak påstand om omrissknappen i `dialog.test.tsx` — `Button` setter alltid `data-variant`, så reserven `className` brukes aldri, og verdien er nøyaktig «outline».
+  - `[low]` `[reject]` (blind) Ingen infologg om slettet konto — ikke krav; ville legge til ny logging uten nytte for studenten.
+  - `[low]` `[reject]` (blind) «Logg ut» viser ikke at noe skjer — samme oppførsel som toppfeltet fra 1.6.
+  - `[false]` `[reject]` (blind) `formatLocalDate` gir NaN ved ugyldig dato — backend gir alltid en gyldig ISO-tid (Pydantic `datetime`); tilfellet kan ikke nås.
+  - `[false]` `[reject]` (blind) KI-sporet mangler — skrives i samme økt etter gjennomgangen, før PR-en.
+  - `[low]` `[defer]` (verification-gap) `/konto`-ruten testes bare av Playwright, som CI ikke kjører — prosjektvalg fra før (utsatt også i 2.5 og 2.6); Playwright kjøres for hånd i hver story.
+  - `[low]` `[reject]` (verification-gap) Konto slettet i en annen fane gir 401 og «Du er logget ut» — skjer bare med to faner; meldingen er sann (hun er logget ut), og en egen gren gir mer kode.
+  - `[false]` `[reject]` (edge) Feil på `/me` gir tom side — samme som andre rad: `RequireLogin` tar feilen.
+  - `[low]` `[reject]` (edge) `queryClient.clear()` før navigasjon gir nye kall og 401 — samme rekkefølge som utloggingen fra 1.6; flagget er fjernet først, så ingen melding vises, og begge veier går til `/logg-inn` (testet i e2e).
+  - `[low]` `[reject]` (edge) 401 ved sletting fra en annen fane — samme rotårsak som verification-gap-raden om to faner.
+  - `[low]` `[reject]` (edge) Tom mappe kan bli igjen ved samtidig opplasting — gjenværende risiko i Design Notes; en lås krever endringer i opplastingen.
+  - `[false]` `[reject]` (edge) Annen unntakstype enn `OSError` fra `rmtree` — `shutil.rmtree` kaster bare `OSError` og underklasser.
+  - `[false]` `[reject]` (edge) Ugyldig `terms_accepted_at` gir NaN — samme som blind-raden; kan ikke nås.
+  - `[low]` `[reject]` (edge) To «Logg ut»-knapper kan gi to samtidige utlogginger — utlogging er idempotent, og begge går til `/logg-inn`.
+  - `[medium]` `[patch]` (intent) Bekreftelsen sier ikke at alt slettes for godt — `note` med `accountDeletedText` lagt til i bekreftelsen, med test i Vitest og Playwright.
+  - `[low]` `[reject]` (intent) Uten demomodus testes bare i nettleseren — samme metode som 2.4; backend har ingen egen kontooppførsel for modusen.
+  - `[low]` `[patch]` (intent) «Logg ut» i kortet og «Avbryt» bare klikket i e2e — nå med tastaturet (`tabTo` og Enter).
+  - `[low]` `[reject]` (intent) Fast liste over tabeller i backendtesten — dekker alle tabellene appen har; nye tabeller i senere epics får egne tester.
+  - `[low]` `[reject]` (intent) Rød omrissknapp og sidemeny uten valg er ikke påstått — dekket av skjermbildene og sammenligningen med skisse 15.
+  - `[false]` `[reject]` (intent) Registerteksten bare enhetstestet — registeret er tomt i epic 2, så nettleseren kan ikke vise den.
+  - `[low]` `[reject]` (intent) Testnavn med E16 og NFR-8 — E16 er kanttilfellet fra epics.md og NFR-8 kravet om tastatur og axe; begge er sporbare ID-er.
+
 ## Design Notes
 
 - **Rutene i `files`:** `identity` er nederst i modulgrafen og kan ikke telle emner og filer. Rutene ligger derfor i `files`, som allerede eier slettingen av forelesning og emne av samme grunn. Selve raden slettes av `identity.service.delete_user`. Kanttilfelle.
@@ -114,3 +156,28 @@ deferred: []
 - `cd backend && uv run pytest` -- expected: alle grønne
 - `cd frontend && npm run test && npx tsc --noEmit` -- expected: alle grønne
 - `docker compose up --build -d && cd frontend && npx playwright test` -- expected: alle grønne
+
+## Auto Run Result
+
+**Sammendrag:** Studenten har en kontoside (`/konto`) med sidemenyen, h1 «Konto», undertittelen og demomerket i demomodus. Det er tre kort. Innlogging viser e-posten, «Lagret kryptert, aldri i klartekst» og «Logg ut» (samme flyt som toppfeltet, nå i hooken `useLogout`). Vilkår og personvern viser når vilkårene ble godtatt eller «Ikke godtatt ennå …», språkmodellen og «Les vilkårene», som åpner den felles vilkårsteksten i en dialog med bare «Lukk». Slett kontoen viser hva som slettes, «Du har nå …» med tellingene og «Slett kontoen …». Bekreftelsen er den felles fra 2.5, med e-posten, «… slettes for godt.», tellingene og «Det kan ikke angres.». Backend har `GET /api/identity/me/delete-preview` og `DELETE /api/identity/me`, som sletter brukerraden i én transaksjon (alt annet går med `ON DELETE CASCADE`), fjerner hele brukermappa med `core/storage` etter commit og sletter cookien.
+
+**Filer:**
+- `backend/app/modules/files/{router,schemas}.py`, `backend/app/main.py` -- `account_router` med forhåndsvisning og sletting
+- `backend/app/modules/identity/service.py` -- `delete_user`
+- `backend/app/modules/subjects/service.py` -- `subject_ids_for_user`, `lecture_ids_for_subjects`
+- `backend/app/modules/content/registry.py` -- `registered_kinds()`, `subjects` reservert
+- `backend/tests/test_account_delete.py` -- 14 tester for alle backendradene i matrisen
+- `frontend/lib/{delete-text,messages}.ts` + tester -- `account`, `accountCountsSentence`, `accountDeletedText`, `subjects`
+- `frontend/components/dialog.tsx` + test -- dialog uten hovedhandling («Lukk»)
+- `frontend/modules/identity/{use-logout.ts,api.ts,types.ts,components/account-links.tsx}` -- felles utlogging og API
+- `frontend/modules/identity/pages/account-page.tsx` + `account-page.test.tsx`, `frontend/app/(app)/konto/page.tsx` -- kontosiden
+- `frontend/e2e/konto.spec.ts` -- 6 tester: axe med og uten demomodus og med begge dialogene, tastatur, avbryt, sletting, utlogging
+- `docs/skjermbilder/story-2-7/` -- skjermbilder i 1280 og 768 px
+
+**Gjennomgang:** 30 funn. Rettet: «slettes for godt» i bekreftelsen (medium), fast pause byttet med tellingssjekk i e2e og tastatur for «Logg ut» og «Avbryt» (low). Utsatt: e2e i CI (fra før). Avvist: 11 `false` og 15 `low` med grunner i Review Triage Log.
+
+**Ny gjennomgang anbefales:** nei. Rettet: high 0, medium 1, low 2.
+
+**Verifisering:** `uv run pytest` 313 grønne; `npm run test` 471 grønne og `tsc --noEmit` uten feil; `docker compose up --build` + `npx playwright test` 60 grønne.
+
+**Gjenværende risiko:** en opplasting samtidig med kontoslettingen kan etterlate en tom mappe. Er kontoen slettet i en annen fane, gir slettingen 401 og «Du er logget ut». Playwright kjøres ikke i CI.
