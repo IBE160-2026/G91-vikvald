@@ -1,10 +1,10 @@
 """HTTP routes for the files module.
 
-POST/GET /api/lectures/{id}/files, POST /api/files/{id}/replace, GET /api/subjects/{id}/file-counts, and the
-delete preview and DELETE for files, lectures and subjects. The files module may
-call the subjects and content modules, never the other way round. Deleting a
-lecture or a subject must know its files (to count them and to remove the PDFs),
-so those routes live here too.
+POST/GET /api/lectures/{id}/files, POST /api/files/{id}/replace,
+GET /api/subjects/{id}/file-counts, and the delete preview and DELETE for files,
+lectures and subjects. The files module may call the subjects and content
+modules, never the other way round. Deleting a lecture or a subject must know
+its files (to count them and to remove the PDFs), so those routes live here too.
 """
 
 import asyncio

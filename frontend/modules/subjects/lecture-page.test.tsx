@@ -46,7 +46,7 @@ let gate: Promise<void> = Promise.resolve();
 // The status the fake backend gives a file DELETE.
 let deleteStatus = 204;
 // How the fake backend answers a replace: a rejection code, a status, or undefined to accept.
-let replaceAnswer: { status: number; code: string } | undefined;
+let replaceAnswer: { status: number; code: string; details?: Record<string, unknown> } | undefined;
 
 function uploadedFile(name: string, pages: number, id = `f${files.length + 1}`): UploadedFile {
   return { id, lecture_id: "l2", original_name: name, page_count: pages, uploaded_at: "2026-09-12T08:00:00Z" };
@@ -99,7 +99,9 @@ function respond() {
     const fileReplace = path.match(/^\/api\/files\/([^/]+)\/replace$/);
     if (fileReplace && init?.method === "POST") {
       if (replaceAnswer) {
-        return jsonResponse(replaceAnswer.status, { error: { code: replaceAnswer.code, details: {} } });
+        return jsonResponse(replaceAnswer.status, {
+          error: { code: replaceAnswer.code, details: replaceAnswer.details ?? {} },
+        });
       }
       const index = files.findIndex((file) => file.id === fileReplace[1]);
       if (index < 0) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
@@ -825,6 +827,42 @@ describe("forelesningssiden", () => {
       replaceAnswer = undefined;
       fireEvent.change(screen.getByTestId("replace-input-f1"), { target: { files: [pdf("ny.pdf")] } });
       expect(live.textContent).toBe("");
+    });
+
+    it.each([
+      {
+        code: "NO_READABLE_TEXT",
+        details: {},
+        text: "Vi fant ingen tekst i denne PDF-en. Den kan være skannet. Last opp en PDF der teksten kan merkes.",
+      },
+      {
+        code: "TOO_MANY_PAGES",
+        details: { page_count: 51 },
+        text: "Fila har 51 sider. Grensen er 50 sider. Del den opp og last opp delene hver for seg.",
+      },
+      {
+        code: "FILE_TOO_LARGE",
+        details: { size_mb: 23, limit_mb: 20 },
+        text: "Fila er på 23 MB. Grensen er 20 MB. Lagre den på nytt med mindre bilder, eller del den opp.",
+      },
+      {
+        code: "PDF_UNREADABLE",
+        details: {},
+        text: "Vi klarte ikke å åpne denne PDF-en. Den kan være låst med passord eller skadet. Lagre den på nytt som PDF uten passord og prøv igjen.",
+      },
+    ])("E17: $code ved erstatning gir meldingen ved raden med tallene fylt inn", async ({ code, details, text }) => {
+      replaceAnswer = { status: 422, code, details };
+      files = [uploadedFile("merkevare.pdf", 2, "f1")];
+      renderPage();
+      const button = await pickReplacement("merkevare.pdf", pdf("ny.pdf"));
+      const dialog = screen.getByRole("dialog", { name: "Erstatte fila?" });
+      await within(dialog).findByText("Det kan ikke angres.");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Erstatt fila" }));
+
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      const live = button.closest("li")!.querySelector("[aria-live=polite]")!;
+      expect(live.textContent).toBe(`ny.pdf: ${text}`);
+      await waitFor(() => expect(document.activeElement).toBe(button));
     });
 
     it("FR-13: serverfeil viser reserveteksten i dialogen, og fila står", async () => {

@@ -46,7 +46,9 @@ async def store_file(
     and the answer is 404 NOT_FOUND. The caller removes the old PDF after this
     returns, that is after the commit."""
     if replaces is not None:
-        result = await session.execute(delete(File).where(File.id == replaces))
+        result = await session.execute(
+            delete(File).where(File.id == replaces, File.lecture_id == lecture_id)
+        )
         if result.rowcount == 0:
             await session.rollback()
             raise AppError(ErrorCode.NOT_FOUND)

@@ -107,9 +107,11 @@ export function DeleteConfirmDialog({
     mutationFn: remove,
     onSuccess: finish,
     onError: (error) => {
+      // A lost login goes to the app's handler, never to the caller.
+      if (isUnauthenticated(error)) return;
       if (onRemoveError?.(error)) onClose();
       else if (isNotFound(error)) finish();
-      else if (!isUnauthenticated(error)) setFailed(true);
+      else setFailed(true);
     },
   });
 
