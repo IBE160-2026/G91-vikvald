@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-21: Story 3.1 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `3-1-lag-flashcards-fra-en-forelesning-i-demomodus`. Hensikten til `bmad-build-auto` var «Story 3.1 fra `_bmad-output/planning-artifacts/epics.md`: Lag flashcards fra en forelesning i demomodus».
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-3-1-lag-flashcards-fra-en-forelesning-i-demomodus.md), PR-en for `story/3-1`, kanttilfellene #134–#141.
+
 ## 2026-11-21: Brukerreisetestene utvidet etter epic 2
 
 Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 2 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).
