@@ -3,14 +3,42 @@ title: 'Story 3.1: Lag flashcards fra en forelesning i demomodus'
 type: 'feature'
 created: '2026-11-21'
 baseline_revision: '97246d7ab3c0089a00f3f7533b6c59004e196c66'
-status: 'ready-for-dev'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-3-context.md'
   - '{project-root}/_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/DESIGN.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Genereringen har ingen tidsgrense rundt porten, så en jobb som henger låser forelesningen til omstart.
+    evidence: |-
+      run_job kaller generator.generate uten asyncio.wait_for. Story 3.2 legger inn GENERATION_TIMEOUT (3 min).
+    location: >-
+      backend/app/modules/generation/service.py
+    severity: medium
+  - summary: >-
+      Slettes eller erstattes en fil mens jobben kjører, feiler hele jobben på fremmednøkkelen og ingen kort lagres.
+    evidence: |-
+      Kortene settes inn med file_id fra sidene som ble lest før kallet. Story 3.7 blokkerer sletting med 409 JOB_ALREADY_RUNNING mens en jobb pågår.
+    location: >-
+      backend/app/modules/generation/service.py
+    severity: medium
+  - summary: >-
+      Løpet sjekker ikke selv forsidene mot eksisterende kort; bare mock-modellen hopper over dem.
+    evidence: |-
+      existing_keys sendes til porten, men validate_item og løpet sammenligner ikke. Med ekte modell (epic 6) kan like kort lagres.
+    location: >-
+      backend/app/modules/generation/service.py
+    severity: medium
+  - summary: >-
+      Grenen der jobbens forelesning slettes mens jobben kjører, har ingen test.
+    evidence: |-
+      rowcount == 0-grenen i _generate_and_save kjøres ikke av noen test. Passer med slettearbeidet i story 3.7.
+    location: >-
+      backend/app/modules/generation/service.py
+    severity: low
 ---
 
 <intent-contract>
@@ -121,6 +149,55 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-21 — Review pass
+- verdicts: 43 findings — high 0, medium 8, low 26, false 6, maybe-false 3
+- findings:
+  - `[low]` `[patch]` Blind: løpet/mock dedupliserer ikke like forsider i samme kjøring — mock-regelen har nå et `seen`-sett fra `existing_keys`; test `test_nfr2a_samme_begrep_to_ganger_gir_ett_kort`. Delen om ekte modell er utsatt (se deferred).
+  - `[medium]` `[defer]` Blind: ingen tidsgrense rundt porten — story 3.2 legger inn `GENERATION_TIMEOUT`; ført i deferred.
+  - `[false]` `[reject]` Blind: oppryddingen antar én prosess — AD-5 bestemmer nøyaktig én Uvicorn-prosess, og `start.sh` starter én.
+  - `[medium]` `[defer]` Blind: fil slettet under jobb velter hele jobben — 409-sperren for sletting er story 3.7; ført i deferred.
+  - `[low]` `[patch]` Blind: README lover at ugyldige kort synes i appen — README og `.env.example` sier nå at de telles på jobben (`discarded`), og at meldingen kommer senere.
+  - `[medium]` `[patch]` Blind: `min-w-[360px]` gir sideveis rulling på smal skjerm — seksjonene bruker `min-w-0 basis-[360px]`.
+  - `[low]` `[reject]` Blind: knappen er inaktiv uten grunn mens filene lastes eller feiler — kort lasting; ved feil viser «Filer» allerede reserveteksten i et varsel.
+  - `[low]` `[reject]` Blind: ingen CHECK-begrensninger på `status`/`kind` — bare løpet skriver feltene, med konstanter; begrensningen gir mer kompleksitet enn nytte nå.
+  - `[low]` `[reject]` Blind: `latest_jobs` leser alle jobbene — noen få jobber per forelesning; ingen målbar kostnad.
+  - `[low]` `[reject]` Blind: «Det er …» blir kort med forsiden «Det» — regelen følger NFR-2a mekanisk, og README sier at demoinnholdet er mekanisk.
+  - `[false]` `[reject]` Blind: KI-sporet mangler i diffen — det oppdateres i senere steg i samme branch (story-prompten punkt 5).
+  - `[low]` `[reject]` Blind: en test endrer `registry._types` for hånd — gjenopprettes i `finally`; bare testkode.
+  - `[low]` `[reject]` Blind: `validate_item` bygger sidesettet per element — høyst 50 sider × få elementer; ubetydelig.
+  - `[low]` `[reject]` Blind: ingen e2e for feilet jobb eller `mock-invalid` — dekket i jsdom og pytest; feilmeldingen får egen tekst i 3.2.
+  - `[medium]` `[patch]` Verifisering: tellingen etter sletting av fil er ikke testet — ny test «FR-14: tellingen i «Lag og øv» hentes på nytt når fila slettes».
+  - `[medium]` `[patch]` Verifisering: taket over to filer er ikke testet — ny `test_fr38_taket_gjelder_over_to_filer_i_filrekkefolge`.
+  - `[low]` `[defer]` Verifisering: forelesning slettet under jobb er ikke testet — ført i deferred (story 3.7).
+  - `[low]` `[reject]` Intensjon: «Øv nå» er ikke aktiv — økten bygges i 3.3; valget er ført i `beslutninger.md` og eget kanttilfelle-issue.
+  - `[low]` `[reject]` Intensjon: generatoren velges per forespørsel, ikke ved oppstart — samme innstilling leses begge steder; oppstarten validerer.
+  - `[false]` `[reject]` Intensjon: teksten er ikke «uendret» fordi mellomrom normaliseres — ordene er uendret; bare linjeskift fra PDF-en blir mellomrom.
+  - `[false]` `[reject]` Intensjon: definisjonsregelen er snevrere enn storien — spesifikasjonen fastsetter regelen; ført som kanttilfelle.
+  - `[false]` `[reject]` Intensjon: filrekkefølgen er ikke fastsatt — spesifikasjonen sier `uploaded_at, id`.
+  - `[low]` `[reject]` Intensjon: «24 kort» bare i jsdom-testen — FR-22 (legges til) er testet i backend med 5 + 2.
+  - `[low]` `[patch]` Intensjon: NFR-17 er ikke målt — ny `test_nfr17_demojobb_med_20_kort_tar_under_5_sekunder`.
+  - `[low]` `[reject]` Intensjon: den delvise indeksen er bare testet på SQLite — Postgres-migreringen kjøres ved hver `docker compose up`, og Playwright-testene starter jobber mot den.
+  - `[low]` `[reject]` Intensjon: AR-14-rekkefølgen er ikke testet i ekte prosess — `lifespan` kjører før Uvicorn tar imot forespørsler; testet direkte.
+  - `[low]` `[reject]` Intensjon: axe ser bare en falsk «pågår» — demojobben er for rask til å fanges; den fangede ruten gir samme DOM.
+  - `[false]` `[reject]` Intensjon: siden setter aldri «venter» — storien sier at dette testes på komponenten med to rader.
+  - `[low]` `[reject]` Intensjon: «Last opp notater først.» er en konstant, ikke fra feilkoden — samme tekst; raden viser grunnen før noe kall gjøres.
+  - `[low]` `[reject]` Intensjon: `requested` 10/30 godtas allerede — liten, testet utvidelse som 3.2 trenger.
+  - `[low]` `[patch]` Intensjon: migreringstesten heter `test_ar4_…` — omdøpt til `test_ar5_…`.
+  - `[low]` `[reject]` Intensjon: atferden i frontend testes mest i jsdom — e2e dekker lag, «Lag flere», uten filer og axe.
+  - `[medium]` `[defer]` Kant: fil slettet under jobb gir FK-feil (samme som Blind 4).
+  - `[medium]` `[defer]` Kant: ingen tidsgrense (samme som Blind 2).
+  - `[low]` `[patch]` Kant: samme begrep to ganger i én kjøring gir like kort (samme rettelse som Blind 1).
+  - `[medium]` `[defer]` Kant: løpet stoler på at generatoren dedupliserer — gjelder ekte modell i epic 6; ført i deferred.
+  - `[low]` `[reject]` Kant: annen `IntegrityError` ved ny jobb blir `JOB_ALREADY_RUNNING` — bare mulig om forelesningen slettes i samme øyeblikk; sjelden og ufarlig.
+  - `[low]` `[patch]` Kant: gammel 409-melding blir stående når jobben blir ferdig — feilen nullstilles nå når jobben slutter.
+  - `[low]` `[patch]` Kant: `LECTURE_HAS_NO_FILES` lar knappen være aktiv — fillista hentes nå på nytt.
+  - `[maybe-false]` `[reject]` Kant: tellingen laster og knappen er aktiv et øyeblikk — et klikk da starter bare en vanlig jobb som legger til kort; ikke skadelig.
+  - `[low]` `[reject]` Kant: knappen er varig inaktiv uten grunn når filspørringen feiler (samme som Blind 7) — «Filer» viser reserveteksten i et varsel.
+  - `[maybe-false]` `[reject]` Kant: testen med treg generator kan henge hvis en påstand feiler før `release.set()` — ville bare vært `low` i testkode; testene går grønt.
+  - `[maybe-false]` `[reject]` Kant: `no_jobs_left` kan rydde etter at motoren er avviklet — alle 375 tester går grønt gjentatte ganger; ville bare vært `low` i testkode.
+
+Egen visuell kontroll (skjermbilder): i 1280 px brøt «4 kort» over to linjer, og jobbstatusen dekket «Flashcards». Rettet sammen med Blind 6 (tittel/telling `shrink-0 whitespace-nowrap`, handlingene kan gå under).
+
 ## Design Notes
 
 - **Hvorfor `lifespan`:** den kjører i Uvicorn-prosessen før første forespørsel, så rekkefølgen i AR-14 (migreringer → seed → opprydding → forespørsler) holder, og testene kan kalle funksjonene direkte.
@@ -134,3 +211,17 @@ deferred: []
 - `cd backend && uv run ruff check .` -- ingen funn (hvis ruff finnes)
 - `cd frontend && npm run test && npx tsc --noEmit` -- grønne
 - `docker compose up --build -d && cd frontend && npx playwright test` -- grønne
+
+## Auto Run Result
+
+**Sammendrag:** Story 3.1 er bygd: modulen `generation` med porten `generate(kind, pages, options)`, `MockGenerator` og `InvalidMockGenerator`, registeret over innholdstyper med flashcards som første type, løpet i AR-4, jobber i `jobs` med delvis unik indeks, oppstartssjekk av `LLM_PROVIDER` og opprydding av avbrutte jobber i `lifespan`. `content` eier `flashcards` og tellingen per forelesning. Forelesningssiden har «Lag og øv» med Flashcards-raden (`create-row`, `job-status`).
+
+**Filer:** backend `generation/*` (port, register, mock, flashcards, leverandør, løp, ruter, instrukser), `content/*` (modell, tjeneste, telling), `files/service.py` (`pages_for_lecture`), `core/db.py`, `core/errors.py`, `main.py`, migrering 0006, tester og fast testfil; frontend `components/create-row.tsx`, `job-status.tsx`, `ui/spinner.tsx`, `modules/generation/*`, `lecture-page.tsx`, `messages.ts`, `e2e/flashcards.spec.ts`; README og `.env.example`.
+
+**Gjennomgang:** 43 funn. 10 rettet (3 medium, 7 low), 6 utsatt (4 poster i `deferred`), resten avvist med begrunnelse i loggen over.
+
+**Oppfølging anbefalt:** nei (ingen high; medium-rettelsene var tester og layout, og alt er verifisert i nettleser og testene).
+
+**Verifisering:** `uv run pytest` 375 bestått, `ruff` rent, `npm run test` 484 bestått, `tsc` rent, `npx playwright test` 86 bestått mot `docker compose up --build`. Skjermbilder i `docs/skjermbilder/story-3-1/`.
+
+**Gjenstående risiko:** ingen tidsgrense før 3.2; sletting under jobb sperres først i 3.7; flashcards er ikke meldt inn i slette-registeret før 3.7.
