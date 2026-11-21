@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-21: Story 2.7 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-7-se-kontoen-og-slett-den`. Hensikten til `bmad-build-auto` var «Story 2.7 fra `_bmad-output/planning-artifacts/epics.md`: Se kontoen og slett den».
+
+**Resultat:** kontosiden (15) med Innlogging, Vilkår og personvern og Slett kontoen, og `DELETE /api/identity/me`, som sletter alt i én transaksjon og fjerner brukermappa etterpå. Spesifikasjon og gjennomgang i [spec-2-7](../../_bmad-output/implementation-artifacts/spec-2-7-se-kontoen-og-slett-den.md).
+
 ## 2026-11-21: Story 2.6 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-6-erstatt-en-fil-med-en-ny-versjon`. Hensikten til `bmad-build-auto` var «Story 2.6 fra `_bmad-output/planning-artifacts/epics.md`: Erstatt en fil med en ny versjon».
