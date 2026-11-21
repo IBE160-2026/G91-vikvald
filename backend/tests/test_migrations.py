@@ -56,7 +56,9 @@ def test_ar13_migreringene_samsvarer_med_modellene(tmp_path: Path) -> None:
     from sqlalchemy import create_engine
 
     from app.core.db import Base
+    from app.modules.content import models as content_models  # noqa: F401  (registers flashcards)
     from app.modules.files import models as files_models  # noqa: F401  (registers files, file_pages)
+    from app.modules.generation import models as generation_models  # noqa: F401  (registers jobs)
     from app.modules.identity import models  # noqa: F401  (registers users)
     from app.modules.subjects import models as subjects_models  # noqa: F401  (registers subjects, lectures)
 
@@ -221,3 +223,59 @@ def test_fr11_downgrade_til_0004_fjerner_kolonnen_men_beholder_users(tmp_path: P
         emails = [row[0] for row in connection.execute("SELECT email FROM users")]
     assert columns == {"id", "email", "password_hash", "created_at"}
     assert emails == ["klara@eksempel.no"]
+
+
+def test_ar4_upgrade_head_lager_jobs_og_flashcards_med_cascade_og_delvis_unik_indeks(
+    tmp_path: Path,
+) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+
+    with sqlite3.connect(db_file) as connection:
+        job_columns = {row[1]: row for row in connection.execute("PRAGMA table_info(jobs)")}
+        assert set(job_columns) == {
+            "id", "lecture_id", "kind", "params", "status", "requested", "created",
+            "discarded", "error_code", "started_at", "finished_at",
+        }
+        nullable = {"created", "discarded", "error_code", "finished_at"}
+        for name, row in job_columns.items():
+            assert row[3] == (0 if name in nullable else 1), name
+        job_keys = list(connection.execute("PRAGMA foreign_key_list(jobs)"))
+        assert [(fk[2], fk[3], fk[4], fk[6]) for fk in job_keys] == [
+            ("lectures", "lecture_id", "id", "CASCADE")
+        ]
+        index_sql = connection.execute(
+            "SELECT sql FROM sqlite_master WHERE name = 'uq_jobs_running_lecture'"
+        ).fetchone()[0]
+        assert "UNIQUE" in index_sql and "status = 'running'" in index_sql
+
+        card_columns = {row[1]: row for row in connection.execute("PRAGMA table_info(flashcards)")}
+        assert set(card_columns) == {
+            "id", "file_id", "kind", "front", "back", "page_no", "formula_flag", "created_at",
+        }
+        for name, row in card_columns.items():
+            assert row[3] == (0 if name == "back" else 1), name
+        card_keys = list(connection.execute("PRAGMA foreign_key_list(flashcards)"))
+        assert [(fk[2], fk[3], fk[4], fk[6]) for fk in card_keys] == [
+            ("files", "file_id", "id", "CASCADE")
+        ]
+        indexed = [
+            [info[2] for info in connection.execute(f"PRAGMA index_info('{row[1]}')")]
+            for row in connection.execute("PRAGMA index_list(flashcards)")
+        ]
+        assert ["file_id"] in indexed
+
+
+def test_ar4_downgrade_til_0005_fjerner_jobs_og_flashcards(tmp_path: Path) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+    command.downgrade(cfg, "0005_add_terms_accepted_at")
+    with sqlite3.connect(db_file) as connection:
+        tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master")}
+    assert "jobs" not in tables
+    assert "flashcards" not in tables
+    assert "files" in tables
