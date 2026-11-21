@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const PASSWORD = "hemmelig1";
 const INTRO = "Studiekamerat lager flashcards og quiz fra forelesningsnotatene dine, så du kan øve fram mot eksamen.";
@@ -11,6 +11,24 @@ function uniqueEmail(): string {
 async function expectNoAxeViolations(page: Page) {
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
+}
+
+// The focus ring from DESIGN.md: 2 px ink with 2 px space (same check as innlogget.spec.ts).
+async function expectFocusRing(element: Locator) {
+  const ring = await element.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { style: style.outlineStyle, width: style.outlineWidth, offset: style.outlineOffset, color: style.outlineColor };
+  });
+  expect(ring).toEqual({ style: "solid", width: "2px", offset: "2px", color: "rgb(21, 24, 31)" });
+}
+
+// Presses Tab until the element has focus (keyboard only, no clicks).
+async function tabTo(page: Page, element: Locator, maxPresses = 20) {
+  for (let i = 0; i < maxPresses; i += 1) {
+    await page.keyboard.press("Tab");
+    if (await element.evaluate((el) => el === document.activeElement)) return;
+  }
+  throw new Error("Tab never reached the element");
 }
 
 // Registers through the API; the login cookie lands in the page's browser context.
@@ -137,12 +155,18 @@ test.describe("Emner (story 2.1)", () => {
     await expect(page.getByText(INTRO)).toHaveCount(0);
     await expectNoAxeViolations(page);
 
-    // «Nytt emne» opens the same dialog.
-    await page.getByRole("button", { name: "Nytt emne" }).click();
+    // «Nytt emne» is reached with Tab, has the focus ring and opens the same dialog with Enter.
+    const newSubject = page.getByRole("button", { name: "Nytt emne" });
+    await tabTo(page, newSubject);
+    await expectFocusRing(newSubject);
+    await page.keyboard.press("Enter");
     await expect(page.getByRole("dialog", { name: "Nytt emne" })).toBeVisible();
+    await expect(page.getByRole("dialog").getByLabel("Navn")).toBeFocused();
   });
 
-  test("FR-6: nytt navn og ny eksamensdato vises i h1, linja og sidemenyen uten omlasting", async ({ page }) => {
+  test("FR-6: nytt navn og ny eksamensdato med bare tastatur vises i h1, linja og sidemenyen uten omlasting", async ({
+    page,
+  }) => {
     await registerNewUser(page);
     const id = await createSubjectViaApi(page, "Markedsføring");
     await createSubjectViaApi(page, "Samfunnsøkonomi");
@@ -152,13 +176,15 @@ test.describe("Emner (story 2.1)", () => {
     await page.evaluate(() => ((window as unknown as { marker: number }).marker = 1));
 
     const rename = page.getByRole("button", { name: "Nytt navn" });
-    await rename.click();
+    await tabTo(page, rename);
+    await expectFocusRing(rename);
+    await page.keyboard.press("Enter");
     const nameDialog = page.getByRole("dialog", { name: "Nytt navn" });
     await expect(nameDialog.getByLabel("Navn")).toHaveValue("Markedsføring");
     await expect(nameDialog.getByLabel("Navn")).toBeFocused();
     await expectNoAxeViolations(page);
     await nameDialog.getByLabel("Navn").fill("Markedsføring og merkevare");
-    await nameDialog.getByRole("button", { name: "Lagre" }).click();
+    await page.keyboard.press("Enter");
     await expect(nameDialog).toHaveCount(0);
     await expect(rename).toBeFocused();
     await expect(page.locator("main h1")).toHaveText("Markedsføring og merkevare");
@@ -166,17 +192,26 @@ test.describe("Emner (story 2.1)", () => {
     await expect(nav.getByRole("link", { name: "Markedsføring og merkevare" })).toHaveAttribute("aria-current", "page");
     await expect(page).toHaveTitle("Markedsføring og merkevare – Studiekamerat");
 
-    await page.getByRole("button", { name: "Endre eksamensdato" }).click();
+    const changeDate = page.getByRole("button", { name: "Endre eksamensdato" });
+    await tabTo(page, changeDate);
+    await expectFocusRing(changeDate);
+    await page.keyboard.press("Enter");
     const dateDialog = page.getByRole("dialog", { name: "Endre eksamensdato" });
+    await expect(dateDialog.getByLabel("Eksamensdato")).toBeFocused();
     await expect(dateDialog.getByLabel("Eksamensdato")).toHaveValue("04.12.2026");
     await dateDialog.getByLabel("Eksamensdato").fill("11.12.2026");
-    await dateDialog.getByRole("button", { name: "Lagre" }).click();
+    await page.keyboard.press("Enter");
+    await expect(dateDialog).toHaveCount(0);
+    await expect(changeDate).toBeFocused();
     await expect(page.getByText("Eksamen fredag 11.12.2026")).toBeVisible();
 
     expect(await page.evaluate(() => (window as unknown as { marker?: number }).marker)).toBe(1);
 
-    // The sidebar link to the other subject opens it.
-    await nav.getByRole("link", { name: "Samfunnsøkonomi" }).click();
+    // The sidebar link to the other subject is reached with Tab, has the focus ring and opens with Enter.
+    const otherLink = nav.getByRole("link", { name: "Samfunnsøkonomi" });
+    await tabTo(page, otherLink);
+    await expectFocusRing(otherLink);
+    await page.keyboard.press("Enter");
     await expect(page.locator("main h1")).toHaveText("Samfunnsøkonomi");
     await expect(nav.getByRole("link", { name: "Samfunnsøkonomi" })).toHaveAttribute("aria-current", "page");
     await expect(nav.getByRole("link", { name: "Markedsføring og merkevare" })).not.toHaveAttribute(
