@@ -25,3 +25,6 @@ class User(Base):
     # bcrypt hash; the password itself is never stored.
     password_hash: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utc_now)
+    # When the student accepted the terms (UTC). Empty until then; set once and
+    # never changed afterwards (see service.accept_terms).
+    terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -40,7 +40,7 @@ async def test_fr3_logg_inn(client: AsyncClient) -> None:
     user_id = await _create_account(client)
     response = await _login(client, " Klara@Eksempel.NO ", PASSWORD)
     assert response.status_code == 200
-    assert response.json() == {"id": user_id, "email": EMAIL}
+    assert response.json() == {"id": user_id, "email": EMAIL, "terms_accepted_at": None}
 
 
 async def test_ar10_innlogging_setter_samme_cookie_som_registreringen(client: AsyncClient) -> None:
@@ -184,5 +184,5 @@ async def test_fr3_innlogget_etter_innlogging_ifoelge_me(client: AsyncClient) ->
     await _login(client, EMAIL, PASSWORD)
     response = await client.get("/api/identity/me")
     assert response.status_code == 200
-    assert response.json() == {"id": user_id, "email": EMAIL}
+    assert response.json() == {"id": user_id, "email": EMAIL, "terms_accepted_at": None}
     uuid.UUID(response.json()["id"])

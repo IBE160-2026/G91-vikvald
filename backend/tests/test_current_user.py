@@ -54,14 +54,14 @@ async def test_ar10_me_med_cookie_fra_registreringen(client: AsyncClient) -> Non
     )
     me = await client.get(ME)
     assert me.status_code == 200
-    assert me.json() == {"id": response.json()["id"], "email": EMAIL}
+    assert me.json() == {"id": response.json()["id"], "email": EMAIL, "terms_accepted_at": None}
 
 
 async def test_ar10_me_med_gyldig_token(client: AsyncClient) -> None:
     user_id = await _create_account(client)
     response = await _me_with(client, create_session_token(uuid.UUID(user_id)))
     assert response.status_code == 200
-    assert response.json() == {"id": user_id, "email": EMAIL}
+    assert response.json() == {"id": user_id, "email": EMAIL, "terms_accepted_at": None}
 
 
 async def test_ar10_me_uten_cookie_gir_unauthenticated(client: AsyncClient) -> None:
@@ -150,4 +150,8 @@ async def test_ar2_me_svarer_med_brukeren_fra_current_user(client: AsyncClient) 
     app.dependency_overrides[current_user] = lambda: stand_in
     response = await client.get(ME)
     assert response.status_code == 200
-    assert response.json() == {"id": str(stand_in.id), "email": "annen@eksempel.no"}
+    assert response.json() == {
+        "id": str(stand_in.id),
+        "email": "annen@eksempel.no",
+        "terms_accepted_at": None,
+    }
