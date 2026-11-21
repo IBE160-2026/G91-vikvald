@@ -20,6 +20,7 @@ from app.modules.content import models as _content_models  # noqa: E402, F401  (
 from app.modules.files import models as _files_models  # noqa: E402, F401  (registers files)
 from app.modules.generation import models as _generation_models  # noqa: E402, F401  (registers jobs)
 from app.modules.identity import models as _identity_models  # noqa: E402, F401  (registers users)
+from app.modules.practice import models as _practice_models  # noqa: E402, F401  (registers practice_sessions)
 from app.modules.subjects import models as _subjects_models  # noqa: E402, F401  (registers subjects)
 
 TEST_DATABASE_URL = "sqlite+aiosqlite://"
