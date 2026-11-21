@@ -15,9 +15,10 @@ import { inertOthers } from "./dialog";
 // screen (story 3.4).
 //
 // Radix gives the focus trap, Esc and aria-hidden on the rest; as in the dialog,
-// the rest of the page also gets `inert`. The panel lies inside the scrim, so a
-// click on the scrim is a click outside the panel and closes it (unlike the
-// dialogs). No slide animation. The close cross is called «Lukk».
+// the rest of the page also gets `inert`. The panel lies inside the scrim, and
+// a click on the scrim itself calls `onScrimClick` (the side menu closes the
+// panel; the dialogs do not close that way). No slide animation. The close
+// cross is called «Lukk».
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
@@ -40,8 +41,9 @@ function SheetContent({
   className,
   children,
   ref,
+  onScrimClick,
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Content>) {
+}: React.ComponentProps<typeof SheetPrimitive.Content> & { onScrimClick?: () => void }) {
   const [node, setNode] = React.useState<HTMLElement | null>(null);
   // Runs after Radix has moved focus into the panel (see ui/dialog.tsx).
   React.useEffect(() => (node ? inertOthers(node) : undefined), [node]);
@@ -55,7 +57,13 @@ function SheetContent({
 
   return (
     <SheetPrimitive.Portal data-slot="sheet-portal">
-      <SheetPrimitive.Overlay data-slot="sheet-overlay" className="fixed inset-0 z-50 flex bg-scrim-veil">
+      <SheetPrimitive.Overlay
+        data-slot="sheet-overlay"
+        className="fixed inset-0 z-50 flex bg-scrim-veil"
+        onClick={(event) => {
+          if (event.target === event.currentTarget) onScrimClick?.();
+        }}
+      >
         <SheetPrimitive.Content
           ref={composedRef}
           data-slot="sheet-content"

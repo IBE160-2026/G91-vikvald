@@ -121,6 +121,17 @@ describe("SideMenu", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
+  it("UX-DR32: klikk på sløret lukker panelet, klikk i panelet gjør det ikke", () => {
+    narrow = true;
+    render(<App />);
+    fireEvent.click(menuButton());
+    const panel = screen.getByRole("dialog");
+    fireEvent.click(panel);
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    fireEvent.click(document.querySelector("[data-slot='sheet-overlay']")!);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
   it("UX-DR32: panelet lukkes når siden byttes", () => {
     narrow = true;
     const { rerender } = render(<App />);

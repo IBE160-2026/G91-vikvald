@@ -126,6 +126,7 @@ export function SideMenu({ title, children }: { title: string; children: ReactNo
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent
         aria-describedby={undefined}
+        onScrimClick={() => setOpen(false)}
         onCloseAutoFocus={(event) => {
           event.preventDefault();
           // Handing over to the shortcut dialog: it takes focus itself.
@@ -133,7 +134,10 @@ export function SideMenu({ title, children }: { title: string; children: ReactNo
           else menuButtonRef.current?.focus();
         }}
       >
-        <SheetTitle className="sr-only">{title}</SheetTitle>
+        {/* Names the panel; a span, so it adds no heading of its own. */}
+        <SheetTitle asChild>
+          <span className="sr-only">{title}</span>
+        </SheetTitle>
         <div className="flex min-h-full flex-1 flex-col *:flex-1">{children}</div>
       </SheetContent>
     </Sheet>
