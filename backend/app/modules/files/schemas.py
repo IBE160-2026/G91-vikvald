@@ -25,3 +25,15 @@ class SubjectFileCounts(BaseModel):
     file_count: int
     # Only the lectures that have files.
     lectures: list[LectureFileCount]
+
+
+class DeleteCount(BaseModel):
+    # "lectures", "files", or a kind from the content registry.
+    kind: str
+    count: int
+
+
+class DeletePreview(BaseModel):
+    # What else goes when the item is deleted: lectures, files, then the
+    # registry's counts. Counts of 0 are left out.
+    counts: list[DeleteCount]

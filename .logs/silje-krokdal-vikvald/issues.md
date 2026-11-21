@@ -75,7 +75,7 @@
 - [ ] 2026-11-20 [story-1-6-innlogget-logg-ut-fant-ikke-siden](988-2026-11-20-21-56-56-story-1-6-innlogget-logg-ut-fant-ikke-siden.md) — les over tekstene KI skrev i story 1.6 (fanetitler, «Lukk», README) (#64)
 - [x] 2026-11-20 [story-1-6-innlogget-logg-ut-fant-ikke-siden](988-2026-11-20-21-56-56-story-1-6-innlogget-logg-ut-fant-ikke-siden.md) — gi dialogen inert og scroll-lås når den tas i bruk i epic 2 (løst 2026-11-20, #68)
 - [ ] 2026-11-20 [funn-68-shadcn-ui](986-2026-11-20-23-18-08-funn-68-shadcn-ui.md) — se over kanttilfellene fra funn #68: egen inert, testene venter på fokus, sløret lukker ikke, plassering og pakker (#71, #72, #73, #74)
-- [ ] 2026-11-20 [funn-68-shadcn-ui](986-2026-11-20-23-18-08-funn-68-shadcn-ui.md) — e2e-test for dialogen, og avgjør sene body-elementer, aria-describedby og fokus når åpneren er borte (#75)
+- [x] 2026-11-20 [funn-68-shadcn-ui](986-2026-11-20-23-18-08-funn-68-shadcn-ui.md) — e2e-test for dialogen, og avgjør sene body-elementer, aria-describedby og fokus når åpneren er borte (#75) (løst 2026-11-21)
 - [ ] 2026-11-20 [funn-68-shadcn-ui](986-2026-11-20-23-18-08-funn-68-shadcn-ui.md) — nye shadcn-komponenter må tilpasses DESIGN.md-tokenene (#76)
 - [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — godkjenn emnefargene subject-4 til subject-6 og før dem inn i DESIGN.md (#80)
 - [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — vurder kanttilfellene fra story 2.1 (#81–#88)
@@ -84,7 +84,11 @@
 - [ ] 2026-11-21 [story-2-2-forelesninger-og-sidemeny](983-2026-11-21-03-34-32-story-2-2-forelesninger-og-sidemeny.md) — vurder kanttilfellene fra story 2.2 (#90–#94)
 - [ ] 2026-11-21 [story-2-2-forelesninger-og-sidemeny](983-2026-11-21-03-34-32-story-2-2-forelesninger-og-sidemeny.md) — brødsmuler på forelesningssiden (skisse 04) er ikke i noen story (#93)
 - [ ] 2026-11-21 [story-2-3-last-opp-pdf-notater](982-2026-11-21-07-42-08-story-2-3-last-opp-pdf-notater.md) — vurder kanttilfellene fra story 2.3 (#96–#100), særlig tekstene «Laster opp …» og «<filnavn>: <melding>» (#98)
-- [ ] 2026-11-21 [story-2-3-last-opp-pdf-notater](982-2026-11-21-07-42-08-story-2-3-last-opp-pdf-notater.md) — PDF-ene på disken må slettes av sletterutene i 2.5 og 2.7
+- [x] 2026-11-21 [story-2-3-last-opp-pdf-notater](982-2026-11-21-07-42-08-story-2-3-last-opp-pdf-notater.md) — PDF-ene på disken må slettes av sletterutene i 2.5 og 2.7 (løst 2026-11-21 for 2.5; 2.7 står som eget punkt)
 - [ ] 2026-11-21 [story-2-3-last-opp-pdf-notater](982-2026-11-21-07-42-08-story-2-3-last-opp-pdf-notater.md) — avklar om PyMuPDF kan gi surrogattegn i sideteksten som Postgres avviser
 - [ ] 2026-11-21 [story-2-4-godta-vilkarene](981-2026-11-21-08-10-18-story-2-4-godta-vilkarene.md) — vurder kanttilfellene fra story 2.4 (#103–#107), særlig «Du har valgt 3 filer.» (#105) og reserveteksten for TERMS_NOT_ACCEPTED (#104)
 - [ ] 2026-11-21 [story-2-4-godta-vilkarene](981-2026-11-21-08-10-18-story-2-4-godta-vilkarene.md) — kontosiden i 2.7 skal vise TermsText uten avkrysning, sammen med datoen fra terms_accepted_at
+- [ ] 2026-11-21 [story-2-5-slett-med-bekreftelse](980-2026-11-21-08-46-33-story-2-5-slett-med-bekreftelse.md) — vurder kanttilfellene fra story 2.5 (#109–#115), særlig fokus etter sletting (#111) og tekstene i bekreftelsen (#112)
+- [ ] 2026-11-21 [story-2-5-slett-med-bekreftelse](980-2026-11-21-08-46-33-story-2-5-slett-med-bekreftelse.md) — låsingen mot opplasting under sletting virker bare på Postgres og er ikke testet
+- [ ] 2026-11-21 [story-2-5-slett-med-bekreftelse](980-2026-11-21-08-46-33-story-2-5-slett-med-bekreftelse.md) — en PDF som ikke kan slettes fra disken, blir liggende uten opprydding
+- [ ] 2026-11-21 [story-2-5-slett-med-bekreftelse](980-2026-11-21-08-46-33-story-2-5-slett-med-bekreftelse.md) — brukermappa med PDF-er må slettes når kontoen slettes i 2.7

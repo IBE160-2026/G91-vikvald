@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { headingFocusPending, resetHeadingFocus } from "@/lib/focus-heading";
+import { FALLBACK_MESSAGE } from "@/lib/messages";
 import type { UploadedFile } from "@/modules/files/types";
 
 import { LecturePage } from "./pages/lecture-page";
@@ -10,7 +12,8 @@ import type { Lecture, Subject } from "./types";
 
 // The real notFound() throws to show app/(app)/not-found.tsx; here it only records the call.
 const notFound = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), notFound: () => notFound() }));
+const push = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }), notFound: () => notFound() }));
 
 const fetchMock = vi.fn<typeof fetch>();
 
@@ -40,6 +43,8 @@ let uploadAnswer: (file: File) => UploadAnswer = () => undefined;
 let files: UploadedFile[] = [];
 // Lets a test hold the uploads until it has looked at the page.
 let gate: Promise<void> = Promise.resolve();
+// The status the fake backend gives a file DELETE.
+let deleteStatus = 204;
 
 function uploadedFile(name: string, pages: number, id = `f${files.length + 1}`): UploadedFile {
   return { id, lecture_id: "l2", original_name: name, page_count: pages, uploaded_at: "2026-09-12T08:00:00Z" };
@@ -84,6 +89,25 @@ function respond() {
       return jsonResponse(200, files);
     }
     if (path === "/api/lectures/l1/files") return jsonResponse(200, []);
+    const filePreview = path.match(/^\/api\/files\/([^/]+)\/delete-preview$/);
+    if (filePreview) {
+      if (!files.some((file) => file.id === filePreview[1])) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
+      return jsonResponse(200, { counts: [] });
+    }
+    const fileDelete = path.match(/^\/api\/files\/([^/]+)$/);
+    if (fileDelete && init?.method === "DELETE") {
+      if (deleteStatus !== 204) return jsonResponse(deleteStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
+      files = files.filter((file) => file.id !== fileDelete[1]);
+      return new Response(null, { status: 204 });
+    }
+    if (path === "/api/lectures/l2/delete-preview") {
+      return jsonResponse(200, { counts: files.length > 0 ? [{ kind: "files", count: files.length }] : [] });
+    }
+    if (path === "/api/lectures/l2" && init?.method === "DELETE") {
+      const index = lectures.findIndex((lecture) => lecture.id === "l2");
+      if (index >= 0) lectures.splice(index, 1);
+      return new Response(null, { status: 204 });
+    }
     const found = lectures.find((lecture) => path === `/api/lectures/${lecture.id}`);
     if (!found) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
     if (init?.method === "PATCH") Object.assign(found, JSON.parse(String(init.body)));
@@ -114,6 +138,8 @@ beforeEach(() => {
   uploadAnswer = () => undefined;
   files = [];
   gate = Promise.resolve();
+  deleteStatus = 204;
+  push.mockReset();
   vi.stubGlobal("fetch", fetchMock);
   respond();
 });
@@ -141,6 +167,7 @@ function uploadCalls() {
 }
 
 afterEach(() => {
+  resetHeadingFocus();
   cleanup();
   fetchMock.mockReset();
   notFound.mockClear();
@@ -247,15 +274,16 @@ describe("forelesningssiden", () => {
     const list = screen.getByRole("list", { name: "Filer" });
     const rows = within(list).getAllByRole("listitem");
     expect(rows.map((row) => row.textContent)).toEqual([
-      "merkevare-notater.pdf12 sider · lastet opp 12.09",
-      "merkevare-forelesning2.pdf6 sider · lastet opp 12.09",
+      "merkevare-notater.pdf12 sider · lastet opp 12.09SlettSlett merkevare-notater.pdf",
+      "merkevare-forelesning2.pdf6 sider · lastet opp 12.09SlettSlett merkevare-forelesning2.pdf",
     ]);
     // The name is cut off with CSS; the whole name is in the DOM and the tooltip.
-    const name = within(rows[0]).getByText("merkevare-notater.pdf");
+    const name = within(rows[0]).getByText("merkevare-notater.pdf", { selector: "p" });
     expect(name.className).toContain("truncate");
     expect(name.getAttribute("title")).toBe("merkevare-notater.pdf");
     expect(rows[0].className).toContain("h-file-row");
-    expect(screen.queryByRole("button", { name: /Slett|Erstatt/ })).toBeNull();
+    // «Erstatt» comes in story 2.6.
+    expect(screen.queryByRole("button", { name: /Erstatt/ })).toBeNull();
   });
 
   it("UX-DR16: entall «1 fil · 1 side»", async () => {
@@ -384,7 +412,7 @@ describe("forelesningssiden", () => {
     const zone = document.querySelector('[data-slot="upload-zone"]')!;
     fireEvent.drop(zone, { dataTransfer: { files: [pdf("sluppet.pdf")] } });
     expect(await screen.findByText("Forelesning fredag 18.09.2026 · 1 fil · 3 sider")).toBeTruthy();
-    expect(screen.getByText("sluppet.pdf")).toBeTruthy();
+    expect(screen.getByText("sluppet.pdf", { selector: "p" })).toBeTruthy();
   });
 
   it("FR-4: utlogget under opplasting stopper løkka, så resten av filene sendes ikke", async () => {
@@ -587,6 +615,86 @@ describe("forelesningssiden", () => {
       dialog = await screen.findByRole("dialog", { name: "Før du laster opp" });
       expect(within(dialog).getByText("Google kan logge forespørslene en periode for å oppdage misbruk.")).toBeTruthy();
       expect(within(dialog).queryByText("I demomodus sendes ingenting ut.")).toBeNull();
+    });
+  });
+  describe("sletting", () => {
+    it("FR-14: «Slett» på en fil viser dialogen med filnavn, sider og forelesning, og sletter bare den", async () => {
+      files = [uploadedFile("merkevare-notater.pdf", 12, "f1"), uploadedFile("prising.pdf", 6, "f2")];
+      renderPage();
+      await screen.findByText("Forelesning fredag 18.09.2026 · 2 filer · 18 sider");
+      const button = screen.getByRole("button", { name: "Slett merkevare-notater.pdf" });
+      expect(button.className).toContain("text-danger");
+      button.focus();
+      fireEvent.click(button);
+
+      const dialog = screen.getByRole("dialog", { name: "Slette fila?" });
+      expect(within(dialog).getByText("merkevare-notater.pdf")).toBeTruthy();
+      expect(within(dialog).getByText("12 sider · Uke 38: Prising")).toBeTruthy();
+      expect(document.activeElement).toBe(within(dialog).getByRole("button", { name: "Avbryt" }));
+      await within(dialog).findByText("Det kan ikke angres.");
+      expect(dialog.textContent).not.toContain("Dette sletter også");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett fila" }));
+
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      const list = screen.getByRole("list", { name: "Filer" });
+      expect(within(list).getAllByRole("listitem")).toHaveLength(1);
+      expect(within(list).queryByText("merkevare-notater.pdf")).toBeNull();
+      expect(await screen.findByText("Forelesning fredag 18.09.2026 · 1 fil · 6 sider")).toBeTruthy();
+      // The row is gone, so focus goes to «Filer» (#75).
+      await waitFor(() =>
+        expect(document.activeElement).toBe(screen.getByRole("heading", { level: 2, name: "Filer" })),
+      );
+      const deletes = fetchMock.mock.calls.filter(([, init]) => init?.method === "DELETE");
+      expect(deletes.map(([url]) => String(url))).toEqual(["/api/files/f1"]);
+    });
+
+    it("UX-DR21: Esc på fildialogen sletter ingenting, og fokus går tilbake til «Slett»", async () => {
+      files = [uploadedFile("merkevare-notater.pdf", 12, "f1")];
+      renderPage();
+      const button = await screen.findByRole("button", { name: "Slett merkevare-notater.pdf" });
+      button.focus();
+      fireEvent.click(button);
+      fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+      expect(screen.queryByRole("dialog")).toBeNull();
+      await waitFor(() => expect(document.activeElement).toBe(button));
+      expect(fetchMock.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(false);
+    });
+
+    it("FR-14: feiler slettingen, står dialogen med reserveteksten og fila står igjen", async () => {
+      deleteStatus = 500;
+      files = [uploadedFile("merkevare-notater.pdf", 12, "f1")];
+      renderPage();
+      fireEvent.click(await screen.findByRole("button", { name: "Slett merkevare-notater.pdf" }));
+      const dialog = screen.getByRole("dialog");
+      await within(dialog).findByText("Det kan ikke angres.");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett fila" }));
+      expect((await within(dialog).findByRole("alert")).textContent).toBe(FALLBACK_MESSAGE);
+      // The page behind the dialog is hidden from screen readers while it is open.
+      expect(screen.getByRole("button", { name: "Slett merkevare-notater.pdf", hidden: true })).toBeTruthy();
+    });
+
+    it("FR-7: «Slett forelesningen» viser filene som går med, og tar henne til emnesiden", async () => {
+      files = [uploadedFile("a.pdf", 2, "f1"), uploadedFile("b.pdf", 3, "f2")];
+      renderPage();
+      await screen.findByText("Forelesning fredag 18.09.2026 · 2 filer · 5 sider");
+      const buttons = within(screen.getByRole("button", { name: "Nytt navn" }).parentElement!)
+        .getAllByRole("button")
+        .map((button) => button.textContent);
+      expect(buttons).toEqual(["Nytt navn", "Endre dato", "Slett forelesningen"]);
+      const button = screen.getByRole("button", { name: "Slett forelesningen" });
+      expect(button.className).toContain("text-danger");
+      fireEvent.click(button);
+
+      const dialog = screen.getByRole("dialog", { name: "Slette forelesningen?" });
+      expect(within(dialog).getByText("Uke 38: Prising")).toBeTruthy();
+      expect(await within(dialog).findByText("Dette sletter også 2 filer.")).toBeTruthy();
+      expect(within(dialog).getByText("Det kan ikke angres.")).toBeTruthy();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett forelesningen" }));
+
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/emner/a"));
+      expect(headingFocusPending()).toBe(true);
+      // The page does not show «Fant ikke siden» before she has left it.
+      expect(notFound).not.toHaveBeenCalled();
     });
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { FALLBACK_MESSAGE, messageFor, messageWithDetails, messages } from "./messages";
+import { FALLBACK_MESSAGE, countNouns, messageFor, messageWithDetails, messages } from "./messages";
 
 describe("meldingsfila", () => {
   it("FR-1: reserveteksten er «Noe gikk galt. Prøv igjen.»", () => {
@@ -91,5 +91,17 @@ describe("meldingsfila", () => {
   it("FR-1: messageWithDetails gir vanlige tekster uendret og reserveteksten for ukjente koder", () => {
     expect(messageWithDetails("NOT_FOUND", { x: 1 })).toBe("Fant ikke siden.");
     expect(messageWithDetails("UKJENT", {})).toBe(FALLBACK_MESSAGE);
+  });
+});
+
+describe("countNouns", () => {
+  it("UX-DR22: navnene på det som slettes, i entall og flertall", () => {
+    expect(countNouns).toEqual({
+      lectures: { one: "forelesning", other: "forelesninger" },
+      files: { one: "fil", other: "filer" },
+      flashcards: { one: "flashcard", other: "flashcards" },
+      quiz_questions: { one: "quizspørsmål", other: "quizspørsmål" },
+      model_cards: { one: "modellkort", other: "modellkort" },
+    });
   });
 });

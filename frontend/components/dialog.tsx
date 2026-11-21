@@ -51,18 +51,44 @@ export type DialogProps = {
     icon?: ReactNode;
   };
   width?: DialogWidth;
+  // Where focus goes when the dialog closes. When it gives an element, that
+  // element gets focus; otherwise the opener does (as before). Used when the
+  // opener is gone, e.g. a deleted file's row (#75).
+  returnFocus?: () => HTMLElement | null;
+  // «Avbryt» is not active (e.g. while a delete runs and cannot be taken back).
+  cancelDisabled?: boolean;
 };
 
 function focusableIn(element: HTMLElement | null): HTMLElement[] {
   return element ? [...element.querySelectorAll<HTMLElement>(FOCUSABLE)] : [];
 }
 
-export function Dialog({ open, title, children, onClose, primaryAction, width = 560 }: DialogProps) {
+export function Dialog({
+  open,
+  title,
+  children,
+  onClose,
+  primaryAction,
+  width = 560,
+  returnFocus,
+  cancelDisabled = false,
+}: DialogProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   // The element that had focus when the dialog opened. Focus goes back to it.
   const openerRef = useRef<HTMLElement | null>(null);
+
+  // When «Avbryt» is active again (e.g. after a failed delete), the button that
+  // had focus may have been disabled meanwhile, leaving focus on body. Then
+  // focus goes to «Avbryt», so the keyboard stays in the dialog.
+  const wasCancelDisabled = useRef(cancelDisabled);
+  useEffect(() => {
+    const was = wasCancelDisabled.current;
+    wasCancelDisabled.current = cancelDisabled;
+    if (!open || !was || cancelDisabled) return;
+    if (!contentRef.current?.contains(document.activeElement)) cancelRef.current?.focus();
+  }, [open, cancelDisabled]);
 
   // After a click on the scrim, focus is on body. Radix still closes on Esc
   // (it listens on the document), but its focus trap only sees Tab inside the
@@ -92,12 +118,15 @@ export function Dialog({ open, title, children, onClose, primaryAction, width = 
         onOpenAutoFocus={(event) => {
           event.preventDefault();
           openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-          // First field or button in the content, otherwise «Avbryt» (the safe choice).
-          (focusableIn(bodyRef.current)[0] ?? cancelRef.current)?.focus();
+          // A delete confirmation always starts on «Avbryt», never on the danger
+          // button (UX-DR21). Otherwise the first field or button in the
+          // content, and without one «Avbryt» (the safe choice).
+          const first = primaryAction.variant === "danger" ? null : focusableIn(bodyRef.current)[0];
+          (first ?? cancelRef.current)?.focus();
         }}
         onCloseAutoFocus={(event) => {
           event.preventDefault();
-          openerRef.current?.focus();
+          (returnFocus?.() ?? openerRef.current)?.focus();
           openerRef.current = null;
         }}
         // A click on the scrim does not close the dialog.
@@ -108,7 +137,8 @@ export function Dialog({ open, title, children, onClose, primaryAction, width = 
           <DialogTitle>{title}</DialogTitle>
           <DialogClose
             aria-label="Lukk"
-            className="-mr-2 inline-flex size-6 cursor-pointer items-center justify-center rounded-md text-ink-muted hover:bg-row-hover"
+            disabled={cancelDisabled}
+            className="-mr-2 inline-flex size-6 cursor-pointer items-center justify-center rounded-md text-ink-muted hover:bg-row-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             <X {...iconProps} size={20} />
           </DialogClose>
@@ -117,7 +147,7 @@ export function Dialog({ open, title, children, onClose, primaryAction, width = 
           {children}
         </div>
         <DialogFooter>
-          <Button ref={cancelRef} variant="outline" onClick={onClose}>
+          <Button ref={cancelRef} variant="outline" disabled={cancelDisabled} onClick={onClose}>
             Avbryt
           </Button>
           <Button

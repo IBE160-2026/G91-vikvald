@@ -3,10 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { CircleAlert, Plus } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { iconProps } from "@/components/icon";
 import { Button } from "@/components/ui/button";
+import { useFocusHeadingOnArrival } from "@/lib/focus-heading";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 
 import { SUBJECTS_QUERY_KEY, fetchSubjects } from "../api";
@@ -20,17 +21,22 @@ import type { Subject } from "../types";
 // «Nytt emne» on the right. Her subjects stand in a simple list in a white card
 // (epic 5 replaces it with the semester line and subject cards). With no subjects
 // there is one sentence about the app and the primary button «Lag ditt første emne».
+// After a subject is deleted she lands here, and the h1 gets focus (#75).
 export function HomePage() {
   const subjects = useQuery({ queryKey: SUBJECTS_QUERY_KEY, queryFn: fetchSubjects });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [today] = useState(() => new Date());
   const hasSubjects = (subjects.data?.length ?? 0) > 0;
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useFocusHeadingOnArrival(headingRef, subjects.isSuccess);
 
   return (
     <div className="px-home-margin pt-7 pb-7">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-page-title">Dine emner</h1>
+          <h1 ref={headingRef} tabIndex={-1} className="text-page-title">
+            Dine emner
+          </h1>
           <p className="mt-1 text-body-sm text-ink-muted">{semesterLabel(today)}</p>
         </div>
         {hasSubjects ? (

@@ -3,7 +3,7 @@
 import uuid
 from datetime import date
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError, ErrorCode
@@ -148,3 +148,32 @@ async def update_lecture(
         lecture.date = lecture_date
     await session.commit()
     return lecture
+
+
+async def lecture_ids(session: AsyncSession, subject_id: uuid.UUID) -> list[uuid.UUID]:
+    """The ids of all lectures in the subject, locked until the commit."""
+    # Locked so an upload cannot add a file (and a PDF) after the file ids are
+    # collected for a delete; it waits and then fails on the FK. SQLite ignores it.
+    statement = (
+        select(Lecture.id).where(Lecture.subject_id == subject_id).order_by(Lecture.id).with_for_update()
+    )
+    return list(await session.scalars(statement))
+
+
+async def lock_lecture(session: AsyncSession, lecture_id: uuid.UUID) -> None:
+    """Lock the lecture row until the commit."""
+    # Locked so an upload cannot add a file (and a PDF) after the file ids are
+    # collected for a delete; it waits and then fails on the FK. SQLite ignores it.
+    await session.execute(select(Lecture.id).where(Lecture.id == lecture_id).with_for_update())
+
+
+async def delete_lecture(session: AsyncSession, lecture_id: uuid.UUID) -> None:
+    """Delete the lecture row in one statement; everything under it goes with
+    ON DELETE CASCADE. The caller checks ownership first and commits."""
+    await session.execute(delete(Lecture).where(Lecture.id == lecture_id))
+
+
+async def delete_subject(session: AsyncSession, subject_id: uuid.UUID) -> None:
+    """Delete the subject row in one statement; its lectures and everything
+    under them go with ON DELETE CASCADE. The caller checks ownership first and commits."""
+    await session.execute(delete(Subject).where(Subject.id == subject_id))

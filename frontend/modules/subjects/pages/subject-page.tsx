@@ -1,17 +1,28 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { CircleAlert, Plus } from "lucide-react";
-import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { CircleAlert, Plus, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 
+import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { iconProps } from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import { notFoundOnMissing } from "@/lib/api";
+import { focusHeadingAfterNavigation, useFocusHeadingOnArrival } from "@/lib/focus-heading";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import { fetchFileCounts, fileCountsQueryKey } from "@/modules/files/api";
 
-import { fetchLectures, fetchSubject, lecturesQueryKey, subjectQueryKey } from "../api";
+import {
+  SUBJECTS_QUERY_KEY,
+  deleteSubject,
+  fetchLectures,
+  fetchSubject,
+  fetchSubjectDeletePreview,
+  lecturesQueryKey,
+  subjectQueryKey,
+} from "../api";
 import { LectureFormDialog } from "../components/lecture-form-dialog";
 import { LectureTable } from "../components/lecture-table";
 import { SubjectFormDialog, type SubjectFormMode } from "../components/subject-form-dialog";
@@ -20,9 +31,12 @@ import { fileCountLabel, formatWeekdayDate, lectureCountLabel } from "../format"
 
 // The subject page (mockup 03): the sidebar on the left; h1 with the name, the
 // line «8 forelesninger · 11 filer · eksamen fredag 04.12.2026», and the buttons «Ny forelesning», «Nytt navn»
-// and «Endre eksamensdato». Under them the h2 «Forelesninger» («etter dato» in
-// muted grey) and the lecture table, or «Ingen forelesninger ennå.». Someone
-// else's or a missing subject shows «Fant ikke siden».
+// «Endre eksamensdato» and «Slett emnet». Under them the h2 «Forelesninger»
+// («etter dato» in muted grey) and the lecture table, or «Ingen forelesninger
+// ennå.». Someone else's or a missing subject shows «Fant ikke siden».
+//
+// After a lecture is deleted on 04 she lands here, and the h1 gets focus (#75).
+// After the subject is deleted (FR-6) she is taken to the front page (02).
 export function SubjectPage({ subjectId }: { subjectId: string }) {
   const subject = useQuery({ queryKey: subjectQueryKey(subjectId), queryFn: () => fetchSubject(subjectId) });
   const lectures = useQuery({
@@ -39,12 +53,25 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
   // Which dialog was opened last; it keeps its mode while it closes.
   const [dialogMode, setDialogMode] = useState<SubjectFormMode>("rename");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useFocusHeadingOnArrival(headingRef, subject.isSuccess);
   const name = subject.data?.name;
   useDocumentTitle(name ? `${name} – Studiekamerat` : null);
 
   function openDialog(mode: SubjectFormMode) {
     setDialogMode(mode);
     setDialogOpen(true);
+  }
+
+  function subjectDeleted() {
+    focusHeadingAfterNavigation();
+    router.push("/");
+    // Only the list: this subject's own keys are left alone, so this page does
+    // not show «Fant ikke siden» before she has left it.
+    void queryClient.invalidateQueries({ queryKey: SUBJECTS_QUERY_KEY, exact: true });
   }
 
   if (subject.error) notFoundOnMissing(subject.error);
@@ -64,7 +91,9 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
           <>
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
-                <h1 className="text-page-title break-words">{subject.data.name}</h1>
+                <h1 ref={headingRef} tabIndex={-1} className="text-page-title break-words">
+                  {subject.data.name}
+                </h1>
                 <p className="mt-1 text-body-sm text-ink-muted">
                   {lectureCountLabel(subject.data.lecture_count)}
                   {fileCounts.data ? ` · ${fileCountLabel(fileCounts.data.file_count)}` : null}
@@ -82,6 +111,10 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
               </Button>
               <Button variant="outline" onClick={() => openDialog("examDate")}>
                 Endre eksamensdato
+              </Button>
+              <Button variant="outline" className="text-danger" onClick={() => setDeleteDialogOpen(true)}>
+                <Trash2 {...iconProps} />
+                Slett emnet
               </Button>
             </div>
 
@@ -114,6 +147,18 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
               open={lectureDialogOpen}
               onClose={() => setLectureDialogOpen(false)}
               subjectId={subject.data.id}
+            />
+            <DeleteConfirmDialog
+              open={deleteDialogOpen}
+              title="Slette emnet?"
+              confirmLabel="Slett emnet"
+              item={{ name: subject.data.name }}
+              target="subject"
+              previewKey={["subjects", subjectId]}
+              loadCounts={() => fetchSubjectDeletePreview(subjectId)}
+              remove={() => deleteSubject(subjectId)}
+              onClose={() => setDeleteDialogOpen(false)}
+              onDeleted={subjectDeleted}
             />
           </>
         ) : null}

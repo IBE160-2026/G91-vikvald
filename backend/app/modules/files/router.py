@@ -1,8 +1,10 @@
 """HTTP routes for the files module.
 
-POST/GET /api/lectures/{id}/files and GET /api/subjects/{id}/file-counts. The
-files module may call the subjects module (for ownership), never the other way
-round, so the counts for the subject page come from a route here.
+POST/GET /api/lectures/{id}/files, GET /api/subjects/{id}/file-counts, and the
+delete preview and DELETE for files, lectures and subjects. The files module may
+call the subjects and content modules, never the other way round. Deleting a
+lecture or a subject must know its files (to count them and to remove the PDFs),
+so those routes live here too.
 """
 
 import asyncio
@@ -11,7 +13,7 @@ from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import UploadFile
 from starlette.formparsers import MultiPartException, MultiPartParser
@@ -21,12 +23,36 @@ from app.core.db import get_session
 from app.core.errors import AppError, ErrorCode
 from app.modules.files import pdf
 from app.modules.files.models import File
-from app.modules.files.schemas import FileOut, LectureFileCount, SubjectFileCounts
-from app.modules.files.service import clean_original_name, file_counts, list_files, store_file
+from app.modules.content.registry import DeleteScope, content_counts
+from app.modules.files.schemas import (
+    DeleteCount,
+    DeletePreview,
+    FileOut,
+    LectureFileCount,
+    SubjectFileCounts,
+)
+from app.modules.files.service import (
+    clean_original_name,
+    delete_file,
+    delete_pdfs,
+    file_counts,
+    file_ids_for_lectures,
+    get_file,
+    list_files,
+    store_file,
+)
 from app.modules.identity.dependencies import current_user
 from app.modules.identity.models import User
-from app.modules.subjects.service import get_lecture, get_subject
+from app.modules.subjects.service import (
+    delete_lecture,
+    delete_subject,
+    get_lecture,
+    get_subject,
+    lecture_ids,
+    lock_lecture,
+)
 
+files_router = APIRouter(prefix="/api/files")
 lectures_router = APIRouter(prefix="/api/lectures")
 subjects_router = APIRouter(prefix="/api/subjects")
 
@@ -165,3 +191,87 @@ async def subject_file_counts(
             for lecture_id, count, pages in rows
         ],
     )
+
+
+# --- Delete preview and delete (FR-6, FR-7, FR-12, FR-14, AR-7, AR-8) ---------
+
+
+async def _preview(
+    session: AsyncSession, scope: DeleteScope, *, lectures: bool, files: bool
+) -> DeletePreview:
+    """lectures, files, then the registry's counts, without the counts that are 0."""
+    counts: list[tuple[str, int]] = []
+    if lectures:
+        counts.append(("lectures", len(scope.lecture_ids)))
+    if files:
+        counts.append(("files", len(scope.file_ids)))
+    counts.extend(await content_counts(session, scope))
+    return DeletePreview(
+        counts=[DeleteCount(kind=kind, count=count) for kind, count in counts if count > 0]
+    )
+
+
+@files_router.get("/{file_id}/delete-preview")
+async def file_delete_preview(file_id: str, user: CurrentUser, session: Session) -> DeletePreview:
+    file = await get_file(session, user.id, file_id)
+    scope = DeleteScope(file_ids=(file.id,), lecture_ids=())
+    return await _preview(session, scope, lectures=False, files=False)
+
+
+@files_router.delete("/{file_id}", status_code=204)
+async def delete_one_file(file_id: str, user: CurrentUser, session: Session) -> Response:
+    file = await get_file(session, user.id, file_id)
+    file_id_to_remove = file.id
+    await delete_file(session, file_id_to_remove)
+    owner_id = user.id
+    await session.commit()
+    # The PDF goes only after the commit, so a failed commit never loses it.
+    await delete_pdfs(owner_id, [file_id_to_remove])
+    return Response(status_code=204)
+
+
+@lectures_router.get("/{lecture_id}/delete-preview")
+async def lecture_delete_preview(
+    lecture_id: str, user: CurrentUser, session: Session
+) -> DeletePreview:
+    lecture = await get_lecture(session, user.id, lecture_id)
+    file_ids = await file_ids_for_lectures(session, [lecture.id])
+    scope = DeleteScope(file_ids=tuple(file_ids), lecture_ids=(lecture.id,))
+    return await _preview(session, scope, lectures=False, files=True)
+
+
+@lectures_router.delete("/{lecture_id}", status_code=204)
+async def delete_one_lecture(lecture_id: str, user: CurrentUser, session: Session) -> Response:
+    lecture = await get_lecture(session, user.id, lecture_id)
+    lecture_id_to_remove = lecture.id
+    await lock_lecture(session, lecture_id_to_remove)
+    # Collected before the delete: afterwards the rows are gone.
+    file_ids = await file_ids_for_lectures(session, [lecture_id_to_remove])
+    await delete_lecture(session, lecture_id_to_remove)
+    owner_id = user.id
+    await session.commit()
+    await delete_pdfs(owner_id, file_ids)
+    return Response(status_code=204)
+
+
+@subjects_router.get("/{subject_id}/delete-preview")
+async def subject_delete_preview(
+    subject_id: str, user: CurrentUser, session: Session
+) -> DeletePreview:
+    subject = await get_subject(session, user.id, subject_id)
+    lectures = await lecture_ids(session, subject.id)
+    file_ids = await file_ids_for_lectures(session, lectures)
+    scope = DeleteScope(file_ids=tuple(file_ids), lecture_ids=tuple(lectures))
+    return await _preview(session, scope, lectures=True, files=True)
+
+
+@subjects_router.delete("/{subject_id}", status_code=204)
+async def delete_one_subject(subject_id: str, user: CurrentUser, session: Session) -> Response:
+    subject = await get_subject(session, user.id, subject_id)
+    subject_id_to_remove = subject.id
+    file_ids = await file_ids_for_lectures(session, await lecture_ids(session, subject_id_to_remove))
+    await delete_subject(session, subject_id_to_remove)
+    owner_id = user.id
+    await session.commit()
+    await delete_pdfs(owner_id, file_ids)
+    return Response(status_code=204)

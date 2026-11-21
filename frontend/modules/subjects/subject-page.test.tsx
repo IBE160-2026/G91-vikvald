@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { focusHeadingAfterNavigation, headingFocusPending, resetHeadingFocus } from "@/lib/focus-heading";
+
 import { SubjectPage } from "./pages/subject-page";
 import type { SubjectFileCounts } from "@/modules/files/types";
 import type { Lecture, Subject } from "./types";
@@ -77,8 +79,21 @@ function respond(lectures: Lecture[] = LECTURES, fileCounts: SubjectFileCounts =
       if (!store.has(counts[1])) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
       return jsonResponse(200, counts[1] === "a" ? fileCounts : { file_count: 0, lectures: [] });
     }
+    const preview = path.match(/^\/api\/subjects\/([^/]+)\/delete-preview$/);
+    if (preview) {
+      const own = lectureStore.filter((lecture) => lecture.subject_id === preview[1]);
+      const counts = [
+        { kind: "lectures", count: own.length },
+        { kind: "files", count: preview[1] === "a" ? fileCounts.file_count : 0 },
+      ].filter((count) => count.count > 0);
+      return jsonResponse(200, { counts });
+    }
     const id = path.split("/").pop()!;
     const found = store.get(id);
+    if (found && init?.method === "DELETE") {
+      store.delete(id);
+      return new Response(null, { status: 204 });
+    }
     if (!found) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
     if (init?.method === "PATCH") {
       const body = JSON.parse(String(init.body));
@@ -114,6 +129,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  resetHeadingFocus();
   cleanup();
   fetchMock.mockReset();
   notFound.mockClear();
@@ -413,5 +429,51 @@ describe("emnesiden", () => {
     renderPage();
     const nav = await screen.findByRole("navigation", { name: "Emner" });
     expect((await within(nav).findByRole("alert")).textContent).toBe("Noe gikk galt. Prøv igjen.");
+  });
+  it("FR-6: «Slett emnet» viser forelesningene og filene som går med, og tar henne til forsiden", async () => {
+    renderPage();
+    await screen.findByText("2 forelesninger · 2 filer · eksamen fredag 04.12.2026");
+    const buttons = within(screen.getByRole("button", { name: "Nytt navn" }).parentElement!)
+      .getAllByRole("button")
+      .map((button) => button.textContent);
+    expect(buttons).toEqual(["Nytt navn", "Endre eksamensdato", "Slett emnet"]);
+    const button = screen.getByRole("button", { name: "Slett emnet" });
+    expect(button.getAttribute("data-variant")).toBe("outline");
+    expect(button.className).toContain("text-danger");
+    button.focus();
+    fireEvent.click(button);
+
+    const dialog = screen.getByRole("dialog", { name: "Slette emnet?" });
+    expect(within(dialog).getByText("Markedsføring")).toBeTruthy();
+    expect(document.activeElement).toBe(within(dialog).getByRole("button", { name: "Avbryt" }));
+    expect(await within(dialog).findByText("Dette sletter også 2 forelesninger og 2 filer.")).toBeTruthy();
+    expect(within(dialog).getByText("Det kan ikke angres.")).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Slett emnet" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/"));
+    expect(headingFocusPending()).toBe(true);
+    expect(notFound).not.toHaveBeenCalled();
+    const deletes = fetchMock.mock.calls.filter(([, init]) => init?.method === "DELETE");
+    expect(deletes.map(([url]) => String(url))).toEqual(["/api/subjects/a"]);
+  });
+
+  it("UX-DR21: Esc på «Slette emnet?» sletter ingenting, og fokus går tilbake til knappen", async () => {
+    renderPage();
+    const button = await screen.findByRole("button", { name: "Slett emnet" });
+    button.focus();
+    fireEvent.click(button);
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await waitFor(() => expect(document.activeElement).toBe(button));
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(false);
+  });
+
+  it("#75: etter at en forelesning er slettet, får h1 fokus når emnesiden er lastet", async () => {
+    focusHeadingAfterNavigation();
+    renderPage();
+    const heading = await screen.findByRole("heading", { level: 1, name: "Markedsføring" });
+    await waitFor(() => expect(document.activeElement).toBe(heading));
+    expect(heading.getAttribute("tabindex")).toBe("-1");
+    expect(headingFocusPending()).toBe(false);
   });
 });
