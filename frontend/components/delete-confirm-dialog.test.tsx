@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { FileText } from "lucide-react";
+import { FileText, RotateCw } from "lucide-react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -16,9 +16,11 @@ afterEach(cleanup);
 
 type HarnessProps = {
   loadCounts?: () => Promise<DeleteCount[]>;
-  remove?: () => Promise<void>;
+  remove?: () => Promise<unknown>;
   onDeleted?: () => void;
   withTarget?: boolean;
+  onRemoveError?: (error: unknown) => boolean;
+  replace?: boolean;
 };
 
 function Harness({
@@ -26,6 +28,8 @@ function Harness({
   remove = async () => {},
   onDeleted = () => {},
   withTarget = false,
+  onRemoveError,
+  replace = false,
 }: HarnessProps) {
   const [open, setOpen] = useState(false);
   return (
@@ -38,8 +42,11 @@ function Harness({
       </button>
       <DeleteConfirmDialog
         open={open}
-        title="Slette fila?"
-        confirmLabel="Slett fila"
+        title={replace ? "Erstatte fila?" : "Slette fila?"}
+        confirmLabel={replace ? "Erstatt fila" : "Slett fila"}
+        confirmIcon={replace ? <RotateCw {...iconProps} data-testid="rotate-icon" /> : undefined}
+        note={replace ? "Erstattes med ny.pdf." : undefined}
+        onRemoveError={onRemoveError}
         item={{ name: "merkevare.pdf", detail: "12 sider · Uke 37: Merkevare", icon: <FileText {...iconProps} /> }}
         target="file"
         previewKey={["files", "f1"]}
@@ -260,5 +267,68 @@ describe("DeleteConfirmDialog", () => {
     await waitFor(() => expect(dangerButton().disabled).toBe(true));
     await new Promise((resolve) => setTimeout(resolve, 10));
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("UX-DR22: erstatning har egen tittel, linja under boksen og sirkelpil på fareknappen", async () => {
+    const { opener } = renderHarness({ replace: true });
+    const dialog = open(opener);
+    expect(screen.getByRole("dialog", { name: "Erstatte fila?" })).toBe(dialog);
+    const note = screen.getByText("Erstattes med ny.pdf.");
+    // Right under the box.
+    expect(note.previousElementSibling?.textContent).toContain("merkevare.pdf");
+    await screen.findByText("Det kan ikke angres.");
+    const button = screen.getByRole("button", { name: "Erstatt fila" });
+    expect(button.querySelector("[data-testid=rotate-icon]")).not.toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Avbryt" }));
+  });
+
+  it("UX-DR22: uten note og confirmIcon er dialogen som før (søppelbøtte, ingen ekstra linje)", async () => {
+    const { opener } = renderHarness();
+    const dialog = open(opener);
+    await screen.findByText("Det kan ikke angres.");
+    expect(dialog.textContent).not.toContain("Erstattes med");
+    expect(dangerButton().querySelector("svg.lucide-trash2, svg.lucide-trash-2")).not.toBeNull();
+  });
+
+  it("FR-13: onRemoveError som gir true lukker uten onDeleted, og fokus går tilbake til åpneren", async () => {
+    const onDeleted = vi.fn();
+    const onRemoveError = vi.fn(() => true);
+    const error = new ApiError(422, "NOT_PDF");
+    const { opener } = renderHarness({
+      remove: async () => {
+        throw error;
+      },
+      onDeleted,
+      onRemoveError,
+      withTarget: true,
+    });
+    open(opener);
+    await screen.findByText("Det kan ikke angres.");
+    fireEvent.click(dangerButton());
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(onRemoveError).toHaveBeenCalledWith(error);
+    expect(onDeleted).not.toHaveBeenCalled();
+    await waitFor(() => expect(document.activeElement).toBe(opener));
+  });
+
+  it("FR-13: onRemoveError som gir false lar 500 vise reserveteksten og 404 regnes som slettet", async () => {
+    const onDeleted = vi.fn();
+    let status = 500;
+    const { opener } = renderHarness({
+      remove: async () => {
+        throw new ApiError(status, status === 404 ? "NOT_FOUND" : "INTERNAL_ERROR");
+      },
+      onDeleted,
+      onRemoveError: () => false,
+    });
+    open(opener);
+    await screen.findByText("Det kan ikke angres.");
+    fireEvent.click(dangerButton());
+    expect((await screen.findByRole("alert")).textContent).toBe(FALLBACK_MESSAGE);
+    expect(onDeleted).not.toHaveBeenCalled();
+    status = 404;
+    fireEvent.click(dangerButton());
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(onDeleted).toHaveBeenCalledTimes(1);
   });
 });

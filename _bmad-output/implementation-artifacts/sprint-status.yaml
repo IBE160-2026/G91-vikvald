@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-20-2026 14:01
-last_updated: 11-21-2026 03:30
+last_updated: 11-21-2026 13:10
 project: G91-vikvald
 project_key: NOKEY
 tracking_system: file-system
@@ -50,7 +50,7 @@ development_status:
   2-3-last-opp-pdf-notater-til-en-forelesning: done
   2-4-godta-vilkårene-før-første-opplasting: done
   2-5-slett-filer-forelesninger-og-emner-med-bekreftelse: done
-  2-6-erstatt-en-fil-med-en-ny-versjon: backlog
+  2-6-erstatt-en-fil-med-en-ny-versjon: done
   2-7-se-kontoen-og-slett-den: backlog
   epic-2-retrospective: optional
 

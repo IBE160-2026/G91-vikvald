@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-21: Story 2.6 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-6-erstatt-en-fil-med-en-ny-versjon`. Hensikten til `bmad-build-auto` var «Story 2.6 fra `_bmad-output/planning-artifacts/epics.md`: Erstatt en fil med en ny versjon».
+
+**Resultat:** `POST /api/files/{id}/replace`, som sjekker den nye fila før noe slettes og fjerner den gamle PDF-en etter lagringen, og «Erstatt» på filraden med den felles bekreftelsen og avvisningsmeldingen ved raden. Spesifikasjon og gjennomgang i [spec-2-6](../../_bmad-output/implementation-artifacts/spec-2-6-erstatt-en-fil-med-en-ny-versjon.md).
+
 ## 2026-11-21: Story 2.5 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `2-5-slett-filer-forelesninger-og-emner-med-bekreftelse`. Hensikten til `bmad-build-auto` var «Story 2.5 fra `_bmad-output/planning-artifacts/epics.md`: Slett filer, forelesninger og emner med bekreftelse».
