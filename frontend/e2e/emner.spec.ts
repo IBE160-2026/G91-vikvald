@@ -124,7 +124,8 @@ test.describe("Emner (story 2.1)", () => {
     await expect(page.locator("main h1")).toHaveText("Markedsføring");
     await expect(page.getByText("Eksamen fredag 04.12.2026")).toBeVisible();
     await expect(page).toHaveTitle("Markedsføring – Studiekamerat");
-    await expect(page.getByRole("button", { name: "Ny forelesning" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Ny forelesning" })).toBeEnabled();
+    await expect(page.getByText("Ingen forelesninger ennå.")).toBeVisible();
 
     const nav = page.getByRole("navigation", { name: "Emner" });
     const current = nav.getByRole("link", { name: "Markedsføring" });
