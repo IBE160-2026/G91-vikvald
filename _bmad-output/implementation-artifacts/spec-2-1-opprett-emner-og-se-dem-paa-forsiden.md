@@ -3,14 +3,28 @@ title: 'Story 2.1: Opprett emner og se dem på forsiden'
 type: 'feature'
 created: '2026-11-21'
 baseline_revision: '52538baa6def530c9ec699180e0039236b5e02cb'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
-followup_review_recommended: false
+followup_review_recommended: true
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-2-context.md'
   - '{project-root}/_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/DESIGN.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Fargeverdiene subject-4 til subject-6 er ikke ført i DESIGN.md, og Silje har ikke godkjent dem.
+    evidence: |-
+      Storien krever føring i DESIGN.md og godkjenning før fletting. Kjøringen får ikke endre planleggingsdokumentene og venter ikke på godkjenning per endring. Fulgt opp i kanttilfelle #80.
+    location: >-
+      frontend/app/globals.css
+    severity: medium
+  - summary: >-
+      Kontrakten mellom frontend og backend sjekkes bare av e2e, som CI ikke kjører.
+    evidence: |-
+      ci.yml kjører bare pytest og Vitest (AR-20). Frontendtestene bruker egne Subject-objekter, så et omdøpt felt i SubjectOut ville gått grønt i CI.
+    location: >-
+      .github/workflows/ci.yml
+    severity: medium
 ---
 
 <intent-contract>
@@ -103,6 +117,40 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-21 — Review pass
+- verdicts: 30 findings — high 0, medium 5, low 21, false 4, maybe-false 0
+- findings:
+  - `[medium]` `[defer]` (intent) Fargeverdiene står ikke i DESIGN.md, og Siljes godkjenning før fletting mangler — instruksen for kjøringen forbyr endring av planleggingsdokumentene og godkjenning per endring; fulgt opp i kanttilfelle #80 og gjennomgangen av epic 2.
+  - `[low]` `[reject]` (intent) Storien skriver «eksamen fredag …» med liten forbokstav, koden «Eksamen fredag …» — bevisst: linja står alene og begynner en setning; ført som kanttilfelle.
+  - `[low]` `[reject]` (intent) Vitest-testen heter «UX-DR3: …», ikke `test_uxdr3_…` — følger frontendens navnestil med krav-ID (AR-17 er oppfylt).
+  - `[medium]` `[patch]` (intent) «Nytt navn», «Endre eksamensdato», «Nytt emne» og sidemenyen testes bare med mus, og fokusringen sjekkes ikke — e2e utvidet med Tab/Enter og sjekk av fokusringen.
+  - `[false]` `[reject]` (intent) Undertittelen er et tillegg storien ikke ber om — oppgaven sier at undertittelen fra skisse 02 hører til denne storien.
+  - `[medium]` `[patch]` (edge) Navn over 200 tegn gir bare reserveteksten — feltet har nå `maxLength` 200, med test.
+  - `[low]` `[reject]` (edge) NUL-tegn i navnet gir 500 på Postgres — krever at hun limer inn et kontrolltegn; rettingen er en ny vakt.
+  - `[low]` `[reject]` (edge) UUID i annen skrivemåte (store bokstaver, uten bindestrek) gir ingen `aria-current` — appen lager bare kanoniske lenker; rettingen er en ny vakt.
+  - `[low]` `[reject]` (edge) Lukk og åpne dialogen igjen mens PATCH går, gir mulig dobbel lagring — lokale kall tar millisekunder; rettingen er ny tilstand.
+  - `[low]` `[reject]` (edge) Avbryt mens «Opprett emne» går, sender henne likevel til emnet — emnet er opprettet, så siden finnes; sjelden i praksis.
+  - `[low]` `[reject]` (edge) To samtidige opprettinger kan få samme farge — én student i én fane; låsing er ny mekanisme, og fargen er aldri eneste kjennetegn.
+  - `[low]` `[reject]` (edge) Undertittelen oppdateres ikke over midnatt — oppdateres ved neste innlasting; ny timer er unødvendig.
+  - `[low]` `[patch]` (verification-gap) Ingen test for at henting av emnelista feiler — test lagt til i `home-page.test.tsx`.
+  - `[low]` `[patch]` (verification-gap) Ingen test for annen feil enn 404 på emnesiden — test lagt til i `subject-page.test.tsx`.
+  - `[medium]` `[defer]` (verification-gap) Kontrakten mellom frontend og backend sjekkes bare av e2e, som CI ikke kjører — gjelder hele repoet (AR-20-valget i `ci.yml`), ikke laget av denne storien.
+  - `[low]` `[reject]` (verification-gap) Årstall 0–99 tolkes ulikt i frontend og backend — urealistiske eksamensdatoer.
+  - `[medium]` `[patch]` (blind) Navn over 200 tegn gir generisk feil, og feltet har ingen `maxLength` — samme rot og retting som edge-raden.
+  - `[low]` `[reject]` (blind) Ingen visning av at lagring pågår, og lukking avbryter ikke kallet — samme vurdering som edge-radene om samtidighet.
+  - `[false]` `[reject]` (blind) Rekkefølgen er ikke sikker fordi `id` er tilfeldig — `created_at` har mikrosekunder og hver oppretting er en egen forespørsel med commit, så like tidsstempler oppstår ikke i praksis; `id` er bare stabil reserve.
+  - `[low]` `[reject]` (blind) Ingen CHECK på `color_index` og ingen lås ved samtidige opprettinger — bare tjenesten skriver kolonnen og velger alltid 0–5; samtidighet som over.
+  - `[low]` `[reject]` (blind) Tom PATCH eller `null` gjør ingenting og svarer 200 — ufarlig, og frontend sender alltid ett felt.
+  - `[low]` `[reject]` (blind) Ugyldig body til andres emne gir 422 før 404 — svaret er likt for egne, andres og ukjente id-er, så ingenting lekker.
+  - `[false]` `[reject]` (blind) `\d` slipper gjennom andre sifre enn ASCII — Pydantics datotolking avviser dem, så svaret blir 422 uansett.
+  - `[low]` `[reject]` (blind) Ingen lengdegrense på `name` i skjemaet — appen kjører lokalt; `clean_name` avviser for lange navn.
+  - `[low]` `[reject]` (blind) Sidemenyen har ingen feiltilstand og ingen egen rulling — siden viser feilmeldingen når hentingen feiler; mange emner er sjeldent i ett semester.
+  - `[low]` `[patch]` (blind) Manglende tester for feil ved henting, PATCH-feil og PATCH med 201 tegn — tester lagt til i frontend og backend.
+  - `[low]` `[reject]` (blind) `subject!` i dialogen — begge kallene sender alltid emnet; en ny typestruktur er omskriving.
+  - `[low]` `[reject]` (blind) E2e avhenger av antall Tab-trykk og 288 px — bevisst: bredden er designkravet, og rekkefølgen er en del av tastaturkravet.
+  - `[low]` `[patch]` (blind) Oppføringen i `prompts.md` er ikke i tråd med regelen for KI-sporet — skrevet om til den korte oppføringen story-prompten ber om.
+  - `[false]` `[reject]` (blind) Fargene 4–6 kan gli fra DESIGN.md uten at noe feiler — `design-tokens.test.ts` sammenligner hver farge i DESIGN.md med temaet, så en annen verdi der gir rød test.
+
 ## Design Notes
 
 - **Datofelt som tekst:** Meldingen «for eksempel 04.12.2026» peker på et felt der man skriver `dd.mm.åååå`. Et tekstfelt gir samme oppførsel i alle nettlesere og er lett å teste. Godta `d.m.åååå` også; kalenderdato må finnes (31.02 avvises).
@@ -115,3 +163,28 @@ deferred: []
 - `cd backend && uv run pytest` -- expected: alle grønne
 - `cd frontend && npm run test` -- expected: alle grønne
 - `docker compose up --build -d && cd frontend && npx playwright test` -- expected: alle grønne
+
+## Auto Run Result
+
+**Sammendrag:** Emner kan opprettes, vises og endres. Backend har tabellen `subjects` (migrering `0002_create_subjects`, `ON DELETE CASCADE` fra `users`) og rutene `POST/GET /api/subjects` og `GET/PATCH /api/subjects/{id}` med `current_user`, `get_owned`, fargevalg (første ledige av 0–5, ellers antall % 6) og `NAME_REQUIRED`. Frontend har forsiden med undertittel, «Nytt emne» og emneliste (eller tom-tilstand med «Lag ditt første emne»), emnesiden `/emner/[id]` med sidemeny, og dialogene «Nytt emne», «Nytt navn» og «Endre eksamensdato» på den felles dialogen. Tre nye emnefarger med kontrasttest.
+
+**Filer:**
+- `backend/app/core/errors.py`, `frontend/lib/messages.ts` -- `NAME_REQUIRED` og datomeldingen
+- `backend/app/modules/subjects/*` -- modell, skjema, tjeneste og ruter
+- `backend/alembic/versions/0002_create_subjects.py`, `backend/alembic/env.py`, `backend/app/main.py` -- migrering og kobling
+- `backend/tests/test_subjects.py`, `test_migrations.py`, `conftest.py` -- backendtester
+- `frontend/app/globals.css`, `frontend/lib/subject-colors.ts` (+ test) -- emnefarger 4–6 og kontrasttest
+- `frontend/lib/use-document-title.ts` (+ test) -- fanetittel med emnenavnet
+- `frontend/modules/subjects/*` -- typer, API, format, validering, prikk, dialog, sidemeny, sidene og tester
+- `frontend/app/(app)/page.tsx`, `frontend/app/(app)/emner/[subjectId]/page.tsx` -- rutene
+- `frontend/e2e/emner.spec.ts` -- ende-til-ende med axe og tastatur
+- `docs/skjermbilder/story-2-1/` -- skjermbilder i 1280 og 768 px
+
+**Gjennomgang:** 30 funn. Rettet (5 grupper): medium 2 (`maxLength` 200 på navnefeltet; e2e med bare tastatur og sjekk av fokusringen), low 3 (tester for feil ved henting av lista og emnet og for PATCH-feil, backendtest for 201 tegn ved PATCH, oppføringen i `prompts.md`). Utsatt 2 (DESIGN.md og godkjenning av fargene, #80; kontrakten sjekkes bare av e2e utenfor CI). Avvist: 4 `false` og 19 `low` med grunner i Review Triage Log. I tillegg rettet etter skjermbildene: emnenavnet ble delt midt i ordet på 768 px (`61e897c`).
+
+**Ny gjennomgang anbefales:** ja, fordi to medium-funn ble rettet. Konkret risiko: de nye tastaturstegene i `emner.spec.ts` kjøres bare lokalt mot Docker, ikke i CI.
+
+**Verifisering:** `uv run pytest` 166 grønne; `npm run test` 327 grønne og `tsc --noEmit` uten feil; `docker compose up --build` + `npx playwright test` 34 grønne (også etter rettingen av emnesiden).
+
+**Gjenværende risiko:** fargene er ikke godkjent av Silje (#80); fanetittelen holdes på plass av en `MutationObserver`, som er en omvei rundt Next.js; ingen menyknapp for sidemenyen ved 768 px (EXPERIENCE.md, ikke i storien).
+
