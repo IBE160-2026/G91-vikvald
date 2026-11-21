@@ -136,7 +136,7 @@ Alle innstillingene har standardverdier, så `.env` er valgfri. Vil du endre noe
 | `FEATURE_FREETEXT` | `true` | Slår spørsmål med fritekstsvar av eller på, på samme måte. |
 | `FEATURE_SUMMARY` | `true` | Slår sammendrag av eller på, på samme måte. |
 | `JWT_SECRET` | tom (innebygd lokal nøkkel) | Den hemmelige nøkkelen som signerer innloggingscookien `sk_session`. Med `APP_ENV=local` brukes en innebygd nøkkel som bare er ment for egen maskin. I alle andre miljøer må den settes til en lang, tilfeldig verdi (for eksempel fra `openssl rand -hex 32`), ellers stopper backenden ved oppstart med en logglinje som nevner `JWT_SECRET`. |
-| `UPLOAD_DIR` | `data/uploads` | Mappa der backenden lagrer opplastede PDF-er, som `<bruker-id>/<fil-id>.pdf`. En relativ sti regnes fra mappa backenden startes i. I Docker Compose er det `/app/data/uploads`, der volumet `uploads` er montert. |
+| `UPLOAD_DIR` | `data/uploads` | Mappa der backenden lagrer opplastede PDF-er, som `<bruker-id>/<fil-id>.pdf`. En relativ sti regnes fra mappa backenden startes i. I Docker Compose er det `/app/data/uploads`, der volumet `uploads` er montert. Docker Compose sender ikke `UPLOAD_DIR` videre, så der gjelder innstillingen bare når backenden kjøres utenfor Docker. |
 | `MAX_UPLOAD_MB` | `20` | Største PDF som kan lastes opp, i MB (1 MB = 1024 × 1024 byte). Må være et positivt heltall. Større filer avvises med koden `FILE_TOO_LARGE`. |
 | `API_INTERNAL_URL` | `http://backend:8000` | Hvor frontenden sender `/api/*`. Leses når frontenden bygges. I utviklingsmodus: `http://localhost:8000`. |
 
