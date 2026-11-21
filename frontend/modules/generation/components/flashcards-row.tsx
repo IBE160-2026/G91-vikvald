@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { CreateRow, type CreateRowState } from "@/components/create-row";
 import { ApiError } from "@/lib/api";
 import { FALLBACK_MESSAGE, messageFor } from "@/lib/messages";
+import { filesQueryKey } from "@/modules/files/api";
 
 import { contentCountsQueryKey, fetchContentCounts, fetchLatestJobs, latestJobsQueryKey, startJob } from "../api";
 import type { Job } from "../types";
@@ -58,6 +59,8 @@ export function FlashcardsRow({ lectureId, lectureName, hasFiles }: Props) {
     }
     if (followed.current !== job.id) return;
     followed.current = null;
+    // An older error (e.g. a 409 while this job ran) no longer applies.
+    setError(null);
     void queryClient.invalidateQueries({ queryKey: contentCountsQueryKey(lectureId) });
     if (job.status === "failed") {
       const text = messageFor(job.error_code);
@@ -85,6 +88,10 @@ export function FlashcardsRow({ lectureId, lectureName, hasFiles }: Props) {
       setAnnouncement(JOB_TEXT);
     } catch (caught) {
       setError(caught instanceof ApiError ? messageFor(caught.code) : FALLBACK_MESSAGE);
+      // The files were deleted elsewhere: refresh them, so the button is no longer active.
+      if (caught instanceof ApiError && caught.code === "LECTURE_HAS_NO_FILES") {
+        void queryClient.invalidateQueries({ queryKey: filesQueryKey(lectureId) });
+      }
       // Another tab may have started one: show it.
       void queryClient.invalidateQueries({ queryKey: latestJobsQueryKey(lectureId) });
     } finally {

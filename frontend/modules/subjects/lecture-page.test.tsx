@@ -1030,6 +1030,22 @@ describe("Lag og øv (story 3.1)", () => {
     expect(within(region).queryByRole("button")).toBeNull();
   });
 
+  it("FR-14: tellingen i «Lag og øv» hentes på nytt når fila slettes", async () => {
+    files = [uploadedFile("merkevare.pdf", 3, "f1")];
+    cardCount = 5;
+    renderPage();
+    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    expect(await within(region).findByText("5 kort")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Slett merkevare.pdf" }));
+    const dialog = screen.getByRole("dialog", { name: "Slette fila?" });
+    await within(dialog).findByText("Det kan ikke angres.");
+    // The cards go with the file in the backend (ON DELETE CASCADE).
+    cardCount = 0;
+    fireEvent.click(within(dialog).getByRole("button", { name: "Slett fila" }));
+    expect(await within(region).findByText("Ingen ennå")).toBeTruthy();
+    expect(within(region).queryByText("5 kort")).toBeNull();
+  });
+
   it("UX-DR18: uten filer er knappen ikke aktiv, og «Last opp notater først.» er koblet til den", async () => {
     renderPage();
     const region = await screen.findByRole("region", { name: "Lag og øv" });

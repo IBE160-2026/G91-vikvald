@@ -188,7 +188,7 @@ export function LecturePage({ lectureId }: { lectureId: string }) {
             {/* Mockup 04: «Filer» (up to 496 px) and «Lag og øv» (up to 512 px) side by
                 side, each at least 360 px; below that they wrap, «Lag og øv» under «Filer». */}
             <div className="mt-6 flex flex-wrap items-start gap-column-gap">
-              <section aria-labelledby="files-heading" className="min-w-[360px] max-w-[496px] flex-1">
+              <section aria-labelledby="files-heading" className="min-w-0 max-w-[496px] flex-1 basis-[360px]">
                 <h2 id="files-heading" ref={filesHeadingRef} tabIndex={-1} className="text-section-title">
                   Filer
                 </h2>
@@ -213,7 +213,7 @@ export function LecturePage({ lectureId }: { lectureId: string }) {
                 </div>
               </section>
 
-              <section aria-labelledby="create-heading" className="min-w-[360px] max-w-[512px] flex-1">
+              <section aria-labelledby="create-heading" className="min-w-0 max-w-[512px] flex-1 basis-[360px]">
                 <h2 id="create-heading" className="text-section-title">
                   Lag og øv
                 </h2>

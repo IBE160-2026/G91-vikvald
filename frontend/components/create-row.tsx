@@ -66,7 +66,7 @@ export function CreateRow({
   return (
     <div data-slot="create-row" className="px-4">
       <div className="flex min-h-create-row flex-wrap items-center gap-x-4 gap-y-2 py-3">
-        <div className="min-w-0 flex-1">
+        <div className="shrink-0 whitespace-nowrap">
           <h3 className="text-item-title text-ink">{title}</h3>
           <p className="mt-1 flex items-center gap-2 text-meta text-ink-muted">
             <span
@@ -80,12 +80,12 @@ export function CreateRow({
             <span>{countText}</span>
           </p>
           {showReason ? (
-            <p id={reasonId} className="mt-1 text-meta text-ink-muted">
+            <p id={reasonId} className="mt-1 whitespace-normal text-meta text-ink-muted">
               {reason}
             </p>
           ) : null}
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           {state === "running" ? (
             <JobStatus text={jobText} />
           ) : hasContent ? (
@@ -95,7 +95,7 @@ export function CreateRow({
                 Lag flere
               </Button>
               <Button
-                className="w-[184px]"
+                className="min-w-[184px]"
                 onClick={onPractice}
                 disabled={blocked || !onPractice}
                 aria-describedby={describedBy}
