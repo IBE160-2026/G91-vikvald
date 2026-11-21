@@ -92,3 +92,6 @@
 - [ ] 2026-11-21 [story-2-5-slett-med-bekreftelse](980-2026-11-21-08-46-33-story-2-5-slett-med-bekreftelse.md) — låsingen mot opplasting under sletting virker bare på Postgres og er ikke testet
 - [ ] 2026-11-21 [story-2-5-slett-med-bekreftelse](980-2026-11-21-08-46-33-story-2-5-slett-med-bekreftelse.md) — en PDF som ikke kan slettes fra disken, blir liggende uten opprydding
 - [ ] 2026-11-21 [story-2-5-slett-med-bekreftelse](980-2026-11-21-08-46-33-story-2-5-slett-med-bekreftelse.md) — brukermappa med PDF-er må slettes når kontoen slettes i 2.7
+- [ ] 2026-11-21 [story-2-6-erstatt-en-fil](979-2026-11-21-12-51-05-story-2-6-erstatt-en-fil.md) — vurder kanttilfellene fra story 2.6 (#117–#121), særlig tekstene i bekreftelsen (#118) og filraden ved smal skjerm (#121)
+- [ ] 2026-11-21 [story-2-6-erstatt-en-fil](979-2026-11-21-12-51-05-story-2-6-erstatt-en-fil.md) — slettet fil i en annen fane under erstatning gir ingen melding om at den nye fila ikke ble lagret (#120)
+- [ ] 2026-11-21 [story-2-6-erstatt-en-fil](979-2026-11-21-12-51-05-story-2-6-erstatt-en-fil.md) — fokus tilbake til «Erstatt» etter avvisning er bare prøvd i Chromium
