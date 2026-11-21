@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-21: Story 2.1 bygget av den autonome kjøringen
+
+En subagent fikk i oppgave å lese spesifikasjonen `spec-2-1-opprett-emner-og-se-dem-paa-forsiden.md` med kontekstfilene og bygge story 2.1, med spesifikasjonen som eneste kilde.
+
+**Resultat:** Tabellen `subjects` med migrering, rutene for emner, forsiden med emneliste og tom-tilstand, emnesiden med sidemeny og dialogene «Nytt emne», «Nytt navn» og «Endre eksamensdato». Tre kanttilfeller er lagt fram (#80, #81, #82). Commit `5664636` til `850b29b`.
+
 ## 2026-11-21: Funn #69 rettet av den autonome kjøringen
 
 Funnet fra Siljes gjennomgang av epic 1 (#67) ble rettet av en subagent i den autonome kjøringen, etter avsnittet «Siljes gjennomgang» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md). Det var bare en endring i dokumentasjonen, så `bmad-build-auto` ble ikke brukt.
