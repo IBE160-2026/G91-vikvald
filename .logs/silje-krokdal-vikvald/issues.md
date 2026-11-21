@@ -97,3 +97,4 @@
 - [ ] 2026-11-21 [story-2-6-erstatt-en-fil](979-2026-11-21-12-51-05-story-2-6-erstatt-en-fil.md) — fokus tilbake til «Erstatt» etter avvisning er bare prøvd i Chromium
 - [ ] 2026-11-21 [story-2-7-se-kontoen-og-slett-den](978-2026-11-21-13-26-10-story-2-7-se-kontoen-og-slett-den.md) — vurder kanttilfellene fra story 2.7 (#123–#129), særlig dialogen «Les vilkårene» (#125) og teksten i slettebekreftelsen (#129)
 - [ ] 2026-11-21 [story-2-7-se-kontoen-og-slett-den](978-2026-11-21-13-26-10-story-2-7-se-kontoen-og-slett-den.md) — en opplasting samtidig med kontoslettingen kan etterlate en tom brukermappe
+- [ ] 2026-11-21 [brukerreiser-etter-epic-2](977-2026-11-21-13-43-10-brukerreiser-etter-epic-2.md) — se over valget om flyt 3: tallene for generert innhold venter på epic 3, 4 og 7 (#131)
