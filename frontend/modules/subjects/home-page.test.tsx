@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { focusHeadingAfterNavigation, headingFocusPending } from "@/lib/focus-heading";
+
 import { HomePage } from "./pages/home-page";
 import type { Subject } from "./types";
 
@@ -219,5 +221,21 @@ describe("forsiden «Dine emner»", () => {
     fireEvent.click(opener);
     expect((screen.getByLabelText("Navn") as HTMLInputElement).value).toBe("");
     expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
+  });
+  it("#75: etter at et emne er slettet, får «Dine emner» fokus når lista er lastet", async () => {
+    focusHeadingAfterNavigation();
+    respond([subject({})]);
+    renderPage();
+    const heading = screen.getByRole("heading", { level: 1, name: "Dine emner" });
+    expect(heading.getAttribute("tabindex")).toBe("-1");
+    await waitFor(() => expect(document.activeElement).toBe(heading));
+    expect(headingFocusPending()).toBe(false);
+  });
+
+  it("#75: uten slettet emne får overskriften ikke fokus", async () => {
+    respond([subject({})]);
+    renderPage();
+    await screen.findByText("Markedsføring");
+    expect(document.activeElement).not.toBe(screen.getByRole("heading", { level: 1 }));
   });
 });

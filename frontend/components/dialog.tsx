@@ -51,13 +51,28 @@ export type DialogProps = {
     icon?: ReactNode;
   };
   width?: DialogWidth;
+  // Where focus goes when the dialog closes. When it gives an element, that
+  // element gets focus; otherwise the opener does (as before). Used when the
+  // opener is gone, e.g. a deleted file's row (#75).
+  returnFocus?: () => HTMLElement | null;
+  // «Avbryt» is not active (e.g. while a delete runs and cannot be taken back).
+  cancelDisabled?: boolean;
 };
 
 function focusableIn(element: HTMLElement | null): HTMLElement[] {
   return element ? [...element.querySelectorAll<HTMLElement>(FOCUSABLE)] : [];
 }
 
-export function Dialog({ open, title, children, onClose, primaryAction, width = 560 }: DialogProps) {
+export function Dialog({
+  open,
+  title,
+  children,
+  onClose,
+  primaryAction,
+  width = 560,
+  returnFocus,
+  cancelDisabled = false,
+}: DialogProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -92,12 +107,15 @@ export function Dialog({ open, title, children, onClose, primaryAction, width = 
         onOpenAutoFocus={(event) => {
           event.preventDefault();
           openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-          // First field or button in the content, otherwise «Avbryt» (the safe choice).
-          (focusableIn(bodyRef.current)[0] ?? cancelRef.current)?.focus();
+          // A delete confirmation always starts on «Avbryt», never on the danger
+          // button (UX-DR21). Otherwise the first field or button in the
+          // content, and without one «Avbryt» (the safe choice).
+          const first = primaryAction.variant === "danger" ? null : focusableIn(bodyRef.current)[0];
+          (first ?? cancelRef.current)?.focus();
         }}
         onCloseAutoFocus={(event) => {
           event.preventDefault();
-          openerRef.current?.focus();
+          (returnFocus?.() ?? openerRef.current)?.focus();
           openerRef.current = null;
         }}
         // A click on the scrim does not close the dialog.
@@ -117,7 +135,7 @@ export function Dialog({ open, title, children, onClose, primaryAction, width = 
           {children}
         </div>
         <DialogFooter>
-          <Button ref={cancelRef} variant="outline" onClick={onClose}>
+          <Button ref={cancelRef} variant="outline" disabled={cancelDisabled} onClick={onClose}>
             Avbryt
           </Button>
           <Button

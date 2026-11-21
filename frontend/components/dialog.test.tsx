@@ -16,10 +16,12 @@ function Harness({
   onPrimary = () => {},
   width,
   withField = false,
+  variant = "danger",
 }: {
   onPrimary?: () => void;
   width?: DialogWidth;
   withField?: boolean;
+  variant?: "primary" | "danger";
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -34,7 +36,7 @@ function Harness({
         title="Slette fila?"
         width={width}
         onClose={() => setOpen(false)}
-        primaryAction={{ label: "Slett fila", variant: "danger", onClick: onPrimary }}
+        primaryAction={{ label: "Slett fila", variant, onClick: onPrimary }}
       >
         {withField ? <input aria-label="Navn" /> : <p>Fila slettes for godt.</p>}
       </Dialog>
@@ -74,7 +76,8 @@ describe("Dialog", () => {
     openDialog();
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Avbryt" }));
     cleanup();
-    openDialog({ withField: true });
+    // Other dialogs (not delete): the first field gets focus.
+    openDialog({ withField: true, variant: "primary" });
     expect(document.activeElement).toBe(screen.getByLabelText("Navn"));
   });
 
@@ -211,5 +214,74 @@ describe("Dialog", () => {
     const primary = screen.getByRole("button", { name: "Slett fila" }) as HTMLButtonElement;
     expect(primary.disabled).toBe(false);
     expect(primary.querySelector("svg")).toBeNull();
+  });
+  it("UX-DR21: en slettedialog starter alltid på «Avbryt», også med en knapp i innholdet", () => {
+    render(
+      <Dialog
+        open
+        title="Slette fila?"
+        onClose={() => {}}
+        primaryAction={{ label: "Slett fila", variant: "danger", onClick: () => {} }}
+      >
+        <button type="button">Noe i innholdet</button>
+      </Dialog>,
+    );
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Avbryt" }));
+  });
+
+  it("#75: returnFocus bestemmer hvor fokus går når den gir et element, ellers åpneren", async () => {
+    function WithReturn({ target }: { target: "heading" | "none" }) {
+      const [open, setOpen] = useState(false);
+      return (
+        <>
+          <h2 id="maal" tabIndex={-1}>
+            Filer
+          </h2>
+          <button type="button" onClick={() => setOpen(true)}>
+            Åpne
+          </button>
+          <Dialog
+            open={open}
+            title="Slette fila?"
+            onClose={() => setOpen(false)}
+            returnFocus={() => (target === "heading" ? document.getElementById("maal") : null)}
+            primaryAction={{ label: "Slett fila", variant: "danger", onClick: () => {} }}
+          >
+            <p>Tekst</p>
+          </Dialog>
+        </>
+      );
+    }
+    const { rerender } = render(<WithReturn target="heading" />);
+    const opener = screen.getByRole("button", { name: "Åpne" });
+    opener.focus();
+    fireEvent.click(opener);
+    fireEvent.click(screen.getByRole("button", { name: "Avbryt" }));
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole("heading", { name: "Filer" })));
+
+    rerender(<WithReturn target="none" />);
+    opener.focus();
+    fireEvent.click(opener);
+    fireEvent.click(screen.getByRole("button", { name: "Avbryt" }));
+    await expectFocusBackOn(opener);
+  });
+
+  it("UX-DR21: «Avbryt» kan være deaktivert", () => {
+    const onClose = vi.fn();
+    render(
+      <Dialog
+        open
+        title="Slette fila?"
+        onClose={onClose}
+        cancelDisabled
+        primaryAction={{ label: "Slett fila", variant: "danger", onClick: () => {} }}
+      >
+        <p>Tekst</p>
+      </Dialog>,
+    );
+    const cancel = screen.getByRole("button", { name: "Avbryt" }) as HTMLButtonElement;
+    expect(cancel.disabled).toBe(true);
+    fireEvent.click(cancel);
+    expect(onClose).not.toHaveBeenCalled();
   });
 });

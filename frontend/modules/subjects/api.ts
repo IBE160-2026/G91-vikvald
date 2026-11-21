@@ -1,4 +1,5 @@
 import { apiFetch } from "@/lib/api";
+import type { DeleteCount } from "@/lib/delete-text";
 
 import type {
   Lecture,
@@ -71,4 +72,26 @@ export function updateLecture(id: string, input: LectureUpdateInput): Promise<Le
     method: "PATCH",
     body: JSON.stringify(input),
   });
+}
+
+// GET /api/lectures/{id}/delete-preview: the files (and later content) that go with the lecture.
+export async function fetchLectureDeletePreview(id: string): Promise<DeleteCount[]> {
+  const body = await apiFetch<{ counts: DeleteCount[] }>(`/api/lectures/${encodeURIComponent(id)}/delete-preview`);
+  return body.counts;
+}
+
+// DELETE /api/lectures/{id}: 204. Its files and their PDFs go too.
+export function deleteLecture(id: string): Promise<void> {
+  return apiFetch<void>(`/api/lectures/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+// GET /api/subjects/{id}/delete-preview: the lectures, files (and later content) that go with the subject.
+export async function fetchSubjectDeletePreview(id: string): Promise<DeleteCount[]> {
+  const body = await apiFetch<{ counts: DeleteCount[] }>(`/api/subjects/${encodeURIComponent(id)}/delete-preview`);
+  return body.counts;
+}
+
+// DELETE /api/subjects/{id}: 204. Everything under it goes too.
+export function deleteSubject(id: string): Promise<void> {
+  return apiFetch<void>(`/api/subjects/${encodeURIComponent(id)}`, { method: "DELETE" });
 }

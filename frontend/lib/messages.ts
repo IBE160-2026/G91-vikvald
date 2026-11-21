@@ -46,6 +46,18 @@ export const messages = {
 
 export type MessageCode = keyof typeof messages;
 
+// The names of what a delete takes with it (UX-DR22), by the `kind` the
+// delete preview gives: «lectures» and «files», then the content types that
+// later epics register. Singular for 1, plural otherwise. Written in lower
+// case, so the backend test that reads the error codes (upper case) skips them.
+export const countNouns: Record<string, { one: string; other: string }> = {
+  lectures: { one: "forelesning", other: "forelesninger" },
+  files: { one: "fil", other: "filer" },
+  flashcards: { one: "flashcard", other: "flashcards" },
+  quiz_questions: { one: "quizspørsmål", other: "quizspørsmål" },
+  model_cards: { one: "modellkort", other: "modellkort" },
+};
+
 const PLACEHOLDER = /\{([a-z_]+)\}/g;
 
 function templateFor(code: string | null | undefined): string {
