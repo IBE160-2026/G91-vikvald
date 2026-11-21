@@ -77,3 +77,13 @@ export function semesterLabel(today: Date): string {
 export function lectureCountLabel(count: number): string {
   return `${count} ${count === 1 ? "forelesning" : "forelesninger"}`;
 }
+
+// 1 -> "1 fil", anything else -> "0 filer", "2 filer".
+export function fileCountLabel(count: number): string {
+  return `${count} ${count === 1 ? "fil" : "filer"}`;
+}
+
+// 1 -> "1 side", anything else -> "0 sider", "18 sider".
+export function pageCountLabel(count: number): string {
+  return `${count} ${count === 1 ? "side" : "sider"}`;
+}
