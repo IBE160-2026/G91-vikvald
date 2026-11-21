@@ -34,10 +34,22 @@ async def store_file(
     original_name: str,
     data: bytes,
     pages: list[str],
+    replaces: uuid.UUID | None = None,
 ) -> File:
     """Save an accepted PDF: one row in files, one row per page in file_pages
     (one transaction), and the PDF on disk. If the commit fails, the PDF is
-    removed from the disk again."""
+    removed from the disk again.
+
+    With `replaces`, that file's row is deleted first in the same transaction
+    (its pages go with ON DELETE CASCADE). If the row is already gone (deleted
+    in another tab, or a replace running at the same time), nothing is stored
+    and the answer is 404 NOT_FOUND. The caller removes the old PDF after this
+    returns, that is after the commit."""
+    if replaces is not None:
+        result = await session.execute(delete(File).where(File.id == replaces))
+        if result.rowcount == 0:
+            await session.rollback()
+            raise AppError(ErrorCode.NOT_FOUND)
     file = File(
         id=uuid.uuid4(), lecture_id=lecture_id, original_name=original_name, page_count=len(pages)
     )

@@ -1,6 +1,6 @@
 """HTTP routes for the files module.
 
-POST/GET /api/lectures/{id}/files, GET /api/subjects/{id}/file-counts, and the
+POST/GET /api/lectures/{id}/files, POST /api/files/{id}/replace, GET /api/subjects/{id}/file-counts, and the
 delete preview and DELETE for files, lectures and subjects. The files module may
 call the subjects and content modules, never the other way round. Deleting a
 lecture or a subject must know its files (to count them and to remove the PDFs),
@@ -169,6 +169,25 @@ async def upload_file(
     # PyMuPDF is slow on big files; keep it off the event loop.
     pages = await asyncio.to_thread(pdf.read_pages, data)
     return _file_out(await store_file(session, user.id, lecture.id, name, data, pages))
+
+
+@files_router.post("/{file_id}/replace", status_code=201)
+async def replace_file(file_id: str, request: Request, user: CurrentUser, session: Session) -> FileOut:
+    """Replace a file with a new version (FR-13). The new file passes every
+    upload check before anything is deleted; then the old row goes and the new
+    one is stored in one transaction, with a new id in the same lecture. The old
+    PDF is removed from the disk only after the commit (AR-8)."""
+    # Same order as upload: ownership (404 before the body is read), terms, then
+    # the body and the PDF checks.
+    old = await get_file(session, user.id, file_id)
+    if user.terms_accepted_at is None:
+        raise AppError(ErrorCode.TERMS_NOT_ACCEPTED)
+    name, data = await _read_upload(request)
+    pages = await asyncio.to_thread(pdf.read_pages, data)
+    old_id, lecture_id, owner_id = old.id, old.lecture_id, user.id
+    new = await store_file(session, owner_id, lecture_id, name, data, pages, replaces=old_id)
+    await delete_pdfs(owner_id, [old_id])
+    return _file_out(new)
 
 
 # Sorted by upload time, then id. The frontend never sorts again.
