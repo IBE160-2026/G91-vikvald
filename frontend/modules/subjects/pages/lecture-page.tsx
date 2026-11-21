@@ -6,14 +6,13 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
-
 import { iconProps } from "@/components/icon";
 import { NoteSurface } from "@/components/note-surface";
 import { Button } from "@/components/ui/button";
 import { notFoundOnMissing } from "@/lib/api";
 import { useAppConfig } from "@/lib/config";
-import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { focusHeadingAfterNavigation } from "@/lib/focus-heading";
+import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import { deleteFile, fetchFileDeletePreview, fetchFiles, filesQueryKey } from "@/modules/files/api";
 import { FileList } from "@/modules/files/components/file-list";

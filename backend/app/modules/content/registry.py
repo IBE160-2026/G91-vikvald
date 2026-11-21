@@ -17,7 +17,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 @dataclass(frozen=True)
 class DeleteScope:
-    """What is about to be deleted: these files, and these lectures as a whole."""
+    """What is about to be deleted.
+
+    file_ids holds every file being deleted, also the files in the lectures in
+    lecture_ids. lecture_ids holds only the lectures deleted as a whole (empty
+    when one file is deleted). Count content made from files by file_ids, and
+    content owned by a lecture (e.g. summaries) by lecture_ids, so nothing is
+    counted twice.
+    """
 
     file_ids: tuple[uuid.UUID, ...]
     lecture_ids: tuple[uuid.UUID, ...]
@@ -28,9 +35,15 @@ Counter = Callable[[AsyncSession, DeleteScope], Awaitable[int]]
 # kind -> count function, in the order they were registered (dicts keep it).
 _counters: dict[str, Counter] = {}
 
+# Counted by the delete preview itself, so no content type may use them.
+RESERVED_KINDS = frozenset({"lectures", "files"})
+
 
 def register_counter(kind: str, count: Counter) -> None:
-    """Add a content type. The same kind twice is a programming error."""
+    """Add a content type. The same kind twice, or a reserved kind, is a
+    programming error."""
+    if kind in RESERVED_KINDS:
+        raise ValueError(f"Reserved kind: {kind}")
     if kind in _counters:
         raise ValueError(f"Counter already registered: {kind}")
     _counters[kind] = count

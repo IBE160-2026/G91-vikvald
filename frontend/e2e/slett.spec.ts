@@ -117,19 +117,25 @@ test.describe("Sletting (story 2.5)", () => {
     expect(await filesViaApi(page, lectureId)).toEqual(["prising.pdf"]);
   });
 
-  test("FR-7: slett forelesningen; teksten viser filene, og hun lander på emnesiden med fokus på h1", async ({
+  test("FR-7: slett forelesningen med bare tastatur; axe uten brudd; hun lander på emnesiden med fokus på h1", async ({
     page,
   }) => {
     const { subjectId, lectureId } = await setUp(page);
     await page.goto(`/forelesninger/${lectureId}`);
     await expect(page.getByText("Forelesning fredag 11.09.2026 · 2 filer · 5 sider")).toBeVisible();
 
-    await page.getByRole("button", { name: "Slett forelesningen" }).click();
+    await tabTo(page, page.getByRole("button", { name: "Slett forelesningen" }));
+    await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog", { name: "Slette forelesningen?" });
     await expect(dialog.getByRole("button", { name: "Avbryt" })).toBeFocused();
     await expect(dialog.getByText("Dette sletter også 2 filer.")).toBeVisible();
     await expect(dialog.getByText("Det kan ikke angres.")).toBeVisible();
-    await dialog.getByRole("button", { name: "Slett forelesningen" }).click();
+    await expectNoAxeViolations(page);
+    const confirm = dialog.getByRole("button", { name: "Slett forelesningen" });
+    await expect(confirm).toBeEnabled();
+    await page.keyboard.press("Tab");
+    await expect(confirm).toBeFocused();
+    await page.keyboard.press("Enter");
 
     await expect(page).toHaveURL(new RegExp(`/emner/${subjectId}$`));
     await expect(page.getByRole("heading", { level: 1, name: "Markedsføring" })).toBeFocused();

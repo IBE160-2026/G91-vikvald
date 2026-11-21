@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { headingFocusPending } from "@/lib/focus-heading";
+import { headingFocusPending, resetHeadingFocus } from "@/lib/focus-heading";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import type { UploadedFile } from "@/modules/files/types";
 
@@ -104,7 +104,8 @@ function respond() {
       return jsonResponse(200, { counts: files.length > 0 ? [{ kind: "files", count: files.length }] : [] });
     }
     if (path === "/api/lectures/l2" && init?.method === "DELETE") {
-      lectures.splice(lectures.findIndex((lecture) => lecture.id === "l2"), 1);
+      const index = lectures.findIndex((lecture) => lecture.id === "l2");
+      if (index >= 0) lectures.splice(index, 1);
       return new Response(null, { status: 204 });
     }
     const found = lectures.find((lecture) => path === `/api/lectures/${lecture.id}`);
@@ -166,6 +167,7 @@ function uploadCalls() {
 }
 
 afterEach(() => {
+  resetHeadingFocus();
   cleanup();
   fetchMock.mockReset();
   notFound.mockClear();

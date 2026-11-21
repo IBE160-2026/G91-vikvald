@@ -100,9 +100,16 @@ export function DeleteConfirmDialog({
     },
   });
 
+  // A 404 on the preview means it is already gone (deleted in another tab):
+  // the same as a 404 on DELETE, so it counts as deleted (once).
+  const previewGone = open && isNotFound(preview.error);
+  useEffect(() => {
+    if (previewGone && !deletedRef.current) finish();
+  });
+
   const counts = preview.data;
   const sentence = counts ? alsoDeletedSentence(counts, target) : null;
-  const previewFailed = preview.isError && !isUnauthenticated(preview.error);
+  const previewFailed = preview.isError && !isUnauthenticated(preview.error) && !isNotFound(preview.error);
   const busy = deletion.isPending;
 
   return (

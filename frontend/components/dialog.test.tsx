@@ -266,6 +266,38 @@ describe("Dialog", () => {
     await expectFocusBackOn(opener);
   });
 
+  it("UX-DR21: mens «Avbryt» er av, er krysset også av; etterpå får «Avbryt» fokus hvis fokus falt ut", () => {
+    function Busy({ busy }: { busy: boolean }) {
+      return (
+        <Dialog
+          open
+          title="Slette fila?"
+          onClose={() => {}}
+          cancelDisabled={busy}
+          primaryAction={{ label: "Slett fila", variant: "danger", disabled: busy, onClick: () => {} }}
+        >
+          <p>Tekst</p>
+        </Dialog>
+      );
+    }
+    const { rerender } = render(<Busy busy={false} />);
+    rerender(<Busy busy />);
+    expect((screen.getByRole("button", { name: "Lukk" }) as HTMLButtonElement).disabled).toBe(true);
+    // In a browser, the focused danger button lost focus to body when it was
+    // disabled. jsdom keeps focus on it (and Radix pulls a blur back), so body
+    // is simulated here.
+    const cancel = screen.getByRole("button", { name: "Avbryt" });
+    const focusCancel = vi.spyOn(cancel, "focus");
+    Object.defineProperty(document, "activeElement", { configurable: true, get: () => document.body });
+    try {
+      rerender(<Busy busy={false} />);
+    } finally {
+      delete (document as unknown as { activeElement?: unknown }).activeElement;
+    }
+    expect((screen.getByRole("button", { name: "Lukk" }) as HTMLButtonElement).disabled).toBe(false);
+    expect(focusCancel).toHaveBeenCalled();
+  });
+
   it("UX-DR21: «Avbryt» kan være deaktivert", () => {
     const onClose = vi.fn();
     render(

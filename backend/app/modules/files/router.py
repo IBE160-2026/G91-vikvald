@@ -49,6 +49,7 @@ from app.modules.subjects.service import (
     get_lecture,
     get_subject,
     lecture_ids,
+    lock_lecture,
 )
 
 files_router = APIRouter(prefix="/api/files")
@@ -243,6 +244,7 @@ async def lecture_delete_preview(
 async def delete_one_lecture(lecture_id: str, user: CurrentUser, session: Session) -> Response:
     lecture = await get_lecture(session, user.id, lecture_id)
     lecture_id_to_remove = lecture.id
+    await lock_lecture(session, lecture_id_to_remove)
     # Collected before the delete: afterwards the rows are gone.
     file_ids = await file_ids_for_lectures(session, [lecture_id_to_remove])
     await delete_lecture(session, lecture_id_to_remove)

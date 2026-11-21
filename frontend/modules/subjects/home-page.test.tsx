@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { focusHeadingAfterNavigation, headingFocusPending } from "@/lib/focus-heading";
+import { focusHeadingAfterNavigation, headingFocusPending, resetHeadingFocus } from "@/lib/focus-heading";
 
 import { HomePage } from "./pages/home-page";
 import type { Subject } from "./types";
@@ -58,6 +58,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  resetHeadingFocus();
   cleanup();
   fetchMock.mockReset();
   push.mockReset();

@@ -79,6 +79,17 @@ export function Dialog({
   // The element that had focus when the dialog opened. Focus goes back to it.
   const openerRef = useRef<HTMLElement | null>(null);
 
+  // When «Avbryt» is active again (e.g. after a failed delete), the button that
+  // had focus may have been disabled meanwhile, leaving focus on body. Then
+  // focus goes to «Avbryt», so the keyboard stays in the dialog.
+  const wasCancelDisabled = useRef(cancelDisabled);
+  useEffect(() => {
+    const was = wasCancelDisabled.current;
+    wasCancelDisabled.current = cancelDisabled;
+    if (!open || !was || cancelDisabled) return;
+    if (!contentRef.current?.contains(document.activeElement)) cancelRef.current?.focus();
+  }, [open, cancelDisabled]);
+
   // After a click on the scrim, focus is on body. Radix still closes on Esc
   // (it listens on the document), but its focus trap only sees Tab inside the
   // dialog, so Tab and Shift+Tab from outside are sent into the dialog here.
@@ -126,7 +137,8 @@ export function Dialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogClose
             aria-label="Lukk"
-            className="-mr-2 inline-flex size-6 cursor-pointer items-center justify-center rounded-md text-ink-muted hover:bg-row-hover"
+            disabled={cancelDisabled}
+            className="-mr-2 inline-flex size-6 cursor-pointer items-center justify-center rounded-md text-ink-muted hover:bg-row-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             <X {...iconProps} size={20} />
           </DialogClose>

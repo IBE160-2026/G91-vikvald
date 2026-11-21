@@ -6,6 +6,7 @@ The test PDFs are made with PyMuPDF in test_files.py; no real notes are used.
 """
 
 import logging
+import re
 import uuid
 from collections.abc import Iterator
 from pathlib import Path
@@ -28,6 +29,7 @@ FILES = "/api/files"
 LECTURES = "/api/lectures"
 SUBJECTS = "/api/subjects"
 TEST_KIND = "test_cards"
+MESSAGES_FILE = Path(__file__).resolve().parents[2] / "frontend" / "lib" / "messages.ts"
 
 
 async def _new_lecture_in(client: AsyncClient, subject_id: str, name: str = "Uke 37: Merkevare") -> str:
@@ -377,18 +379,47 @@ async def test_ar8_diskfeil_logges_med_fil_id_og_svaret_er_204(
     assert "Side én" not in logged
 
 
+@pytest.mark.parametrize("kind", ["file", "lecture", "subject"])
 async def test_ar8_pdf_slettes_ikke_foer_commit(
-    client: AsyncClient, upload_dir: Path, monkeypatch: pytest.MonkeyPatch
+    client: AsyncClient, upload_dir: Path, monkeypatch: pytest.MonkeyPatch, kind: str
 ) -> None:
     user_id = await _log_in_new_user(client)
-    file_id = await _upload_file(client, await _new_lecture_in(client, await _new_subject(client)))
+    subject_id = await _new_subject(client)
+    lecture_id = await _new_lecture_in(client, subject_id)
+    file_ids = [await _upload_file(client, lecture_id), await _upload_file(client, lecture_id)]
+    path = {
+        "file": f"{FILES}/{file_ids[0]}",
+        "lecture": f"{LECTURES}/{lecture_id}",
+        "subject": f"{SUBJECTS}/{subject_id}",
+    }[kind]
 
     async def failing_commit(_self: AsyncSession) -> None:
         raise RuntimeError("commit failed")
 
     with monkeypatch.context() as patch, pytest.raises(RuntimeError):
         patch.setattr(AsyncSession, "commit", failing_commit)
-        await client.delete(f"{FILES}/{file_id}")
+        await client.delete(path)
 
-    assert _pdf_path(upload_dir, user_id, file_id).exists()
-    assert (await client.get(f"{FILES}/{file_id}/delete-preview")).status_code == 200
+    assert all(_pdf_path(upload_dir, user_id, file_id).exists() for file_id in file_ids)
+    assert (await client.get(f"{path}/delete-preview")).status_code == 200
+
+
+def test_fr12_hver_registrert_type_har_navn_i_meldingsfila() -> None:
+    text = MESSAGES_FILE.read_text(encoding="utf-8")
+    block = text[text.index("export const countNouns") :]
+    block = block[: block.index("};") + 2]
+    nouns = set(re.findall(r"^\s*([a-z][a-z0-9_]*)\s*:", block, flags=re.MULTILINE))
+    assert {"lectures", "files"} <= nouns
+    # Empty in epic 2; guards the content types later epics register.
+    missing = sorted(set(registry._counters) - nouns)
+    assert not missing, f"Missing in countNouns in frontend/lib/messages.ts: {', '.join(missing)}"
+
+
+@pytest.mark.parametrize("kind", ["lectures", "files"])
+def test_ar7_reserverte_typer_kan_ikke_registreres(kind: str) -> None:
+    async def count(_session: AsyncSession, _scope: DeleteScope) -> int:
+        return 1
+
+    with pytest.raises(ValueError):
+        register_counter(kind, count)
+    assert kind not in registry._counters

@@ -151,9 +151,20 @@ async def update_lecture(
 
 
 async def lecture_ids(session: AsyncSession, subject_id: uuid.UUID) -> list[uuid.UUID]:
-    """The ids of all lectures in the subject."""
-    statement = select(Lecture.id).where(Lecture.subject_id == subject_id).order_by(Lecture.id)
+    """The ids of all lectures in the subject, locked until the commit."""
+    # Locked so an upload cannot add a file (and a PDF) after the file ids are
+    # collected for a delete; it waits and then fails on the FK. SQLite ignores it.
+    statement = (
+        select(Lecture.id).where(Lecture.subject_id == subject_id).order_by(Lecture.id).with_for_update()
+    )
     return list(await session.scalars(statement))
+
+
+async def lock_lecture(session: AsyncSession, lecture_id: uuid.UUID) -> None:
+    """Lock the lecture row until the commit."""
+    # Locked so an upload cannot add a file (and a PDF) after the file ids are
+    # collected for a delete; it waits and then fails on the FK. SQLite ignores it.
+    await session.execute(select(Lecture.id).where(Lecture.id == lecture_id).with_for_update())
 
 
 async def delete_lecture(session: AsyncSession, lecture_id: uuid.UUID) -> None:

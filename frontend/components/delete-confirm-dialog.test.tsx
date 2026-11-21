@@ -233,6 +233,23 @@ describe("DeleteConfirmDialog", () => {
     expect(onDeleted).toHaveBeenCalledTimes(1);
   });
 
+  it("FR-14: 404 på forhåndsvisningen (slettet i en annen fane) regnes som slettet, én gang", async () => {
+    const onDeleted = vi.fn();
+    const remove = vi.fn(async () => {});
+    const { opener } = renderHarness({
+      loadCounts: async () => {
+        throw new ApiError(404, "NOT_FOUND");
+      },
+      remove,
+      onDeleted,
+    });
+    open(opener);
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(onDeleted).toHaveBeenCalledTimes(1);
+    expect(remove).not.toHaveBeenCalled();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
   it("FR-4: 401 viser ikke reserveteksten (appens felles behandling tar den)", async () => {
     const { opener } = renderHarness({
       loadCounts: async () => {
