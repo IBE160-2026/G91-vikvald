@@ -2,6 +2,9 @@
 // checked here first so the student gets the message without a round trip. The
 // backend always decides. The values are error codes; lib/messages.ts has the text.
 
+// The longest name the backend accepts (NAME_MAX_LENGTH in modules/subjects/models.py).
+export const NAME_MAX_LENGTH = 200;
+
 export type SubjectField = "name" | "examDate";
 export type SubjectFieldErrors = Partial<Record<SubjectField, string>>;
 

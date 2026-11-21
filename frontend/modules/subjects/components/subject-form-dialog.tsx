@@ -17,6 +17,7 @@ import type { Subject, SubjectUpdateInput } from "../types";
 import {
   examDateErrorCode,
   fieldForApiError,
+  NAME_MAX_LENGTH,
   nameErrorCode,
   parseNorwegianDate,
   type SubjectField,
@@ -174,6 +175,7 @@ export function SubjectFormDialog({ mode, open, onClose, subject }: Props) {
             label="Navn"
             name="name"
             autoComplete="off"
+            maxLength={NAME_MAX_LENGTH}
             value={name}
             onChange={(event) => {
               setName(event.target.value);
