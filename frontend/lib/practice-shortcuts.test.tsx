@@ -90,6 +90,20 @@ describe("resolveShortcut", () => {
     expect(resolveShortcut(key("1", { target: element("<button>Kunne</button>") }), BINDINGS, ON)?.action).toBe(missed);
   });
 
+  it("UX-DR35: Enter gjør ingenting på en knapp eller lenke i fokus, men virker ellers, også med bryteren av", () => {
+    const again = vi.fn();
+    const bindings: ShortcutBinding[] = [{ key: "Enter", action: again }];
+    expect(resolveShortcut(key("Enter"), bindings, ON)?.action).toBe(again);
+    expect(resolveShortcut(key("Enter"), bindings, { singleKeys: false, dialogOpen: false })?.action).toBe(again);
+    expect(isSingleKey("Enter")).toBe(false);
+    expect(resolveShortcut(key("Enter", { target: element("<button>Øv igjen</button>") }), bindings, ON)).toBeNull();
+    expect(resolveShortcut(key("Enter", { target: element('<a href="/">Tilbake</a>') }), bindings, ON)).toBeNull();
+    // A heading that has focus (tabIndex -1) is not a control.
+    expect(resolveShortcut(key("Enter", { target: element('<h2 tabindex="-1">Tittel</h2>') }), bindings, ON)?.action).toBe(
+      again,
+    );
+  });
+
   it("UX-DR26: med bryteren av virker ingen enkelttaster, men Esc virker", () => {
     const off = { singleKeys: false, dialogOpen: false };
     for (const name of [" ", "1", "?"]) expect(resolveShortcut(key(name), BINDINGS, off)).toBeNull();
