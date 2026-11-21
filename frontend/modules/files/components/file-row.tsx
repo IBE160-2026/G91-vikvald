@@ -17,7 +17,7 @@ type Props = {
   rejection?: string | null;
 };
 
-// file-row (DESIGN.md "Forelesning", mockup 04): 80 px high, the file icon on a
+// file-row (DESIGN.md "Forelesning", mockup 04): at least 80 px high, the file icon on a
 // brand-tint tile, the filename (15 px / 600, cut off with «…»; the whole name
 // stays in the DOM for screen readers and in the tooltip), «12 sider · lastet
 // opp 11.09» in muted grey, then the text buttons «Erstatt» (ultramarine,
@@ -32,7 +32,7 @@ export function FileRow({ file, onDelete, onReplace, rejection = null }: Props) 
   const inputRef = useRef<HTMLInputElement>(null);
   return (
     <li className="px-4">
-      <div className="flex h-file-row items-center gap-3">
+      <div className="flex min-h-file-row items-center gap-3 py-2">
         <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-brand-tint text-brand">
           <FileText {...iconProps} />
         </span>
@@ -40,7 +40,7 @@ export function FileRow({ file, onDelete, onReplace, rejection = null }: Props) 
           <p className="truncate text-label text-ink" title={file.original_name}>
             {file.original_name}
           </p>
-          <p className="text-meta text-ink-muted">
+          <p className="truncate text-meta text-ink-muted">
             {pageCountLabel(file.page_count)} · lastet opp {formatUploadedDayMonth(file.uploaded_at)}
           </p>
         </div>
