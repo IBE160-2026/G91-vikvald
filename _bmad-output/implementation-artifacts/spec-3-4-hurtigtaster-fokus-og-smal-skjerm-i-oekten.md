@@ -2,7 +2,8 @@
 title: 'Story 3.4: Hurtigtaster, fokus og smal skjerm i økten'
 type: 'feature'
 created: '2026-11-21'
-status: 'ready-for-dev'
+baseline_revision: 'b5549e6737cf850bb50ef563cec4bbb065f9a648'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -96,6 +97,43 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-21 — Review pass
+- verdicts: 33 findings — high 0, medium 4, low 19, false 10, maybe-false 0
+- findings:
+  - `[low]` `[patch]` Verifisering: at panelet lukkes når skjermen blir bred, er ikke testet — ny test i `side-menu.test.tsx` med styrbar `matchMedia`.
+  - `[low]` `[patch]` Verifisering: reserven når lagringen ikke kan skrives, er ikke testet — ny test der `setItem`/`removeItem` kaster.
+  - `[low]` `[patch]` Verifisering: oppdatering fra en annen fane (`storage`) er ikke testet — ny test med `StorageEvent`.
+  - `[medium]` `[patch]` Verifisering (annet): `readShortcutsEnabled` ser bort fra reserven når lesing virker og skriving feiler, så bryteren hopper tilbake til på — reserven leses først.
+  - `[low]` `[reject]` Intensjon: 200 % tekst er ikke testet i nettleseren — mediespørringen i `em` dekker tekststørrelsen, og 640 px dekker zoom på 1280 px; Playwright har ingen enkel innstilling for nettleserens tekststørrelse.
+  - `[low]` `[reject]` Intensjon: to kolonner under hverandre er ikke sjekket — sjekkes i skjermbildene på 768 px; kolonnene bryter allerede (`flex-wrap`).
+  - `[low]` `[reject]` Intensjon: kortet som krymper mellom 768 og 1279 px er ikke testet — finnes fra 3.3 (`w-full max-w-flashcard-width`), vises i skjermbildene.
+  - `[low]` `[patch]` Intensjon: axe med hurtigtastdialogen åpen bare på bred skjerm — axe kjøres nå også med dialogen åpen på 768 px.
+  - `[medium]` `[patch]` Intensjon: krav-ID-ene i testnavnene stemmer ikke med definisjonene i `epics.md` (UX-DR10/26/27/31/32 byttet om) — titlene er rettet.
+  - `[false]` `[reject]` Intensjon: hint-linjens rekkefølge — storien krever ingen rekkefølge; skisse 07 viser 1, 2, Mellomrom, Esc.
+  - `[low]` `[patch]` Intensjon: e2e sjekker ikke hvor fokus går etter `?` og Esc i økten — sjekken er lagt til.
+  - `[false]` `[reject]` Intensjon: tekstfelt-regelen bare i enhetstester — økten har ikke noe tekstfelt ennå; regelen er testet i den felles funksjonen og på siden med et innsatt felt.
+  - `[false]` `[reject]` Intensjon: forsiden har ingen «Meny» — forsiden har ingen sidemeny (EXPERIENCE.md «Navigasjon»).
+  - `[medium]` `[patch]` Blind: reserven for lagring — samme som over.
+  - `[low]` `[reject]` Blind: med bryteren av finnes ingen vei tilbake fra økten — bryteren nås fra «? Hurtigtaster» i sidemenyen på alle sider med sidemeny; en knapp i øktpanelet er en ny flate som ikke er i designet. Ført som valg i `beslutninger.md`.
+  - `[low]` `[reject]` Blind: Mellomrom to ganger markerer «Kunne» — storien krever både at fokus går til «Kunne» etter snuing (UX-DR31) og at Mellomrom på en knapp gjør knappens handling (E25); det er ønsket oppførsel.
+  - `[low]` `[reject]` Blind: kommentaren om `onScrimClick` og Radix sin lukking utenfor — utfallet (panelet lukkes ved klikk på sløret) er riktig og testet i e2e; ingen skade.
+  - `[low]` `[reject]` Blind: `handingOver` kan bli hengende hvis arket fjernes samtidig som skjermen blir bred — krever at vinduet endrer bredde i samme øyeblikk som dialogen åpnes fra panelet.
+  - `[low]` `[reject]` Blind: fokus går til `body` når skjermen blir bred med panelet åpent — sjeldent (endre vindusbredde med panelet åpent), og retting krever ny fokuslogikk.
+  - `[false]` `[reject]` Blind: `[role="dialog"]` er for bred og for smal — appen har ingen ikke-modale dialoger og ingen `alertdialog` (bekreftelsene bruker samme Radix-dialog).
+  - `[false]` `[reject]` Blind: blinking ved hydrering — `RequireLogin` tegner ingenting før `me` er hentet i nettleseren, så rammen monteres aldri under hydrering.
+  - `[low]` `[reject]` Blind: dialogen sier ikke hvilke taster bryteren skrur av — ville kreve ny tekst som ikke er godkjent i EXPERIENCE.md.
+  - `[false]` `[reject]` Blind: lukkekrysset er 24 × 24 px — `size-6` er 40 px med tokenene i dette repoet.
+  - `[false]` `[reject]` Blind: ingen test på 320/375 px — mobil er utenfor MVP (EXPERIENCE.md, NFR-14 gjelder ned til 768 px).
+  - `[low]` `[reject]` Blind: flere manglende tester (`focusContentFirst` direkte på `Dialog`, `handingOver`, Esc på smal skjerm som enhetstest) — `focusContentFirst` er dekket av dialogtesten for hurtigtaster, Esc på smal skjerm av e2e; fanetesten og breddetesten er lagt til over.
+  - `[low]` `[patch]` Blind: `KbdGroup` og `SheetClose` brukes ikke — fjernet.
+  - `[false]` `[reject]` Blind: KI-sporet mangler — føres i senere steg i samme branch (story-prompten punkt 5 og 6).
+  - `[medium]` `[patch]` Kant: reserven for lagring — samme som over.
+  - `[false]` `[reject]` Kant: `MediaQueryList.addEventListener` mangler i Safari < 14 — NFR-15 krever siste Chrome, Safari og Edge.
+  - `[low]` `[reject]` Kant: Mellomrom etter snuing markerer «Kunne» — samme som Blind over; ønsket oppførsel.
+  - `[false]` `[reject]` Kant: to `SideMenu` samtidig gir to ark — ingen side monterer mer enn én.
+  - `[low]` `[reject]` Verifisering/Blind: samme fanefunn telt hos Blind — dekket av testen over.
+  - `[low]` `[reject]` Blind: breddefunnet telt hos Blind — dekket av testen over.
+
 ## Design Notes
 
 - **Hvorfor én ramme for sidemeny og øktpanel:** menyknappen står i toppfeltet (i `RequireLogin`), mens menyen tegnes av siden. En liten kontekst lar siden si «jeg har en sidemeny» og toppfeltet vise knappen, uten at hver side må kjenne toppfeltet. Samme knapp brukes for sidemenyen og øktpanelet, slik storien krever.
@@ -109,3 +147,45 @@ deferred: []
 - `cd backend && uv run pytest` -- grønne
 - `cd frontend && npm run test && npx tsc --noEmit` -- grønne
 - `docker compose up --build -d && cd frontend && npx playwright test` -- grønne
+
+## Auto Run Result
+
+**Sammendrag:** Story 3.4 er bygd. Flashcard-økten har hurtigtastene Mellomrom (snu), `1` (Kunne ikke) og `2` (Kunne), begge bare etter snuing, Esc (som «Avslutt økt») og `?` (hurtigtastdialogen). Tastene styres av én felles funksjon i `frontend/lib/practice-shortcuts.ts`, som bare økten bruker. Under kortknappene står hint-linjen. Hurtigtastdialogen har tastetabellen og bryteren «Bruk hurtigtaster». Bryteren er på som standard, lagres i `localStorage`, og når den er av, virker ingen enkelttaster og hint-linjen er skjult. På smal skjerm (≤ 768 px eller 200 % tekst) ligger sidemenyen og øktpanelet bak menyknappen «Meny» i toppfeltet og åpnes over innholdet. Sidemenyen har «? Hurtigtaster» nederst.
+
+**Filer:**
+- `frontend/components/ui/{sheet,switch,kbd}.tsx`: shadcn, tilpasset tokenene.
+- `frontend/lib/practice-shortcuts.ts` (+ test): tasteregelen, hooken og bryteren.
+- `frontend/lib/use-narrow-screen.ts` (+ test): avgjør om skjermen er smal (`48em`).
+- `frontend/components/side-menu.tsx` (+ test): rammen for sidemenyen, menyknappen og den ene hurtigtastdialogen.
+- `frontend/components/shortcuts-dialog.tsx` (+ test): tabellen og bryteren.
+- `frontend/components/dialog.tsx`: `focusContentFirst`, så fokus starter på bryteren.
+- `frontend/components/top-bar.tsx`, `frontend/modules/identity/components/require-login.tsx`: plass til menyknappen og rammen.
+- `frontend/modules/subjects/components/subject-sidebar.tsx`: `SideMenu` og «? Hurtigtaster».
+- `frontend/modules/practice/components/{shortcut-hints,flashcard,session-panel}.tsx` (+ tester): hint-linjen og overskriftsnivået.
+- `frontend/modules/practice/pages/flashcard-session-page.tsx` (+ test): tastene, panelet bak «Meny» og en skjult `h1` på smal skjerm.
+- `frontend/e2e/hurtigtaster-og-smal-skjerm.spec.ts`: e2e med axe på 768 og 640 px.
+
+**Gjennomgang:** 33 funn. 9 rader ble rettet, og det tilsvarer 6 rettinger, fordi samme funn kom fra flere gjennomgangslag:
+- Medium:
+  - Bryteren hoppet tilbake til «på» når lagringen kunne leses, men ikke skrives. Tre lag fant dette.
+  - Krav-ID-ene i testnavnene stemte ikke med `epics.md`.
+- Low:
+  - Tre manglende tester: lagring, en annen fane og bred skjerm.
+  - Axe kjøres nå med dialogen åpen på 768 px.
+  - E2E sjekker nå hvor fokus går etter `?` og Esc.
+  - Ubrukt kode er fjernet.
+
+Ingenting ble utsatt. 14 funn ble avvist med begrunnelse, og 10 var falske. Se loggen over.
+
+**Oppfølging anbefalt:** nei. Rettet etter alvorlighet: medium 2, low 4. Begge medium-rettelsene er dekket av nye eller omdøpte tester, og jeg kan ikke peke på noen risiko som ikke er sjekket.
+
+**Verifisering:**
+- `npm run test`: 605 bestått.
+- `npx tsc --noEmit`: rent.
+- `uv run pytest`: 391 bestått (ingen endring i backend).
+- `npx playwright test`: 103 bestått mot `docker compose up --build`.
+
+**Gjenstående risiko:**
+- 200 % tekst er ikke testet direkte i nettleseren. Mediespørringen i `em` og testene på 640 px skal dekke det.
+- Firefox og Safari er ikke testet. Det gjelder særlig at fokus flyttes til «Kunne» mens Mellomrom fortsatt er trykket ned.
+- På lange sider står «? Hurtigtaster» nederst i sidemenyen og kan havne under skjermkanten.
