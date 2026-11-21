@@ -45,6 +45,10 @@ export type DialogProps = {
     label: string;
     onClick: () => void;
     variant?: Extract<ButtonVariant, "primary" | "danger">;
+    // Not active until the dialog's content allows it (e.g. a checkbox is ticked).
+    disabled?: boolean;
+    // An icon before the label (e.g. the upload icon in «Godta og last opp»).
+    icon?: ReactNode;
   };
   width?: DialogWidth;
 };
@@ -116,7 +120,12 @@ export function Dialog({ open, title, children, onClose, primaryAction, width = 
           <Button ref={cancelRef} variant="outline" onClick={onClose}>
             Avbryt
           </Button>
-          <Button variant={primaryAction.variant ?? "primary"} onClick={primaryAction.onClick}>
+          <Button
+            variant={primaryAction.variant ?? "primary"}
+            disabled={primaryAction.disabled}
+            onClick={primaryAction.onClick}
+          >
+            {primaryAction.icon}
             {primaryAction.label}
           </Button>
         </DialogFooter>

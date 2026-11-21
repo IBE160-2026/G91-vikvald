@@ -30,3 +30,9 @@ export function fetchMe(): Promise<User> {
 export function logoutUser(): Promise<void> {
   return apiFetch<void>("/api/identity/logout", { method: "POST" });
 }
+
+// POST /api/identity/terms: she accepts the terms. No body; answers with the
+// user. Idempotent: a second call keeps the first time of acceptance.
+export function acceptTerms(): Promise<User> {
+  return apiFetch<User>("/api/identity/terms", { method: "POST" });
+}

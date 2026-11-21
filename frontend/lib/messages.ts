@@ -33,6 +33,9 @@ export const messages = {
     "Fila er på {size_mb} MB. Grensen er {limit_mb} MB. Lagre den på nytt med mindre bilder, eller del den opp.",
   PDF_UNREADABLE:
     "Vi klarte ikke å åpne denne PDF-en. Den kan være låst med passord eller skadet. Lagre den på nytt som PDF uten passord og prøv igjen.",
+  // No approved text: the frontend asks for the terms before the first upload,
+  // so this only shows if the cache and the database disagree.
+  TERMS_NOT_ACCEPTED: FALLBACK_MESSAGE,
   // Frontend-only: the request never reached the server.
   NETWORK_ERROR: FALLBACK_MESSAGE,
   // Frontend-only: the exam date field does not hold a real date as dd.mm.åååå.

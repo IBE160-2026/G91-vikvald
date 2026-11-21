@@ -36,6 +36,11 @@ describe("meldingsfila", () => {
     expect(messageFor("INVALID_DATE")).toBe("Skriv inn datoen, for eksempel 11.09.2026.");
   });
 
+  it("FR-11: TERMS_NOT_ACCEPTED har ingen godkjent tekst og gir reserveteksten", () => {
+    expect(messages.TERMS_NOT_ACCEPTED).toBe(FALLBACK_MESSAGE);
+    expect(messageFor("TERMS_NOT_ACCEPTED")).toBe("Noe gikk galt. Prøv igjen.");
+  });
+
   it("FR-1: alle tekstene er ikke-tomme", () => {
     for (const text of Object.values(messages)) {
       expect(text.trim()).not.toBe("");
