@@ -15,15 +15,23 @@ type Props = {
   open: boolean;
   // «Slette fila?», «Slette forelesningen?», «Slette emnet?».
   title: string;
-  // The danger button: «Slett fila», «Slett forelesningen», «Slett emnet».
+  // The danger button: «Slett fila», «Slett forelesningen», «Slett emnet», «Erstatt fila».
   confirmLabel: string;
+  // The danger button's icon; the bin unless given (the circle arrow for «Erstatt fila»).
+  confirmIcon?: ReactNode;
   // The box naming what is deleted.
   item: { name: string; detail?: string; icon?: ReactNode };
+  // A line right under the box, e.g. «Erstattes med ny.pdf.».
+  note?: ReactNode;
   target: DeleteTarget;
   // Identifies the preview in the cache: ["delete-preview", ...previewKey].
   previewKey: readonly unknown[];
   loadCounts: () => Promise<DeleteCount[]>;
-  remove: () => Promise<void>;
+  remove: () => Promise<unknown>;
+  // Asked first when remove fails. Returning true means the caller has taken
+  // care of the error (e.g. a rejected replacement shown by the file's row):
+  // the dialog closes without onDeleted, and focus goes back to the opener.
+  onRemoveError?: (error: unknown) => boolean;
   // «Avbryt», the close cross and Esc (and after a successful delete).
   onClose: () => void;
   // Called after a successful delete, before onClose.
@@ -36,7 +44,8 @@ function isNotFound(error: unknown): boolean {
   return error instanceof ApiError && error.code === "NOT_FOUND";
 }
 
-// The shared delete confirmation (mockup 14, UX-DR21, UX-DR22, FR-12): the
+// The shared delete confirmation (mockup 14, UX-DR21, UX-DR22, FR-12), also
+// used to confirm a replacement («Erstatte fila?», FR-13): the
 // shared dialog at 560 px with a box naming the item, the sentence «Dette
 // sletter også …» (left out when nothing else goes), and «Det kan ikke
 // angres.». «Avbryt» has focus first. The danger button is not active until
@@ -52,11 +61,14 @@ export function DeleteConfirmDialog({
   open,
   title,
   confirmLabel,
+  confirmIcon,
   item,
+  note,
   target,
   previewKey,
   loadCounts,
   remove,
+  onRemoveError,
   onClose,
   onDeleted,
   focusAfterDelete,
@@ -95,7 +107,8 @@ export function DeleteConfirmDialog({
     mutationFn: remove,
     onSuccess: finish,
     onError: (error) => {
-      if (isNotFound(error)) finish();
+      if (onRemoveError?.(error)) onClose();
+      else if (isNotFound(error)) finish();
       else if (!isUnauthenticated(error)) setFailed(true);
     },
   });
@@ -123,7 +136,7 @@ export function DeleteConfirmDialog({
       primaryAction={{
         label: confirmLabel,
         variant: "danger",
-        icon: <Trash2 {...iconProps} />,
+        icon: confirmIcon ?? <Trash2 {...iconProps} />,
         disabled: !preview.isSuccess || busy,
         onClick: () => {
           setFailed(false);
@@ -142,6 +155,7 @@ export function DeleteConfirmDialog({
           {item.detail ? <p className="text-meta text-ink-muted">{item.detail}</p> : null}
         </div>
       </div>
+      {note ? <p className="mt-3 text-body text-ink break-words">{note}</p> : null}
       {counts ? (
         <div className="mt-4 flex flex-col gap-2 text-body text-ink">
           {sentence ? <p>{sentence}</p> : null}
