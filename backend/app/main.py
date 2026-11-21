@@ -9,6 +9,7 @@ from app.core.errors import install_error_handlers
 from app.core.health import router as health_router
 from app.core.public_config import router as public_config_router
 from app.modules.identity.router import router as identity_router
+from app.modules.subjects.router import lectures_router
 from app.modules.subjects.router import router as subjects_router
 
 # When started by Uvicorn, app/core/logging.json configures logging. This fallback
@@ -29,6 +30,7 @@ def create_app() -> FastAPI:
     app.include_router(public_config_router)
     app.include_router(identity_router)
     app.include_router(subjects_router)
+    app.include_router(lectures_router)
     return app
 
 

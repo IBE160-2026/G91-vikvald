@@ -1,14 +1,14 @@
-"""Business logic for subjects."""
+"""Business logic for subjects and lectures."""
 
 import uuid
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError, ErrorCode
 from app.core.ownership import get_owned
-from app.modules.subjects.models import NAME_MAX_LENGTH, SUBJECT_COLOR_COUNT, Subject
+from app.modules.subjects.models import NAME_MAX_LENGTH, SUBJECT_COLOR_COUNT, Lecture, Subject
 
 
 def clean_name(name: str) -> str:
@@ -76,3 +76,75 @@ async def update_subject(
         subject.exam_date = exam_date
     await session.commit()
     return subject
+
+
+async def lecture_counts(session: AsyncSession, subject_ids: list[uuid.UUID]) -> dict[uuid.UUID, int]:
+    """The number of lectures per subject, in one query (GROUP BY). A subject
+    without lectures is missing from the result (read it as 0)."""
+    if not subject_ids:
+        return {}
+    statement = (
+        select(Lecture.subject_id, func.count())
+        .where(Lecture.subject_id.in_(subject_ids))
+        .group_by(Lecture.subject_id)
+    )
+    return {subject_id: count for subject_id, count in (await session.execute(statement)).all()}
+
+
+async def create_lecture(
+    session: AsyncSession, user_id: uuid.UUID, subject_id: str, name: str, lecture_date: date
+) -> Lecture:
+    """A new lecture in her subject. Someone else's or a missing subject gives 404."""
+    subject = await get_subject(session, user_id, subject_id)
+    lecture = Lecture(subject_id=subject.id, name=clean_name(name), date=lecture_date)
+    session.add(lecture)
+    await session.commit()
+    return lecture
+
+
+async def list_lectures(session: AsyncSession, user_id: uuid.UUID, subject_id: str) -> list[Lecture]:
+    """The lectures in her subject, sorted by date, then by when they were
+    created (and by id, so the order is always the same)."""
+    subject = await get_subject(session, user_id, subject_id)
+    statement = (
+        select(Lecture)
+        .where(Lecture.subject_id == subject.id)
+        .order_by(Lecture.date, Lecture.created_at, Lecture.id)
+    )
+    return list(await session.scalars(statement))
+
+
+async def get_lecture(session: AsyncSession, user_id: uuid.UUID, lecture_id: str) -> Lecture:
+    """Her lecture with this id. A lecture has no user_id of its own, so it is
+    looked up together with its subject, and the subject must be hers.
+    Someone else's, a missing and a malformed id all give the same 404 NOT_FOUND."""
+    try:
+        parsed = uuid.UUID(lecture_id)
+    except ValueError:
+        raise AppError(ErrorCode.NOT_FOUND) from None
+    statement = (
+        select(Lecture)
+        .join(Subject, Lecture.subject_id == Subject.id)
+        .where(Lecture.id == parsed, Subject.user_id == user_id)
+    )
+    lecture = (await session.execute(statement)).scalar_one_or_none()
+    if lecture is None:
+        raise AppError(ErrorCode.NOT_FOUND)
+    return lecture
+
+
+async def update_lecture(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    lecture_id: str,
+    name: str | None,
+    lecture_date: date | None,
+) -> Lecture:
+    """Change the name and/or the date."""
+    lecture = await get_lecture(session, user_id, lecture_id)
+    if name is not None:
+        lecture.name = clean_name(name)
+    if lecture_date is not None:
+        lecture.date = lecture_date
+    await session.commit()
+    return lecture

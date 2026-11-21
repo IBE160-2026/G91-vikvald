@@ -33,3 +33,17 @@ class Subject(Base):
     # 0-5, chosen once when the subject is created and never changed.
     color_index: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utc_now)
+
+
+class Lecture(Base):
+    __tablename__ = "lectures"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    # Deleting the subject (or the user above it) deletes its lectures in the database.
+    subject_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("subjects.id", ondelete="CASCADE"), index=True
+    )
+    # Stored trimmed. Two lectures may have the same name.
+    name: Mapped[str] = mapped_column(String(NAME_MAX_LENGTH))
+    date: Mapped[date] = mapped_column(Date)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utc_now)

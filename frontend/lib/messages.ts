@@ -25,6 +25,8 @@ export const messages = {
   NETWORK_ERROR: FALLBACK_MESSAGE,
   // Frontend-only: the exam date field does not hold a real date as dd.mm.åååå.
   INVALID_EXAM_DATE: "Skriv inn eksamensdatoen, for eksempel 04.12.2026.",
+  // Frontend-only: the lecture date field does not hold a real date as dd.mm.åååå.
+  INVALID_DATE: "Skriv inn datoen, for eksempel 11.09.2026.",
 } as const satisfies Record<string, string>;
 
 export type MessageCode = keyof typeof messages;

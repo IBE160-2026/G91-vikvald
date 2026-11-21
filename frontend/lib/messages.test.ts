@@ -32,6 +32,10 @@ describe("meldingsfila", () => {
     expect(messageFor("INVALID_EXAM_DATE")).toBe("Skriv inn eksamensdatoen, for eksempel 04.12.2026.");
   });
 
+  it("FR-7: datofeilen for forelesninger har den godkjente teksten", () => {
+    expect(messageFor("INVALID_DATE")).toBe("Skriv inn datoen, for eksempel 11.09.2026.");
+  });
+
   it("FR-1: alle tekstene er ikke-tomme", () => {
     for (const text of Object.values(messages)) {
       expect(text.trim()).not.toBe("");

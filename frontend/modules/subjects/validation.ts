@@ -1,12 +1,15 @@
 // The same rules as the backend (modules/subjects/service.py and schemas.py),
+// for both subjects and lectures,
 // checked here first so the student gets the message without a round trip. The
 // backend always decides. The values are error codes; lib/messages.ts has the text.
 
 // The longest name the backend accepts (NAME_MAX_LENGTH in modules/subjects/models.py).
 export const NAME_MAX_LENGTH = 200;
 
-export type SubjectField = "name" | "examDate";
-export type SubjectFieldErrors = Partial<Record<SubjectField, string>>;
+// The two fields in the name/date dialogs. "date" is the exam date for a
+// subject and the date for a lecture.
+export type FormField = "name" | "date";
+export type FormFieldErrors = Partial<Record<FormField, string>>;
 
 const NORWEGIAN_DATE = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/;
 
@@ -29,16 +32,14 @@ export function nameErrorCode(name: string): string | null {
   return name.trim() === "" ? "NAME_REQUIRED" : null;
 }
 
-export function examDateErrorCode(text: string): string | null {
-  return parseNorwegianDate(text) === null ? "INVALID_EXAM_DATE" : null;
-}
 
-// Which field an API error belongs to; null means a general error.
-export function fieldForApiError(code: string, details: Record<string, unknown> = {}): SubjectField | null {
+// Which field an API error belongs to; null means a general error. The backend
+// names the date exam_date (subjects) or date (lectures).
+export function fieldForApiError(code: string, details: Record<string, unknown> = {}): FormField | null {
   if (code === "NAME_REQUIRED") return "name";
   if (code === "VALIDATION_ERROR") {
     const fields = details.fields;
-    if (typeof fields === "object" && fields !== null && "exam_date" in fields) return "examDate";
+    if (typeof fields === "object" && fields !== null && ("exam_date" in fields || "date" in fields)) return "date";
   }
   return null;
 }

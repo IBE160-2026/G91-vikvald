@@ -2,6 +2,11 @@ import { fileURLToPath } from "node:url";
 
 import { defineConfig } from "vitest/config";
 
+// Dates are shown in local time. Run the tests in Norway's time zone (with
+// daylight saving time) on every machine and in CI, so date code such as the
+// ISO week number is tested where the students are.
+process.env.TZ = "Europe/Oslo";
+
 export default defineConfig({
   resolve: {
     // The same "@/..." imports as in tsconfig.json.
