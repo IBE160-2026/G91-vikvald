@@ -53,7 +53,7 @@ function element(html: string): Element {
 }
 
 describe("resolveShortcut", () => {
-  it("NFR-8: Mellomrom, 1, Esc og ? finner sin handling; andre taster ingenting", () => {
+  it("UX-DR32: Mellomrom, 1, Esc og ? finner sin handling; andre taster ingenting", () => {
     expect(resolveShortcut(key(" "), BINDINGS, ON)?.action).toBe(flip);
     expect(resolveShortcut(key("1"), BINDINGS, ON)?.action).toBe(missed);
     expect(resolveShortcut(key("Escape"), BINDINGS, ON)?.action).toBe(end);
@@ -62,7 +62,7 @@ describe("resolveShortcut", () => {
     expect(resolveShortcut(key("Enter"), BINDINGS, ON)).toBeNull();
   });
 
-  it("UX-DR27: ingenting når fokus står i et tekstfelt, heller ikke Esc", () => {
+  it("UX-DR32: ingenting når fokus står i et tekstfelt, heller ikke Esc", () => {
     for (const html of ["<input />", "<textarea></textarea>", "<select></select>", '<div contenteditable="true"></div>']) {
       const target = element(html);
       expect(resolveShortcut(key("1", { target }), BINDINGS, ON)).toBeNull();
@@ -70,19 +70,19 @@ describe("resolveShortcut", () => {
     }
   });
 
-  it("UX-DR27: ingenting når en dialog er åpen eller tasten alt er brukt", () => {
+  it("UX-DR32: ingenting når en dialog er åpen eller tasten alt er brukt", () => {
     expect(resolveShortcut(key("Escape"), BINDINGS, { ...ON, dialogOpen: true })).toBeNull();
     expect(resolveShortcut(key("1"), BINDINGS, { ...ON, dialogOpen: true })).toBeNull();
     expect(resolveShortcut(key("Escape", { defaultPrevented: true }), BINDINGS, ON)).toBeNull();
   });
 
-  it("NFR-8: ingenting med Ctrl, Alt eller Meta, eller når tasten holdes nede", () => {
+  it("UX-DR32: ingenting med Ctrl, Alt eller Meta, eller når tasten holdes nede", () => {
     for (const extra of [{ ctrlKey: true }, { altKey: true }, { metaKey: true }, { repeat: true }]) {
       expect(resolveShortcut(key("1", extra), BINDINGS, ON)).toBeNull();
     }
   });
 
-  it("UX-DR27: Mellomrom på en knapp eller lenke gjør knappens egen handling, ikke snuing", () => {
+  it("UX-DR32: Mellomrom på en knapp eller lenke gjør knappens egen handling, ikke snuing", () => {
     expect(resolveShortcut(key(" ", { target: element("<button>Avslutt økt</button>") }), BINDINGS, ON)).toBeNull();
     expect(resolveShortcut(key(" ", { target: element('<a href="/">Lenke</a>') }), BINDINGS, ON)).toBeNull();
     expect(resolveShortcut(key(" ", { target: element('<button role="switch"></button>') }), BINDINGS, ON)).toBeNull();
@@ -90,7 +90,7 @@ describe("resolveShortcut", () => {
     expect(resolveShortcut(key("1", { target: element("<button>Kunne</button>") }), BINDINGS, ON)?.action).toBe(missed);
   });
 
-  it("UX-DR31: med bryteren av virker ingen enkelttaster, men Esc virker", () => {
+  it("UX-DR26: med bryteren av virker ingen enkelttaster, men Esc virker", () => {
     const off = { singleKeys: false, dialogOpen: false };
     for (const name of [" ", "1", "?"]) expect(resolveShortcut(key(name), BINDINGS, off)).toBeNull();
     expect(resolveShortcut(key("Escape"), BINDINGS, off)?.action).toBe(end);
@@ -121,7 +121,7 @@ describe("usePracticeShortcuts", () => {
     expect(event.defaultPrevented).toBe(true);
   });
 
-  it("UX-DR27: ingenting når en dialog er i DOM-en", () => {
+  it("UX-DR32: ingenting når en dialog er i DOM-en", () => {
     const action = vi.fn();
     render(<Keys bindings={[{ key: "Escape", action }]} />);
     const dialog = document.createElement("div");
@@ -131,7 +131,7 @@ describe("usePracticeShortcuts", () => {
     expect(action).not.toHaveBeenCalled();
   });
 
-  it("NFR-8: lytteren fjernes når siden lukkes", () => {
+  it("UX-DR32: lytteren fjernes når siden lukkes, så tastene bare virker under øving", () => {
     const action = vi.fn();
     const { unmount } = render(<Keys bindings={[{ key: "1", action }]} />);
     unmount();
@@ -145,7 +145,7 @@ function Enabled() {
 }
 
 describe("Bryteren «Bruk hurtigtaster»", () => {
-  it("UX-DR31: på som standard, \"off\" i localStorage når den er av, og visningen oppdateres med en gang", () => {
+  it("UX-DR26: på som standard, \"off\" i localStorage når den er av, og visningen oppdateres med en gang", () => {
     render(<Enabled />);
     expect(readShortcutsEnabled()).toBe(true);
     expect(screen.getByText("på")).toBeTruthy();
@@ -157,7 +157,34 @@ describe("Bryteren «Bruk hurtigtaster»", () => {
     expect(screen.getByText("på")).toBeTruthy();
   });
 
-  it("UX-DR31: kan ikke lagringen leses, er tastene på", () => {
+  it("UX-DR26: kan lagringen leses, men ikke skrives, står bryteren av likevel", () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("quota");
+    });
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
+      throw new Error("quota");
+    });
+    render(<Enabled />);
+    act(() => setShortcutsEnabled(false));
+    expect(readShortcutsEnabled()).toBe(false);
+    expect(screen.getByText("av")).toBeTruthy();
+    // Storage works again: back to the stored value.
+    vi.restoreAllMocks();
+    act(() => setShortcutsEnabled(true));
+    expect(readShortcutsEnabled()).toBe(true);
+  });
+
+  it("UX-DR26: en endring i en annen fane slår igjennom med en gang", () => {
+    render(<Enabled />);
+    expect(screen.getByText("på")).toBeTruthy();
+    window.localStorage.setItem(SHORTCUTS_KEY, "off");
+    act(() => {
+      window.dispatchEvent(new StorageEvent("storage", { key: SHORTCUTS_KEY, newValue: "off" }));
+    });
+    expect(screen.getByText("av")).toBeTruthy();
+  });
+
+  it("UX-DR26: kan ikke lagringen leses, er tastene på", () => {
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
       throw new Error("blocked");
     });

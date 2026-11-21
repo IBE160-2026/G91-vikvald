@@ -79,7 +79,7 @@ async function expectNoHorizontalScroll(page: Page) {
 }
 
 test.describe("Hurtigtaster i økten (story 3.4)", () => {
-  test("NFR-8, UX-DR26: hele økten går med Mellomrom, 1 og 2, og kortet markert med 1 kommer igjen", async ({ page }) => {
+  test("NFR-8, UX-DR27, UX-DR31: hele økten går med Mellomrom, 1 og 2, og kortet markert med 1 kommer igjen", async ({ page }) => {
     const { lectureId } = await lectureWithThreeCards(page);
     await page.goto(`/forelesninger/${lectureId}/flashcards`);
     await expect(page.getByText("/ 3")).toBeVisible();
@@ -121,7 +121,7 @@ test.describe("Hurtigtaster i økten (story 3.4)", () => {
     await expect(page).toHaveURL(`/forelesninger/${lectureId}`);
   });
 
-  test("UX-DR27: Mellomrom på «Avslutt økt» avslutter, uten å snu kortet", async ({ page }) => {
+  test("UX-DR32: Mellomrom på «Avslutt økt» avslutter, uten å snu kortet", async ({ page }) => {
     const { lectureId } = await lectureWithThreeCards(page);
     await page.goto(`/forelesninger/${lectureId}/flashcards`);
     await tabTo(page, page.getByRole("button", { name: "Avslutt økt" }));
@@ -129,10 +129,12 @@ test.describe("Hurtigtaster i økten (story 3.4)", () => {
     await expect(page).toHaveURL(`/forelesninger/${lectureId}`);
   });
 
-  test("UX-DR31: ? åpner hurtigtastdialogen, Esc lukker bare den, og axe finner ingen brudd", async ({ page }) => {
+  test("UX-DR26, UX-DR32: ? åpner hurtigtastdialogen, Esc lukker bare den med fokus tilbake, og axe finner ingen brudd", async ({ page }) => {
     const { lectureId } = await lectureWithThreeCards(page);
     await page.goto(`/forelesninger/${lectureId}/flashcards`);
     await expect(page.getByText("/ 3")).toBeVisible();
+    const flip = page.getByRole("button", { name: "Snu kortet" });
+    await tabTo(page, flip);
     await page.keyboard.press("?");
     const dialog = page.getByRole("dialog", { name: "Hurtigtaster" });
     await expect(dialog).toBeVisible();
@@ -147,11 +149,13 @@ test.describe("Hurtigtaster i økten (story 3.4)", () => {
     await expect(dialog).toHaveCount(0);
     await expect(page).toHaveURL(`/forelesninger/${lectureId}/flashcards`);
     await expect(page.getByText("SVAR", { exact: true })).toHaveCount(0);
+    // Focus is back where it was before «?».
+    await expect(flip).toBeFocused();
     await page.keyboard.press(" ");
     await expect(page.getByText("SVAR", { exact: true })).toBeVisible();
   });
 
-  test("UX-DR31: bryteren av skrur av enkelttastene og hint-linjen, valget huskes, og Esc virker fortsatt", async ({
+  test("UX-DR26: bryteren av skrur av enkelttastene og hint-linjen, valget huskes, og Esc virker fortsatt", async ({
     page,
   }) => {
     const { lectureId } = await lectureWithThreeCards(page);
@@ -177,7 +181,7 @@ test.describe("Hurtigtaster i økten (story 3.4)", () => {
     await expect(page).toHaveURL(`/forelesninger/${lectureId}`);
   });
 
-  test("UX-DR31: «? Hurtigtaster» i sidemenyen åpner dialogen med tastene og bryteren på, uten axe-brudd", async ({
+  test("UX-DR26: «? Hurtigtaster» i sidemenyen åpner dialogen med tastene og bryteren på, uten axe-brudd", async ({
     page,
   }) => {
     const { subjectId } = await newLecture(page);
@@ -197,7 +201,7 @@ test.describe("Hurtigtaster i økten (story 3.4)", () => {
 });
 
 test.describe("Smal skjerm (story 3.4)", () => {
-  test("UX-DR32: på 768 px er øktpanelet bak «Meny», og Esc lukker bare panelet", async ({ page }) => {
+  test("UX-DR10, NFR-14: på 768 px er øktpanelet bak «Meny», og Esc lukker bare panelet", async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 900 });
     const { lectureId } = await lectureWithThreeCards(page);
     await page.goto(`/forelesninger/${lectureId}/flashcards`);
@@ -240,7 +244,7 @@ test.describe("Smal skjerm (story 3.4)", () => {
     await expect(page).toHaveURL(`/forelesninger/${lectureId}`);
   });
 
-  test("UX-DR32: «? Hurtigtaster» fra panelet lukker panelet først, og fokus går til «Meny» etterpå", async ({ page }) => {
+  test("UX-DR10, UX-DR26: «? Hurtigtaster» fra panelet lukker panelet først, og fokus går til «Meny» etterpå", async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 900 });
     const { subjectId } = await newLecture(page);
     await page.goto(`/emner/${subjectId}`);
@@ -251,13 +255,14 @@ test.describe("Smal skjerm (story 3.4)", () => {
     await expect(sheet).toHaveCount(0);
     await expect(page.getByRole("dialog")).toHaveCount(1);
     await expect(page.getByRole("dialog", { name: "Hurtigtaster" })).toBeVisible();
+    await expectNoAxeViolations(page);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(menu).toBeFocused();
   });
 
   for (const width of [768, 640]) {
-    test(`UX-DR32, NFR-14: epic 2-sidene på ${width} px har sidemenyen bak «Meny» og ingen vannrett rulling`, async ({
+    test(`UX-DR10, NFR-14: epic 2-sidene på ${width} px har sidemenyen bak «Meny» og ingen vannrett rulling`, async ({
       page,
     }) => {
       await page.setViewportSize({ width, height: 900 });
@@ -299,7 +304,7 @@ test.describe("Smal skjerm (story 3.4)", () => {
     });
   }
 
-  test("UX-DR32: på 1280 px står sidemenyen i siden og det er ingen menyknapp", async ({ page }) => {
+  test("UX-DR10: på 1280 px står sidemenyen i siden og det er ingen menyknapp", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     const { subjectId } = await newLecture(page);
     await page.goto(`/emner/${subjectId}`);

@@ -99,7 +99,7 @@ describe("SessionPanel", () => {
     const { container } = renderPanel(startSession(ids(120)));
     expect(container.querySelectorAll("ol > li")).toHaveLength(120);
   });
-  it("UX-DR32: på smal skjerm er tittelen h2, så siden har sin egen h1", () => {
+  it("UX-DR10: på smal skjerm er tittelen h2, så siden har sin egen h1", () => {
     render(
       <SessionPanel
         adapter={flashcardAdapter}

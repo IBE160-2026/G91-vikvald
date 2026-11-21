@@ -232,7 +232,7 @@ describe("FlashcardSessionPage", () => {
   });
 
   describe("hurtigtaster (story 3.4)", () => {
-    it("NFR-8: hele økten går med Mellomrom, 1 og 2, og kortet markert med 1 kommer igjen", async () => {
+    it("NFR-8, UX-DR31: hele økten går med Mellomrom, 1 og 2, fokus til neste handling, og kortet markert med 1 kommer igjen", async () => {
       renderPage(undefined, { frame: true });
       expect(await screen.findByText("/ 3")).toBeTruthy();
       expect(front()).toBe("Merkevare");
@@ -253,7 +253,7 @@ describe("FlashcardSessionPage", () => {
       expect(screen.getByText("Kunne 2 · Kunne ikke 1")).toBeTruthy();
     });
 
-    it("UX-DR27: 1 og 2 gjør ingenting før kortet er snudd", async () => {
+    it("UX-DR32: 1 og 2 gjør ingenting før kortet er snudd", async () => {
       renderPage(undefined, { frame: true });
       expect(await screen.findByText("/ 3")).toBeTruthy();
       press("1");
@@ -262,7 +262,7 @@ describe("FlashcardSessionPage", () => {
       expect(screen.getByText("Kunne 0 · Kunne ikke 0")).toBeTruthy();
     });
 
-    it("UX-DR27: Mellomrom på en knapp i fokus snur ikke kortet", async () => {
+    it("UX-DR32: Mellomrom på en knapp i fokus snur ikke kortet", async () => {
       renderPage(undefined, { frame: true });
       expect(await screen.findByText("/ 3")).toBeTruthy();
       button("Avslutt økt").focus();
@@ -277,13 +277,13 @@ describe("FlashcardSessionPage", () => {
       expect(push).toHaveBeenCalledWith("/forelesninger/l1");
     });
 
-    it("UX-DR26: hint-linjen står under knappene", async () => {
+    it("UX-DR27: hint-linjen står under knappene", async () => {
       renderPage(undefined, { frame: true });
       expect(await screen.findByText("/ 3")).toBeTruthy();
       expect(screen.getByRole("list", { name: "Hurtigtaster" }).textContent).toContain("Esc avslutt");
     });
 
-    it("UX-DR31: med bryteren av virker ingen enkelttaster, hint-linjen er skjult, og Esc virker", async () => {
+    it("UX-DR26: med bryteren av virker ingen enkelttaster, hint-linjen er skjult, og Esc virker", async () => {
       window.localStorage.setItem(SHORTCUTS_KEY, "off");
       renderPage(undefined, { frame: true });
       expect(await screen.findByText("/ 3")).toBeTruthy();
@@ -300,7 +300,7 @@ describe("FlashcardSessionPage", () => {
       expect(push).toHaveBeenCalledWith("/forelesninger/l1");
     });
 
-    it("UX-DR31: ? åpner hurtigtastdialogen; imens virker ingen taster i økten, og Esc lukker bare dialogen", async () => {
+    it("UX-DR26, UX-DR32: ? åpner hurtigtastdialogen; imens virker ingen taster i økten, og Esc lukker bare dialogen", async () => {
       renderPage(undefined, { frame: true });
       expect(await screen.findByText("/ 3")).toBeTruthy();
       press("?");
@@ -313,7 +313,7 @@ describe("FlashcardSessionPage", () => {
       expect(front()).toBe("Merkevare");
     });
 
-    it("UX-DR27: ingenting i økten når fokus står i et tekstfelt", async () => {
+    it("UX-DR32: ingenting i økten når fokus står i et tekstfelt", async () => {
       renderPage(undefined, { frame: true });
       expect(await screen.findByText("/ 3")).toBeTruthy();
       const field = document.createElement("input");
@@ -326,7 +326,7 @@ describe("FlashcardSessionPage", () => {
       field.remove();
     });
 
-    it("UX-DR27: når økten er ferdig, virker bare ?", async () => {
+    it("UX-DR32: når økten er ferdig, virker bare ?", async () => {
       cards = [card("a", "Merkevare")];
       renderPage(undefined, { frame: true });
       expect(await screen.findByText("/ 1")).toBeTruthy();
@@ -339,7 +339,7 @@ describe("FlashcardSessionPage", () => {
       expect(screen.getByRole("dialog", { name: "Hurtigtaster" })).toBeTruthy();
     });
 
-    it("UX-DR32: på smal skjerm er panelet bak «Meny», panelets tittel er h2, og innholdet har en skjult h1", async () => {
+    it("UX-DR10: på smal skjerm er panelet bak «Meny», panelets tittel er h2, og innholdet har en skjult h1", async () => {
       vi.stubGlobal("matchMedia", () => ({ matches: true, addEventListener: () => {}, removeEventListener: () => {} }));
       renderPage(undefined, { frame: true });
       const heading = await screen.findByRole("heading", { level: 1, name: "Flashcards" });

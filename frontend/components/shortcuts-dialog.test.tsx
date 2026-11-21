@@ -35,7 +35,7 @@ function openDialog() {
 }
 
 describe("ShortcutsDialog", () => {
-  it("UX-DR31: tabellen med Tast og Handling viser tastene for øving og dialoger", () => {
+  it("UX-DR26: tabellen med Tast og Handling viser tastene for øving og dialoger", () => {
     const { dialog } = openDialog();
     const table = within(dialog).getByRole("table");
     expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["Tast", "Handling"]);
@@ -59,7 +59,7 @@ describe("ShortcutsDialog", () => {
     expect(within(dialog).getAllByRole("button", { name: "Lukk" })).toHaveLength(2);
   });
 
-  it("UX-DR31: bryteren «Bruk hurtigtaster» er på som standard, får fokus først, og valget lagres", () => {
+  it("UX-DR26: bryteren «Bruk hurtigtaster» er på som standard, får fokus først, og valget lagres", () => {
     const { dialog } = openDialog();
     const toggle = within(dialog).getByRole("switch", { name: "Bruk hurtigtaster" });
     expect(toggle.getAttribute("aria-checked")).toBe("true");
@@ -71,13 +71,13 @@ describe("ShortcutsDialog", () => {
     expect(window.localStorage.getItem(SHORTCUTS_KEY)).toBeNull();
   });
 
-  it("UX-DR31: bryteren står av når den er skrudd av fra før", () => {
+  it("UX-DR26: bryteren står av når den er skrudd av fra før", () => {
     window.localStorage.setItem(SHORTCUTS_KEY, "off");
     const { dialog } = openDialog();
     expect(within(dialog).getByRole("switch", { name: "Bruk hurtigtaster" }).getAttribute("aria-checked")).toBe("false");
   });
 
-  it("UX-DR31: Esc lukker, og fokus går tilbake dit det var", async () => {
+  it("UX-DR26: Esc lukker, og fokus går tilbake dit det var", async () => {
     const { opener, dialog } = openDialog();
     fireEvent.keyDown(dialog, { key: "Escape" });
     expect(screen.queryByRole("dialog")).toBeNull();

@@ -7,7 +7,7 @@ import { FLASHCARD_HINTS, ShortcutHints } from "./shortcut-hints";
 afterEach(cleanup);
 
 describe("ShortcutHints", () => {
-  it("UX-DR26: tastene i kbd og teksten i dempet grå, i skissens rekkefølge, bare tekst og sentrert", () => {
+  it("UX-DR27: tastene i kbd og teksten i dempet grå, i skissens rekkefølge, bare tekst og sentrert", () => {
     render(<ShortcutHints hints={FLASHCARD_HINTS} />);
     const list = screen.getByRole("list", { name: "Hurtigtaster" });
     const items = within(list).getAllByRole("listitem");

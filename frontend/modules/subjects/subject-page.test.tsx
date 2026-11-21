@@ -163,7 +163,7 @@ describe("emnesiden", () => {
     expect(nav.className).toContain("border-divider");
   });
 
-  it("UX-DR31: nederst i sidemenyen står knappen «? Hurtigtaster» med tasten i kbd og teksten i dempet grå", async () => {
+  it("UX-DR26: nederst i sidemenyen står knappen «? Hurtigtaster» med tasten i kbd og teksten i dempet grå", async () => {
     renderPage();
     const nav = await screen.findByRole("navigation", { name: "Emner" });
     const shortcuts = within(nav).getByRole("button", { name: "? Hurtigtaster" });

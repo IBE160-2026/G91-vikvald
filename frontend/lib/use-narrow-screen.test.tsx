@@ -33,7 +33,7 @@ function stubMatchMedia(initial: boolean) {
 }
 
 describe("useNarrowScreen", () => {
-  it("UX-DR32: spør etter 48em, så både 768 px og 200 % tekst gir smal skjerm, og følger endringer", () => {
+  it("UX-DR10, NFR-14: spør etter 48em, så både 768 px og 200 % tekst gir smal skjerm, og følger endringer", () => {
     const media = stubMatchMedia(false);
     render(<Probe />);
     expect(NARROW_QUERY).toBe("(max-width: 48em)");
@@ -43,7 +43,7 @@ describe("useNarrowScreen", () => {
     expect(screen.getByText("smal")).toBeTruthy();
   });
 
-  it("UX-DR32: bred som standard når matchMedia mangler", () => {
+  it("UX-DR10: bred som standard når matchMedia mangler", () => {
     vi.stubGlobal("matchMedia", undefined);
     render(<Probe />);
     expect(screen.getByText("bred")).toBeTruthy();

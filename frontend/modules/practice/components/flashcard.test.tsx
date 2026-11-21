@@ -81,7 +81,7 @@ describe("Flashcard", () => {
     render(<Flashcard card={CARD} flipped={false} onFlip={vi.fn()} onMark={vi.fn()} focusOnMount />);
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Snu kortet" }));
   });
-  it("UX-DR26: hint-linjen står under knappene bare når den er slått på", () => {
+  it("UX-DR27: hint-linjen står under knappene bare når den er slått på", () => {
     const { container, unmount } = render(<Harness />);
     expect(container.querySelector("[data-slot='shortcut-hints']")).toBeNull();
     unmount();
