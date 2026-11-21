@@ -221,5 +221,8 @@ test.describe("Filer (story 2.3)", () => {
     expect(response.status()).toBe(404);
     const counts = await page.request.get(`/api/subjects/${subjectId}/file-counts`);
     expect(counts.status()).toBe(404);
+
+    await page.goto(`/forelesninger/${olasLecture}`);
+    await expect(page.locator("main h1")).toHaveText("Fant ikke siden");
   });
 });
