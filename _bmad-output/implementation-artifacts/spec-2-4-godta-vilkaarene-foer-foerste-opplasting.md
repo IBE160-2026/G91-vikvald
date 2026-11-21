@@ -2,7 +2,8 @@
 title: 'Story 2.4: Godta vilkårene før første opplasting'
 type: 'feature'
 created: '2026-11-21'
-status: 'ready-for-dev'
+baseline_revision: 'fc75c0854cf981b8c2c7df6a79aac9db009ae40c'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -103,6 +104,29 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-21 — Review pass
+- verdicts: 19 findings — high 0, medium 4, low 12, false 3, maybe-false 0
+- findings:
+  - `[medium]` `[patch]` (edge) Avbryt/kryss/Esc mens vilkårskallet pågår lagrer likevel vilkårene — lukking gjør ingenting mens `accept.isPending`; Vitest: Esc under ventende kall lar dialogen stå, og fila lastes opp når kallet svarer.
+  - `[medium]` `[patch]` (edge) Avbryt under ventende kall og nye filer før svaret laster opp uten avkrysning — samme rot og retting som raden over.
+  - `[low]` `[reject]` (edge) Ingen gjenoppretting når backend svarer `TERMS_NOT_ACCEPTED` med utdatert `me` — krever at databasen nullstilles mens siden er åpen; rettingen er en ny gren. Omlasting løser det.
+  - `[low]` `[reject]` (edge) Demosetningen mangler mens `/api/config` lastes eller har feilet — konfigurasjonen hentes når appen starter (`staleTime: Infinity`) og er lastet lenge før hun velger en fil; en egen lastetilstand er ny kompleksitet.
+  - `[medium]` `[patch]` (edge, påstand) Matriseraden «Avbryt … uten noe kall» holder ikke under ventende kall — samme retting som første rad.
+  - `[medium]` `[patch]` (blind) Avbryt under ventende vilkårskall lagrer og starter tom opplasting — samme retting som første rad.
+  - `[low]` `[reject]` (blind) Ingen gjenoppretting ved `TERMS_NOT_ACCEPTED` — samme vurdering som edge-raden.
+  - `[false]` `[reject]` (blind) Dialogen åpnes feil når `me` ikke er lastet — `RequireLogin` viser bare sidene når `me` har data, og `UploadZone` bruker samme spørringsnøkkel, så `me.data` finnes alltid her.
+  - `[low]` `[reject]` (blind) `_as_utc` finnes nå tre steder — ingen feil i dag; å flytte den til `core` endrer to andre moduler og hører til en egen opprydding.
+  - `[low]` `[reject]` (blind) Ingen versjon av vilkårene lagres — storien ber bare om tidspunktet (`terms_accepted_at`); versjonering er ny funksjon.
+  - `[low]` `[patch]` (blind) Kappløpstesten sier «samtidig», men kjører etter hverandre — kommentaren sier nå at testen viser at en utdatert bruker i minnet ikke kan overskrive tidspunktet.
+  - `[low]` `[reject]` (blind) E2e Esc-testen bruker fast ventetid — testen sjekker i tillegg at `me` fortsatt har `terms_accepted_at: null`, så et sent kall ville også bli fanget.
+  - `[low]` `[reject]` (blind) Fokus etter «Godta og last opp» er ikke testet — den felles dialogen gir fokus tilbake til åpneren, og det er testet i `dialog.test.tsx`.
+  - `[low]` `[reject]` (blind) Demosetningen kommer sent — samme vurdering som edge-raden.
+  - `[low]` `[reject]` (blind) E2e-hjelperen sjekker ikke status på oppsettkallene — gir bare en mindre tydelig feilmelding når testen allerede feiler.
+  - `[false]` `[reject]` (blind) KI-sporet mangler i branchen — skrives og committes i samme økt etter gjennomgangen (punkt 5–6 i story-prompten), før PR-en.
+  - `[false]` `[reject]` (blind) Vilkårssjekken gjelder bare opplastingsruten — notater kan bare komme inn gjennom opplastingen, og senere ruter bruker bare filer som allerede er lastet opp.
+  - `[low]` `[reject]` (intent) Dra og slipp, Avbryt og lukkekrysset og avviste filer etter godkjenning testes bare i Vitest — samme `requestUpload`/`onClose`/`uploadAll` som e2e dekker med «Velg PDF» og Esc.
+  - `[low]` `[reject]` (intent) Tastaturflyten testes bare i demomodus, og «uten demomodus» er simulert i nettleseren — dialogen er lik i begge moduser bortsett fra demosetningen; axe kjøres i begge.
+
 ## Design Notes
 
 - **403 for `TERMS_NOT_ACCEPTED`:** studenten er innlogget, men mangler en forutsetning. `404` er forbeholdt andres data (AD-2), `422` er for innholdet i fila. Kanttilfelle.
@@ -117,3 +141,26 @@ deferred: []
 - `cd backend && uv run pytest` -- expected: alle grønne
 - `cd frontend && npm run test && npx tsc --noEmit` -- expected: alle grønne
 - `docker compose up --build -d && cd frontend && npx playwright test` -- expected: alle grønne
+
+## Auto Run Result
+
+**Sammendrag:** Studenten må godta vilkårene før første opplasting. Backend har feltet `users.terms_accepted_at` (migrering `0005_add_terms_accepted_at`), feltet i svarene fra `me`, `register` og `login`, og `POST /api/identity/terms`, som setter tidspunktet bare første gang med én betinget `UPDATE`. Opplastingen avviser med `403 TERMS_NOT_ACCEPTED` etter eierskapssjekken og før kroppen leses, og lagrer ingenting. I frontend åpner opplastingsfeltet vilkårsdialogen «Før du laster opp» (640 px) før første opplasting, både ved «Velg PDF» og ved dra og slipp. Dialogen viser filnavnet eller antall filer, den felles vilkårsteksten ordrett fra `epics.md`, demosetningen i demomodus og en avkrysning fra shadcn som gjør «Godta og last opp» aktiv. Godta lagrer vilkårene og laster opp med flyten fra 2.3. Avbryt, lukkekrysset og Esc laster ingenting opp.
+
+**Filer:**
+- `backend/alembic/versions/0005_add_terms_accepted_at.py` -- ny kolonne, opp og ned
+- `backend/app/modules/identity/{models,schemas,service,router}.py` -- feltet, `accept_terms`, `_user_out`, `POST /terms`
+- `backend/app/core/errors.py`, `backend/app/modules/files/router.py` -- `TERMS_NOT_ACCEPTED` (403) og sjekken i opplastingen
+- `backend/tests/{test_terms,test_migrations,test_files,test_identity,test_login,test_current_user}.py` -- nye og oppdaterte tester
+- `frontend/components/{dialog,terms-text,ui/checkbox}.tsx` + tester -- deaktiverbar hovedknapp med ikon, felles vilkårstekst, avkrysning
+- `frontend/lib/messages.ts` + test, `frontend/modules/identity/{types,api}.ts` -- kode, felt og kall
+- `frontend/modules/files/components/{terms-dialog,upload-zone}.tsx`, `frontend/modules/subjects/lecture-page.test.tsx` -- dialogen, flyten og testene
+- `frontend/e2e/{vilkar,filer,logg-inn}.spec.ts` -- ny e2e for dialogen; eldre tester godtar vilkårene eller venter feltet
+- `docs/skjermbilder/story-2-4/` -- skjermbilder i 1280 og 768 px
+
+**Gjennomgang:** 19 funn. Rettet: dialogen kan ikke lukkes mens vilkårskallet pågår (`medium`, fire rader med samme rot), og kommentaren i testen med utdatert bruker (`low`). Ingenting utsatt. Avvist: 3 `false` og 11 `low` med grunner i Review Triage Log.
+
+**Ny gjennomgang anbefales:** nei. Rettet: high 0, medium 1, low 1.
+
+**Verifisering:** `uv run pytest` 253 grønne; `npm run test` 400 grønne og `tsc --noEmit` uten feil; `docker compose up --build` + `npx playwright test` 48 grønne.
+
+**Gjenværende risiko:** svarer backend `TERMS_NOT_ACCEPTED` mens bufferen sier godtatt (databasen nullstilt med siden åpen), viser hver fil reserveteksten til siden lastes på nytt. E2e kjøres ikke i CI.
