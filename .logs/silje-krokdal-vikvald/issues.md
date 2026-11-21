@@ -78,4 +78,6 @@
 - [ ] 2026-11-20 [funn-68-shadcn-ui](986-2026-11-20-23-18-08-funn-68-shadcn-ui.md) — e2e-test for dialogen, og avgjør sene body-elementer, aria-describedby og fokus når åpneren er borte (#75)
 - [ ] 2026-11-20 [funn-68-shadcn-ui](986-2026-11-20-23-18-08-funn-68-shadcn-ui.md) — nye shadcn-komponenter må tilpasses DESIGN.md-tokenene (#76)
 - [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — godkjenn emnefargene subject-4 til subject-6 og før dem inn i DESIGN.md (#80)
-- [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — vurder kanttilfellene fra story 2.1 (#81, #82)
+- [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — vurder kanttilfellene fra story 2.1 (#81–#88)
+- [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — sidemenyen skal bak en menyknapp ved 768 px (EXPERIENCE.md, «Skjermstørrelse og plattform»), ikke i noen story ennå
+- [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — CI kjører ikke e2e, så kontrakten frontend–backend sjekkes bare lokalt
