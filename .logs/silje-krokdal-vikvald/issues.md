@@ -83,3 +83,6 @@
 - [ ] 2026-11-21 [story-2-1-opprett-emner](984-2026-11-21-02-49-40-story-2-1-opprett-emner.md) — CI kjører ikke e2e, så kontrakten frontend–backend sjekkes bare lokalt
 - [ ] 2026-11-21 [story-2-2-forelesninger-og-sidemeny](983-2026-11-21-03-34-32-story-2-2-forelesninger-og-sidemeny.md) — vurder kanttilfellene fra story 2.2 (#90–#94)
 - [ ] 2026-11-21 [story-2-2-forelesninger-og-sidemeny](983-2026-11-21-03-34-32-story-2-2-forelesninger-og-sidemeny.md) — brødsmuler på forelesningssiden (skisse 04) er ikke i noen story (#93)
+- [ ] 2026-11-21 [story-2-3-last-opp-pdf-notater](982-2026-11-21-07-42-08-story-2-3-last-opp-pdf-notater.md) — vurder kanttilfellene fra story 2.3 (#96–#100), særlig tekstene «Laster opp …» og «<filnavn>: <melding>» (#98)
+- [ ] 2026-11-21 [story-2-3-last-opp-pdf-notater](982-2026-11-21-07-42-08-story-2-3-last-opp-pdf-notater.md) — PDF-ene på disken må slettes av sletterutene i 2.5 og 2.7
+- [ ] 2026-11-21 [story-2-3-last-opp-pdf-notater](982-2026-11-21-07-42-08-story-2-3-last-opp-pdf-notater.md) — avklar om PyMuPDF kan gi surrogattegn i sideteksten som Postgres avviser
