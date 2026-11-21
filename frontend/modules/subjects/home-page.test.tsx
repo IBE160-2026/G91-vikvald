@@ -125,6 +125,22 @@ describe("forsiden «Dine emner»", () => {
     expect(within(dialog).getByRole("button", { name: "Opprett emne" })).toBeTruthy();
   });
 
+  it("FR-6: navnefeltet tar høyst 200 tegn, som backenden", async () => {
+    respond([]);
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: "Lag ditt første emne" }));
+    expect(screen.getByLabelText("Navn").getAttribute("maxlength")).toBe("200");
+  });
+
+  it("FR-1: feil når emnene hentes gir reserveteksten, ingen liste og ingen «Lag ditt første emne»", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } }));
+    renderPage();
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
+    expect(screen.queryByRole("list")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Lag ditt første emne" })).toBeNull();
+  });
+
   it("E35: tomt navn og ugyldig dato stopper kallet, viser meldingene og flytter fokus til navnet", async () => {
     respond([]);
     renderPage();

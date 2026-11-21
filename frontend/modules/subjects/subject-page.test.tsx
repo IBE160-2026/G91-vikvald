@@ -148,6 +148,35 @@ describe("emnesiden", () => {
     expect(patchCalls()).toHaveLength(0);
   });
 
+  it("FR-1: annen feil enn 404 når emnet hentes gir reserveteksten, ikke «Fant ikke siden»", async () => {
+    fetchMock.mockImplementation(async (url) =>
+      String(url) === "/api/subjects"
+        ? jsonResponse(200, [MARKETING])
+        : jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } }),
+    );
+    renderPage();
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
+    expect(notFound).not.toHaveBeenCalled();
+  });
+
+  it.each(["Nytt navn", "Endre eksamensdato"])(
+    "FR-1: feil fra PATCH i «%s» gir reserveteksten i dialogen, som blir stående åpen",
+    async (opener) => {
+      fetchMock.mockImplementation(async (url, init) => {
+        if (init?.method === "PATCH") return jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } });
+        return jsonResponse(200, String(url) === "/api/subjects" ? [MARKETING] : MARKETING);
+      });
+      renderPage();
+      fireEvent.click(await screen.findByRole("button", { name: opener }));
+      const dialog = screen.getByRole("dialog", { name: opener });
+      fireEvent.click(within(dialog).getByRole("button", { name: "Lagre" }));
+      const alert = await within(dialog).findByRole("alert");
+      expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
+      expect(screen.getByRole("dialog", { name: opener })).toBeTruthy();
+    },
+  );
+
   it("FR-4: ukjent eller andres emne gir «Fant ikke siden»", async () => {
     renderPage("finnes-ikke");
     await waitFor(() => expect(notFound).toHaveBeenCalled());
