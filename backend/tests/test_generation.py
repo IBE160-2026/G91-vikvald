@@ -100,6 +100,19 @@ async def test_nfr2a_kjente_forsider_hoppes_over_uten_forskjell_paa_store_og_sma
     assert [card["front"] for card in cards] == ["Segmentering", "Posisjonering", "The marketing mix"]
 
 
+async def test_nfr2a_samme_begrep_to_ganger_gir_ett_kort() -> None:
+    pages = [
+        Page(FILE_ID, 1, "Merkevare er et navn. Pris er det kunden betaler."),
+        Page(FILE_ID, 2, "MERKEVARE er et symbol. Kanal er veien til kunden."),
+    ]
+    cards = await MockGenerator().generate("flashcards", pages, options())
+    assert [(card["front"], card["page_no"]) for card in cards] == [
+        ("Merkevare", 1),
+        ("Pris", 1),
+        ("Kanal", 2),
+    ]
+
+
 async def test_sk4_ugyldig_mock_odelegger_tre_av_fire() -> None:
     cards = await InvalidMockGenerator().generate("flashcards", fixture_pages(), options())
     assert len(cards) == 5

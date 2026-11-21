@@ -4,6 +4,7 @@ GET /api/lectures/{id}/jobs/latest and GET /api/lectures/{id}/content-counts
 
 import asyncio
 import logging
+import time
 import uuid
 from collections.abc import AsyncIterator
 from pathlib import Path
@@ -173,6 +174,38 @@ async def test_fr38_flere_enn_bedt_om_gir_de_forste_i_fil_side_plassering(
     [job] = await _latest(client, lecture_id)
     assert (job["created"], job["discarded"]) == (20, 0)
     assert [card.front for card in await _cards(engine)] == terms[:20]
+
+
+async def test_fr38_taket_gjelder_over_to_filer_i_filrekkefolge(
+    client: AsyncClient, engine: AsyncEngine
+) -> None:
+    await _log_in_new_user(client)
+    lecture_id = await _new_lecture(client)
+    first = [f"Forst{number:02d}" for number in range(1, 16)]
+    second = [f"Andre{number:02d}" for number in range(1, 16)]
+    assert (await _upload(client, lecture_id, pdf_with_pages([definitions(first)]), "a.pdf")).status_code == 201
+    assert (await _upload(client, lecture_id, pdf_with_pages([definitions(second)]), "b.pdf")).status_code == 201
+
+    assert (await _start(client, lecture_id)).status_code == 202
+    await _finish_jobs()
+    [job] = await _latest(client, lecture_id)
+    assert job["created"] == 20
+    assert [card.front for card in await _cards(engine)] == first + second[:5]
+
+
+async def test_nfr17_demojobb_med_20_kort_tar_under_5_sekunder(client: AsyncClient) -> None:
+    await _log_in_new_user(client)
+    lecture_id = await _new_lecture(client)
+    terms = [f"Begrep{number:02d}" for number in range(1, 21)]
+    assert (await _upload(client, lecture_id, pdf_with_pages([definitions(terms)]))).status_code == 201
+
+    started = time.monotonic()
+    assert (await _start(client, lecture_id)).status_code == 202
+    await _finish_jobs()
+    elapsed = time.monotonic() - started
+    [job] = await _latest(client, lecture_id)
+    assert (job["status"], job["created"]) == ("done", 20)
+    assert elapsed < 5
 
 
 async def test_fr38_requested_10_og_30(client: AsyncClient, engine: AsyncEngine) -> None:

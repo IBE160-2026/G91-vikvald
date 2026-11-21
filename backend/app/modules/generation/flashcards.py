@@ -51,13 +51,16 @@ def definition_term(sentence: str) -> str | None:
 def mock_rule(pages: list[Page], options: GenerationOptions) -> list[dict[str, Any]]:
     """One concept card per definition sentence, in the order file, page,
     position on the page. Cards whose front (ignoring case) is in
-    options.existing_keys are skipped. The same pages always give the same list."""
+    options.existing_keys, or was already made in this run, are skipped. The
+    same pages always give the same list."""
     cards: list[dict[str, Any]] = []
+    seen = set(options.existing_keys)
     for page in pages:
         for sentence in sentences(page.text):
             term = definition_term(sentence)
-            if term is None or term.casefold() in options.existing_keys:
+            if term is None or term.casefold() in seen:
                 continue
+            seen.add(term.casefold())
             cards.append(
                 {
                     "kind": "concept",

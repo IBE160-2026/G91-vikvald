@@ -225,7 +225,7 @@ def test_fr11_downgrade_til_0004_fjerner_kolonnen_men_beholder_users(tmp_path: P
     assert emails == ["klara@eksempel.no"]
 
 
-def test_ar4_upgrade_head_lager_jobs_og_flashcards_med_cascade_og_delvis_unik_indeks(
+def test_ar5_upgrade_head_lager_jobs_og_flashcards_med_cascade_og_delvis_unik_indeks(
     tmp_path: Path,
 ) -> None:
     db_file = tmp_path / "m.db"
