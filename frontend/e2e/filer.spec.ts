@@ -38,11 +38,15 @@ async function tabTo(page: Page, element: Locator, maxPresses = 40) {
   throw new Error("Tab never reached the element");
 }
 
+// A new, logged-in student who has accepted the terms (story 2.4) through the
+// API, so these tests upload without the terms dialog (e2e/vilkar.spec.ts covers it).
 async function registerNewUser(page: Page) {
   const response = await page.request.post("/api/identity/register", {
     data: { email: uniqueEmail(), password: PASSWORD },
   });
   expect(response.status()).toBe(201);
+  const terms = await page.request.post("/api/identity/terms");
+  expect(terms.status()).toBe(200);
 }
 
 async function createSubjectViaApi(page: Page, name: string, examDate = "2026-12-04"): Promise<string> {
