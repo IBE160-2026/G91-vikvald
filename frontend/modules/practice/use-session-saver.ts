@@ -49,6 +49,10 @@ export function useSessionSaver(getSnapshot: () => SaverSnapshot | null) {
   const startedAtRef = useRef<number | null>(null);
   const sentRef = useRef(false);
   const mountedRef = useRef(true);
+  // The save in flight (if any): «Logg ut» waits for it.
+  const pendingRef = useRef<Promise<void> | null>(null);
+  // Bumped by restart(): a save from an earlier session never sets the status.
+  const generationRef = useRef(0);
   const [status, setStatus] = useState<SaveStatus>("idle");
 
   // Set once, on the first render after mount (never during render).
@@ -81,15 +85,19 @@ export function useSessionSaver(getSnapshot: () => SaverSnapshot | null) {
     (aborted: boolean): Promise<void> | null => {
       const payload = take(aborted);
       if (payload === null) return null;
-      if (mountedRef.current) setStatus("saving");
-      return postPracticeSession(payload).then(
+      const generation = generationRef.current;
+      const current = () => mountedRef.current && generationRef.current === generation;
+      if (current()) setStatus("saving");
+      const pending = postPracticeSession(payload).then(
         () => {
-          if (mountedRef.current) setStatus("saved");
+          if (current()) setStatus("saved");
         },
         () => {
-          if (mountedRef.current) setStatus("failed");
+          if (current()) setStatus("failed");
         },
       );
+      pendingRef.current = pending;
+      return pending;
     },
     [take],
   );
@@ -98,6 +106,7 @@ export function useSessionSaver(getSnapshot: () => SaverSnapshot | null) {
   const abort = useCallback(() => send(true) !== null, [send]);
 
   const restart = useCallback(() => {
+    generationRef.current += 1;
     sessionIdRef.current = newSessionId();
     startedAtRef.current = performance.now();
     sentRef.current = false;
@@ -112,7 +121,8 @@ export function useSessionSaver(getSnapshot: () => SaverSnapshot | null) {
       if (!beaconPracticeSession(payload)) void postPracticeSession(payload).catch(() => {});
     }
     window.addEventListener("pagehide", onPageHide);
-    const unregister = registerBeforeLogout(() => send(true) ?? undefined);
+    // Sends what is marked, or waits for a save that has already started.
+    const unregister = registerBeforeLogout(() => send(true) ?? pendingRef.current ?? undefined);
     return () => {
       window.removeEventListener("pagehide", onPageHide);
       unregister();

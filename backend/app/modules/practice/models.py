@@ -8,9 +8,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
 
-# The practice types a session can have.
-PRACTICE_KINDS = ("flashcards", "quiz", "freetext")
-
 
 class PracticeSession(Base):
     """The result of one practice session. No user_id: the owner is the
@@ -30,7 +27,7 @@ class PracticeSession(Base):
     lecture_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("lectures.id", ondelete="CASCADE"), index=True, nullable=True
     )
-    # "flashcards", "quiz" or "freetext" (PRACTICE_KINDS).
+    # "flashcards", "quiz" or "freetext" (schemas.PracticeKind checks it).
     kind: Mapped[str] = mapped_column(String(16))
     # True when she ended the session before it was finished.
     aborted: Mapped[bool] = mapped_column(Boolean)

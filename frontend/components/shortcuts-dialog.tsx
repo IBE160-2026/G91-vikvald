@@ -13,9 +13,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 // dialog without a main action (one button «Lukk»), titled «Hurtigtaster». A
 // table «Tast» / «Handling» with the keys that are built so far (flashcards,
 // the result page and dialogs; quiz and free text add theirs later), and under
-// it the switch «Bruk hurtigtaster» (on by default, kept in localStorage,
-// WCAG 2.1.4). Focus starts
-// on the switch, Esc closes, and focus goes back to where it was (returnFocus).
+// it the switch «Bruk hurtigtaster» (on by default, kept in localStorage, WCAG
+// 2.1.4). Focus starts on the switch, Esc closes, and focus goes back to where
+// it was (returnFocus).
 
 type Row = { keys: string; action: string };
 

@@ -175,4 +175,48 @@ describe("useSessionSaver", () => {
     const [first, second] = bodies();
     expect(first.session_id).not.toBe(second.session_id);
   });
+
+  it("FR-56: «Logg ut» rett etter «Avslutt økt» venter på lagringen som alt er i gang", async () => {
+    let answer: (response: Response) => void = () => {};
+    fetchMock.mockImplementation(() => new Promise((resolve) => (answer = resolve)));
+    render(<Harness />);
+    counts = { shown: 1, answered: 1, correct: 1, wrong: 0 };
+    await act(async () => {
+      expect(saver.abort()).toBe(true);
+    });
+    let done = false;
+    const waiting = runBeforeLogout().then(() => {
+      done = true;
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(done).toBe(false);
+    expect(bodies()).toHaveLength(1);
+    await act(async () => {
+      answer(new Response(null, { status: 204 }));
+      await waiting;
+    });
+    expect(done).toBe(true);
+  });
+
+  it("SK-20: en lagring fra forrige økt som blir ferdig etter restart(), endrer ikke status for den nye økten", async () => {
+    let answer: (response: Response) => void = () => {};
+    fetchMock.mockImplementation(() => new Promise((resolve) => (answer = resolve)));
+    render(<Harness />);
+    counts = { shown: 1, answered: 1, correct: 1, wrong: 0 };
+    await act(async () => {
+      saver.finish();
+    });
+    expect(status()).toBe("saving");
+    await act(async () => {
+      saver.restart();
+    });
+    expect(status()).toBe("idle");
+    await act(async () => {
+      answer(new Response(null, { status: 204 }));
+      await Promise.resolve();
+    });
+    expect(status()).toBe("idle");
+  });
 });

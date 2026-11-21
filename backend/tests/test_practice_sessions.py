@@ -11,8 +11,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
 from app.modules.practice.models import PracticeSession
-from app.modules.practice.schemas import MAX_DURATION_SECONDS
+from app.modules.practice.schemas import MAX_COUNT, MAX_DURATION_SECONDS
+from app.modules.content.models import Flashcard
 from app.modules.subjects.models import Lecture
+from tests.test_files import _log_in_new_user as _log_in_with_terms
+from tests.test_files import _upload
+from tests.test_jobs import FIXTURE, _finish_jobs, _start
 from tests.test_lectures import _create_lecture, _new_subject
 from tests.test_subjects import NOT_FOUND, _log_in_new_user
 
@@ -184,6 +188,12 @@ async def test_ar9_uten_innlogging_gir_401(client: AsyncClient, engine: AsyncEng
         {"session_id": "ikke-en-id"},
         {"aborted": None},
         {"partial": 1},
+        # «Delvis» only exists for free text.
+        {"partial": 1, "correct": 1},
+        {"kind": "quiz", "partial": 1, "correct": 1},
+        # Above the upper bound (and the INTEGER column on Postgres).
+        {"shown": 2**31, "answered": 2**31, "correct": 2**31 - 1},
+        {"shown": MAX_COUNT + 1},
     ],
 )
 async def test_fr56_ugyldige_tall_gir_422(client: AsyncClient, engine: AsyncEngine, changes: dict[str, Any]) -> None:
@@ -266,3 +276,27 @@ async def test_ar9_sletting_av_emne_sletter_oktene(client: AsyncClient, engine: 
 
     [row] = await _rows(engine)
     assert str(row.subject_id) == kept_subject
+
+
+async def test_ar9_emneokt_starter_etter_kort_laget_rett_for_selv_med_klokke_fem_minutter_etter(
+    client: AsyncClient, engine: AsyncEngine
+) -> None:
+    # Cards made just before a subject session (lecture_id null); the browser's
+    # clock is five minutes behind and it sends a started_at of its own.
+    await _log_in_with_terms(client)
+    subject_id, lecture_id = await _subject_and_lecture(client)
+    assert (await _upload(client, lecture_id, FIXTURE.read_bytes())).status_code == 201
+    assert (await _start(client, lecture_id)).status_code == 202
+    await _finish_jobs()
+    async with async_sessionmaker(engine)() as session:
+        card_times = list(await session.scalars(select(Flashcard.created_at)))
+    assert card_times
+    newest_card = max(_utc(value) for value in card_times)
+
+    browser_time = datetime.now(UTC) - timedelta(minutes=5)
+    body = _body(subject_id, None, duration_seconds=0, started_at=browser_time.isoformat())
+    assert (await client.post(SESSIONS, json=body)).status_code == 204
+
+    [row] = await _rows(engine)
+    assert row.lecture_id is None
+    assert _utc(row.started_at) >= newest_card

@@ -238,4 +238,29 @@ test.describe("Lagre økten og se resultatet (story 3.5)", () => {
     await expect(page).toHaveURL("/logg-inn");
     expect(order).toEqual(["lagring startet", "lagring ferdig", "logg ut"]);
   });
+
+  test("SK-20: samme session_id sendt to ganger gir 204 begge ganger (ON CONFLICT DO NOTHING på Postgres)", async ({ page }) => {
+    const { subjectId, lectureId } = await lectureWithThreeCards(page);
+    const body = {
+      session_id: crypto.randomUUID(),
+      subject_id: subjectId,
+      lecture_id: lectureId,
+      kind: "flashcards",
+      aborted: false,
+      shown: 3,
+      answered: 3,
+      correct: 2,
+      partial: 0,
+      wrong: 1,
+      duration_seconds: 60,
+    };
+    const first = await page.request.post(SAVE_PATH, { data: body });
+    expect(first.status()).toBe(204);
+    // The beacon's way: the same body as text/plain.
+    const second = await page.request.post(SAVE_PATH, {
+      data: JSON.stringify({ ...body, aborted: true }),
+      headers: { "Content-Type": "text/plain;charset=UTF-8" },
+    });
+    expect(second.status()).toBe(204);
+  });
 });
