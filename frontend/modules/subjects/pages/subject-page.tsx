@@ -47,7 +47,7 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
 
         {subject.data ? (
           <>
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
                 <h1 className="text-page-title break-words">{subject.data.name}</h1>
                 <p className="mt-1 text-body-sm text-ink-muted">
