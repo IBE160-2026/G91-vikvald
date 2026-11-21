@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { UploadedFile } from "@/modules/files/types";
+
 import { LecturePage } from "./pages/lecture-page";
 import type { Lecture, Subject } from "./types";
 
@@ -26,7 +28,22 @@ const MARKETING: Subject = {
 };
 const ECONOMICS: Subject = { ...MARKETING, id: "b", name: "Samfunnsøkonomi", color_index: 1, lecture_count: 0 };
 
-// A small fake backend that sorts the lectures by date like the real one.
+// How the fake backend answers an upload: a rejection code (with details), or
+// undefined to accept the file.
+type UploadAnswer = { code: string; details?: Record<string, unknown> } | undefined;
+
+let demoMode = true;
+let uploadAnswer: (file: File) => UploadAnswer = () => undefined;
+let files: UploadedFile[] = [];
+// Lets a test hold the uploads until it has looked at the page.
+let gate: Promise<void> = Promise.resolve();
+
+function uploadedFile(name: string, pages: number, id = `f${files.length + 1}`): UploadedFile {
+  return { id, lecture_id: "l2", original_name: name, page_count: pages, uploaded_at: "2026-09-12T08:00:00Z" };
+}
+
+// A small fake backend that sorts the lectures by date like the real one, and
+// keeps the files of lecture l2.
 function respond() {
   const lectures: Lecture[] = [
     { id: "l1", subject_id: "a", name: "Uke 37: Merkevare", date: "2026-09-11", created_at: "1" },
@@ -40,6 +57,22 @@ function respond() {
       return jsonResponse(200, sorted);
     }
     if (path === "/api/subjects/b/lectures") return jsonResponse(200, []);
+    if (path === "/api/config") {
+      return jsonResponse(200, { demo_mode: demoMode, feature_mnemonics: true, feature_freetext: true, feature_summary: true });
+    }
+    if (path === "/api/lectures/l2/files") {
+      if (init?.method === "POST") {
+        await gate;
+        const file = (init.body as FormData).get("file") as File;
+        const answer = uploadAnswer(file);
+        if (answer) return jsonResponse(422, { error: { code: answer.code, details: answer.details ?? {} } });
+        const created = uploadedFile(file.name, 3);
+        files.push(created);
+        return jsonResponse(201, created);
+      }
+      return jsonResponse(200, files);
+    }
+    if (path === "/api/lectures/l1/files") return jsonResponse(200, []);
     const found = lectures.find((lecture) => path === `/api/lectures/${lecture.id}`);
     if (!found) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
     if (init?.method === "PATCH") Object.assign(found, JSON.parse(String(init.body)));
@@ -64,9 +97,25 @@ function lectureHrefs(nav: HTMLElement): (string | null)[] {
 }
 
 beforeEach(() => {
+  demoMode = true;
+  uploadAnswer = () => undefined;
+  files = [];
+  gate = Promise.resolve();
   vi.stubGlobal("fetch", fetchMock);
   respond();
 });
+
+function pdf(name: string): File {
+  return new File(["%PDF-1.7"], name, { type: "application/pdf" });
+}
+
+function choose(...chosen: File[]) {
+  fireEvent.change(screen.getByTestId("upload-input"), { target: { files: chosen } });
+}
+
+function uploadCalls() {
+  return fetchMock.mock.calls.filter(([url, init]) => String(url).endsWith("/files") && init?.method === "POST");
+}
 
 afterEach(() => {
   cleanup();
@@ -79,7 +128,7 @@ describe("forelesningssiden", () => {
   it("FR-7: h1 navnet, «Forelesning fredag 18.09.2026», knappene og tittelen", async () => {
     renderPage();
     expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe("Uke 38: Prising");
-    expect(screen.getByText("Forelesning fredag 18.09.2026")).toBeTruthy();
+    expect(await screen.findByText("Forelesning fredag 18.09.2026 · 0 filer · 0 sider")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Nytt navn" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Endre dato" })).toBeTruthy();
     await waitFor(() => expect(document.title).toBe("Uke 38: Prising – Studiekamerat"));
@@ -111,7 +160,7 @@ describe("forelesningssiden", () => {
     fireEvent.change(date, { target: { value: "21.08.2026" } });
     fireEvent.keyDown(date, { key: "Enter" });
 
-    expect(await screen.findByText("Forelesning fredag 21.08.2026")).toBeTruthy();
+    expect(await screen.findByText("Forelesning fredag 21.08.2026 · 0 filer · 0 sider")).toBeTruthy();
     await waitFor(() => expect(lectureHrefs(nav)).toEqual(["/forelesninger/l2", "/forelesninger/l1"]));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
@@ -165,5 +214,153 @@ describe("forelesningssiden", () => {
     );
     await waitFor(() => expect(document.activeElement).toBe(date));
     expect(screen.getByRole("dialog", { name: "Endre dato" })).toBeTruthy();
+  });
+
+  it("UX-DR16: «Filer» viser én rad per fil i API-rekkefølgen, og linja under h1 teller filer og sider", async () => {
+    files = [uploadedFile("merkevare-notater.pdf", 12, "f1"), uploadedFile("merkevare-forelesning2.pdf", 6, "f2")];
+    renderPage();
+    expect(await screen.findByText("Forelesning fredag 18.09.2026 · 2 filer · 18 sider")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: "Filer" })).toBeTruthy();
+    const list = screen.getByRole("list", { name: "Filer" });
+    const rows = within(list).getAllByRole("listitem");
+    expect(rows.map((row) => row.textContent)).toEqual([
+      "merkevare-notater.pdf12 sider · lastet opp 12.09",
+      "merkevare-forelesning2.pdf6 sider · lastet opp 12.09",
+    ]);
+    // The name is cut off with CSS; the whole name is in the DOM and the tooltip.
+    const name = within(rows[0]).getByText("merkevare-notater.pdf");
+    expect(name.className).toContain("truncate");
+    expect(name.getAttribute("title")).toBe("merkevare-notater.pdf");
+    expect(rows[0].className).toContain("h-file-row");
+    expect(screen.queryByRole("button", { name: /Slett|Erstatt/ })).toBeNull();
+  });
+
+  it("UX-DR16: entall «1 fil · 1 side»", async () => {
+    files = [uploadedFile("a.pdf", 1, "f1")];
+    renderPage();
+    expect(await screen.findByText("Forelesning fredag 18.09.2026 · 1 fil · 1 side")).toBeTruthy();
+    expect(screen.getByText("1 side · lastet opp 12.09")).toBeTruthy();
+  });
+
+  it("UX-DR17: opplastingsfeltet har tekstene og «Velg PDF» åpner den skjulte filvelgeren", async () => {
+    renderPage();
+    expect(await screen.findByText("Dra og slipp PDF-filer hit")).toBeTruthy();
+    expect(screen.getByText("Bare PDF. Hver fil får sin egen kilde med sidetall.")).toBeTruthy();
+    const input = screen.getByTestId("upload-input") as HTMLInputElement;
+    expect(input.type).toBe("file");
+    expect(input.multiple).toBe(true);
+    expect(input.hidden).toBe(true);
+    const click = vi.spyOn(input, "click");
+    fireEvent.click(screen.getByRole("button", { name: "Velg PDF" }));
+    expect(click).toHaveBeenCalledTimes(1);
+  });
+
+  it("FR-8: to PDF-er lastes opp én og én, «Laster opp …» står mens det pågår, og begge kommer i lista uten omlasting", async () => {
+    let release!: () => void;
+    gate = new Promise((resolve) => (release = resolve));
+    renderPage();
+    await screen.findByText("Forelesning fredag 18.09.2026 · 0 filer · 0 sider");
+
+    choose(pdf("en.pdf"), pdf("to.pdf"));
+
+    const status = screen.getByRole("status");
+    await waitFor(() => expect(status.textContent).toBe("Laster opp …"));
+    const button = screen.getByRole("button", { name: "Velg PDF" });
+    expect(button.getAttribute("aria-disabled")).toBe("true");
+    const click = vi.spyOn(screen.getByTestId("upload-input") as HTMLInputElement, "click");
+    fireEvent.click(button);
+    expect(click).not.toHaveBeenCalled();
+
+    release();
+    expect(await screen.findByText("Forelesning fredag 18.09.2026 · 2 filer · 6 sider")).toBeTruthy();
+    await waitFor(() => expect(status.textContent).toBe(""));
+    expect(button.hasAttribute("aria-disabled")).toBe(false);
+    const names = within(screen.getByRole("list", { name: "Filer" })).getAllByRole("listitem").map(
+      (row) => row.querySelector("p")?.textContent,
+    );
+    expect(names).toEqual(["en.pdf", "to.pdf"]);
+    // One call per file, each with the file in the field «file».
+    expect(uploadCalls().map(([, init]) => ((init?.body as FormData).get("file") as File).name)).toEqual([
+      "en.pdf",
+      "to.pdf",
+    ]);
+  });
+
+  it("FR-9: en avvist fil får sin egen linje med filnavnet, og linjene står til neste opplasting starter", async () => {
+    uploadAnswer = (file) => (file.name.endsWith(".docx") ? { code: "NOT_PDF" } : undefined);
+    renderPage();
+    await screen.findByText("Forelesning fredag 18.09.2026 · 0 filer · 0 sider");
+
+    choose(pdf("notater.pdf"), new File(["PK"], "notater.docx"));
+
+    const line =
+      "notater.docx: Bare PDF-filer kan lastes opp. Lagre Word-dokumentet som PDF (Fil → Lagre som → PDF) og prøv igjen.";
+    const message = await screen.findByText(line);
+    expect(message.closest("[aria-live]")).toBeTruthy();
+    expect(await screen.findByText("Forelesning fredag 18.09.2026 · 1 fil · 3 sider")).toBeTruthy();
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(""));
+    // Still there after the upload has finished.
+    expect(screen.getByText(line)).toBeTruthy();
+
+    let release!: () => void;
+    gate = new Promise((resolve) => (release = resolve));
+    choose(pdf("neste.pdf"));
+    await waitFor(() => expect(screen.queryByText(line)).toBeNull());
+    release();
+    expect(await screen.findByText("Forelesning fredag 18.09.2026 · 2 filer · 6 sider")).toBeTruthy();
+  });
+
+  it("NFR-16: hver avvist fil får meldingen med tallene fylt inn", async () => {
+    uploadAnswer = (file) =>
+      file.name === "stor.pdf"
+        ? { code: "FILE_TOO_LARGE", details: { size_mb: 21, limit_mb: 20 } }
+        : file.name === "lang.pdf"
+          ? { code: "TOO_MANY_PAGES", details: { page_count: 63 } }
+          : { code: "INTERNAL_ERROR" };
+    renderPage();
+    await screen.findByText("Forelesning fredag 18.09.2026 · 0 filer · 0 sider");
+
+    choose(pdf("stor.pdf"), pdf("lang.pdf"), pdf("rar.pdf"));
+
+    expect(
+      await screen.findByText(
+        "stor.pdf: Fila er på 21 MB. Grensen er 20 MB. Lagre den på nytt med mindre bilder, eller del den opp.",
+      ),
+    ).toBeTruthy();
+    expect(
+      await screen.findByText(
+        "lang.pdf: Fila har 63 sider. Grensen er 50 sider. Del den opp og last opp delene hver for seg.",
+      ),
+    ).toBeTruthy();
+    expect(await screen.findByText("rar.pdf: Noe gikk galt. Prøv igjen.")).toBeTruthy();
+  });
+
+  it("UX-DR20: i demomodus står «I demomodus sendes ingenting ut.» i merknadsflaten under opplastingsfeltet", async () => {
+    renderPage();
+    const note = await screen.findByText("I demomodus sendes ingenting ut.");
+    const surface = note.closest('[data-slot="note-surface"]')!;
+    expect(surface.className).toContain("bg-surface-note");
+    expect(surface.className).toContain("rounded-option");
+    expect(surface.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
+    const zone = document.querySelector('[data-slot="upload-zone"]')!;
+    expect(zone.compareDocumentPosition(surface) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("UX-DR20: utenfor demomodus vises ingen merknad ennå", async () => {
+    demoMode = false;
+    renderPage();
+    await screen.findByText("Dra og slipp PDF-filer hit");
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/config")).toBe(true));
+    expect(screen.queryByText("I demomodus sendes ingenting ut.")).toBeNull();
+    expect(document.querySelector('[data-slot="note-surface"]')).toBeNull();
+  });
+
+  it("FR-8: filer sluppet på feltet lastes opp på samme måte", async () => {
+    renderPage();
+    await screen.findByText("Forelesning fredag 18.09.2026 · 0 filer · 0 sider");
+    const zone = document.querySelector('[data-slot="upload-zone"]')!;
+    fireEvent.drop(zone, { dataTransfer: { files: [pdf("sluppet.pdf")] } });
+    expect(await screen.findByText("Forelesning fredag 18.09.2026 · 1 fil · 3 sider")).toBeTruthy();
+    expect(screen.getByText("sluppet.pdf")).toBeTruthy();
   });
 });
