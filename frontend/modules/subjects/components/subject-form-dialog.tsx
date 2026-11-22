@@ -3,6 +3,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
+import { OVERVIEW_QUERY_KEY } from "@/modules/practice/api";
+
 import { SUBJECTS_QUERY_KEY, createSubject, subjectQueryKey, updateSubject } from "../api";
 import { formatDate } from "../format";
 import type { Subject } from "../types";
@@ -43,6 +45,8 @@ export function SubjectFormDialog({ mode, open, onClose, subject }: Props) {
       const created = await createSubject({ name: values.name!, exam_date: values.date! });
       queryClient.setQueryData(subjectQueryKey(created.id), created);
       void queryClient.invalidateQueries({ queryKey: SUBJECTS_QUERY_KEY, exact: true });
+      // The overview too: the exam line counts its lectures (story 5.3).
+      void queryClient.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
       // The form stays blocked while the page navigates away.
       router.push(`/emner/${created.id}`);
       return;
