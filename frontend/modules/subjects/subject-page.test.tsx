@@ -1,13 +1,14 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { focusHeadingAfterNavigation, headingFocusPending, resetHeadingFocus } from "@/lib/focus-heading";
 
 import { SubjectPage } from "./pages/subject-page";
 import type { SubjectFileCounts } from "@/modules/files/types";
-import type { QuizQuestion, SubjectFlashcard } from "@/modules/practice/types";
+import { OVERVIEW_QUERY_KEY } from "@/modules/practice/api";
+import type { Overview, QuizQuestion, SubjectFlashcard } from "@/modules/practice/types";
 import type { Lecture, Subject } from "./types";
 
 // The real notFound() throws to show app/(app)/not-found.tsx; here it only records the call.
@@ -78,6 +79,15 @@ function flashcard(id: string, lectureId: string): SubjectFlashcard {
   };
 }
 
+// A lecture link's accessible name: the name and the status dot («Ikke øvd ennå»).
+function notPractised(name: string): string {
+  return `${name} Ikke øvd ennå`;
+}
+
+// What GET /api/overview answers with (story 5.1). null: no sessions, built
+// from the lectures in the fake backend.
+let overview: Overview | null = null;
+
 // A small fake backend for the two subjects, their lectures and file counts.
 function respond(lectures: Lecture[] = LECTURES, fileCounts: SubjectFileCounts = FILE_COUNTS) {
   const store = new Map([MARKETING, ECONOMICS].map((s) => [s.id, { ...s }]));
@@ -89,6 +99,21 @@ function respond(lectures: Lecture[] = LECTURES, fileCounts: SubjectFileCounts =
       lecture_count: lectureStore.filter((lecture) => lecture.subject_id === subject.id).length,
     });
     if (path === "/api/subjects") return jsonResponse(200, [...store.values()].map(counted));
+    if (path === "/api/overview") {
+      const fallback: Overview = {
+        subjects: [...store.values()].map((subject) => ({
+          id: subject.id,
+          name: subject.name,
+          color_index: subject.color_index,
+          exam_date: subject.exam_date,
+          lectures: lectureStore
+            .filter((lecture) => lecture.subject_id === subject.id)
+            .map((lecture) => ({ id: lecture.id, name: lecture.name, date: lecture.date, practiced: false, last_practiced_at: null })),
+          last_session: null,
+        })),
+      };
+      return jsonResponse(200, overview ?? fallback);
+    }
     const lectureList = path.match(/^\/api\/subjects\/([^/]+)\/lectures$/);
     if (lectureList) {
       const subjectId = lectureList[1];
@@ -165,6 +190,7 @@ function postCalls() {
 }
 
 beforeEach(() => {
+  overview = null;
   subjectFlashcards = [];
   subjectQuizQuestions = [];
   vi.stubGlobal("fetch", fetchMock);
@@ -292,6 +318,7 @@ describe("emnesiden", () => {
       fetchMock.mockImplementation(async (url, init) => {
         if (init?.method === "PATCH") return jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } });
         if (String(url).endsWith("/flashcards") || String(url).endsWith("/quiz-questions")) return jsonResponse(200, []);
+        if (String(url) === "/api/overview") return jsonResponse(200, { subjects: [] });
         return jsonResponse(200, String(url) === "/api/subjects" ? [MARKETING] : MARKETING);
       });
       renderPage();
@@ -377,7 +404,7 @@ describe("emnesiden", () => {
     const toggle = await within(nav).findByRole("button", { name: "Markedsføring" });
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(within(nav).getByRole("button", { name: ECONOMICS.name }).getAttribute("aria-expanded")).toBe("false");
-    const lectureLink = await within(nav).findByRole("link", { name: LECTURES[1].name });
+    const lectureLink = await within(nav).findByRole("link", { name: notPractised(LECTURES[1].name) });
     const links = within(nav)
       .getAllByRole("link")
       .filter((link) => link.getAttribute("href")?.startsWith("/forelesninger/"));
@@ -385,23 +412,23 @@ describe("emnesiden", () => {
     expect(within(lectureLink).getByText(LECTURES[1].name).className).toContain("truncate");
     expect(within(lectureLink).getByText("38").getAttribute("aria-hidden")).toBe("true");
     expect(document.getElementById(lectureLink.getAttribute("aria-describedby") ?? "")?.textContent).toBe("Uke 38");
-    const dot = lectureLink.querySelector("[data-status]");
-    expect(dot?.getAttribute("aria-hidden")).toBe("true");
-    expect(dot?.className).toContain("border");
+    const dot = within(lectureLink).getByRole("img", { name: "Ikke øvd ennå" });
+    expect(dot.getAttribute("data-status")).toBe("not-practised");
+    expect(dot.className).toContain("border");
     expect(lectureLink.hasAttribute("aria-current")).toBe(false);
   });
 
   it("UX-DR7: pilknappen lukker og åpner emnet, og aria-expanded følger med", async () => {
     renderPage();
     const nav = await screen.findByRole("navigation", { name: "Emner" });
-    await within(nav).findByRole("link", { name: LECTURES[0].name });
+    await within(nav).findByRole("link", { name: notPractised(LECTURES[0].name) });
     const toggle = within(nav).getByRole("button", { name: "Markedsføring" });
     fireEvent.click(toggle);
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
-    expect(within(nav).queryByRole("link", { name: LECTURES[0].name })).toBeNull();
+    expect(within(nav).queryByRole("link", { name: notPractised(LECTURES[0].name) })).toBeNull();
     fireEvent.click(toggle);
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
-    expect(await within(nav).findByRole("link", { name: LECTURES[0].name })).toBeTruthy();
+    expect(await within(nav).findByRole("link", { name: notPractised(LECTURES[0].name) })).toBeTruthy();
   });
 
   it("FR-7: uten forelesninger står «Ingen forelesninger ennå.», ingen tabell og ingen rader i sidemenyen", async () => {
@@ -465,7 +492,7 @@ describe("emnesiden", () => {
     const rows = within(table).getAllByRole("row").slice(1);
     expect(rows.map((row) => within(row).getAllByRole("cell")[0].textContent)).toEqual(["18.09", "11.09"]);
     const nav = screen.getByRole("navigation", { name: "Emner" });
-    await within(nav).findByRole("link", { name: LECTURES[0].name });
+    await within(nav).findByRole("link", { name: notPractised(LECTURES[0].name) });
     const hrefs = within(nav)
       .getAllByRole("link")
       .map((link) => link.getAttribute("href"))
@@ -637,6 +664,121 @@ describe("emnesiden", () => {
       renderPage();
       const alert = await within(await screen.findByRole("region", { name: "Øv på hele emnet" })).findByRole("alert");
       expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
+    });
+  });
+
+  describe("«Øvd» og SISTE ØKT (story 5.1)", () => {
+    function overviewWith(lastSession: Overview["subjects"][number]["last_session"], practicedIds: string[]): Overview {
+      return {
+        subjects: [
+          {
+            id: "a",
+            name: MARKETING.name,
+            color_index: 0,
+            exam_date: MARKETING.exam_date,
+            lectures: LECTURES.map((lecture) => ({
+              id: lecture.id,
+              name: lecture.name,
+              date: lecture.date,
+              practiced: practicedIds.includes(lecture.id),
+              last_practiced_at: practicedIds.includes(lecture.id) ? "2026-11-09T12:00:00Z" : null,
+            })),
+            last_session: lastSession,
+          },
+        ],
+      };
+    }
+
+    const QUIZ_SESSION = {
+      kind: "quiz" as const,
+      lecture_id: "l1",
+      started_at: "2026-11-09T12:00:00Z",
+      aborted: false,
+      shown: 15,
+      answered: 15,
+      correct: 12,
+      partial: 0,
+      wrong: 3,
+    };
+
+    it("UX-DR7: øvd forelesning har fylt prikk som heter «Øvd», de andre hul «Ikke øvd ennå»", async () => {
+      overview = overviewWith(QUIZ_SESSION, ["l1"]);
+      renderPage();
+      const nav = await screen.findByRole("navigation", { name: "Emner" });
+      const practised = await within(nav).findByRole("link", { name: `${LECTURES[0].name} Øvd` });
+      const dot = within(practised).getByRole("img", { name: "Øvd" });
+      expect(dot.getAttribute("data-status")).toBe("practised");
+      expect(dot.className).toContain("bg-ink-muted");
+      expect(dot.className).toContain("size-[8px]");
+      expect(dot.className).not.toContain("border");
+      const other = within(nav).getByRole("link", { name: notPractised(LECTURES[1].name) });
+      expect(within(other).getByRole("img", { name: "Ikke øvd ennå" }).className).toContain("border-ink-muted");
+    });
+
+    it("FR-56: når oversikten ugyldiggjøres, viser den monterte siden «Øvd» og SISTE ØKT uten omlasting", async () => {
+      overview = overviewWith(null, []);
+      subjectFlashcards = [flashcard("a", "l1")];
+      const client = renderPage();
+      const nav = await screen.findByRole("navigation", { name: "Emner" });
+      await within(nav).findByRole("link", { name: notPractised(LECTURES[0].name) });
+      const section = await screen.findByRole("region", { name: "Øv på hele emnet" });
+      expect(within(section).queryByRole("heading", { name: "Siste økt" })).toBeNull();
+
+      overview = overviewWith({ ...QUIZ_SESSION, kind: "flashcards", answered: 3, correct: 2, wrong: 1 }, ["l1"]);
+      await act(async () => {
+        await client.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
+      });
+
+      const practised = await within(nav).findByRole("link", { name: `${LECTURES[0].name} Øvd` });
+      expect(within(practised).getByRole("img", { name: "Øvd" })).toBeTruthy();
+      expect(await within(section).findByRole("heading", { level: 3, name: "Siste økt" })).toBeTruthy();
+      expect(within(section).getByText("Flashcards · Uke 37: Merkevare")).toBeTruthy();
+    });
+
+    it("UX-DR7: når oversikten feiler, er alle prikkene hule", async () => {
+      respond();
+      const fake = fetchMock.getMockImplementation()!;
+      fetchMock.mockImplementation(async (url, init) =>
+        String(url) === "/api/overview" ? jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } }) : fake(url, init),
+      );
+      renderPage();
+      const nav = await screen.findByRole("navigation", { name: "Emner" });
+      await within(nav).findByRole("link", { name: notPractised(LECTURES[0].name) });
+      expect(within(nav).queryAllByRole("img", { name: "Øvd" })).toHaveLength(0);
+    });
+
+    it("UX-DR14: SISTE ØKT viser type, forelesning, dato og resultat nederst i «Øv på hele emnet»", async () => {
+      overview = overviewWith(QUIZ_SESSION, ["l1"]);
+      subjectQuizQuestions = [quizQuestion("q", "l1")];
+      renderPage();
+      const section = await screen.findByRole("region", { name: "Øv på hele emnet" });
+      expect(await within(section).findByRole("heading", { level: 3, name: "Siste økt" })).toBeTruthy();
+      expect(within(section).getByText("Quiz · Uke 37: Merkevare")).toBeTruthy();
+      expect(within(section).getByText("09.11 · 12 av 15 riktige")).toBeTruthy();
+    });
+
+    it("UX-DR14: en avbrutt emneøkt med flashcards gir «Hele emnet» og «Avbrutt · Kunne C av A»", async () => {
+      overview = overviewWith(
+        { ...QUIZ_SESSION, kind: "flashcards", lecture_id: null, aborted: true, shown: 5, answered: 4, correct: 3, wrong: 1 },
+        [],
+      );
+      subjectFlashcards = [flashcard("a", "l1")];
+      renderPage();
+      const section = await screen.findByRole("region", { name: "Øv på hele emnet" });
+      expect(await within(section).findByText("Flashcards · Hele emnet")).toBeTruthy();
+      expect(within(section).getByText("09.11 · Avbrutt · Kunne 3 av 4")).toBeTruthy();
+    });
+
+    it("UX-DR14: et emne uten økter har ingen SISTE ØKT, og alle prikker heter «Ikke øvd ennå»", async () => {
+      subjectFlashcards = [flashcard("a", "l1")];
+      const client = renderPage();
+      const section = await screen.findByRole("region", { name: "Øv på hele emnet" });
+      await waitFor(() => expect(client.getQueryState(["overview"])?.status).toBe("success"));
+      expect(within(section).queryByRole("heading", { name: "Siste økt" })).toBeNull();
+      const nav = screen.getByRole("navigation", { name: "Emner" });
+      await within(nav).findByRole("link", { name: notPractised(LECTURES[1].name) });
+      const names = within(nav).getAllByRole("img").map((dot) => dot.getAttribute("aria-label"));
+      expect(names).toEqual(["Ikke øvd ennå", "Ikke øvd ennå"]);
     });
   });
 });

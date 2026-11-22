@@ -11,6 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Kbd } from "@/components/ui/kbd";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { cn } from "@/lib/utils";
+import { OVERVIEW_QUERY_KEY, fetchOverview } from "@/modules/practice/api";
 
 import { SUBJECTS_QUERY_KEY, fetchLectures, fetchSubjects, lecturesQueryKey } from "../api";
 import { isoWeek, lectureCountLabel } from "../format";
@@ -26,9 +27,13 @@ import { SubjectDot } from "./subject-dot";
 // as the link's description instead («0 forelesninger»).
 //
 // An open subject shows its lectures as menu-rows: the ISO week number in muted
-// grey, the name (cut off with «…»), and a hollow status dot on the right (filled
-// comes with practice in epic 5). The link's accessible name is the whole
-// lecture name and the week is its description («Uke 37»).
+// grey, the name (cut off with «…»), and a status dot on the right: filled
+// (ink-muted) when the lecture is practised, hollow when not (UX-DR7, story
+// 5.1). «Øvd» comes from GET /api/overview, worked out by the server; while
+// the overview loads or has failed, every dot is hollow. The dot is an image
+// named «Øvd» or «Ikke øvd ennå», so the link's accessible name is the whole
+// lecture name followed by the status («Uke 37: Merkevare Øvd»), and the week
+// is its description («Uke 37»).
 //
 // The subject of the page being shown is open from the start. The current page
 // has aria-current="page" and the selected style (brand-tint and a 2 px brand
@@ -49,6 +54,12 @@ type Props = {
 
 export function SubjectSidebar({ currentSubjectId, currentLectureId }: Props) {
   const subjects = useQuery({ queryKey: SUBJECTS_QUERY_KEY, queryFn: fetchSubjects });
+  const overview = useQuery({ queryKey: OVERVIEW_QUERY_KEY, queryFn: fetchOverview });
+  const practiced = new Set(
+    (overview.data?.subjects ?? []).flatMap((subject) =>
+      subject.lectures.filter((lecture) => lecture.practiced).map((lecture) => lecture.id),
+    ),
+  );
   const openShortcuts = useOpenShortcuts();
 
   return (
@@ -67,6 +78,7 @@ export function SubjectSidebar({ currentSubjectId, currentLectureId }: Props) {
               subject={subject}
               isCurrentSubject={subject.id === currentSubjectId}
               currentLectureId={currentLectureId}
+              practiced={practiced}
             />
           ))}
         </ul>
@@ -88,10 +100,13 @@ function SubjectItem({
   subject,
   isCurrentSubject,
   currentLectureId,
+  practiced,
 }: {
   subject: Subject;
   isCurrentSubject: boolean;
   currentLectureId?: string;
+  // The ids of the practised lectures (from the overview).
+  practiced: ReadonlySet<string>;
 }) {
   const [open, setOpen] = useState(isCurrentSubject);
   // When this becomes the subject of the page (e.g. once a lecture page has
@@ -172,11 +187,8 @@ function SubjectItem({
                         {week}
                       </span>
                       <span className="min-w-0 flex-1 truncate pr-2">{lecture.name}</span>
-                      <span
-                        aria-hidden="true"
-                        data-status="not-practised"
-                        className="size-[8px] shrink-0 rounded-full border-[1.5px] border-ink-muted"
-                      />
+                      {/* The space keeps the name and the status apart in the link's name. */}{" "}
+                      <StatusDot practiced={practiced.has(lecture.id)} />
                       <span id={weekId} hidden>
                         Uke {week}
                       </span>
@@ -189,5 +201,21 @@ function SubjectItem({
         </CollapsibleContent>
       </Collapsible>
     </li>
+  );
+}
+
+// The status dot in a menu-row: filled when practised, hollow when not. Its
+// name says the same in words, so the shape is never the only sign.
+function StatusDot({ practiced }: { practiced: boolean }) {
+  return (
+    <span
+      role="img"
+      aria-label={practiced ? "Øvd" : "Ikke øvd ennå"}
+      data-status={practiced ? "practised" : "not-practised"}
+      className={cn(
+        "size-[8px] shrink-0 rounded-full",
+        practiced ? "bg-ink-muted" : "border-[1.5px] border-ink-muted",
+      )}
+    />
   );
 }

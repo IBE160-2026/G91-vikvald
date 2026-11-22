@@ -67,4 +67,38 @@ describe("PracticeAllCard", () => {
     expect(within(section).getByRole("alert").textContent).toBe(FALLBACK_MESSAGE);
     expect(section.querySelector("[data-slot='practice-all-card']")).toBeNull();
   });
+
+  describe("SISTE ØKT (story 5.1)", () => {
+    const LAST = { title: "Quiz · Uke 37: Merkevare", detail: "09.11 · 12 av 15 riktige" };
+
+    it("UX-DR14: nederst i kortet under en hårstrek: overlinje, type og omfang, dato og resultat", () => {
+      render(<PracticeAllCard rows={[FLASHCARDS, QUIZ]} lastSession={LAST} />);
+      const card = document.querySelector<HTMLElement>("[data-slot='practice-all-card']")!;
+      const last = card.querySelector<HTMLElement>("[data-slot='last-session']")!;
+      expect(card.lastElementChild).toBe(last);
+      expect(last.previousElementSibling!.tagName).toBe("HR");
+      expect(last.previousElementSibling!.className).toContain("border-divider");
+      const heading = within(card).getByRole("heading", { level: 3, name: "Siste økt" });
+      expect(heading.className).toContain("sr-only");
+      const overline = within(last).getByText("SISTE ØKT");
+      expect(overline.getAttribute("aria-hidden")).toBe("true");
+      expect(overline.className).toContain("text-overline");
+      expect(overline.className).toContain("text-ink-muted");
+      const title = within(last).getByText(LAST.title);
+      for (const token of ["text-label", "font-medium", "text-ink"]) expect(title.className).toContain(token);
+      const detail = within(last).getByText(LAST.detail);
+      for (const token of ["text-body-sm", "text-ink-muted"]) expect(detail.className).toContain(token);
+    });
+
+    it("UX-DR14: uten økt vises ingen SISTE ØKT", () => {
+      render(<PracticeAllCard rows={[FLASHCARDS]} lastSession={null} />);
+      expect(screen.queryByRole("heading", { name: "Siste økt" })).toBeNull();
+      expect(screen.queryByText("SISTE ØKT")).toBeNull();
+    });
+
+    it("UX-DR14: uten rader vises verken kortet eller SISTE ØKT", () => {
+      const { container } = render(<PracticeAllCard rows={[]} lastSession={LAST} />);
+      expect(container.innerHTML).toBe("");
+    });
+  });
 });

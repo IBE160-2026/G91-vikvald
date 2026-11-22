@@ -12,12 +12,20 @@ that must stop a delete (generation's running jobs) registers a guard here, and
 the delete routes in `files` ask `check_delete_allowed` before anything is
 deleted. That way `files` never imports `generation`.
 
+It also answers "when did this lecture first get content of a practice kind"
+(AR-16, story 5.1): every practice kind registers a function that gives the
+time of the first content per lecture, and `first_content_times` asks it. The
+practice module uses this to decide which lectures a whole-subject session
+counts for, without reading the content tables itself. Flashcards and quiz are
+registered by this module itself, like the counters.
+
 This module imports nothing from `files` or `subjects` at the top.
 """
 
 import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -88,6 +96,59 @@ def registered_kinds() -> list[str]:
 def unregister_counter(kind: str) -> None:
     """Remove a content type (used by tests). An unknown kind is ignored."""
     _counters.pop(kind, None)
+
+
+# The time of the first content of one practice kind per lecture. A lecture
+# without such content is missing from the result.
+FirstContentTimes = Callable[[AsyncSession, tuple[uuid.UUID, ...]], Awaitable[dict[uuid.UUID, datetime]]]
+
+# practice kind ("flashcards", "quiz", ...) -> its first-content function.
+_first_content: dict[str, FirstContentTimes] = {}
+_builtin_first_content_registered = False
+
+
+def _ensure_builtin_first_content() -> None:
+    # Imported here for the same reason as in _ensure_builtin_counters.
+    global _builtin_first_content_registered
+    if _builtin_first_content_registered:
+        return
+    from app.modules.content.service import first_flashcard_times, first_quiz_question_times
+
+    _first_content.setdefault("flashcards", first_flashcard_times)
+    _first_content.setdefault("quiz", first_quiz_question_times)
+    _builtin_first_content_registered = True
+
+
+def register_first_content(kind: str, first_times: FirstContentTimes) -> None:
+    """Add a practice kind (e.g. "freetext" in epic 8). The same kind twice is
+    a programming error."""
+    _ensure_builtin_first_content()
+    if kind in _first_content:
+        raise ValueError(f"First-content function already registered: {kind}")
+    _first_content[kind] = first_times
+
+
+def unregister_first_content(kind: str) -> None:
+    """Remove a practice kind (used by tests). An unknown kind is ignored."""
+    _first_content.pop(kind, None)
+
+
+async def first_content_times(
+    session: AsyncSession, lecture_ids: tuple[uuid.UUID, ...], kind: str
+) -> dict[uuid.UUID, datetime]:
+    """When each lecture first had content of the practice kind, in UTC.
+    "Had content of the kind at time T" is then `first <= T`. A lecture without
+    such content, and every lecture for a kind nobody registered, is missing."""
+    _ensure_builtin_first_content()
+    first_times = _first_content.get(kind)
+    if first_times is None or not lecture_ids:
+        return {}
+    found = await first_times(session, lecture_ids)
+    # SQLite (tests) gives the stored UTC time back without its time zone.
+    return {
+        lecture_id: moment if moment.tzinfo else moment.replace(tzinfo=UTC)
+        for lecture_id, moment in found.items()
+    }
 
 
 async def content_counts(session: AsyncSession, scope: DeleteScope) -> list[tuple[str, int]]:

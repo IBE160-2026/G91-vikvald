@@ -2,6 +2,8 @@
 
 import type { Source } from "@/components/source-link";
 
+import type { PracticeKind } from "./save";
+
 export type FlashcardSource = Source & {
   file_id: string;
 };
@@ -38,3 +40,41 @@ export type QuizQuestion = {
   source: FlashcardSource;
   lecture: { id: string; name: string };
 };
+
+// GET /api/overview (story 5.1), mirroring backend/app/modules/practice/schemas.py.
+// «Øvd» is worked out by the server; the frontend only shows it.
+export type OverviewLecture = {
+  id: string;
+  name: string;
+  // "2026-09-11".
+  date: string;
+  practiced: boolean;
+  // ISO 8601 (UTC), or null when not practised.
+  last_practiced_at: string | null;
+};
+
+// The subject's newest session.
+export type LastSession = {
+  kind: PracticeKind;
+  // null for a session over the whole subject.
+  lecture_id: string | null;
+  // ISO 8601 (UTC).
+  started_at: string;
+  aborted: boolean;
+  shown: number;
+  answered: number;
+  correct: number;
+  partial: number;
+  wrong: number;
+};
+
+export type OverviewSubject = {
+  id: string;
+  name: string;
+  color_index: number;
+  exam_date: string;
+  lectures: OverviewLecture[];
+  last_session: LastSession | null;
+};
+
+export type Overview = { subjects: OverviewSubject[] };

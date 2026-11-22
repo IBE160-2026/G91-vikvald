@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { runBeforeLogout } from "@/lib/before-logout";
 
+import { OVERVIEW_QUERY_KEY } from "./api";
 import { PRACTICE_SESSIONS_PATH, type SessionCounts } from "./save";
 import { useSessionSaver, type SaverSnapshot } from "./use-session-saver";
 
@@ -218,5 +220,53 @@ describe("useSessionSaver", () => {
       await Promise.resolve();
     });
     expect(status()).toBe("idle");
+  });
+
+  describe("oversikten (story 5.1)", () => {
+    function renderWithClient() {
+      const client = new QueryClient();
+      const invalidate = vi.spyOn(client, "invalidateQueries");
+      render(
+        <QueryClientProvider client={client}>
+          <Harness />
+        </QueryClientProvider>,
+      );
+      return invalidate;
+    }
+
+    it("FR-56: en lagring serveren har bekreftet, ugyldiggjør oversikten", async () => {
+      const invalidate = renderWithClient();
+      counts = { shown: 3, answered: 3, correct: 2, wrong: 1 };
+      await act(async () => {
+        saver.finish();
+      });
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: OVERVIEW_QUERY_KEY });
+    });
+
+    it("FR-56: også når siden er forlatt før svaret kom", async () => {
+      let answer: (response: Response) => void = () => {};
+      fetchMock.mockImplementation(() => new Promise((resolve) => (answer = resolve)));
+      const invalidate = renderWithClient();
+      counts = { shown: 1, answered: 1, correct: 1, wrong: 0 };
+      cleanup();
+      expect(invalidate).not.toHaveBeenCalled();
+      await act(async () => {
+        answer(new Response(null, { status: 204 }));
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: OVERVIEW_QUERY_KEY });
+    });
+
+    it("FR-56: en lagring som feiler, ugyldiggjør ikke oversikten", async () => {
+      fetchMock.mockResolvedValue(new Response(JSON.stringify({ error: { code: "INTERNAL_ERROR", details: {} } }), { status: 500 }));
+      const invalidate = renderWithClient();
+      counts = { shown: 1, answered: 1, correct: 1, wrong: 0 };
+      await act(async () => {
+        saver.finish();
+      });
+      expect(status()).toBe("failed");
+      expect(invalidate).not.toHaveBeenCalled();
+    });
   });
 });

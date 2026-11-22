@@ -15,12 +15,15 @@ import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import { fetchFileCounts, fileCountsQueryKey } from "@/modules/files/api";
 import {
+  OVERVIEW_QUERY_KEY,
+  fetchOverview,
   fetchSubjectFlashcards,
   fetchSubjectQuizQuestions,
   subjectFlashcardsQueryKey,
   subjectQuizQuestionsQueryKey,
 } from "@/modules/practice/api";
 import { PracticeAllCard, type PracticeAllRow } from "@/modules/practice/components/practice-all-card";
+import { lastSessionLines } from "@/modules/practice/last-session";
 import type { QuizQuestion, SubjectFlashcard } from "@/modules/practice/types";
 
 import {
@@ -47,8 +50,9 @@ import { fileCountLabel, formatWeekdayDate, lectureCountLabel } from "../format"
 // (story 3.6) with the row Flashcards («120 kort fra 6 forelesninger», «Øv på
 // flashcards»), shown only when the subject has cards, and under it the row
 // Quiz («8 spørsmål fra 2 forelesninger», «Start ›», story 4.4), shown only
-// when the subject has quiz questions. Someone else's or a
-// missing subject shows «Fant ikke siden».
+// when the subject has quiz questions. At the bottom of the card stands SISTE
+// ØKT (story 5.1), from GET /api/overview, when the subject has a session.
+// Someone else's or a missing subject shows «Fant ikke siden».
 //
 // After a lecture is deleted on 04 she lands here, and the h1 gets focus (#75).
 // After the subject is deleted (FR-6) she is taken to the front page (02).
@@ -74,6 +78,15 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
     queryFn: () => fetchSubjectQuizQuestions(subjectId),
     enabled: subject.isSuccess,
   });
+  // Shared with the sidebar (same key), and refetched when a session is saved.
+  const overview = useQuery({ queryKey: OVERVIEW_QUERY_KEY, queryFn: fetchOverview });
+  const overviewSubject = overview.data?.subjects.find((item) => item.id === subjectId);
+  const lastSession = overviewSubject?.last_session
+    ? lastSessionLines(
+        overviewSubject.last_session,
+        (lectureId) => overviewSubject.lectures.find((lecture) => lecture.id === lectureId)?.name,
+      )
+    : null;
   const practiceRows = [
     ...flashcardRows(subjectId, flashcards.data),
     ...quizRows(subjectId, quizQuestions.data),
@@ -173,7 +186,7 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
                 </section>
                 {practiceRows.length > 0 || practiceError ? (
                   <div className="@min-[1008px]:w-[344px] @min-[1008px]:shrink-0">
-                    <PracticeAllCard rows={practiceRows} error={practiceError} />
+                    <PracticeAllCard rows={practiceRows} error={practiceError} lastSession={lastSession} />
                   </div>
                 ) : null}
               </div>

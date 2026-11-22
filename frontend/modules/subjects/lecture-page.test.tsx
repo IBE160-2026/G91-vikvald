@@ -297,10 +297,10 @@ describe("forelesningssiden", () => {
   it("UX-DR7: sidemenyen har emnet åpent og forelesningen valgt, emnelenken er ikke valgt", async () => {
     renderPage();
     const nav = await screen.findByRole("navigation", { name: "Emner" });
-    const current = await within(nav).findByRole("link", { name: "Uke 38: Prising" });
+    const current = await within(nav).findByRole("link", { name: "Uke 38: Prising Ikke øvd ennå" });
     expect(current.getAttribute("aria-current")).toBe("page");
     expect(current.className).toContain("bg-brand-tint");
-    expect(within(nav).getByRole("link", { name: "Uke 37: Merkevare" }).hasAttribute("aria-current")).toBe(false);
+    expect(within(nav).getByRole("link", { name: "Uke 37: Merkevare Ikke øvd ennå" }).hasAttribute("aria-current")).toBe(false);
     expect(within(nav).getByRole("link", { name: "Markedsføring" }).hasAttribute("aria-current")).toBe(false);
     expect(within(nav).getByRole("button", { name: "Markedsføring" }).getAttribute("aria-expanded")).toBe("true");
     expect(within(nav).getByRole("button", { name: "Samfunnsøkonomi" }).getAttribute("aria-expanded")).toBe("false");
@@ -309,7 +309,7 @@ describe("forelesningssiden", () => {
   it("FR-15: «Endre dato» viser dagens dato, lagrer og flytter raden i sidemenyen uten omlasting", async () => {
     renderPage();
     const nav = await screen.findByRole("navigation", { name: "Emner" });
-    await within(nav).findByRole("link", { name: "Uke 38: Prising" });
+    await within(nav).findByRole("link", { name: "Uke 38: Prising Ikke øvd ennå" });
     expect(lectureHrefs(nav)).toEqual(["/forelesninger/l1", "/forelesninger/l2"]);
 
     fireEvent.click(screen.getByRole("button", { name: "Endre dato" }));
@@ -335,7 +335,7 @@ describe("forelesningssiden", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Lagre" }));
     await waitFor(() => expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Uke 38: Pris"));
     const nav = screen.getByRole("navigation", { name: "Emner" });
-    expect(await within(nav).findByRole("link", { name: "Uke 38: Pris" })).toBeTruthy();
+    expect(await within(nav).findByRole("link", { name: "Uke 38: Pris Ikke øvd ennå" })).toBeTruthy();
   });
 
   it("FR-7: ugyldig dato gir «Skriv inn datoen, for eksempel 11.09.2026.» og ingen PATCH", async () => {

@@ -2,7 +2,17 @@ import type { QueryKey } from "@tanstack/react-query";
 
 import { apiFetch } from "@/lib/api";
 
-import type { Flashcard, QuizQuestion, SubjectFlashcard } from "./types";
+import type { Flashcard, Overview, QuizQuestion, SubjectFlashcard } from "./types";
+
+// The overview of all her subjects (story 5.1). Invalidated when a session is
+// saved (useSessionSaver), so the views show the new status without a reload.
+export const OVERVIEW_QUERY_KEY = ["overview"] as const;
+
+// GET /api/overview: her subjects with their lectures, whether each lecture is
+// practised («øvd», worked out by the server) and each subject's last session.
+export function fetchOverview(): Promise<Overview> {
+  return apiFetch<Overview>("/api/overview");
+}
 
 // Starts with the lecture's own key (["lectures", id]), so invalidating the
 // lecture (as the job watcher does) also refetches the cards. A running session

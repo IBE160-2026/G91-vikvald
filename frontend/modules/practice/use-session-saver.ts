@@ -1,8 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { QueryClientContext } from "@tanstack/react-query";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 
 import { registerBeforeLogout } from "@/lib/before-logout";
+
+import { OVERVIEW_QUERY_KEY } from "./api";
 
 import {
   beaconPracticeSession,
@@ -40,7 +43,18 @@ export type SaveStatus = "idle" | "saving" | "saved" | "failed";
 // finish() and abort() return true when something was sent. status follows
 // the latest send for the panel and the result page. restart() starts a new
 // session: a new id, a new start time and the flag cleared.
+//
+// When the server has confirmed a save, the overview (["overview"], «øvd» and
+// SISTE ØKT, story 5.1) is invalidated, also after the page has unmounted, so
+// the page she returns to shows the new status without a reload. The query
+// client is read from the context directly (not useQueryClient), so the hook
+// also works without a provider (in the tests).
 export function useSessionSaver(getSnapshot: () => SaverSnapshot | null) {
+  const queryClient = useContext(QueryClientContext);
+  const queryClientRef = useRef(queryClient);
+  useEffect(() => {
+    queryClientRef.current = queryClient;
+  });
   const snapshotRef = useRef(getSnapshot);
   useEffect(() => {
     snapshotRef.current = getSnapshot;
@@ -90,6 +104,7 @@ export function useSessionSaver(getSnapshot: () => SaverSnapshot | null) {
       if (current()) setStatus("saving");
       const pending = postPracticeSession(payload).then(
         () => {
+          void queryClientRef.current?.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
           if (current()) setStatus("saved");
         },
         () => {
