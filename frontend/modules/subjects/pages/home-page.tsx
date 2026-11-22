@@ -147,7 +147,8 @@ function SubjectCards({
                 subject={subject}
                 lectures={overview?.subjects.find((item) => item.id === subject.id)?.lectures}
                 fileCounts={counts?.data}
-                error={overviewError || (counts?.isError ?? false)}
+                // A failed refetch keeps the data from before; the error wins only without data.
+                error={(overviewError && !overview) || ((counts?.isError ?? false) && !counts?.data)}
               />
             </li>
           );

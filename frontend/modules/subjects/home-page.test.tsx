@@ -518,6 +518,23 @@ describe("forsiden «Dine emner»", () => {
       expect(card().querySelector('[data-slot="next-step"]')).toBeNull();
     });
 
+    it("FR-58: når file-counts feiler for ett emne, står reserveteksten bare i det kortet", async () => {
+      const TWO = [subject({ id: "a", name: "Markedsføring" }), subject({ id: "b", name: "Samfunnsøkonomi", color_index: 1 })];
+      respond(TWO, undefined, overviewWith(TWO, { a: lectures({}), b: lectures({}) }), {
+        a: () => jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } }),
+        b: counts([["l0", 16, 0]]),
+      });
+      renderPage();
+      const alert = await screen.findByRole("alert");
+      const items = within(subjectList()).getAllByRole("listitem");
+      expect(items[0].contains(alert)).toBe(true);
+      expect(screen.getAllByRole("alert")).toHaveLength(1);
+      expect(within(items[1]).queryByRole("alert")).toBeNull();
+      expect(within(items[1]).getByText("16 kort")).toBeTruthy();
+      expect(items[1].querySelector('[data-slot="next-step"]')).not.toBeNull();
+      expect(within(items[1]).getByText("16 kort, ikke øvd ennå")).toBeTruthy();
+    });
+
     it("FR-58: når oversikten feiler, står reserveteksten i kortet", async () => {
       respond(ONE, undefined, () => jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } }));
       renderPage();
