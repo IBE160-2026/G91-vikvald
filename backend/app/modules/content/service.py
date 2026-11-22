@@ -144,6 +144,40 @@ async def lecture_quiz_questions(session: AsyncSession, lecture_id: uuid.UUID) -
     ]
 
 
+async def subject_quiz_questions(session: AsyncSession, subject_id: uuid.UUID) -> list[QuizQuestionOut]:
+    """The quiz questions from all the subject's lectures, with the answer key,
+    source and lecture. Ordered as subject_flashcards: lecture (date, then when
+    it was created), then file, page, the order they were made in."""
+    statement = (
+        select(QuizQuestion, File.original_name, Lecture.id, Lecture.name)
+        .join(File, QuizQuestion.file_id == File.id)
+        .join(Lecture, File.lecture_id == Lecture.id)
+        .where(Lecture.subject_id == subject_id)
+        .order_by(
+            Lecture.date,
+            Lecture.created_at,
+            Lecture.id,
+            File.uploaded_at,
+            File.id,
+            QuizQuestion.page_no,
+            QuizQuestion.created_at,
+            QuizQuestion.id,
+        )
+    )
+    return [
+        QuizQuestionOut(
+            id=item.id,
+            question=item.question,
+            options=list(item.options),
+            correct_index=item.correct_index,
+            explanation=item.explanation,
+            source=FlashcardSource(file_id=item.file_id, file_name=file_name, page_no=item.page_no),
+            lecture=LectureRef(id=ref_id, name=ref_name),
+        )
+        for item, file_name, ref_id, ref_name in (await session.execute(statement)).all()
+    ]
+
+
 async def count_quiz_questions(session: AsyncSession, scope: DeleteScope) -> int:
     """The quiz questions made from the files in the delete scope (FR-12)."""
     if not scope.file_ids:
