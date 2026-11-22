@@ -58,10 +58,11 @@ def _ensure_builtin_counters() -> None:
     global _builtin_counters_registered
     if _builtin_counters_registered:
         return
-    _builtin_counters_registered = True
     from app.modules.content.service import count_flashcards
 
     _counters["flashcards"] = count_flashcards
+    # Set only once registered, so a failed import is tried again next time.
+    _builtin_counters_registered = True
 
 
 def register_counter(kind: str, count: Counter) -> None:
