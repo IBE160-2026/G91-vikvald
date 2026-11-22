@@ -55,7 +55,7 @@ describe("ShortcutsDialog", () => {
       "EnterBekreft svar, deretter neste spørsmål",
       "EscAvslutt økten",
       "Resultat",
-      "EnterØv igjen",
+      "EnterØv igjen / Ta quizen igjen",
       "EscTilbake",
       "Dialoger",
       "EscLukk uten endring",
