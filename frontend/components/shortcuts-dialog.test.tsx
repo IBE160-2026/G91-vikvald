@@ -35,7 +35,7 @@ function openDialog() {
 }
 
 describe("ShortcutsDialog", () => {
-  it("UX-DR26, UX-DR35: tabellen med Tast og Handling viser tastene for øving, resultat og dialoger", () => {
+  it("UX-DR26, UX-DR35, FR-35: tabellen med Tast og Handling viser tastene for øving, quiz, resultat og dialoger", () => {
     const { dialog } = openDialog();
     const table = within(dialog).getByRole("table");
     expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["Tast", "Handling"]);
@@ -50,13 +50,17 @@ describe("ShortcutsDialog", () => {
       "1Kunne ikke",
       "2Kunne",
       "EscAvslutt økten",
+      "Quiz",
+      "A–DVelg svar",
+      "EnterBekreft svar, deretter neste spørsmål",
+      "EscAvslutt økten",
       "Resultat",
       "EnterØv igjen",
       "EscTilbake",
       "Dialoger",
       "EscLukk uten endring",
     ]);
-    expect(dialog.querySelectorAll("kbd")).toHaveLength(8);
+    expect(dialog.querySelectorAll("kbd")).toHaveLength(11);
     // No main action: only «Lukk».
     expect(within(dialog).queryByRole("button", { name: "Avbryt" })).toBeNull();
     expect(within(dialog).getAllByRole("button", { name: "Lukk" })).toHaveLength(2);
