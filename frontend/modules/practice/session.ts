@@ -48,6 +48,27 @@ export function markCurrent(state: SessionState, mark: Mark): SessionState {
   return { order: state.order, queue, firstMarks, shown };
 }
 
+// Quiz (story 4.2): sets the mark of the current question when the answer is
+// confirmed, without moving the queue, so the question stays on screen with
+// its explanation. Only the first mark counts (an answer is locked). A
+// finished session is left as it is.
+export function answerCurrent(state: SessionState, mark: Mark): SessionState {
+  const current = state.queue[0];
+  if (current === undefined || Object.hasOwn(state.firstMarks, current)) return state;
+  return { ...state, firstMarks: { ...state.firstMarks, [current]: mark } };
+}
+
+// Quiz (story 4.2): «Neste spørsmål». Takes the current question out of the
+// queue (a quiz question never comes back, FR-34) and shows the next one.
+// After the last one the queue is empty and the session is finished.
+export function advance(state: SessionState): SessionState {
+  const [current, ...queue] = state.queue;
+  if (current === undefined) return state;
+  const next = queue[0];
+  const shown = next === undefined || state.shown.includes(next) ? state.shown : [...state.shown, next];
+  return { order: state.order, queue, firstMarks: state.firstMarks, shown };
+}
+
 // Takes a deleted card out of the session (story 3.7, E22). A card never
 // marked leaves the session completely: out of the order, the queue and the
 // shown cards, so the grid loses its cell and the total goes down by one. A

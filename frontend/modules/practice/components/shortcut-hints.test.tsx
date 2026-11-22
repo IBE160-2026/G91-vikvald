@@ -2,7 +2,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { FLASHCARD_HINTS, ShortcutHints, resultHints } from "./shortcut-hints";
+import { FLASHCARD_HINTS, ShortcutHints, quizHints, resultHints } from "./shortcut-hints";
 
 afterEach(cleanup);
 
@@ -41,5 +41,18 @@ describe("ShortcutHints", () => {
     render(<ShortcutHints hints={resultHints("tilbake til emnet")} />);
     const items = within(screen.getByRole("list", { name: "Hurtigtaster" })).getAllByRole("listitem");
     expect(items.map((item) => item.textContent)).toEqual(["Enter øv igjen", "Esc tilbake til emnet"]);
+  });
+
+  it("UX-DR31: quizen har «A–D velg svar», Enter etter hvor hun er, og «Esc avslutt», til venstre", () => {
+    const texts = (step: "confirm" | "next" | "result") => {
+      cleanup();
+      render(<ShortcutHints hints={quizHints(step)} align="start" />);
+      const list = screen.getByRole("list", { name: "Hurtigtaster" });
+      expect(list.className).toContain("justify-start");
+      return within(list).getAllByRole("listitem").map((item) => item.textContent);
+    };
+    expect(texts("confirm")).toEqual(["A–D velg svar", "Enter bekreft svar", "Esc avslutt"]);
+    expect(texts("next")).toEqual(["A–D velg svar", "Enter neste spørsmål", "Esc avslutt"]);
+    expect(texts("result")).toEqual(["A–D velg svar", "Enter se resultatet", "Esc avslutt"]);
   });
 });

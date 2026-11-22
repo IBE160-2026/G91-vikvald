@@ -2,8 +2,8 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { flashcardAdapter } from "../adapter";
-import { gridCells, markCurrent, startSession } from "../session";
+import { flashcardAdapter, quizAdapter } from "../adapter";
+import { advance, answerCurrent, gridCells, markCurrent, startSession } from "../session";
 import { AnswerGrid } from "./answer-grid";
 
 afterEach(cleanup);
@@ -51,5 +51,28 @@ describe("AnswerGrid", () => {
     expect(first.getAttribute("aria-current")).toBe("step");
     expect(first.className).toContain("bg-danger-tint");
     expect(first.querySelector(".sr-only")!.textContent).toBe("Kort 1: kunne ikke");
+  });
+
+  it("UX-DR9: i quizen leses rutene «Spørsmål 4: feil», og et bekreftet spørsmål beholder brand-kanten", () => {
+    let state = startSession(["A", "B", "C", "D"]);
+    state = advance(answerCurrent(state, "known"));
+    state = advance(answerCurrent(state, "known"));
+    state = advance(answerCurrent(state, "known"));
+    state = answerCurrent(state, "missed");
+    render(<AnswerGrid cells={gridCells(state)} adapter={quizAdapter} />);
+    const items = screen.getAllByRole("listitem");
+    expect(items[3].querySelector(".sr-only")!.textContent).toBe("Spørsmål 4: feil");
+    expect(items[3].className).toContain("border-brand");
+    expect(items[3].getAttribute("aria-current")).toBe("step");
+    expect(items[0].querySelector(".sr-only")!.textContent).toBe("Spørsmål 1: riktig");
+  });
+
+  it("UX-DR9: et quizspørsmål som ikke er besvart, leses «ikke besvart ennå»", () => {
+    render(<AnswerGrid cells={gridCells(startSession(["A", "B"]))} adapter={quizAdapter} />);
+    const items = screen.getAllByRole("listitem");
+    expect(items.map((item) => item.querySelector(".sr-only")!.textContent)).toEqual([
+      "Spørsmål 1",
+      "Spørsmål 2: ikke besvart ennå",
+    ]);
   });
 });

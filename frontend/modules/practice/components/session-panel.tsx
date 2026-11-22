@@ -43,6 +43,8 @@ type Props = {
 // legend, and no «Avslutt økt»; once saved, «✓ Økten er ferdig og lagret» at
 // the bottom instead (story 3.5). Aborted: no «Avslutt økt», no «Repeterer»,
 // no current cell, and the legend «Kunne», «Kunne ikke», «Ikke vist ennå».
+// The texts come from the adapter; a type that does not repeat (quiz) never
+// shows «Repeterer».
 export function SessionPanel({
   adapter,
   state,
@@ -59,7 +61,7 @@ export function SessionPanel({
   const finished = isFinished(state);
   const shown = shownCount(state);
   const total = totalCount(state);
-  const repeating = aborted ? null : repeatingLeft(state);
+  const repeating = aborted || !adapter.repeats ? null : repeatingLeft(state);
   const counts = sessionCounts(state);
   const showGrid = total <= GRID_MAX_CARDS;
   const legend = aborted ? adapter.legend.aborted : finished ? adapter.legend.finished : adapter.legend.inProgress;

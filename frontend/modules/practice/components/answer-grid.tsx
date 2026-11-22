@@ -27,16 +27,16 @@ export function MarkIcon({ mark }: { mark: Mark }) {
 // brand border and its number (aria-current="step"); a card not shown yet is
 // empty with a border-card edge and its number. A repeated current card keeps
 // its ✗ and gets the brand border. Each cell is read as hidden text («Kort 4:
-// kunne ikke»); what is seen is aria-hidden.
+// kunne ikke», for quiz «Spørsmål 4: feil»); what is seen is aria-hidden.
 export function AnswerGrid({ cells, adapter }: { cells: GridCell[]; adapter: PracticeAdapter }) {
   return (
     <ol data-slot="answer-grid" className="grid grid-cols-[repeat(6,var(--spacing-grid-cell))] gap-grid-gap">
       {cells.map((cell) => {
         const text = cell.mark
-          ? `Kort ${cell.number}: ${adapter.cellText(cell.mark)}`
+          ? `${adapter.itemLabel} ${cell.number}: ${adapter.cellText(cell.mark)}`
           : cell.current
-            ? `Kort ${cell.number}`
-            : `Kort ${cell.number}: ${adapter.cellText("unseen")}`;
+            ? `${adapter.itemLabel} ${cell.number}`
+            : `${adapter.itemLabel} ${cell.number}: ${adapter.cellText("unseen")}`;
         return (
           <li
             key={cell.id}
