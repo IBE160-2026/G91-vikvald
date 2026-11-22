@@ -10,6 +10,7 @@ import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { iconProps } from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import { notFoundOnMissing } from "@/lib/api";
+import { examLine } from "@/lib/exam";
 import { focusHeadingAfterNavigation, useFocusHeadingOnArrival } from "@/lib/focus-heading";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { useDocumentTitle } from "@/lib/use-document-title";
@@ -52,7 +53,9 @@ import { fileCountLabel, formatWeekdayDate, lectureCountLabel } from "../format"
 // Quiz («8 spørsmål fra 2 forelesninger», «Start ›», story 4.4), shown only
 // when the subject has quiz questions. At the bottom of the card stands SISTE
 // ØKT (story 5.1), from GET /api/overview, when the subject has a session.
-// The table's Status («Øvd 03.11») also comes from the overview (story 5.2).
+// The table's Status («Øvd 03.11») also comes from the overview (story 5.2),
+// and so do the counts in the line under the subtitle, «Eksamen 04.12, om 3
+// uker · 4 av 8 forelesninger øvd» (story 5.3).
 // Someone else's or a missing subject shows «Fant ikke siden».
 //
 // After a lecture is deleted on 04 she lands here, and the h1 gets focus (#75).
@@ -146,6 +149,11 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
                   {lectureCountLabel(subject.data.lecture_count)}
                   {fileCounts.data ? ` · ${fileCountLabel(fileCounts.data.file_count)}` : null}
                   {` · eksamen ${formatWeekdayDate(subject.data.exam_date)}`}
+                </p>
+                {/* Story 5.3: the date from the subject (changes at once), the counts
+                    from the overview; only the exam part until it is loaded. */}
+                <p className="mt-1 text-meta text-ink-muted">
+                  {examLine(subject.data.exam_date, new Date(), overviewSubject?.lectures)}
                 </p>
               </div>
               <Button variant="outline" className="shrink-0" onClick={() => setLectureDialogOpen(true)}>
