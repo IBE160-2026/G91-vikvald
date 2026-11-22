@@ -154,7 +154,7 @@ describe("SessionPanel", () => {
     expect(screen.getByRole("heading", { level: 2, name: "Flashcards" })).toBeTruthy();
   });
 
-  it("UX-DR8: quizpanelet viser «Quiz», «3 riktige · 1 feil» og quizforklaringen, uten «Repeterer»", () => {
+  it("UX-DR8: quizpanelet viser «Quiz», «3 riktige · 2 feil» og quizforklaringen, uten «Repeterer»", () => {
     let state = startSession(ids(5));
     for (const mark of ["known", "known", "known", "missed"] as Mark[]) state = advance(answerCurrent(state, mark));
     state = answerCurrent(state, "missed");

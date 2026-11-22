@@ -81,7 +81,7 @@ async def test_fr32_ny_forelesning_gir_tom_liste(client: AsyncClient) -> None:
 async def test_fr32_sporsmalene_fra_en_annen_forelesning_kommer_ikke_med(client: AsyncClient, lecture: str) -> None:
     other = await _new_lecture(client)
     assert (await _upload(client, other, FIXTURE.read_bytes())).status_code == 201
-    await _start_quiz(client, other)
+    assert (await _start_quiz(client, other)).status_code == 202
     await _finish_jobs()
     assert await _quiz_questions(client, lecture) == []
     assert len(await _quiz_questions(client, other)) == 5

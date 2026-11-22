@@ -133,7 +133,7 @@ async function started() {
 }
 
 describe("quizResultTitle", () => {
-  it("FR-36: «11 av 15 riktige», og avbrutt «Avbrutt etter 12 av 20»", () => {
+  it("FR-56, UX-DR33: «11 av 15 riktige», og avbrutt «Avbrutt etter 12 av 20»", () => {
     expect(quizResultTitle({ total: 15, answered: 15, correct: 11, aborted: false })).toBe("11 av 15 riktige");
     expect(quizResultTitle({ total: 20, answered: 12, correct: 3, aborted: true })).toBe("Avbrutt etter 12 av 20");
   });
@@ -177,7 +177,7 @@ describe("QuizSessionPage", () => {
     expect(screen.getAllByRole("status")[0].textContent).toBe("");
   });
 
-  it("FR-34, FR-56, FR-36: hele quizen sendes én gang med kind=quiz og viser «QUIZ FERDIG» og «2 av 3 riktige»", async () => {
+  it("FR-34, FR-56: hele quizen sendes én gang med kind=quiz og viser «QUIZ FERDIG» og «2 av 3 riktige»", async () => {
     renderPage();
     await started();
     answer("B");
@@ -209,6 +209,34 @@ describe("QuizSessionPage", () => {
     expect(screen.queryByText("Ta quizen igjen")).toBeNull();
     cleanup();
     expect(saved()).toHaveLength(1);
+  });
+
+  it("FR-34: neste spørsmål starter uten valg, med «Bekreft svar» inaktiv, og Enter gjør ingenting", async () => {
+    renderPage();
+    await started();
+    answer("B");
+    fireEvent.click(button("Neste spørsmål"));
+    expect(heading()).toBe("Hva er Pris?");
+    for (const radio of screen.getAllByRole("radio")) expect(radio.getAttribute("aria-checked")).toBe("false");
+    expect(button("Bekreft svar").disabled).toBe(true);
+    press("Enter");
+    expect(screen.getAllByRole("status")[0].textContent).toBe("");
+  });
+
+  it("FR-56: Esc etter at siste spørsmål er bekreftet fullfører quizen i stedet for å avbryte den", async () => {
+    renderPage();
+    await started();
+    answer("B");
+    fireEvent.click(button("Neste spørsmål"));
+    answer("B");
+    fireEvent.click(button("Neste spørsmål"));
+    answer("D");
+    press("Escape");
+    expect(screen.getByRole("heading", { level: 2, name: "2 av 3 riktige" })).toBeTruthy();
+    await waitFor(() =>
+      expect(saved()).toEqual([expect.objectContaining({ kind: "quiz", aborted: false, answered: 3, correct: 2 })]),
+    );
+    expect(push).not.toHaveBeenCalled();
   });
 
   it("FR-56, UX-DR33: «Avslutt økt» etter ett bekreftet svar lagrer som avbrutt og viser «Avbrutt etter 1 av 3»", async () => {

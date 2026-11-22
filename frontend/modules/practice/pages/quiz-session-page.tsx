@@ -37,7 +37,7 @@ import { useSessionSaver, type SaverSnapshot } from "../use-session-saver";
 
 const FINISHED = "Økten er ferdig";
 
-// The questions of a session: copied once from the first answer, by id.
+// The questions of a session: copied once from the first fetch made after the page opened, by id.
 type Session = { questions: Record<string, QuizQuestionData>; state: SessionState };
 
 // A new session over these questions, in a new random order (FR-34).
@@ -162,6 +162,13 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
   function end() {
     if (!session || sessionCounts(session.state).answered === 0) {
       back();
+      return;
+    }
+    // Every question answered (the last one confirmed): the quiz is done, not
+    // aborted. Moving on finishes it (isFinished → finish() and the result).
+    if (sessionCounts(session.state).answered === session.state.order.length) {
+      next();
+      closeSideMenu(() => resultTitleRef.current);
       return;
     }
     saver.abort();

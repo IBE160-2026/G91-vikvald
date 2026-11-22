@@ -21,7 +21,7 @@ function renderOptions(value: string, results: QuizOptionResult[], disabled = fa
 describe("QuizOption", () => {
   it("UX-DR8: 62 px rad med bokstavboks og tekst; valgt men ikke bekreftet har merketone og 1,5 px brand-kant", () => {
     const options = renderOptions("2", [null, null, null, null]);
-    expect(options.map((option) => option.textContent)).toEqual(["AEt navn", "BEn pris", "CEn kanal", "DEt segment"]);
+    expect(options.map((option) => option.textContent)).toEqual(["A Et navn ", "B En pris ", "C En kanal ", "D Et segment "]);
     for (const option of options) {
       expect(option.className).toContain("min-h-[62px]");
       expect(option.className).toContain("rounded-option");
@@ -45,6 +45,7 @@ describe("QuizOption", () => {
   it("FR-35, NFR-10: etter bekreftelse har riktig «✓ Riktig svar» og feil valgt «✗ Ditt svar», med symbolene skjult", () => {
     const options = renderOptions("2", ["correct", null, "wrong", null], true);
     expect(options[0].className).toContain("bg-success-tint");
+    expect(options[0].querySelector(".font-semibold")!.textContent).toBe("Et navn");
     expect(options[0].className).toContain("border-success");
     expect(options[0].className).toContain("border-[1.5px]");
     expect(options[2].className).toContain("bg-danger-tint");

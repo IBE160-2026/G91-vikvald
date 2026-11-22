@@ -46,8 +46,10 @@ export function QuizOption({ value, letter, text, result }: Props) {
         className="flex size-[32px] shrink-0 items-center justify-center rounded-md border border-border-control bg-surface text-label text-ink"
       >
         {letter}
-      </span>
-      <span className="min-w-0 flex-1 text-body break-words text-ink">{text}</span>
+      </span>{" "}
+      <span className={cn("min-w-0 flex-1 text-body break-words text-ink", result === "correct" && "font-semibold")}>
+        {text}
+      </span>{" "}
       {result === "correct" ? (
         <span className="shrink-0 text-meta-strong text-success">
           <span aria-hidden="true">✓ </span>Riktig svar
