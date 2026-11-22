@@ -178,6 +178,11 @@ test.describe("Tellinger og «Øvd» i forelesningstabellen (story 5.2)", () => 
     await expect(rows(page).nth(1).locator('[data-status="not-practised"]')).toBeVisible();
     await expect(rows(page).nth(2).getByRole("cell")).toHaveText(["25.09", "Uke 39: Kanal", "–", "–", "–", "Ingen filer ennå"]);
     await expect(rows(page).nth(2).locator("[data-status]")).toHaveCount(0);
+    // At 1280 px every status text fits without «…».
+    for (let i = 0; i < 3; i += 1) {
+      const text = rows(page).nth(i).locator('[data-column="status"] > span:last-child');
+      expect(await text.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+    }
   });
 
   test("FR-16: en quiz-emneøkt gir «Øvd» bare der det fantes quizspørsmål", async ({ page }) => {

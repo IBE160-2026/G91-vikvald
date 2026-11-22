@@ -82,7 +82,7 @@ export function LectureTable({ lectures, fileCounts, overviewLectures, overviewS
             <TableHead className="w-[48px] px-2 text-right lg:w-[64px] lg:px-3">Filer</TableHead>
             <TableHead className="w-[48px] px-2 text-right lg:w-[64px] lg:px-3">Kort</TableHead>
             <TableHead className="w-[48px] px-2 text-right lg:w-[64px] lg:px-3">Quiz</TableHead>
-            <TableHead className="w-[60px] pl-2 lg:w-[184px] lg:pl-6">
+            <TableHead className="w-[60px] pl-2 lg:w-[208px] lg:pl-6">
               <span className="sr-only lg:not-sr-only">Status</span>
             </TableHead>
           </TableRow>
