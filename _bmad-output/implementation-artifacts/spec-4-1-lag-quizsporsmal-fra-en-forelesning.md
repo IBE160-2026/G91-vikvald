@@ -3,14 +3,21 @@ title: 'Story 4.1: Lag quizspørsmål fra en forelesning'
 type: 'feature'
 created: '2026-11-22'
 baseline_revision: '4b9ad81d5102d87fe894ccc32ef09759ef00c0ff'
-status: 'ready-for-dev'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-4-context.md'
   - '{project-root}/_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/DESIGN.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      A real model may return quiz questions that already exist in the lecture or repeat within one answer, and the pipeline stores them.
+    evidence: |-
+      existing_keys is only passed to the model as advice; save() does not drop duplicates. Same design as flashcards since story 3.1. Matters when Vertex AI arrives in epic 6.
+    location: >-
+      backend/app/modules/generation/quiz.py
+    severity: low
 ---
 
 <intent-contract>
@@ -92,6 +99,41 @@ deferred: []
 - Given en flashcardsjobb som kjører, when Quiz-raden vises, then «Lag quiz» er ikke aktiv og raden sier «Venter til flashcardene er ferdige» (og motsatt).
 - Given dialogen «Lag quiz», when den åpnes med bare tastatur, then «Vanlig» og «Middels» er valgt, piltaster flytter innen gruppen, Esc lukker uten jobb og fokus går tilbake.
 
+## Spec Change Log
+
+## Review Triage Log
+
+### 2026-11-22 — Review pass
+- verdicts: 26 findings — high 0, medium 0, low 10, false 9, maybe-false 7
+- findings:
+  - `[low]` `[reject]` (verification-gap) `quiz.build_prompt` is not reachable through the registry; a later consumer of `prompt_file` would see `{difficulty}` unfilled — no effect while only mock models exist; wiring the real model is epic 6 and needs a new registry hook (more than a direct correction).
+  - `[low]` `[defer]` (edge) a real model may return questions that already exist or repeat within a batch — same advisory `existing_keys` design as flashcards since 3.1 (pre-existing pattern); belongs with the real model in epic 6.
+  - `[low]` `[patch]` (edge) `page_no` was lax `int`, so `True`/`"1"` passed as page 1 — fixed: `StrictInt`, two new rejection cases in `test_quiz.py`.
+  - `[maybe-false]` `[reject]` (edge) mock gives duplicate options when two definitions share the answer text — follows the AC rule literally («definisjonene til de tre neste begrepene»); validation discards and counts them, as AC 5 says; would only be low.
+  - `[maybe-false]` `[reject]` (edge) four identical answers give `done` with N discarded instead of 0 discarded — same root as above; the message shown is still the approved fewer/nothing text; would only be low.
+  - `[false]` `[reject]` (edge) unknown running kind would crash `generationTexts[kind].waiting` — the backend only returns registered kinds (`JobCreate._known_kind`), and every registered kind has texts; a kind added without texts fails `tsc` via `Record<JobKind, …>`.
+  - `[low]` `[reject]` (edge) the other row stays active during the POST of a start — needs a quick double click; the server answers 409 with the approved text; fix needs shared state between rows.
+  - `[low]` `[reject]` (blind) same as the verification-gap prompt finding — see first row.
+  - `[maybe-false]` `[reject]` (blind) `quiz.txt` mentions a list of existing questions and no output format — same as `flashcards.txt`; the call site that adds pages, existing keys and the JSON schema is epic 6; would only be low now.
+  - `[low]` `[patch]` (blind) difficulty values in several places and an unused `quiz.DEFAULT_DIFFICULTY` — removed the constant, added `test_fr29_vanskelighetsgradene_i_instruksen_og_api_et_er_de_samme`.
+  - `[maybe-false]` `[reject]` (blind) mock duplicates — same as edge finding above.
+  - `[false]` `[reject]` (blind) answer extraction counts words again — `sentences()` normalises all whitespace to single spaces and `definition_term` splits on the same single space, so the word count always matches.
+  - `[low]` `[reject]` (blind) no database CHECK on the length of `options` — `validate_item` is the only writer's gate (AR-4); a JSON length CHECK is dialect-specific; adds complexity for a state no code path can reach.
+  - `[low]` `[patch]` (blind) `page_no` lax int — same as the edge row; fixed there.
+  - `[false]` `[reject]` (blind) `params` may be null and break `JobOut` — `jobs.params` is NOT NULL since migration 0006 and always written by `create_job`; the `or {}` and `?.` are defensive only.
+  - `[maybe-false]` `[reject]` (blind) quiz «Øv nå» disabled without a reason — temporary until story 4.2 builds the quiz session; there is no approved text for a reason; would only be low.
+  - `[maybe-false]` `[reject]` (blind) no lecture/subject delete-preview test with quiz questions — the counter takes `scope.file_ids`, which the lecture, subject and account previews fill the same way (covered for flashcards in 3.7); would only be low.
+  - `[low]` `[patch]` (blind) stale test names and flow-4 comment — renamed the two `test_ar7_…` tests and updated the comment.
+  - `[false]` `[reject]` (blind) user-journey docs lack quiz steps — the journey tests are extended by a separate run after each epic (autonom-kjoring.md, «Brukerreiser»); this story only had to keep them green and update the text.
+  - `[false]` `[reject]` (blind) KI trail missing from the diff — written later in the same session, before the PR (story prompt step 5).
+  - `[false]` `[reject]` (intent) R3: «gjenbruker omfangsvalget» read as reuse of the scope picker, not carry-over of the chosen value — carry-over would contradict «Vanlig … er forhåndsvalgt»; recorded as a kanttilfelle.
+  - `[false]` `[reject]` (intent) R4: the 0-of-N message uses epic 3's separate nothing-text with «spørsmål» — the AC points to A20/E12, which is that text; recorded as a kanttilfelle.
+  - `[false]` `[reject]` (intent) migration not run against in-memory SQLite and Postgres in this diff — `test_ar13_alembic_upgrade_head_kjorer` style tests run on SQLite, and Postgres ran migration 0008 at `docker compose up --build`.
+  - `[maybe-false]` `[reject]` (intent) no quiz-specific test of cascade on file replace — replace deletes the old file row with the same `delete(File)` statement as delete, so the FK cascade is the same path tested for delete; would only be low.
+  - `[false]` `[reject]` (intent) «Prøv igjen» and the reverse waiting direction only in Vitest — both are covered by tests that run on every build; Playwright covers one direction.
+  - `[low]` `[reject]` (intent) API surface changes beyond the story (`JobOut.params`, 422 for flashcards with difficulty, `break_item`, `GenerationRow`) — all are needed for «Prøv igjen med samme valg», AR-12 and SK-4 for a second type; recorded in beslutninger.md.
+- own check after the pass (screenshots): `[medium]` `[patch]` «Øv nå» on a row with content was disabled while another row's job ran, so she could not practise flashcards while the quiz was being made (EXPERIENCE.md flow 1, step 7) — `CreateRow` keeps «Øv nå» active in `waiting`; new test in `create-row.test.tsx`.
+
 ## Design Notes
 
 Blanding: `digest = sha256("\x1f".join([question, *options]))`; for `i` fra 3 ned til 1: `j = digest[i] % (i + 1)`, bytt `order[i]` og `order[j]`. Ny `correct_index = order.index(correct_index)`.
@@ -102,3 +144,25 @@ Blanding: `digest = sha256("\x1f".join([question, *options]))`; for `i` fra 3 ne
 - `cd backend && uv run pytest` -- expected: alt grønt
 - `cd frontend && npm run test` -- expected: alt grønt
 - `cd frontend && npx playwright test` mot `docker compose up --build` -- expected: alt grønt
+
+## Auto Run Result
+
+Status: done
+
+**Summary:** Quiz is registered as a new `kind` in the generation registry (mock rule, strict loose model, `validate_item`, `break_item`, prompt with difficulty) and stored in the new `quiz_questions` table owned by `content`, with options shuffled once by a SHA-256 seed. Quiz questions are counted in delete confirmations, and the delete guard covers quiz jobs. The lecture page has a Quiz row built on a shared `GenerationRow`, and the dialog «Lag quiz» has scope and difficulty.
+
+**Files changed:**
+- `backend/alembic/versions/0008_create_quiz_questions.py`, `backend/app/modules/content/{models,service,registry,schemas,router}.py` -- table, shuffle and save, counts.
+- `backend/app/modules/generation/{quiz.py,prompts/quiz.txt}` -- the quiz content type and its instructions.
+- `backend/app/modules/generation/{registry,mock,port,service,schemas,router,flashcards}.py` -- `break_item`, `uses_difficulty`, difficulty to the port, `JobOut.params`.
+- `backend/tests/test_quiz.py` (new) and updated job, delete, account and generation tests.
+- `frontend/modules/generation/{types,api,texts}.ts`, `components/{generation-row,quiz-row,flashcards-row,scope-dialog}.tsx`, `frontend/components/{choice-option,create-row}.tsx`, `frontend/modules/subjects/pages/lecture-page.tsx` -- Quiz row, dialog, waiting state.
+- `frontend/e2e/quiz.spec.ts` (new), `konto.spec.ts`, `flashcards.spec.ts`, `brukerreiser/{felles.ts,flyt-3,flyt-4}`, `docs/testing/brukerreiser.md` -- new account text and narrower row helpers.
+
+**Review:** 26 findings: 4 patched (all low: strict `page_no`, shared difficulty values, test names, flow-4 comment), 1 deferred (duplicate questions from a real model, epic 6), 21 rejected with reasons in the triage log. One own finding from the screenshots (medium) was patched: «Øv nå» stays active while another row's job runs.
+
+**Follow-up review recommended:** false (no high patched, one medium patched, which is covered by a new test and the screenshots).
+
+**Verification:** `uv run pytest` 523 passed; `npm run test` 717 passed; `npx tsc --noEmit` clean; `npx playwright test` 133 passed against `docker compose up --build` (one run had a flaky failure in `filer.spec.ts` FR-8, which passed 3 of 3 alone and in the full rerun).
+
+**Residual risks:** the prompt is not yet wired to a real model (epic 6); the arrow-key race noted by the implementer may make keyboard e2e tests flaky.
