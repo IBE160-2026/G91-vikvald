@@ -13,6 +13,7 @@ from app.core.errors import install_error_handlers
 from app.core.health import router as health_router
 from app.core.public_config import router as public_config_router
 from app.modules.content.router import lectures_router as content_lectures_router
+from app.modules.content.router import subjects_router as content_subjects_router
 from app.modules.files.router import account_router, files_router
 from app.modules.files.router import lectures_router as files_lectures_router
 from app.modules.files.router import subjects_router as files_subjects_router
@@ -73,6 +74,7 @@ def create_app() -> FastAPI:
     app.include_router(generation_lectures_router)
     app.include_router(jobs_router)
     app.include_router(content_lectures_router)
+    app.include_router(content_subjects_router)
     app.include_router(practice_router)
     return app
 
