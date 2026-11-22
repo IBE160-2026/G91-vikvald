@@ -1,7 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
-import { formatDayMonth } from "../lib/dates";
 import { makePdf } from "./pdf";
 
 // Story 5.1: «øvd» worked out by the server, shown as status dots in the
@@ -52,6 +51,20 @@ async function subjectWithCards(page: Page): Promise<Setup> {
   return { subjectId, first, second };
 }
 
+// The «dd.mm» SISTE ØKT should show: the subject's last_session.started_at
+// from GET /api/overview, formatted in the browser's own time zone the way
+// formatDayMonth does it (never the test process's clock).
+async function expectedLastSessionDate(page: Page, subjectId: string): Promise<string> {
+  const overview = await (await page.request.get("/api/overview")).json();
+  const subject = overview.subjects.find((item: { id: string }) => item.id === subjectId);
+  const startedAt: string = subject.last_session.started_at;
+  return page.evaluate((iso) => {
+    const date = new Date(iso);
+    const pad = (value: number) => String(value).padStart(2, "0");
+    return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}`;
+  }, startedAt);
+}
+
 function nav(page: Page): Locator {
   return page.getByRole("navigation", { name: "Emner" });
 }
@@ -86,7 +99,6 @@ test.describe("«Øvd» i sidemenyen og SISTE ØKT (story 5.1)", () => {
     await mark(page, "Kunne ikke");
     for (let i = 0; i < 3; i += 1) await mark(page, "Kunne");
     expect((await saved).status()).toBe(204);
-    const today = formatDayMonth(new Date().toISOString());
 
     await page.getByRole("link", { name: "Tilbake til forelesningen" }).click();
     await expect(page).toHaveURL(`/forelesninger/${first}`);
@@ -106,7 +118,8 @@ test.describe("«Øvd» i sidemenyen og SISTE ØKT (story 5.1)", () => {
     await expect(card.getByRole("heading", { level: 3, name: "Siste økt" })).toBeAttached();
     await expect(card.getByText("SISTE ØKT", { exact: true })).toBeVisible();
     await expect(card.getByText("Flashcards · Uke 37: Merkevare")).toBeVisible();
-    await expect(card.getByText(`${today} · Kunne 2 av 3`)).toBeVisible();
+    const day = await expectedLastSessionDate(page, subjectId);
+    await expect(card.getByText(`${day} · Kunne 2 av 3`)).toBeVisible();
 
     expect(await page.evaluate(() => (window as unknown as { notReloaded?: boolean }).notReloaded)).toBe(true);
   });
@@ -131,7 +144,8 @@ test.describe("«Øvd» i sidemenyen og SISTE ØKT (story 5.1)", () => {
     await page.goto(`/emner/${subjectId}`);
     const card = practiceCard(page);
     await expect(card.getByText("Quiz · Hele emnet")).toBeVisible();
-    await expect(card.getByText(`${formatDayMonth(new Date().toISOString())} · Avbrutt · 1 av 2 riktige`)).toBeVisible();
+    const day = await expectedLastSessionDate(page, subjectId);
+    await expect(card.getByText(`${day} · Avbrutt · 1 av 2 riktige`)).toBeVisible();
     // A quiz over the whole subject counts only for lectures with quiz
     // questions; Uke 37 has only cards.
     await expect(lectureLink(page, first)).toHaveAccessibleName("Uke 37: Merkevare Ikke øvd ennå");

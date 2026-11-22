@@ -148,7 +148,8 @@ def _last_session_out(item: PracticeSession) -> LastSessionOut:
 async def overview(session: AsyncSession, user_id: uuid.UUID) -> OverviewOut:
     """Her subjects (in the order of GET /api/subjects), each with its lectures
     (in the order of GET /api/subjects/{id}/lectures), whether each lecture is
-    practised, and the subject's newest session."""
+    practised (from practiced_lectures, per subject), and the subject's newest
+    session."""
     subjects = await list_subjects(session, user_id)
     all_sessions = await _sessions(session, [subject.id for subject in subjects])
     by_subject: dict[uuid.UUID, list[PracticeSession]] = {}
@@ -159,7 +160,7 @@ async def overview(session: AsyncSession, user_id: uuid.UUID) -> OverviewOut:
     for subject in subjects:
         lectures = await list_lectures(session, user_id, str(subject.id))
         sessions = by_subject.get(subject.id, [])
-        practice = await _practiced(session, [lecture.id for lecture in lectures], sessions)
+        practice = await practiced_lectures(session, user_id, subject.id)
         # Oldest first, so the newest (started_at, then id) is the last one.
         last_session = _last_session_out(sessions[-1]) if sessions else None
         result.append(

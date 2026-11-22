@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { focusHeadingAfterNavigation, headingFocusPending, resetHeadingFocus } from "@/lib/focus-heading";
 
 import { SubjectPage } from "./pages/subject-page";
 import type { SubjectFileCounts } from "@/modules/files/types";
+import { OVERVIEW_QUERY_KEY } from "@/modules/practice/api";
 import type { Overview, QuizQuestion, SubjectFlashcard } from "@/modules/practice/types";
 import type { Lecture, Subject } from "./types";
 
@@ -712,6 +713,26 @@ describe("emnesiden", () => {
       expect(dot.className).not.toContain("border");
       const other = within(nav).getByRole("link", { name: notPractised(LECTURES[1].name) });
       expect(within(other).getByRole("img", { name: "Ikke øvd ennå" }).className).toContain("border-ink-muted");
+    });
+
+    it("FR-56: når oversikten ugyldiggjøres, viser den monterte siden «Øvd» og SISTE ØKT uten omlasting", async () => {
+      overview = overviewWith(null, []);
+      subjectFlashcards = [flashcard("a", "l1")];
+      const client = renderPage();
+      const nav = await screen.findByRole("navigation", { name: "Emner" });
+      await within(nav).findByRole("link", { name: notPractised(LECTURES[0].name) });
+      const section = await screen.findByRole("region", { name: "Øv på hele emnet" });
+      expect(within(section).queryByRole("heading", { name: "Siste økt" })).toBeNull();
+
+      overview = overviewWith({ ...QUIZ_SESSION, kind: "flashcards", answered: 3, correct: 2, wrong: 1 }, ["l1"]);
+      await act(async () => {
+        await client.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
+      });
+
+      const practised = await within(nav).findByRole("link", { name: `${LECTURES[0].name} Øvd` });
+      expect(within(practised).getByRole("img", { name: "Øvd" })).toBeTruthy();
+      expect(await within(section).findByRole("heading", { level: 3, name: "Siste økt" })).toBeTruthy();
+      expect(within(section).getByText("Flashcards · Uke 37: Merkevare")).toBeTruthy();
     });
 
     it("UX-DR7: når oversikten feiler, er alle prikkene hule", async () => {

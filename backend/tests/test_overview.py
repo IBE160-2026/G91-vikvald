@@ -5,15 +5,17 @@ borders (content made exactly at T, one second after) can be tested exactly.
 """
 
 import uuid
+from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
 from app.modules.content.models import Flashcard, QuizQuestion
-from app.modules.content.registry import first_content_times
+from app.modules.content.registry import first_content_times, register_first_content, unregister_first_content
 from app.modules.files.models import File
 from app.modules.practice.models import PracticeSession
 from app.modules.practice.service import practiced_lectures
@@ -310,7 +312,71 @@ async def test_fr56_emne_uten_okter_har_ingen_ovde_forelesninger(client: AsyncCl
     assert [lectures[item]["practiced"] for item in (first, second)] == [False, False]
 
 
+async def test_fr56_emneokt_i_ett_emne_merker_ikke_forelesninger_i_et_annet(
+    client: AsyncClient, engine: AsyncEngine
+) -> None:
+    await _log_in_new_user(client)
+    subject_a, a_first, a_second = await _subject_with_lectures(client, "Markedsføring")
+    subject_b, b_first, b_second = await _subject_with_lectures(client, "Statistikk")
+    # Cards in every lecture before T; only subject A has a whole-subject session.
+    for lecture_id in (a_first, a_second, b_first, b_second):
+        await _add_card(engine, lecture_id, T - timedelta(hours=1))
+    await _add_session(engine, subject_a, None, T)
+    await _add_session(engine, subject_b, b_second, T - timedelta(days=1))
+
+    a = await _lectures(client, subject_a)
+    b = await _lectures(client, subject_b)
+
+    assert [a[item]["practiced"] for item in (a_first, a_second)] == [True, True]
+    assert [b[item]["practiced"] for item in (b_first, b_second)] == [False, True]
+    assert _parse(b[b_second]["last_practiced_at"]) == T - timedelta(days=1)
+    subjects = {item["id"]: item for item in (await client.get(OVERVIEW)).json()["subjects"]}
+    assert subjects[subject_a]["last_session"]["lecture_id"] is None
+    assert subjects[subject_b]["last_session"]["lecture_id"] == b_second
+
+
 # The content side (AR-16).
+
+
+@pytest.fixture
+def freetext_registered() -> Iterator[dict[uuid.UUID, datetime]]:
+    """A "freetext" kind registered later, as epic 8 will. The test fills in
+    the first times it answers with."""
+    answers: dict[uuid.UUID, datetime] = {}
+
+    async def first_freetext_times(_session: Any, lecture_ids: tuple[uuid.UUID, ...]) -> dict[uuid.UUID, datetime]:
+        return {lecture_id: moment for lecture_id, moment in answers.items() if lecture_id in lecture_ids}
+
+    register_first_content("freetext", first_freetext_times)
+    try:
+        yield answers
+    finally:
+        unregister_first_content("freetext")
+
+
+async def test_ar16_type_registrert_senere_brukes_av_regelen(
+    client: AsyncClient, engine: AsyncEngine, freetext_registered: dict[uuid.UUID, datetime]
+) -> None:
+    await _log_in_new_user(client)
+    subject_id, first, second = await _subject_with_lectures(client)
+    freetext_registered[uuid.UUID(first)] = T - timedelta(hours=1)
+    freetext_registered[uuid.UUID(second)] = T + timedelta(hours=1)
+    await _add_session(engine, subject_id, None, T, kind="freetext")
+
+    lectures = await _lectures(client, subject_id)
+
+    assert lectures[first]["practiced"] is True
+    assert lectures[second]["practiced"] is False
+
+
+def test_ar16_samme_type_to_ganger_er_en_feil(freetext_registered: dict[uuid.UUID, datetime]) -> None:
+    async def other(_session: Any, _lecture_ids: tuple[uuid.UUID, ...]) -> dict[uuid.UUID, datetime]:
+        return {}
+
+    with pytest.raises(ValueError):
+        register_first_content("freetext", other)
+    with pytest.raises(ValueError):
+        register_first_content("flashcards", other)
 
 
 async def test_ar16_first_content_times_teller_ikke_modellkort(client: AsyncClient, engine: AsyncEngine) -> None:
