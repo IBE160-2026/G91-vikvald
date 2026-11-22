@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { focusHeadingAfterNavigation, headingFocusPending, resetHeadingFocus } from "@/lib/focus-heading";
 
+import { OVERVIEW_QUERY_KEY } from "@/modules/practice/api";
 import type { Overview } from "@/modules/practice/types";
 
 import { HomePage } from "./pages/home-page";
@@ -88,6 +89,7 @@ function renderPage() {
       <HomePage />
     </QueryClientProvider>,
   );
+  return client;
 }
 
 function errorFor(input: HTMLElement): string | null | undefined {
@@ -309,6 +311,19 @@ describe("forsiden «Dine emner»", () => {
       expect(examLines().compareDocumentPosition(subjectList()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       expect(within(subjectList()).getAllByRole("listitem")).toHaveLength(2);
       expect(within(subjectList()).getByText("Eksamen 04.12.2026")).toBeTruthy();
+    });
+
+    it("SK-22: når oversikten ugyldiggjøres, viser linja nytt antall uten omlasting", async () => {
+      const list = [subject({ id: "a", lecture_count: 8 })];
+      let overview = overviewFor(list, { a: [0, 8] });
+      respond(list, undefined, () => jsonResponse(200, overview));
+      const client = renderPage();
+      expect(await screen.findByText("Eksamen 04.12, om 2 uker · 0 av 8 forelesninger øvd")).toBeTruthy();
+      overview = overviewFor(list, { a: [1, 8] });
+      await act(async () => {
+        await client.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
+      });
+      expect(await screen.findByText("Eksamen 04.12, om 2 uker · 1 av 8 forelesninger øvd")).toBeTruthy();
     });
 
     it("FR-57: et emne uten forelesninger viser «Ingen forelesninger ennå»", async () => {
