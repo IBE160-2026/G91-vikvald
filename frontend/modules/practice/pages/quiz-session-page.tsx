@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,7 +16,12 @@ import { useDocumentTitle } from "@/lib/use-document-title";
 import { fetchLecture, fetchSubject, lectureQueryKey, subjectQueryKey } from "@/modules/subjects/api";
 
 import { quizAdapter } from "../adapter";
-import { fetchLectureQuizQuestions, lectureQuizQuestionsQueryKey } from "../api";
+import {
+  fetchLectureQuizQuestions,
+  fetchSubjectQuizQuestions,
+  lectureQuizQuestionsQueryKey,
+  subjectQuizQuestionsQueryKey,
+} from "../api";
 import { MissedList, type MissedQuizItem } from "../components/missed-list";
 import { QuizQuestion } from "../components/quiz-question";
 import { ResultSummary } from "../components/result-summary";
@@ -56,6 +61,88 @@ function newSession(questions: readonly QuizQuestionData[]): Session {
     questions: Object.fromEntries(questions.map((question) => [question.id, question])),
     state: startSession(shuffle(questions.map((question) => question.id))),
     answers: {},
+  };
+}
+
+// Where the session's questions come from: one lecture (story 4.2) or the
+// whole subject (story 4.4).
+type ScopeProps = { lectureId: string; subjectId?: undefined } | { subjectId: string; lectureId?: undefined };
+
+// What differs between a lecture quiz and a subject quiz: where the questions
+// come from, the name in the panel and the result, the way back, and what is
+// saved. Everything else in the session is the same code (mirrors useScope in
+// flashcard-session-page.tsx).
+type Scope = {
+  // The query for the lecture or subject itself: its error (404) counts.
+  owner: UseQueryResult<unknown>;
+  questions: UseQueryResult<QuizQuestionData[]>;
+  // The lecture's or the subject's name (the document title); undefined while loading.
+  name: string | undefined;
+  // The panel's and the result's scope: the lecture name or «<subject>, hele emnet».
+  scopeName: string | undefined;
+  colorIndex: number | undefined;
+  // Saved with the session: the subject, and the lecture (null for a subject session).
+  saveSubjectId: string | undefined;
+  saveLectureId: string | null;
+  backPath: string;
+  backText: string;
+  // The hint line's text for Esc on the result page.
+  backHint: string;
+  // A subject session shows each wrong answer's lecture in the list.
+  showLecture: boolean;
+};
+
+function useQuizScope({ lectureId, subjectId }: ScopeProps): Scope {
+  const lecture = useQuery({
+    queryKey: lectureQueryKey(lectureId ?? ""),
+    queryFn: () => fetchLecture(lectureId ?? ""),
+    enabled: lectureId !== undefined,
+  });
+  const ownSubjectId = subjectId ?? lecture.data?.subject_id;
+  const subject = useQuery({
+    queryKey: subjectQueryKey(ownSubjectId ?? ""),
+    queryFn: () => fetchSubject(ownSubjectId ?? ""),
+    enabled: ownSubjectId !== undefined,
+  });
+  const lectureQuestions = useQuery({
+    queryKey: lectureQuizQuestionsQueryKey(lectureId ?? ""),
+    queryFn: () => fetchLectureQuizQuestions(lectureId ?? ""),
+    enabled: lectureId !== undefined && lecture.isSuccess,
+  });
+  const subjectQuestions = useQuery({
+    queryKey: subjectQuizQuestionsQueryKey(subjectId ?? ""),
+    queryFn: () => fetchSubjectQuizQuestions(subjectId ?? ""),
+    enabled: subjectId !== undefined && subject.isSuccess,
+  });
+
+  if (subjectId !== undefined) {
+    const name = subject.data?.name;
+    return {
+      owner: subject,
+      questions: subjectQuestions,
+      name,
+      scopeName: name === undefined ? undefined : `${name}, hele emnet`,
+      colorIndex: subject.data?.color_index,
+      saveSubjectId: subjectId,
+      saveLectureId: null,
+      backPath: `/emner/${subjectId}`,
+      backText: "Tilbake til emnet",
+      backHint: "tilbake til emnet",
+      showLecture: true,
+    };
+  }
+  return {
+    owner: lecture,
+    questions: lectureQuestions,
+    name: lecture.data?.name,
+    scopeName: lecture.data?.name,
+    colorIndex: subject.data?.color_index,
+    saveSubjectId: lecture.data?.subject_id,
+    saveLectureId: lectureId ?? null,
+    backPath: `/forelesninger/${lectureId}`,
+    backText: "Tilbake til forelesningen",
+    backHint: "tilbake til forelesningen",
+    showLecture: false,
   };
 }
 
@@ -102,20 +189,19 @@ function newSession(questions: readonly QuizQuestionData[]): Session {
 // button does only what that button does.
 //
 // Narrow screen: the panel is behind «Meny» (SideMenu), with the hidden h1 «Quiz».
-export function QuizSessionPage({ lectureId }: { lectureId: string }) {
+//
+// The whole subject (story 4.4), at /emner/<id>/quiz: the questions from all
+// the subject's lectures; the panel and the result say «<subject>, hele
+// emnet» with the subject's colour; the explanation card shows each
+// question's own lecture, and so does the list of wrong answers (under the
+// source). The session is saved with lecture_id null, and every way back
+// («Tilbake til emnet», Esc, «Avslutt økt» with nothing confirmed, the empty
+// state) goes to the subject page. The text «lecture» above means the subject
+// for a subject session.
+export function QuizSessionPage(props: ScopeProps) {
   const router = useRouter();
-  const lecture = useQuery({ queryKey: lectureQueryKey(lectureId), queryFn: () => fetchLecture(lectureId) });
-  const subjectId = lecture.data?.subject_id;
-  const subject = useQuery({
-    queryKey: subjectQueryKey(subjectId ?? ""),
-    queryFn: () => fetchSubject(subjectId ?? ""),
-    enabled: subjectId !== undefined,
-  });
-  const questions = useQuery({
-    queryKey: lectureQuizQuestionsQueryKey(lectureId),
-    queryFn: () => fetchLectureQuizQuestions(lectureId),
-    enabled: lecture.isSuccess,
-  });
+  const scope = useQuizScope(props);
+  const { owner, questions } = scope;
   const [session, setSession] = useState<Session | null>(null);
   // The chosen option (0–3) of the current question, or null.
   const [selected, setSelected] = useState<number | null>(null);
@@ -135,13 +221,20 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
     setSession(newSession(questions.data));
   }
 
+  const { saveSubjectId, saveLectureId } = scope;
   const saver = useSessionSaver((): SaverSnapshot | null =>
-    session && subjectId
-      ? { subjectId, lectureId, kind: "quiz", counts: { ...sessionCounts(session.state), partial: 0 } }
+    session && saveSubjectId
+      ? {
+          subjectId: saveSubjectId,
+          lectureId: saveLectureId,
+          kind: "quiz",
+          counts: { ...sessionCounts(session.state), partial: 0 },
+        }
       : null,
   );
 
-  const name = lecture.data?.name;
+  const name = scope.name;
+  const scopeName = scope.scopeName;
   useDocumentTitle(name ? `Quiz – ${name} – Studiekamerat` : null);
 
   const finished = session !== null && session.state.order.length > 0 && isFinished(session.state);
@@ -154,7 +247,7 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
     if (showResult) resultTitleRef.current?.focus();
   }, [showResult]);
 
-  const backPath = `/forelesninger/${lectureId}`;
+  const { backPath, backText, backHint } = scope;
   const back = () => router.push(backPath);
 
   const currentId = session ? currentCard(session.state) : undefined;
@@ -229,12 +322,12 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
   }
 
   // Errors count only before the session starts.
-  if (session === null && lecture.error) notFoundOnMissing(lecture.error);
+  if (session === null && owner.error) notFoundOnMissing(owner.error);
   if (session === null && questions.error) notFoundOnMissing(questions.error);
 
-  const loadError = session === null && (lecture.isError || questions.isError);
+  const loadError = session === null && (owner.isError || questions.isError);
   const empty = session !== null && session.state.order.length === 0;
-  const practising = session !== null && !empty && !loadError && name !== undefined;
+  const practising = session !== null && !empty && !loadError && scopeName !== undefined;
 
   const letterBindings: ShortcutBinding[] = confirmed
     ? []
@@ -258,7 +351,7 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
         ];
   usePracticeShortcuts(bindings, { singleKeys: shortcutsOn });
 
-  if (loadError || empty || !session || name === undefined) {
+  if (loadError || empty || !session || scopeName === undefined) {
     return (
       <div className="min-w-0 px-content-inset pt-7 pb-7">
         {loadError ? (
@@ -271,7 +364,7 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
           <>
             <h1 className="text-page-title">Det finnes ingen quizspørsmål her ennå.</h1>
             <Button asChild variant="outline" className="mt-5">
-              <Link href={backPath}>Tilbake til forelesningen</Link>
+              <Link href={backPath}>{backText}</Link>
             </Button>
           </>
         ) : null}
@@ -279,7 +372,7 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
     );
   }
 
-  const colorIndex = subject.data?.color_index;
+  const colorIndex = scope.colorIndex;
 
   return (
     <div className="flex min-h-[calc(100vh-var(--spacing-topbar-height))]">
@@ -287,7 +380,7 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
         <SessionPanel
           adapter={quizAdapter}
           state={session.state}
-          scopeName={name}
+          scopeName={scopeName}
           colorIndex={colorIndex}
           onEnd={end}
           aborted={aborted}
@@ -305,10 +398,13 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
           <QuizResult
             session={session}
             aborted={aborted}
-            scopeName={name}
+            scopeName={scopeName}
             saveFailed={saver.status === "failed"}
             titleRef={resultTitleRef}
             backHref={backPath}
+            backText={backText}
+            backHint={backHint}
+            showLecture={scope.showLecture}
             onPlayAgain={() => void playAgain()}
             showHints={shortcutsOn}
           />
@@ -344,6 +440,12 @@ type QuizResultProps = {
   saveFailed: boolean;
   titleRef: Ref<HTMLHeadingElement>;
   backHref: string;
+  // «Tilbake til forelesningen» or «Tilbake til emnet».
+  backText: string;
+  // The hint line's text for Esc: «tilbake til forelesningen» or «tilbake til emnet».
+  backHint: string;
+  // A subject session: each wrong answer shows its lecture under the source.
+  showLecture: boolean;
   onPlayAgain: () => void;
   showHints: boolean;
 };
@@ -359,6 +461,9 @@ function QuizResult({
   saveFailed,
   titleRef,
   backHref,
+  backText,
+  backHint,
+  showLecture,
   onPlayAgain,
   showHints,
 }: QuizResultProps) {
@@ -376,6 +481,7 @@ function QuizResult({
         chosen: chosen === undefined ? "" : question.options[chosen],
         correct: question.options[question.correct_index],
         explanation: question.explanation,
+        ...(showLecture ? { lecture: question.lecture.name } : {}),
       };
     });
 
@@ -402,11 +508,11 @@ function QuizResult({
       ) : null}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <div className="min-w-0">
-          {showHints ? <ShortcutHints hints={quizResultHints("tilbake til forelesningen")} align="start" /> : null}
+          {showHints ? <ShortcutHints hints={quizResultHints(backHint)} align="start" /> : null}
         </div>
         <div className="ml-auto flex flex-wrap gap-3">
           <Button asChild variant="outline" size="lg">
-            <Link href={backHref}>Tilbake til forelesningen</Link>
+            <Link href={backHref}>{backText}</Link>
           </Button>
           <Button size="lg" onClick={onPlayAgain}>
             Ta quizen igjen

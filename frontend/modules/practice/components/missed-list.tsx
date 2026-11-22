@@ -12,11 +12,12 @@ export type MissedItem = {
 };
 
 // A wrong quiz answer: the question, what she chose, the correct answer and
-// the explanation.
+// the explanation. In a whole-subject quiz also the lecture's name.
 export type MissedQuizItem = MissedItem & {
   chosen: string;
   correct: string;
   explanation: string;
+  lecture?: string;
 };
 
 type Props =
@@ -33,7 +34,9 @@ type Props =
 // order: the number in a 31 px box with a border (read as «Spørsmål 4:»), the
 // question and the source on the right, then «✗ Ditt svar» with the chosen
 // text, «✓ Riktig svar» with the correct text, and the explanation in muted
-// text. The symbols are aria-hidden; the words carry the meaning.
+// text. The symbols are aria-hidden; the words carry the meaning. An item with
+// a lecture (a whole-subject quiz, story 4.4) shows the lecture's name under
+// the source in muted caption.
 export function MissedList(props: Props) {
   if (props.kind === "quiz") return <QuizMissedList items={props.items} />;
   return <FlashcardMissedList items={props.items} />;
@@ -80,7 +83,16 @@ function QuizMissedList({ items }: { items: readonly MissedQuizItem[] }) {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 pt-[4px]">
                 <p className="min-w-0 flex-1 text-item-title break-words text-ink">{item.front}</p>
-                <SourceLink source={item.source} />
+                {item.lecture === undefined ? (
+                  <SourceLink source={item.source} />
+                ) : (
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <SourceLink source={item.source} />
+                    <p data-slot="missed-lecture" className="text-caption break-words text-ink-muted">
+                      {item.lecture}
+                    </p>
+                  </div>
+                )}
               </div>
               <dl className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1">
                 <dt className="text-meta font-semibold text-danger">
