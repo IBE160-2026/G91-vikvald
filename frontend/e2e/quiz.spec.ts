@@ -121,7 +121,7 @@ test.describe("Quiz (story 4.1)", () => {
 
     await expect(row.getByText("5 spørsmål", { exact: true })).toBeVisible({ timeout: 10_000 });
     await expect(row.getByRole("status")).toHaveText("Det ble laget 5 av inntil 20 spørsmål. Notatene ga ikke grunnlag for flere.");
-    await expect(row.getByRole("button", { name: "Øv nå" })).toBeDisabled();
+    await expect(row.getByRole("button", { name: "Øv nå" })).toBeEnabled();
     await expect(row.getByRole("button", { name: "Lag flere" })).toBeEnabled();
     await expectNoAxeViolations(page);
 
