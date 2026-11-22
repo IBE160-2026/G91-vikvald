@@ -28,4 +28,48 @@ describe("MissedList", () => {
     expect(section.querySelectorAll("[data-slot='source-link']")).toHaveLength(2);
     expect(section.querySelectorAll("a, button")).toHaveLength(0);
   });
+
+  it("FR-36, UX-DR35: quizvarianten har ingen overskrift og én rad med nummer, spørsmål, kilde, ditt svar, riktig svar og forklaring", () => {
+    const { container } = render(
+      <MissedList
+        kind="quiz"
+        items={[
+          {
+            id: "a",
+            number: 4,
+            front: "Hvilken av disse beskriver best posisjonering?",
+            source: { file_name: "merkevare-notater.pdf", page_no: 7 },
+            chosen: "Å velge segmenter",
+            correct: "Å skape et tydelig bilde av merket",
+            explanation: "Å velge segmenter er målgruppevalg.",
+          },
+        ]}
+      />,
+    );
+    const list = container.querySelector("[data-slot='missed-list']") as HTMLElement;
+    expect(within(list).queryByRole("heading")).toBeNull();
+    expect(screen.queryByRole("region")).toBeNull();
+    const card = list.querySelector("ul")!;
+    for (const name of ["bg-surface", "border-border-card", "rounded-lg", "shadow-lift"]) {
+      expect(card.className).toContain(name);
+    }
+    const rows = within(list).getAllByRole("listitem");
+    expect(rows.map((row) => row.textContent)).toEqual([
+      "Spørsmål 4:Hvilken av disse beskriver best posisjonering?merkevare-notater.pdf, side 7✗ Ditt svarÅ velge segmenter✓ Riktig svarÅ skape et tydelig bilde av merketÅ velge segmenter er målgruppevalg.",
+    ]);
+    const number = rows[0].firstElementChild!;
+    expect(number.className).toContain("size-[31px]");
+    expect(number.className).toContain("border");
+    expect(screen.getByText("Hvilken av disse beskriver best posisjonering?").className).toContain("text-item-title");
+    expect(screen.getByText("Ditt svar").className).toContain("text-danger");
+    expect(screen.getByText("Riktig svar").className).toContain("text-success");
+    expect(screen.getByText("Å skape et tydelig bilde av merket").className).toContain("font-semibold");
+    const explanation = screen.getByText("Å velge segmenter er målgruppevalg.");
+    expect(explanation.className).toContain("text-meta");
+    expect(explanation.className).toContain("text-ink-muted");
+    for (const symbol of ["✗", "✓"]) {
+      expect(within(list).getByText(symbol, { exact: false, selector: "span" }).getAttribute("aria-hidden")).toBe("true");
+    }
+    expect(list.querySelectorAll("[data-slot='source-link']")).toHaveLength(1);
+  });
 });

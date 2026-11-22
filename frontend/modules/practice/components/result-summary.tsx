@@ -6,7 +6,9 @@ import type { Mark } from "../types";
 import { MARK_CLASSES, MarkIcon } from "./answer-grid";
 
 type Props = {
-  // The number of cards in the session.
+  // Flashcards (mockup 08, the default) or quiz (mockup 10).
+  kind?: "flashcards" | "quiz";
+  // The number of cards (or questions) in the session.
   total: number;
   counts: { answered: number; correct: number; wrong: number };
   // Ended with «Avslutt økt» or Esc before every card was marked «Kunne».
@@ -24,6 +26,51 @@ export function resultTitle({ total, answered, aborted }: { total: number; answe
   return total === 1 ? "Du har gått gjennom 1 kort" : `Du har gått gjennom alle ${total} kortene`;
 }
 
+// The title over the quiz result: «11 av 15 riktige», or where she stopped
+// («Avbrutt etter 12 av 20», with 12 the confirmed answers).
+export function quizResultTitle({
+  total,
+  answered,
+  correct,
+  aborted,
+}: {
+  total: number;
+  answered: number;
+  correct: number;
+  aborted: boolean;
+}): string {
+  return aborted ? `Avbrutt etter ${answered} av ${total}` : `${correct} av ${total} riktige`;
+}
+
+// The line under the quiz title (mockup 10): the scope; when aborted, the
+// score for the questions she answered («9 av 12 riktige»); and, with at least
+// one wrong answer, that the list below has them.
+export function quizResultSubtitle({
+  scopeName,
+  answered,
+  correct,
+  wrong,
+  aborted,
+}: {
+  scopeName: string;
+  answered: number;
+  correct: number;
+  wrong: number;
+  aborted: boolean;
+}): string {
+  return [
+    scopeName,
+    aborted ? `${correct} av ${answered} riktige` : null,
+    wrong === 1
+      ? "her er den ene du svarte feil på, med riktig svar og kilde"
+      : wrong > 1
+        ? `her er de ${wrong} du svarte feil på, med riktig svar og kilde`
+        : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 // result-summary (DESIGN.md "Resultat", mockup 08): the overline ØKT FERDIG,
 // the title (an h2 in page-title that gets focus), the lecture's name (and,
 // when the finished session had «Kunne ikke» cards, that they were repeated),
@@ -31,7 +78,25 @@ export function resultTitle({ total, answered, aborted }: { total: number; answe
 // of the cards, and «Kunne ikke» («Repetert til slutt i økten» when finished),
 // each with a tinted 32 px icon box and the number in result-title on the
 // right. No celebration: the numbers stand as they are.
-export function ResultSummary({ total, counts, aborted, scopeName, titleRef }: Props) {
+//
+// kind="quiz" (mockup 10, story 4.3): the overline QUIZ FERDIG (also when
+// aborted), the title «11 av 15 riktige» or «Avbrutt etter 12 av 20» in
+// result-title, and the line from quizResultSubtitle. No fields: the list of
+// wrong answers below explains the rest.
+export function ResultSummary({ kind = "flashcards", total, counts, aborted, scopeName, titleRef }: Props) {
+  if (kind === "quiz") {
+    return (
+      <div data-slot="result-summary" className="w-full">
+        <p className="text-overline text-ink-muted">QUIZ FERDIG</p>
+        <h2 ref={titleRef} tabIndex={-1} className="mt-2 text-result-title text-ink">
+          {quizResultTitle({ total, answered: counts.answered, correct: counts.correct, aborted })}
+        </h2>
+        <p className="mt-2 text-body-sm break-words text-ink-muted">
+          {quizResultSubtitle({ scopeName, ...counts, aborted })}
+        </p>
+      </div>
+    );
+  }
   const percent = counts.answered === 0 ? 0 : Math.round((counts.correct / counts.answered) * 100);
   const repeated = !aborted && counts.wrong > 0;
 
