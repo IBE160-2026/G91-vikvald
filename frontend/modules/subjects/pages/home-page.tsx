@@ -7,8 +7,11 @@ import { useRef, useState } from "react";
 
 import { iconProps } from "@/components/icon";
 import { Button } from "@/components/ui/button";
+import { examLine } from "@/lib/exam";
 import { useFocusHeadingOnArrival } from "@/lib/focus-heading";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
+import { OVERVIEW_QUERY_KEY, fetchOverview } from "@/modules/practice/api";
+import type { Overview } from "@/modules/practice/types";
 
 import { SUBJECTS_QUERY_KEY, fetchSubjects } from "../api";
 import { SubjectDot } from "../components/subject-dot";
@@ -21,9 +24,13 @@ import type { Subject } from "../types";
 // «Nytt emne» on the right. Her subjects stand in a simple list in a white card
 // (epic 5 replaces it with the semester line and subject cards). With no subjects
 // there is one sentence about the app and the primary button «Lag ditt første emne».
+// Between the subtitle and the list stands one exam line per subject (story
+// 5.3): the name and «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd».
 // After a subject is deleted she lands here, and the h1 gets focus (#75).
 export function HomePage() {
   const subjects = useQuery({ queryKey: SUBJECTS_QUERY_KEY, queryFn: fetchSubjects });
+  // The counts N and M (story 5.3). Refetched when a session is saved.
+  const overview = useQuery({ queryKey: OVERVIEW_QUERY_KEY, queryFn: fetchOverview });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [today] = useState(() => new Date());
   const hasSubjects = (subjects.data?.length ?? 0) > 0;
@@ -54,6 +61,8 @@ export function HomePage() {
         </p>
       ) : null}
 
+      {subjects.data && hasSubjects ? <ExamLines subjects={subjects.data} overview={overview.data} /> : null}
+
       {subjects.data && hasSubjects ? <SubjectList subjects={subjects.data} /> : null}
 
       {subjects.data && !hasSubjects ? (
@@ -66,6 +75,31 @@ export function HomePage() {
       ) : null}
 
       <SubjectFormDialog mode="create" open={dialogOpen} onClose={() => setDialogOpen(false)} />
+    </div>
+  );
+}
+
+// One line per subject, in the list's order, where mockup 02 has the semester
+// line (5.5 replaces these lines with it). The exam date and name come from the
+// subject list, so a changed exam date shows at once; the counts come from the
+// overview. Until the overview is loaded, or when it fails, only the exam part
+// is shown. Today is read again every time the page is drawn.
+// A list for screen readers (role="list"), built from div elements so it is
+// not one more `li` in the page: the user journeys in e2e/brukerreiser/ find
+// the subject list's rows as `main li`, and they stay unchanged.
+function ExamLines({ subjects, overview }: { subjects: Subject[]; overview: Overview | undefined }) {
+  const today = new Date();
+  return (
+    <div role="list" className="mt-6 flex flex-col gap-2">
+      {subjects.map((subject) => {
+        const lectures = overview?.subjects.find((item) => item.id === subject.id)?.lectures;
+        return (
+          <div role="listitem" key={subject.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-item-title text-ink">{subject.name}</span>
+            <span className="text-meta text-ink-muted">{examLine(subject.exam_date, today, lectures)}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
