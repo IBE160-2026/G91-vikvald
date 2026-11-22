@@ -27,3 +27,13 @@ class FlashcardOut(BaseModel):
     # Always set for qa and concept cards.
     back: str
     source: FlashcardSource
+
+
+class LectureRef(BaseModel):
+    id: uuid.UUID
+    name: str
+
+
+class SubjectFlashcardOut(FlashcardOut):
+    # The lecture the card was made from (the subject session spans all of them).
+    lecture: LectureRef

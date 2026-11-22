@@ -2,6 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CircleAlert, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -13,6 +14,9 @@ import { focusHeadingAfterNavigation, useFocusHeadingOnArrival } from "@/lib/foc
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import { fetchFileCounts, fileCountsQueryKey } from "@/modules/files/api";
+import { fetchSubjectFlashcards, subjectFlashcardsQueryKey } from "@/modules/practice/api";
+import { PracticeAllCard, type PracticeAllRow } from "@/modules/practice/components/practice-all-card";
+import type { SubjectFlashcard } from "@/modules/practice/types";
 
 import {
   SUBJECTS_QUERY_KEY,
@@ -33,7 +37,11 @@ import { fileCountLabel, formatWeekdayDate, lectureCountLabel } from "../format"
 // line «8 forelesninger · 11 filer · eksamen fredag 04.12.2026», and the buttons «Ny forelesning», «Nytt navn»
 // «Endre eksamensdato» and «Slett emnet». Under them the h2 «Forelesninger»
 // («etter dato» in muted grey) and the lecture table, or «Ingen forelesninger
-// ennå.». Someone else's or a missing subject shows «Fant ikke siden».
+// ennå.». Next to the table (under it when the content area is narrower than
+// 1008 px, a container query) stands practice-all-card «Øv på hele emnet»
+// (story 3.6) with the row Flashcards («120 kort fra 6 forelesninger», «Øv på
+// flashcards»), shown only when the subject has cards. Someone else's or a
+// missing subject shows «Fant ikke siden».
 //
 // After a lecture is deleted on 04 she lands here, and the h1 gets focus (#75).
 // After the subject is deleted (FR-6) she is taken to the front page (02).
@@ -49,6 +57,15 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
     queryFn: () => fetchFileCounts(subjectId),
     enabled: subject.isSuccess,
   });
+  const flashcards = useQuery({
+    queryKey: subjectFlashcardsQueryKey(subjectId),
+    queryFn: () => fetchSubjectFlashcards(subjectId),
+    enabled: subject.isSuccess,
+  });
+  const practiceRows = flashcardRows(subjectId, flashcards.data);
+  // Only a failed first load shows the fallback text; a failed background
+  // refetch keeps the row it has.
+  const practiceError = flashcards.isError && flashcards.data === undefined;
   const [lectureDialogOpen, setLectureDialogOpen] = useState(false);
   // Which dialog was opened last; it keeps its mode while it closes.
   const [dialogMode, setDialogMode] = useState<SubjectFormMode>("rename");
@@ -118,23 +135,32 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
               </Button>
             </div>
 
-            <section aria-labelledby="lectures-heading" className="mt-6">
-              <h2 id="lectures-heading" className="text-section-title">
-                Forelesninger <span className="text-body-sm font-normal text-ink-muted">etter dato</span>
-              </h2>
-              <div className="mt-3">
-                {lectures.isError || fileCounts.isError ? (
-                  <p role="alert" className="flex items-start gap-2 rounded-md bg-danger-tint p-3 text-meta text-danger">
-                    <CircleAlert {...iconProps} className="mt-[3px] shrink-0" />
-                    <span>{FALLBACK_MESSAGE}</span>
-                  </p>
-                ) : null}
-                {lectures.data && lectures.data.length > 0 ? <LectureTable lectures={lectures.data} fileCounts={fileCounts.data} /> : null}
-                {lectures.data && lectures.data.length === 0 ? (
-                  <p className="text-body-sm text-ink-muted">Ingen forelesninger ennå.</p>
+            <div className="@container mt-6">
+              <div className="flex flex-col gap-column-gap @min-[1008px]:flex-row @min-[1008px]:items-start">
+                <section aria-labelledby="lectures-heading" className="min-w-0 flex-1">
+                  <h2 id="lectures-heading" className="text-section-title">
+                    Forelesninger <span className="text-body-sm font-normal text-ink-muted">etter dato</span>
+                  </h2>
+                  <div className="mt-3">
+                    {lectures.isError || fileCounts.isError ? (
+                      <p role="alert" className="flex items-start gap-2 rounded-md bg-danger-tint p-3 text-meta text-danger">
+                        <CircleAlert {...iconProps} className="mt-[3px] shrink-0" />
+                        <span>{FALLBACK_MESSAGE}</span>
+                      </p>
+                    ) : null}
+                    {lectures.data && lectures.data.length > 0 ? <LectureTable lectures={lectures.data} fileCounts={fileCounts.data} /> : null}
+                    {lectures.data && lectures.data.length === 0 ? (
+                      <p className="text-body-sm text-ink-muted">Ingen forelesninger ennå.</p>
+                    ) : null}
+                  </div>
+                </section>
+                {practiceRows.length > 0 || practiceError ? (
+                  <div className="@min-[1008px]:w-[344px] @min-[1008px]:shrink-0">
+                    <PracticeAllCard rows={practiceRows} error={practiceError} />
+                  </div>
                 ) : null}
               </div>
-            </section>
+            </div>
 
             <SubjectFormDialog
               mode={dialogMode}
@@ -165,4 +191,24 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
       </div>
     </div>
   );
+}
+
+// The row Flashcards in «Øv på hele emnet»: «N kort fra M forelesninger» (M is
+// the number of lectures the cards come from) and «Øv på flashcards». No row
+// while the cards load or when the subject has none.
+function flashcardRows(subjectId: string, cards: SubjectFlashcard[] | undefined): PracticeAllRow[] {
+  if (!cards || cards.length === 0) return [];
+  const lectures = new Set(cards.map((card) => card.lecture.id)).size;
+  return [
+    {
+      id: "flashcards",
+      title: "Flashcards",
+      scope: `${cards.length} kort fra ${lectureCountLabel(lectures)}`,
+      action: (
+        <Button asChild>
+          <Link href={`/emner/${subjectId}/flashcards`}>Øv på flashcards</Link>
+        </Button>
+      ),
+    },
+  ];
 }

@@ -8,8 +8,9 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.content.models import PLAIN_FLASHCARD_KINDS, Flashcard
-from app.modules.content.schemas import FlashcardOut, FlashcardSource
+from app.modules.content.schemas import FlashcardOut, FlashcardSource, LectureRef, SubjectFlashcardOut
 from app.modules.files.models import File
+from app.modules.subjects.models import Lecture
 
 
 @dataclass(frozen=True)
@@ -77,4 +78,37 @@ async def lecture_flashcards(session: AsyncSession, lecture_id: uuid.UUID) -> li
             source=FlashcardSource(file_id=card.file_id, file_name=file_name, page_no=card.page_no),
         )
         for card, file_name in (await session.execute(statement)).all()
+    ]
+
+
+async def subject_flashcards(session: AsyncSession, subject_id: uuid.UUID) -> list[SubjectFlashcardOut]:
+    """The flashcards (qa and concept) from all the subject's lectures, with
+    their source and lecture. Ordered by lecture (date, then when it was
+    created), then as for one lecture: file, page, the order they were made in."""
+    statement = (
+        select(Flashcard, File.original_name, Lecture.id, Lecture.name)
+        .join(File, Flashcard.file_id == File.id)
+        .join(Lecture, File.lecture_id == Lecture.id)
+        .where(Lecture.subject_id == subject_id, Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS))
+        .order_by(
+            Lecture.date,
+            Lecture.created_at,
+            Lecture.id,
+            File.uploaded_at,
+            File.id,
+            Flashcard.page_no,
+            Flashcard.created_at,
+            Flashcard.id,
+        )
+    )
+    return [
+        SubjectFlashcardOut(
+            id=card.id,
+            kind=card.kind,
+            front=card.front,
+            back=card.back,
+            source=FlashcardSource(file_id=card.file_id, file_name=file_name, page_no=card.page_no),
+            lecture=LectureRef(id=lecture_id, name=lecture_name),
+        )
+        for card, file_name, lecture_id, lecture_name in (await session.execute(statement)).all()
     ]

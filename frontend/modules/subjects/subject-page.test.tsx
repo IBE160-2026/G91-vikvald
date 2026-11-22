@@ -7,6 +7,7 @@ import { focusHeadingAfterNavigation, headingFocusPending, resetHeadingFocus } f
 
 import { SubjectPage } from "./pages/subject-page";
 import type { SubjectFileCounts } from "@/modules/files/types";
+import type { SubjectFlashcard } from "@/modules/practice/types";
 import type { Lecture, Subject } from "./types";
 
 // The real notFound() throws to show app/(app)/not-found.tsx; here it only records the call.
@@ -48,6 +49,20 @@ const FILE_COUNTS: SubjectFileCounts = {
   lectures: [{ lecture_id: "l1", file_count: 2, page_count: 18 }],
 };
 
+// The cards GET /api/subjects/a/flashcards answers with (none by default).
+let subjectFlashcards: SubjectFlashcard[] = [];
+
+function flashcard(id: string, lectureId: string): SubjectFlashcard {
+  return {
+    id,
+    kind: "concept",
+    front: id,
+    back: `${id} er et begrep i faget.`,
+    source: { file_id: "f1", file_name: "notater.pdf", page_no: 1 },
+    lecture: { id: lectureId, name: lectureId },
+  };
+}
+
 // A small fake backend for the two subjects, their lectures and file counts.
 function respond(lectures: Lecture[] = LECTURES, fileCounts: SubjectFileCounts = FILE_COUNTS) {
   const store = new Map([MARKETING, ECONOMICS].map((s) => [s.id, { ...s }]));
@@ -78,6 +93,11 @@ function respond(lectures: Lecture[] = LECTURES, fileCounts: SubjectFileCounts =
     if (counts) {
       if (!store.has(counts[1])) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
       return jsonResponse(200, counts[1] === "a" ? fileCounts : { file_count: 0, lectures: [] });
+    }
+    const cards = path.match(/^\/api\/subjects\/([^/]+)\/flashcards$/);
+    if (cards) {
+      if (!store.has(cards[1])) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
+      return jsonResponse(200, cards[1] === "a" ? subjectFlashcards : []);
     }
     const preview = path.match(/^\/api\/subjects\/([^/]+)\/delete-preview$/);
     if (preview) {
@@ -113,6 +133,7 @@ function renderPage(id = "a") {
       <SubjectPage subjectId={id} />
     </QueryClientProvider>,
   );
+  return client;
 }
 
 function patchCalls() {
@@ -124,6 +145,7 @@ function postCalls() {
 }
 
 beforeEach(() => {
+  subjectFlashcards = [];
   vi.stubGlobal("fetch", fetchMock);
   respond();
 });
@@ -248,6 +270,7 @@ describe("emnesiden", () => {
     async (opener) => {
       fetchMock.mockImplementation(async (url, init) => {
         if (init?.method === "PATCH") return jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } });
+        if (String(url).endsWith("/flashcards")) return jsonResponse(200, []);
         return jsonResponse(200, String(url) === "/api/subjects" ? [MARKETING] : MARKETING);
       });
       renderPage();
@@ -485,5 +508,56 @@ describe("emnesiden", () => {
     await waitFor(() => expect(document.activeElement).toBe(heading));
     expect(heading.getAttribute("tabindex")).toBe("-1");
     expect(headingFocusPending()).toBe(false);
+  });
+
+  describe("Øv på hele emnet (story 3.6)", () => {
+    function practiceSection() {
+      return screen.getByRole("region", { name: "Øv på hele emnet" });
+    }
+
+    it("FR-23, UX-DR14: raden Flashcards med «5 kort fra 2 forelesninger» og lenken «Øv på flashcards»", async () => {
+      subjectFlashcards = ["a", "b", "c"].map((id) => flashcard(id, "l1")).concat(["d", "e"].map((id) => flashcard(id, "l2")));
+      renderPage();
+      expect(await screen.findByText("5 kort fra 2 forelesninger")).toBeTruthy();
+      const section = practiceSection();
+      expect(within(section).getByRole("heading", { level: 2, name: "Øv på hele emnet" })).toBeTruthy();
+      expect(within(section).getByRole("heading", { level: 3, name: "Flashcards" })).toBeTruthy();
+      const link = within(section).getByRole("link", { name: "Øv på flashcards" });
+      expect(link.getAttribute("href")).toBe("/emner/a/flashcards");
+      expect(link.dataset.variant).toBe("primary");
+      // Next to the table when there is room (container query), otherwise under it.
+      const column = section.parentElement!;
+      expect(column.className).toContain("@min-[1008px]:w-[344px]");
+      expect(column.parentElement!.className).toContain("@min-[1008px]:flex-row");
+      expect(column.previousElementSibling!.querySelector("h2")!.textContent).toBe("Forelesninger etter dato");
+    });
+
+    it("FR-23: ett kort står i entall: «1 kort fra 1 forelesning»", async () => {
+      subjectFlashcards = [flashcard("a", "l1")];
+      renderPage();
+      expect(await screen.findByText("1 kort fra 1 forelesning")).toBeTruthy();
+    });
+
+    it("UX-DR14: uten kort vises ingen seksjon «Øv på hele emnet»", async () => {
+      const client = renderPage();
+      expect(await screen.findByRole("table")).toBeTruthy();
+      // Wait until the empty card list has arrived, not only been asked for.
+      await waitFor(() => expect(client.getQueryState(["subjects", "a", "flashcards"])?.status).toBe("success"));
+      expect(screen.queryByRole("region", { name: "Øv på hele emnet" })).toBeNull();
+      expect(screen.queryByText("Øv på hele emnet")).toBeNull();
+    });
+
+    it("FR-23: feil når kortene hentes gir reserveteksten i seksjonen", async () => {
+      respond();
+      const fake = fetchMock.getMockImplementation()!;
+      fetchMock.mockImplementation(async (url, init) =>
+        String(url).endsWith("/flashcards")
+          ? jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } })
+          : fake(url, init),
+      );
+      renderPage();
+      const alert = await within(await screen.findByRole("region", { name: "Øv på hele emnet" })).findByRole("alert");
+      expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
+    });
   });
 });

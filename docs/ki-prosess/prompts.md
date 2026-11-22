@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-22: Story 3.6 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `3-6-øv-på-flashcards-fra-hele-emnet`. Hensikten til `bmad-build-auto` var «Story 3.6 fra `_bmad-output/planning-artifacts/epics.md`: Øv på flashcards fra hele emnet».
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-3-6-oev-paa-flashcards-fra-hele-emnet.md), PR-en for `story/3-6`, kanttilfellene #180–#186.
+
 ## 2026-11-22: Story 3.5 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `3-5-lagre-økten-og-se-resultatet`. Hensikten til `bmad-build-auto` var «Story 3.5 fra `_bmad-output/planning-artifacts/epics.md`: Lagre økten og se resultatet». Kjøringen ble avbrutt av ukegrensen for API-et midt i gjennomgangen og fortsatte der den stoppet.

@@ -110,3 +110,4 @@
 - [ ] 2026-11-22 [story-3-5-lagre-oekten-og-se-resultatet](972-2026-11-22-01-02-23-story-3-5-lagre-oekten-og-se-resultatet.md) — vurder kanttilfellene fra story 3.5 (#170–#178), særlig «ØKT FERDIG» på avbrutt økt (#171) og at en lagring som feiler, ikke prøves på nytt (#174)
 - [ ] 2026-11-22 [story-3-5-lagre-oekten-og-se-resultatet](972-2026-11-22-01-02-23-story-3-5-lagre-oekten-og-se-resultatet.md) — `pagehide` med `sendBeacon` er bare testet i jsdom
 - [ ] 2026-11-22 [story-3-5-lagre-oekten-og-se-resultatet](972-2026-11-22-01-02-23-story-3-5-lagre-oekten-og-se-resultatet.md) — `erstatt.spec.ts` E18 feilet én gang uten endring og kan være ustabil
+- [ ] 2026-11-22 [story-3-6-ov-paa-flashcards-fra-hele-emnet](971-2026-11-22-01-39-12-story-3-6-ov-paa-flashcards-fra-hele-emnet.md) — vurder kanttilfellene fra story 3.6 (#180–#186), særlig teksten «Tilbake til emnet» (#180) og at kortet står under tabellen på 1280 px (#182)
