@@ -1,25 +1,33 @@
 """HTTP routes for the content module: GET /api/lectures/{id}/content-counts,
-GET /api/lectures/{id}/flashcards and GET /api/subjects/{id}/flashcards.
+GET /api/lectures/{id}/flashcards, GET /api/subjects/{id}/flashcards, and
+PATCH and DELETE /api/flashcards/{id}.
 
 The lecture page needs only the number of cards; the practice session needs
-the cards with their source (and, for a whole subject, their lecture). More
-content types are added later.
+the cards with their source (and, for a whole subject, their lecture), and lets
+the student edit or delete a bad card. More content types are added later.
 """
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
-from app.modules.content.schemas import ContentCounts, FlashcardOut, SubjectFlashcardOut
-from app.modules.content.service import flashcard_count, lecture_flashcards, subject_flashcards
+from app.modules.content.schemas import ContentCounts, FlashcardOut, FlashcardUpdate, SubjectFlashcardOut
+from app.modules.content.service import (
+    delete_flashcard,
+    flashcard_count,
+    lecture_flashcards,
+    subject_flashcards,
+    update_flashcard,
+)
 from app.modules.identity.dependencies import current_user
 from app.modules.identity.models import User
 from app.modules.subjects.service import get_lecture, get_subject
 
 lectures_router = APIRouter(prefix="/api/lectures")
 subjects_router = APIRouter(prefix="/api/subjects")
+flashcards_router = APIRouter(prefix="/api/flashcards")
 
 CurrentUser = Annotated[User, Depends(current_user)]
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -43,3 +51,18 @@ async def subject_flashcard_list(
 ) -> list[SubjectFlashcardOut]:
     subject = await get_subject(session, user.id, subject_id)
     return await subject_flashcards(session, subject.id)
+
+
+# Editing or deleting a card is not stopped by a running job: the cards belong
+# to the file, not to the job.
+@flashcards_router.patch("/{flashcard_id}")
+async def edit_flashcard(
+    flashcard_id: str, changes: FlashcardUpdate, user: CurrentUser, session: Session
+) -> FlashcardOut:
+    return await update_flashcard(session, user.id, flashcard_id, changes)
+
+
+@flashcards_router.delete("/{flashcard_id}", status_code=204)
+async def remove_flashcard(flashcard_id: str, user: CurrentUser, session: Session) -> Response:
+    await delete_flashcard(session, user.id, flashcard_id)
+    return Response(status_code=204)
