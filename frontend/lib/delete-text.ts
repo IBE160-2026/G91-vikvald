@@ -4,7 +4,8 @@ import { countNouns } from "./messages";
 // sentence «Dette sletter også …» from the counts the delete preview gives.
 
 export type DeleteCount = { kind: string; count: number };
-export type DeleteTarget = "file" | "lecture" | "subject" | "account";
+// "flashcard": one card in the session (story 3.7); it takes nothing with it.
+export type DeleteTarget = "file" | "lecture" | "subject" | "account" | "flashcard";
 
 export const UNDOABLE = "Det kan ikke angres.";
 

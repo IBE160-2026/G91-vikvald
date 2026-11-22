@@ -6,16 +6,16 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { ApiError, isUnauthenticated } from "@/lib/api";
 import { UNDOABLE, alsoDeletedSentence, type DeleteCount, type DeleteTarget } from "@/lib/delete-text";
-import { FALLBACK_MESSAGE } from "@/lib/messages";
+import { FALLBACK_MESSAGE, messageFor } from "@/lib/messages";
 
 import { Dialog } from "./dialog";
 import { iconProps } from "./icon";
 
 type Props = {
   open: boolean;
-  // «Slette fila?», «Slette forelesningen?», «Slette emnet?».
+  // «Slette fila?», «Slette forelesningen?», «Slette emnet?», «Slette kortet?».
   title: string;
-  // The danger button: «Slett fila», «Slett forelesningen», «Slett emnet», «Erstatt fila».
+  // The danger button: «Slett fila», «Slett forelesningen», «Slett emnet», «Erstatt fila», «Slett kortet».
   confirmLabel: string;
   // The danger button's icon; the bin unless given (the circle arrow for «Erstatt fila»).
   confirmIcon?: ReactNode;
@@ -53,7 +53,10 @@ function isNotFound(error: unknown): boolean {
 // fetched fresh every time the dialog opens.
 //
 // A failed preview or delete (other than a lost login, which the app's handler
-// takes) shows the fallback text, and nothing is deleted. A 404 on DELETE
+// takes) shows a text in role="alert", and nothing is deleted: for a failed
+// delete with an error code, the code's text (e.g. 409 JOB_ALREADY_RUNNING:
+// «Det lages innhold i denne forelesningen nå. …», story 3.7); otherwise the
+// fallback text. A 404 on DELETE
 // means it is already gone (e.g. deleted in another tab), so it counts as
 // deleted. While the delete runs, both buttons are off, and «Avbryt», the
 // cross and Esc do nothing.
@@ -76,7 +79,8 @@ export function DeleteConfirmDialog({
   const queryClient = useQueryClient();
   const queryKey = ["delete-preview", ...previewKey];
   const preview = useQuery({ queryKey, queryFn: loadCounts, enabled: open, staleTime: 0 });
-  const [failed, setFailed] = useState(false);
+  // The text shown after a failed delete; null when nothing failed.
+  const [failed, setFailed] = useState<string | null>(null);
   // Read when the dialog has closed, to choose where focus goes.
   const deletedRef = useRef(false);
   const keyText = JSON.stringify(queryKey);
@@ -86,7 +90,7 @@ export function DeleteConfirmDialog({
   const [wasOpen, setWasOpen] = useState(open);
   if (open !== wasOpen) {
     setWasOpen(open);
-    if (open) setFailed(false);
+    if (open) setFailed(null);
   }
   useEffect(() => {
     if (open) {
@@ -111,7 +115,7 @@ export function DeleteConfirmDialog({
       if (isUnauthenticated(error)) return;
       if (onRemoveError?.(error)) onClose();
       else if (isNotFound(error)) finish();
-      else setFailed(true);
+      else setFailed(error instanceof ApiError ? messageFor(error.code) : FALLBACK_MESSAGE);
     },
   });
 
@@ -141,7 +145,7 @@ export function DeleteConfirmDialog({
         icon: confirmIcon ?? <Trash2 {...iconProps} />,
         disabled: !preview.isSuccess || busy,
         onClick: () => {
-          setFailed(false);
+          setFailed(null);
           deletion.mutate();
         },
       }}
@@ -164,10 +168,10 @@ export function DeleteConfirmDialog({
           <p className="font-semibold">{UNDOABLE}</p>
         </div>
       ) : null}
-      {previewFailed || failed ? (
+      {previewFailed || failed !== null ? (
         <p role="alert" className="mt-4 flex items-start gap-2 rounded-md bg-danger-tint p-3 text-meta text-danger">
           <CircleAlert {...iconProps} className="mt-[3px] shrink-0" />
-          <span>{FALLBACK_MESSAGE}</span>
+          <span>{failed ?? FALLBACK_MESSAGE}</span>
         </p>
       ) : null}
     </Dialog>
