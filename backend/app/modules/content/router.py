@@ -1,11 +1,11 @@
 """HTTP routes for the content module: GET /api/lectures/{id}/content-counts,
 GET /api/lectures/{id}/flashcards, GET /api/lectures/{id}/quiz-questions, GET /api/subjects/{id}/flashcards,
 GET /api/subjects/{id}/quiz-questions, and
-PATCH and DELETE /api/flashcards/{id}.
+PATCH and DELETE /api/flashcards/{id}, and DELETE /api/quiz-questions/{id}.
 
 The lecture page needs only the number of cards; the practice session needs
 the cards with their source (and, for a whole subject, their lecture), and lets
-the student edit or delete a bad card. More content types are added later.
+the student edit or delete a bad card or delete a bad quiz question. More content types are added later.
 """
 
 from typing import Annotated
@@ -23,6 +23,7 @@ from app.modules.content.schemas import (
 )
 from app.modules.content.service import (
     delete_flashcard,
+    delete_quiz_question,
     flashcard_count,
     lecture_flashcards,
     lecture_quiz_questions,
@@ -38,6 +39,7 @@ from app.modules.subjects.service import get_lecture, get_subject
 lectures_router = APIRouter(prefix="/api/lectures")
 subjects_router = APIRouter(prefix="/api/subjects")
 flashcards_router = APIRouter(prefix="/api/flashcards")
+quiz_questions_router = APIRouter(prefix="/api/quiz-questions")
 
 CurrentUser = Annotated[User, Depends(current_user)]
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -97,4 +99,12 @@ async def edit_flashcard(
 @flashcards_router.delete("/{flashcard_id}", status_code=204)
 async def remove_flashcard(flashcard_id: str, user: CurrentUser, session: Session) -> Response:
     await delete_flashcard(session, user.id, flashcard_id)
+    return Response(status_code=204)
+
+
+# Like a card, a quiz question can be deleted while a job runs: the questions
+# belong to the file, not to the job. Quiz questions cannot be edited.
+@quiz_questions_router.delete("/{question_id}", status_code=204)
+async def remove_quiz_question(question_id: str, user: CurrentUser, session: Session) -> Response:
+    await delete_quiz_question(session, user.id, question_id)
     return Response(status_code=204)

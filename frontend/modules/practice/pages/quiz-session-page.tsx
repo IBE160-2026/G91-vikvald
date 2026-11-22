@@ -1,11 +1,12 @@
 "use client";
 
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type Ref } from "react";
 
+import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { iconProps } from "@/components/icon";
 import { SideMenu, useCloseSideMenu, useOpenShortcuts, useSideMenuCollapsed } from "@/components/side-menu";
 import { Button } from "@/components/ui/button";
@@ -17,8 +18,10 @@ import { fetchLecture, fetchSubject, lectureQueryKey, subjectQueryKey } from "@/
 
 import { quizAdapter } from "../adapter";
 import {
+  deleteQuizQuestion,
   fetchLectureQuizQuestions,
   fetchSubjectQuizQuestions,
+  isSubjectPracticeQueryKey,
   lectureQuizQuestionsQueryKey,
   subjectQuizQuestionsQueryKey,
 } from "../api";
@@ -33,6 +36,7 @@ import {
   currentCard,
   gridCells,
   isFinished,
+  removeCard,
   sessionCounts,
   shownCount,
   shuffle,
@@ -198,6 +202,22 @@ function useQuizScope({ lectureId, subjectId }: ScopeProps): Scope {
 // («Tilbake til emnet», Esc, «Avslutt økt» with nothing confirmed, the empty
 // state) goes to the subject page. The text «lecture» above means the subject
 // for a subject session.
+//
+// Delete (story 4.5, E22): «Slett» in the question's footer (before and after
+// confirmation) opens the shared delete confirmation («Slette spørsmålet?», the
+// question's text, no counts). «Avbryt» and Esc delete nothing and give focus
+// back to «Slett»; the keys are off while the dialog is open. Deleted (204, or
+// 404 when it was already gone): the question leaves the session with
+// removeCard. An unconfirmed question leaves the counter, the grid and the
+// total; a confirmed one keeps its answer in the score, the grid and the list
+// of wrong answers. The next question is shown with no choice and focus on its
+// title. No questions left to show: with something confirmed the session is
+// finished (saved as not aborted, the result page); with nothing confirmed (no
+// questions left at all) she goes back to where the session started, and
+// nothing is saved. The session's own question list in the cache loses the
+// question, and the question's lecture and every subject's practice lists are
+// refetched, so the lecture page, the subject page and «Ta quizen igjen» show
+// the right numbers.
 export function QuizSessionPage(props: ScopeProps) {
   const router = useRouter();
   const scope = useQuizScope(props);
@@ -216,6 +236,10 @@ export function QuizSessionPage(props: ScopeProps) {
   const openShortcuts = useOpenShortcuts();
   const collapsed = useSideMenuCollapsed();
   const closeSideMenu = useCloseSideMenu();
+  const queryClient = useQueryClient();
+  const [deleting, setDeleting] = useState(false);
+  // The question the delete confirmation is about (kept while the dialog closes).
+  const [deleteTarget, setDeleteTarget] = useState<QuizQuestionData | null>(null);
 
   if (session === null && questions.data && questions.isFetchedAfterMount) {
     setSession(newSession(questions.data));
@@ -282,12 +306,17 @@ export function QuizSessionPage(props: ScopeProps) {
     setStep((old) => old + 1);
   }
 
-  // «Ta quizen igjen»: the questions the lecture (or the whole subject) has now
-  // (or the session's own, if the fetch fails), a new order, a new session_id and a new start time.
+  // «Ta quizen igjen»: the questions the lecture (or the whole subject) has now,
+  // a new order, a new session_id and a new start time. If the fetch fails: the
+  // session's own question list in the cache (a deleted question is already
+  // taken out of it; an empty list means every question is gone), or, when the
+  // cache has no list, the session's order (which still holds a confirmed
+  // question that was deleted).
   async function playAgain() {
     if (!session || restartingRef.current) return;
     restartingRef.current = true;
-    const own = session.state.order.map((id) => session.questions[id]);
+    const cached = queryClient.getQueryData<QuizQuestionData[]>(ownQuestionsKey);
+    const own = cached ?? session.state.order.map((id) => session.questions[id]);
     try {
       const result = await questions.refetch();
       const fresh = !result.isError && result.data ? result.data : own;
@@ -300,6 +329,34 @@ export function QuizSessionPage(props: ScopeProps) {
     } finally {
       restartingRef.current = false;
     }
+  }
+
+  // After a delete: the session's own question list in the cache loses the
+  // question at once (so «Ta quizen igjen» never brings it back), and the
+  // question's lecture (its counts and lists) and every subject's practice
+  // lists are refetched. The session itself keeps its own copy.
+  const ownQuestionsKey =
+    props.subjectId !== undefined
+      ? subjectQuizQuestionsQueryKey(props.subjectId)
+      : lectureQuizQuestionsQueryKey(props.lectureId ?? "");
+
+  function questionDeleted(deleted: QuizQuestionData) {
+    queryClient.setQueryData<QuizQuestionData[]>(ownQuestionsKey, (old) =>
+      old ? old.filter((other) => other.id !== deleted.id) : old,
+    );
+    void queryClient.invalidateQueries({ queryKey: ["lectures", deleted.lecture.id] });
+    void queryClient.invalidateQueries({ predicate: (query) => isSubjectPracticeQueryKey(query.queryKey) });
+    if (!session) return;
+    const state = removeCard(session.state, deleted.id);
+    if (state.order.length === 0) {
+      // No questions left and nothing confirmed: back to where the session started.
+      back();
+      return;
+    }
+    setSession({ ...session, state });
+    setSelected(null);
+    // The next question gets focus on its title when it appears.
+    setStep((old) => old + 1);
   }
 
   // «Avslutt økt» and Esc: nothing confirmed goes straight back; otherwise the
@@ -420,12 +477,36 @@ export function QuizSessionPage(props: ScopeProps) {
             onSelect={choose}
             onConfirm={confirm}
             onNext={next}
+            onDelete={() => {
+              setDeleteTarget(question);
+              setDeleting(true);
+            }}
             focusOnMount={step > 0}
             showHints={shortcutsOn}
             colorIndex={colorIndex}
           />
         ) : null}
       </div>
+      {deleteTarget ? (
+        <DeleteConfirmDialog
+          open={deleting}
+          title="Slette spørsmålet?"
+          confirmLabel="Slett spørsmålet"
+          item={{ name: deleteTarget.question }}
+          target="quiz-question"
+          previewKey={["quiz-questions", deleteTarget.id]}
+          // A question takes nothing with it: no counts, only «Det kan ikke angres.».
+          loadCounts={async () => []}
+          remove={() => deleteQuizQuestion(deleteTarget.id)}
+          onClose={() => setDeleting(false)}
+          onDeleted={() => questionDeleted(deleteTarget)}
+          // The deleted question's «Slett» is gone: focus goes to the result
+          // title (session finished) or to the next question's title.
+          focusAfterDelete={() =>
+            resultTitleRef.current ?? document.querySelector<HTMLElement>("[data-question-title]")
+          }
+        />
+      ) : null}
       <div role="status" className="sr-only">
         {finished ? (saver.status === "saved" ? FINISHED_SAVED : FINISHED) : ""}
       </div>

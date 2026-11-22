@@ -127,3 +127,5 @@
 - [ ] 2026-11-22 [story-4-4-ta-quiz-paa-hele-emnet](965-2026-11-22-12-06-48-story-4-4-ta-quiz-paa-hele-emnet.md) — vurder kanttilfellene fra story 4.4 (#219–#222), særlig komma mot « · » i omfanget (#219)
 - [ ] 2026-11-22 [story-4-4-ta-quiz-paa-hele-emnet](965-2026-11-22-12-06-48-story-4-4-ta-quiz-paa-hele-emnet.md) — omfanget i Quiz-raden brytes over to linjer i kortet på 1440 piksler (15 px mot 14 px i skisse 03)
 - [x] 2026-11-22 [story-4-4-ta-quiz-paa-hele-emnet](965-2026-11-22-12-06-48-story-4-4-ta-quiz-paa-hele-emnet.md) — spørsmål på samme side ordnes etter `created_at`; like tidsstempler gir tilfeldig rekkefølge (løst 2026-11-22, #224)
+- [ ] 2026-11-22 [story-4-5-slett-et-darlig-sporsmal](963-2026-11-22-15-55-00-story-4-5-slett-et-darlig-sporsmal.md) — vurder kanttilfellene fra story 4.5 (#226–#229), særlig om slettede spørsmål og kort skal huskes (#229)
+- [ ] 2026-11-22 [story-4-5-slett-et-darlig-sporsmal](963-2026-11-22-15-55-00-story-4-5-slett-et-darlig-sporsmal.md) — `vilkar.spec.ts:150` og `logg-inn.spec.ts:140` feilet hver én gang i fulle Playwright-kjøringer, grønne alene
