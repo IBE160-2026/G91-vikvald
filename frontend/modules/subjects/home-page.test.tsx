@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { focusHeadingAfterNavigation, headingFocusPending, resetHeadingFocus } from "@/lib/focus-heading";
+
+import { OVERVIEW_QUERY_KEY } from "@/modules/practice/api";
+import type { Overview } from "@/modules/practice/types";
 
 import { HomePage } from "./pages/home-page";
 import type { Subject } from "./types";
@@ -29,12 +32,54 @@ function subject(overrides: Partial<Subject>): Subject {
   };
 }
 
-// GET /api/subjects answers with `list`; POST answers with `created` (or `postResponse`).
-function respond(list: Subject[], postResponse?: () => Response) {
-  fetchMock.mockImplementation(async (_url, init) => {
+// The overview for `list`: each subject with `total` lectures, the first
+// `practiced` of them practised (story 5.3).
+function overviewFor(list: Subject[], counts: Record<string, [number, number]> = {}): Overview {
+  return {
+    subjects: list.map((item) => {
+      const [practiced, total] = counts[item.id] ?? [0, 0];
+      return {
+        id: item.id,
+        name: item.name,
+        color_index: item.color_index,
+        exam_date: item.exam_date,
+        lectures: Array.from({ length: total }, (_, index) => ({
+          id: `${item.id}-l${index}`,
+          name: `Uke ${index}`,
+          date: "2026-09-11",
+          practiced: index < practiced,
+          last_practiced_at: index < practiced ? "2026-11-03T10:00:00Z" : null,
+        })),
+        last_session: null,
+      };
+    }),
+  };
+}
+
+// GET /api/subjects answers with `list`, GET /api/overview with `overview`
+// (built from `list` when not given; a function answers itself); POST answers
+// with `created` (or `postResponse`).
+function respond(
+  list: Subject[],
+  postResponse?: () => Response,
+  overview: Overview | (() => Response | Promise<Response>) = overviewFor(list),
+) {
+  fetchMock.mockImplementation(async (url, init) => {
     if (init?.method === "POST") return postResponse ? postResponse() : jsonResponse(500, {});
+    if (String(url) === "/api/overview") return typeof overview === "function" ? overview() : jsonResponse(200, overview);
     return jsonResponse(200, list);
   });
+}
+
+// The subject list from epic 2 (the last list on the page, under the exam lines).
+function subjectList(): HTMLElement {
+  const lists = screen.getAllByRole("list");
+  return lists[lists.length - 1];
+}
+
+// The exam lines over the subject list (story 5.3).
+function examLines(): HTMLElement {
+  return screen.getAllByRole("list")[0];
 }
 
 function renderPage() {
@@ -44,6 +89,7 @@ function renderPage() {
       <HomePage />
     </QueryClientProvider>,
   );
+  return client;
 }
 
 function errorFor(input: HTMLElement): string | null | undefined {
@@ -95,7 +141,8 @@ describe("forsiden «Dine emner»", () => {
       subject({ id: "b", name: "Samfunnsøkonomi", color_index: 1, exam_date: "2026-12-11", lecture_count: 1 }),
     ]);
     renderPage();
-    const items = await screen.findAllByRole("listitem");
+    await screen.findAllByRole("link");
+    const items = within(subjectList()).getAllByRole("listitem");
     expect(items).toHaveLength(2);
 
     const first = within(items[0]);
@@ -236,7 +283,81 @@ describe("forsiden «Dine emner»", () => {
   it("#75: uten slettet emne får overskriften ikke fokus", async () => {
     respond([subject({})]);
     renderPage();
-    await screen.findByText("Markedsføring");
+    await screen.findByRole("link", { name: "Markedsføring" });
     expect(document.activeElement).not.toBe(screen.getByRole("heading", { level: 1 }));
+  });
+
+  describe("eksamenslinja (story 5.3)", () => {
+    const TWO = [
+      subject({ id: "a", name: "Markedsføring", lecture_count: 8 }),
+      subject({ id: "b", name: "Samfunnsøkonomi", color_index: 1, exam_date: "2026-12-11", lecture_count: 1 }),
+    ];
+
+    it("SK-22: én linje per emne med navnet og «Eksamen dd.mm, om N uker · N av M forelesninger øvd», over emnelista", async () => {
+      respond(TWO, undefined, overviewFor(TWO, { a: [4, 8], b: [0, 1] }));
+      renderPage();
+      expect(await screen.findByText("Eksamen 04.12, om 2 uker · 4 av 8 forelesninger øvd")).toBeTruthy();
+      const lines = within(examLines()).getAllByRole("listitem");
+      expect(lines).toHaveLength(2);
+      expect(within(lines[0]).getByText("Markedsføring").className).toContain("text-item-title");
+      const text = within(lines[0]).getByText("Eksamen 04.12, om 2 uker · 4 av 8 forelesninger øvd");
+      expect(text.className).toContain("text-meta");
+      expect(text.className).toContain("text-ink-muted");
+      expect(text.closest("[aria-hidden]")).toBeNull();
+      expect(text.closest("[aria-live]")).toBeNull();
+      expect(within(lines[1]).getByText("Samfunnsøkonomi")).toBeTruthy();
+      expect(within(lines[1]).getByText("Eksamen 11.12, om 3 uker · 0 av 1 forelesning øvd")).toBeTruthy();
+      // The lines stand before the subject list, which is as before.
+      expect(examLines().compareDocumentPosition(subjectList()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(within(subjectList()).getAllByRole("listitem")).toHaveLength(2);
+      expect(within(subjectList()).getByText("Eksamen 04.12.2026")).toBeTruthy();
+    });
+
+    it("SK-22: når oversikten ugyldiggjøres, viser linja nytt antall uten omlasting", async () => {
+      const list = [subject({ id: "a", lecture_count: 8 })];
+      let overview = overviewFor(list, { a: [0, 8] });
+      respond(list, undefined, () => jsonResponse(200, overview));
+      const client = renderPage();
+      expect(await screen.findByText("Eksamen 04.12, om 2 uker · 0 av 8 forelesninger øvd")).toBeTruthy();
+      overview = overviewFor(list, { a: [1, 8] });
+      await act(async () => {
+        await client.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
+      });
+      expect(await screen.findByText("Eksamen 04.12, om 2 uker · 1 av 8 forelesninger øvd")).toBeTruthy();
+    });
+
+    it("FR-57: et emne uten forelesninger viser «Ingen forelesninger ennå»", async () => {
+      respond([subject({ id: "a" })]);
+      renderPage();
+      expect(await screen.findByText("Eksamen 04.12, om 2 uker · Ingen forelesninger ennå")).toBeTruthy();
+    });
+
+    it("FR-57: før oversikten er lastet står bare eksamensdelen", async () => {
+      respond(TWO, undefined, () => new Promise<Response>(() => {}));
+      renderPage();
+      const lines = await waitFor(() => within(examLines()).getAllByRole("listitem"));
+      expect(within(lines[0]).getByText("Eksamen 04.12, om 2 uker")).toBeTruthy();
+      expect(within(lines[1]).getByText("Eksamen 11.12, om 3 uker")).toBeTruthy();
+    });
+
+    it("FR-57: når oversikten feiler, står bare eksamensdelen uten egen feilmelding", async () => {
+      respond(TWO, undefined, () => jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } }));
+      renderPage();
+      await waitFor(() =>
+        expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/overview")).toBe(true),
+      );
+      const lines = await waitFor(() => within(examLines()).getAllByRole("listitem"));
+      await waitFor(() => expect(within(lines[0]).getByText("Eksamen 04.12, om 2 uker")).toBeTruthy());
+      expect(screen.queryByRole("alert")).toBeNull();
+      expect(screen.queryByText(/forelesninger øvd/)).toBeNull();
+    });
+
+    it("FR-57: uten emner er det ingen linjer", async () => {
+      respond([]);
+      renderPage();
+      await screen.findByRole("button", { name: "Lag ditt første emne" });
+      expect(screen.queryByRole("list")).toBeNull();
+      expect(screen.queryByText(/Eksamen/)).toBeNull();
+    });
   });
 });

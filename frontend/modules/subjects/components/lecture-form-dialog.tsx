@@ -3,6 +3,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
+import { OVERVIEW_QUERY_KEY } from "@/modules/practice/api";
+
 import {
   SUBJECTS_QUERY_KEY,
   createLecture,
@@ -56,6 +58,8 @@ export function LectureFormDialog({ mode, open, onClose, subjectId, lecture }: P
       // The subject list (counts on the front page and in the sidebar), the
       // subject and its lecture list all start with SUBJECTS_QUERY_KEY.
       void queryClient.invalidateQueries({ queryKey: SUBJECTS_QUERY_KEY });
+      // The overview too: the exam line counts its lectures (story 5.3).
+      void queryClient.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
       // The form stays blocked while the page navigates away.
       router.push(`/forelesninger/${created.id}`);
       return;

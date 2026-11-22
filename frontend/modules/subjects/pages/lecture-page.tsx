@@ -20,6 +20,7 @@ import { UploadZone, rejectionText } from "@/modules/files/components/upload-zon
 import type { UploadedFile } from "@/modules/files/types";
 import { FlashcardsRow } from "@/modules/generation/components/flashcards-row";
 import { QuizRow } from "@/modules/generation/components/quiz-row";
+import { OVERVIEW_QUERY_KEY } from "@/modules/practice/api";
 
 import {
   SUBJECTS_QUERY_KEY,
@@ -148,6 +149,8 @@ export function LecturePage({ lectureId }: { lectureId: string }) {
     // deleted lecture's own keys are left alone, so this page does not show
     // «Fant ikke siden» before she has left it.
     void queryClient.invalidateQueries({ queryKey: SUBJECTS_QUERY_KEY });
+    // The overview too: the exam line counts its lectures (story 5.3).
+    void queryClient.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
   }
 
   if (lecture.error) notFoundOnMissing(lecture.error);
