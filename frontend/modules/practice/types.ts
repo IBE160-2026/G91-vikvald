@@ -15,5 +15,10 @@ export type Flashcard = {
   source: FlashcardSource;
 };
 
+// A card in a whole-subject session: also the lecture it was made from.
+export type SubjectFlashcard = Flashcard & {
+  lecture: { id: string; name: string };
+};
+
 // How a card was marked: «Kunne» or «Kunne ikke».
 export type Mark = "known" | "missed";
