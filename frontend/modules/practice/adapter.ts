@@ -11,8 +11,8 @@ export type PracticeAdapter = {
   kindLabel: string;
   // The line under the progress bar: «Kunne 5 · Kunne ikke 1».
   countsText: (counts: { correct: number; wrong: number }) => string;
-  // The legend while practising and when finished.
-  legend: { inProgress: LegendItem[]; finished: LegendItem[] };
+  // The legend while practising, when finished, and when ended early (story 3.5).
+  legend: { inProgress: LegendItem[]; finished: LegendItem[]; aborted: LegendItem[] };
   // The hidden text per cell after «Kort 4: »: «kunne», «kunne ikke», «ikke vist ennå».
   cellText: (cell: Mark | "unseen") => string;
 };
@@ -35,6 +35,11 @@ export const flashcardAdapter: PracticeAdapter = {
     finished: [
       { cell: "known", text: "Kunne" },
       { cell: "missed", text: "Kunne ikke, repetert" },
+    ],
+    aborted: [
+      { cell: "known", text: "Kunne" },
+      { cell: "missed", text: "Kunne ikke" },
+      { cell: "unseen", text: "Ikke vist ennå" },
     ],
   },
   cellText: (cell) => CELL_TEXT[cell],

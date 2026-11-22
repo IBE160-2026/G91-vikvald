@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { MenuButton, SideMenu, SideMenuProvider, useOpenShortcuts, useSideMenuCollapsed } from "./side-menu";
+import { MenuButton, SideMenu, SideMenuProvider, useCloseSideMenu, useOpenShortcuts, useSideMenuCollapsed } from "./side-menu";
 import { TopBar } from "./top-bar";
 
 let pathname = "/emner/s1";
@@ -37,8 +37,12 @@ afterEach(() => {
 
 function Menu() {
   const openShortcuts = useOpenShortcuts();
+  const closeSideMenu = useCloseSideMenu();
   return (
     <nav aria-label="Emner">
+      <button type="button" onClick={() => closeSideMenu(() => document.getElementById("result"))}>
+        Avslutt
+      </button>
       <a href="/emner/s2">Samfunnsøkonomi</a>
       <button type="button" onClick={openShortcuts}>
         ? Hurtigtaster
@@ -48,7 +52,11 @@ function Menu() {
 }
 
 function Content() {
-  return <p>{useSideMenuCollapsed() ? "smal" : "bred"}</p>;
+  return (
+    <h2 id="result" tabIndex={-1}>
+      {useSideMenuCollapsed() ? "smal" : "bred"}
+    </h2>
+  );
 }
 
 function App({ withMenu = true }: { withMenu?: boolean }) {
@@ -121,6 +129,15 @@ describe("SideMenu", () => {
     fireEvent.keyDown(panel, { key: "Escape" });
     expect(screen.queryByRole("dialog")).toBeNull();
     await waitFor(() => expect(document.activeElement).toBe(button));
+  });
+
+  it("UX-DR10, UX-DR33: useCloseSideMenu lukker panelet og gir fokus til målet i stedet for «Meny»", async () => {
+    narrow = true;
+    render(<App />);
+    fireEvent.click(menuButton());
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Avslutt" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole("heading", { name: "smal" })));
   });
 
   it("UX-DR10: krysset «Lukk» lukker panelet", () => {

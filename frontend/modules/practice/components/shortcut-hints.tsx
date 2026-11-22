@@ -14,6 +14,12 @@ export const FLASHCARD_HINTS: readonly ShortcutHint[] = [
   { key: "Esc", text: "avslutt" },
 ];
 
+// The result page (mockup 08).
+export const RESULT_HINTS: readonly ShortcutHint[] = [
+  { key: "Enter", text: "øv igjen" },
+  { key: "Esc", text: "tilbake til forelesningen" },
+];
+
 export function ShortcutHints({ hints }: { hints: readonly ShortcutHint[] }) {
   return (
     <ul

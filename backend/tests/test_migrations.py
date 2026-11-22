@@ -60,6 +60,7 @@ def test_ar13_migreringene_samsvarer_med_modellene(tmp_path: Path) -> None:
     from app.modules.files import models as files_models  # noqa: F401  (registers files, file_pages)
     from app.modules.generation import models as generation_models  # noqa: F401  (registers jobs)
     from app.modules.identity import models  # noqa: F401  (registers users)
+    from app.modules.practice import models as practice_models  # noqa: F401  (registers practice_sessions)
     from app.modules.subjects import models as subjects_models  # noqa: F401  (registers subjects, lectures)
 
     db_file = tmp_path / "m.db"
@@ -279,3 +280,49 @@ def test_ar4_downgrade_til_0005_fjerner_jobs_og_flashcards(tmp_path: Path) -> No
     assert "jobs" not in tables
     assert "flashcards" not in tables
     assert "files" in tables
+
+
+def test_ar9_upgrade_head_lager_practice_sessions_med_unik_session_id_og_cascade(tmp_path: Path) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+
+    with sqlite3.connect(db_file) as connection:
+        columns = {row[1]: row for row in connection.execute("PRAGMA table_info(practice_sessions)")}
+        assert set(columns) == {
+            "id", "session_id", "subject_id", "lecture_id", "kind", "aborted",
+            "shown", "answered", "correct", "partial", "wrong", "started_at",
+        }
+        # No user_id: the owner is found through the subject.
+        for name, row in columns.items():
+            assert row[3] == (0 if name == "lecture_id" else 1), name
+        assert columns["id"][5] == 1
+
+        foreign_keys = sorted(
+            (fk[2], fk[3], fk[4], fk[6]) for fk in connection.execute("PRAGMA foreign_key_list(practice_sessions)")
+        )
+        assert foreign_keys == [
+            ("lectures", "lecture_id", "id", "CASCADE"),
+            ("subjects", "subject_id", "id", "CASCADE"),
+        ]
+
+        indexes = {
+            row[1]: (row[2], [info[2] for info in connection.execute(f"PRAGMA index_info('{row[1]}')")])
+            for row in connection.execute("PRAGMA index_list(practice_sessions)")
+        }
+        assert (1, ["session_id"]) in indexes.values()
+        assert (0, ["subject_id"]) in indexes.values()
+        assert (0, ["lecture_id"]) in indexes.values()
+
+
+def test_ar9_downgrade_til_0006_fjerner_practice_sessions(tmp_path: Path) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+    command.downgrade(cfg, "0006_create_jobs_and_flashcards")
+    with sqlite3.connect(db_file) as connection:
+        tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master")}
+    assert "practice_sessions" not in tables
+    assert "flashcards" in tables

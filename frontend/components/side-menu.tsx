@@ -37,6 +37,8 @@ type SideMenuContext = {
   menuButtonRef: React.RefObject<HTMLButtonElement | null>;
   // Set while the panel closes to hand over to the shortcut dialog.
   handingOver: React.RefObject<boolean>;
+  // Where focus goes when the panel closes, instead of the menu button.
+  focusAfterClose: React.RefObject<(() => HTMLElement | null) | null>;
 };
 
 const Context = createContext<SideMenuContext | null>(null);
@@ -50,6 +52,7 @@ export function SideMenuProvider({ children }: { children: ReactNode }) {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const returnTo = useRef<HTMLElement | null>(null);
   const handingOver = useRef(false);
+  const focusAfterClose = useRef<(() => HTMLElement | null) | null>(null);
 
   // The panel closes when the page changes (a link in it was followed) or the
   // screen gets wide.
@@ -77,7 +80,17 @@ export function SideMenuProvider({ children }: { children: ReactNode }) {
   }, [open]);
 
   const value = useMemo(
-    () => ({ narrow, hasMenu: menus > 0, open, setOpen, register, openShortcuts, menuButtonRef, handingOver }),
+    () => ({
+      narrow,
+      hasMenu: menus > 0,
+      open,
+      setOpen,
+      register,
+      openShortcuts,
+      menuButtonRef,
+      handingOver,
+      focusAfterClose,
+    }),
     [narrow, menus, open, register, openShortcuts],
   );
 
@@ -110,6 +123,21 @@ export function useSideMenuCollapsed(): boolean {
   return context?.narrow ?? false;
 }
 
+// Closes the panel on a narrow screen (if it is open), with focus going to
+// `focusTarget` instead of the menu button. Used when the session ends from
+// «Avslutt økt» inside the panel and the result page takes its place (story 3.5).
+export function useCloseSideMenu(): (focusTarget: () => HTMLElement | null) => void {
+  const context = useContext(Context);
+  return useCallback(
+    (focusTarget: () => HTMLElement | null) => {
+      if (!context || !context.open) return;
+      context.focusAfterClose.current = focusTarget;
+      context.setOpen(false);
+    },
+    [context],
+  );
+}
+
 function noop() {}
 
 // The side menu or session panel of a page. `title` names the panel on a
@@ -121,7 +149,7 @@ export function SideMenu({ title, children }: { title: string; children: ReactNo
 
   if (!context || !context.narrow) return <>{children}</>;
 
-  const { open, setOpen, menuButtonRef, handingOver } = context;
+  const { open, setOpen, menuButtonRef, handingOver, focusAfterClose } = context;
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent
@@ -130,7 +158,10 @@ export function SideMenu({ title, children }: { title: string; children: ReactNo
         onCloseAutoFocus={(event) => {
           event.preventDefault();
           // Handing over to the shortcut dialog: it takes focus itself.
+          const target = focusAfterClose.current?.() ?? null;
+          focusAfterClose.current = null;
           if (handingOver.current) handingOver.current = false;
+          else if (target) target.focus();
           else menuButtonRef.current?.focus();
         }}
       >

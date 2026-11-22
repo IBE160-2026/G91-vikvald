@@ -1,6 +1,9 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useId } from "react";
+
+import { iconProps } from "@/components/icon";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -20,6 +23,10 @@ type Props = {
   colorIndex?: number;
   // «Avslutt økt».
   onEnd: () => void;
+  // The session was ended early with «Avslutt økt» or Esc (story 3.5).
+  aborted?: boolean;
+  // The finished session has been saved.
+  saved?: boolean;
   // The title is the page's h1, except on a narrow screen, where the panel is
   // a sheet over the content and the content has its own hidden h1 (story 3.4).
   headingLevel?: 1 | 2;
@@ -33,18 +40,30 @@ type Props = {
 // the progress bar (named by the counter), the counts line, the answer grid
 // with its legend (both left out above 120 cards), and the outline button
 // «Avslutt økt» at the bottom. Finished: every cell filled, the finished
-// legend, and no «Avslutt økt».
-export function SessionPanel({ adapter, state, scopeName, colorIndex, onEnd, headingLevel = 1 }: Props) {
+// legend, and no «Avslutt økt»; once saved, «✓ Økten er ferdig og lagret» at
+// the bottom instead (story 3.5). Aborted: no «Avslutt økt», no «Repeterer»,
+// no current cell, and the legend «Kunne», «Kunne ikke», «Ikke vist ennå».
+export function SessionPanel({
+  adapter,
+  state,
+  scopeName,
+  colorIndex,
+  onEnd,
+  aborted = false,
+  saved = false,
+  headingLevel = 1,
+}: Props) {
   const Heading = headingLevel === 1 ? "h1" : "h2";
   const titleId = useId();
   const counterId = useId();
   const finished = isFinished(state);
   const shown = shownCount(state);
   const total = totalCount(state);
-  const repeating = repeatingLeft(state);
+  const repeating = aborted ? null : repeatingLeft(state);
   const counts = sessionCounts(state);
   const showGrid = total <= GRID_MAX_CARDS;
-  const legend = finished ? adapter.legend.finished : adapter.legend.inProgress;
+  const legend = aborted ? adapter.legend.aborted : finished ? adapter.legend.finished : adapter.legend.inProgress;
+  const cells = aborted ? gridCells(state).map((cell) => ({ ...cell, current: false })) : gridCells(state);
 
   return (
     <section
@@ -83,7 +102,7 @@ export function SessionPanel({ adapter, state, scopeName, colorIndex, onEnd, hea
       {showGrid ? (
         <>
           <div className="mt-4">
-            <AnswerGrid cells={gridCells(state)} adapter={adapter} />
+            <AnswerGrid cells={cells} adapter={adapter} />
           </div>
           <ul className="mt-4 flex flex-col gap-3">
             {legend.map((item) => (
@@ -108,7 +127,12 @@ export function SessionPanel({ adapter, state, scopeName, colorIndex, onEnd, hea
         </>
       ) : null}
 
-      {finished ? null : (
+      {finished && saved ? (
+        <p className="mt-auto flex items-center gap-2 pt-6 text-meta text-ink-muted">
+          <Check {...iconProps} className="shrink-0" />
+          Økten er ferdig og lagret
+        </p>
+      ) : finished || aborted ? null : (
         <div className="mt-auto pt-6">
           <Button variant="outline" className="w-full" onClick={onEnd}>
             Avslutt økt

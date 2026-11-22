@@ -2,7 +2,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { FLASHCARD_HINTS, ShortcutHints } from "./shortcut-hints";
+import { FLASHCARD_HINTS, RESULT_HINTS, ShortcutHints } from "./shortcut-hints";
 
 afterEach(cleanup);
 
@@ -29,5 +29,11 @@ describe("ShortcutHints", () => {
     expect(list.querySelectorAll("button, a")).toHaveLength(0);
     expect(list.className).toContain("justify-center");
     expect(list.className).toContain("flex-wrap");
+  });
+
+  it("UX-DR35: resultatsiden har «Enter øv igjen» og «Esc tilbake til forelesningen»", () => {
+    render(<ShortcutHints hints={RESULT_HINTS} />);
+    const items = within(screen.getByRole("list", { name: "Hurtigtaster" })).getAllByRole("listitem");
+    expect(items.map((item) => item.textContent)).toEqual(["Enter øv igjen", "Esc tilbake til forelesningen"]);
   });
 });

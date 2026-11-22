@@ -16,13 +16,14 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 //   DOM), or when something has already handled the key (defaultPrevented;
 //   Radix has then closed its dialog with Esc).
 // - Nothing with Ctrl, Alt or Meta, or while a key is held down (repeat).
-// - Space does nothing while focus is on a control (button, link, switch ...),
-//   so the control's own action happens instead.
+// - Space and Enter do nothing while focus is on a control (button, link,
+//   switch ...), so the control's own action happens instead.
 // - Single keys (Space, digits, letters, «?») only work with the switch «Bruk
-//   hurtigtaster» on (WCAG 2.1.4). Esc is not a single key and always works.
+//   hurtigtaster» on (WCAG 2.1.4). Esc and Enter are not single keys and
+//   always work.
 
 export type ShortcutBinding = {
-  // KeyboardEvent.key: " " for Space, "1", "Escape", "?" ...
+  // KeyboardEvent.key: " " for Space, "1", "Escape", "Enter", "?" ...
   key: string;
   action: () => void;
 };
@@ -65,7 +66,7 @@ export function resolveShortcut(
   const binding = bindings.find((item) => item.key === event.key);
   if (!binding) return null;
   if (isSingleKey(binding.key) && !singleKeys) return null;
-  if (binding.key === " " && closest(event.target, CONTROL)) return null;
+  if ((binding.key === " " || binding.key === "Enter") && closest(event.target, CONTROL)) return null;
   return binding;
 }
 
