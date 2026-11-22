@@ -1,6 +1,6 @@
 """Business logic for stored content: save generated flashcards and quiz
 questions, count them, list flashcards with their source, and let the student
-edit or delete a flashcard."""
+edit or delete a flashcard and delete a quiz question."""
 
 import hashlib
 import uuid
@@ -354,4 +354,32 @@ async def delete_flashcard(session: AsyncSession, user_id: uuid.UUID, flashcard_
     """Delete her flashcard (FR-27). Someone else's or a missing one gives 404."""
     card, _file_name, _lecture_id = await get_flashcard(session, user_id, flashcard_id)
     await session.delete(card)
+    await session.commit()
+
+
+async def get_quiz_question(session: AsyncSession, user_id: uuid.UUID, question_id: str) -> QuizQuestion:
+    """Her quiz question. Like a flashcard it is hers through file, lecture
+    and subject. Someone else's, a missing and a malformed id all give the
+    same 404 NOT_FOUND."""
+    try:
+        parsed = uuid.UUID(question_id)
+    except ValueError:
+        raise AppError(ErrorCode.NOT_FOUND) from None
+    statement = (
+        select(QuizQuestion)
+        .join(File, QuizQuestion.file_id == File.id)
+        .join(Lecture, File.lecture_id == Lecture.id)
+        .join(Subject, Lecture.subject_id == Subject.id)
+        .where(QuizQuestion.id == parsed, Subject.user_id == user_id)
+    )
+    question = await session.scalar(statement)
+    if question is None:
+        raise AppError(ErrorCode.NOT_FOUND)
+    return question
+
+
+async def delete_quiz_question(session: AsyncSession, user_id: uuid.UUID, question_id: str) -> None:
+    """Delete her quiz question (FR-37). Someone else's or a missing one gives 404."""
+    question = await get_quiz_question(session, user_id, question_id)
+    await session.delete(question)
     await session.commit()
