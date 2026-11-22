@@ -77,7 +77,7 @@ test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("merkevare-notater.pdf")).toBeVisible();
     await expect(dialog.getByText("6 sider · Uke 37: Merkevare")).toBeVisible();
-    // Only flashcards so far: quiz questions and model cards come with epic 4 and 7.
+    // Only flashcards: this flow makes no quiz questions yet (#131), and model cards come with epic 7.
     await expect(dialog.getByText("Dette sletter også 18 flashcards laget fra fila.")).toBeVisible();
     await expect(dialog.getByText("Det kan ikke angres.")).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Slett fila" })).toBeVisible();

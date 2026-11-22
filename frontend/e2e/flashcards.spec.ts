@@ -50,8 +50,10 @@ async function uploadDefinitions(page: Page, lectureId: string) {
   expect(response.status()).toBe(201);
 }
 
+// The Flashcards row in «Lag og øv». Since story 4.1 the Quiz row stands under
+// it with its own «Ingen ennå», status and buttons.
 function createSection(page: Page): Locator {
-  return page.getByRole("region", { name: "Lag og øv" });
+  return page.getByRole("region", { name: "Lag og øv" }).getByRole("group", { name: "Flashcards" });
 }
 
 function scopeDialog(page: Page): Locator {
@@ -82,7 +84,7 @@ test.describe("Flashcards (story 3.1 og 3.2)", () => {
     await uploadDefinitions(page, lectureId);
     await page.goto(`/forelesninger/${lectureId}`);
     const section = createSection(page);
-    await expect(section.getByRole("heading", { level: 2, name: "Lag og øv" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Lag og øv" })).toBeVisible();
     await expect(section.getByText("Ingen ennå")).toBeVisible();
     const create = section.getByRole("button", { name: "Lag flashcards" });
     await expect(create).toBeEnabled();
