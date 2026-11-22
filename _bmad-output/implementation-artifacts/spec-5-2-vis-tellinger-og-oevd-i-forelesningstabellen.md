@@ -3,7 +3,7 @@ title: 'Story 5.2: Vis tellinger og «Øvd 03.11» i forelesningstabellen'
 type: 'feature'
 created: '2026-11-22'
 baseline_revision: '649d705da30b808d610d8fe9a3d1f94a0b912646'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -89,11 +89,49 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-22 — Review pass
+- verdicts: 33 findings — high 0, medium 1, low 22, false 10, maybe-false 0
+- note: the first launch of the layers was cut off by the API rate limit (429); intent-alignment finished then, the other three were run again on the same diff.
+- findings:
+  - `[low]` `[reject]` (edge) status blank while a failing overview is retried (default retries) — rare error path; extra state for little gain.
+  - `[low]` `[reject]` (edge) file-counts fails while overview succeeds → status empty — the page shows the fallback alert at the table in that case.
+  - `[low]` `[reject]` (edge) file uploaded/deleted between `file_counts` and `file_ids_by_lecture` — at most one stale load; the next fetch is right.
+  - `[low]` `[reject]` (edge) lecture missing from `files_by_lecture` gives an empty file scope — reachable only through the same race.
+  - `[low]` `[reject]` (edge) e2e helper throws TypeError instead of a readable assertion — the test still fails loudly.
+  - `[false]` `[reject]` (blind) KI-spor missing — written later in the same run, before the PR.
+  - `[low]` `[reject]` (blind) one registry query per kind per lecture — accepted in Design Notes for ~10 lectures.
+  - `[low]` `[reject]` (blind) lecture-owned content of a lecture without files is never counted — no such content exists (all content is made from files); noted as a limitation.
+  - `[low]` `[reject]` (blind) `DeleteCount` reused for counts that are not deletes — a rename touches the delete preview for naming only.
+  - `[low]` `[patch]` (blind) `model_cards` looks guessed — it is the kind name the delete texts already use (`frontend/lib/messages.ts`); comment added (`666cbdf`).
+  - `[low]` `[reject]` (blind) no test for `practiced` with `last_practiced_at: null`, foreign kinds, subject missing from overview — the server never sends that combination; foreign kinds are filtered by the constant.
+  - `[low]` `[reject]` (blind) backend test lacks a status assertion and a zero-count case — zero filtering is `content_counts`' own tested behaviour.
+  - `[low]` `[patch]` (blind) outdated comment in flyt 2 — comment only (`666cbdf`).
+  - `[low]` `[reject]` (blind) duplicated e2e helpers — follows the existing pattern in `ovd.spec.ts`.
+  - `[low]` `[reject]` (blind) slow e2e setup; no viewport in the quiz test — Playwright's default is 1280 px; run time is ~4 s per test.
+  - `[false]` `[reject]` (blind) spec unfinished — filled at finalize.
+  - `[false]` `[reject]` (blind) verification omits screenshots / `frontend/e2e-skjermbilder/` — screenshots are committed (`d03fdb0`); the folder is a leftover outside this story by instruction.
+  - `[low]` `[reject]` (blind) two queries could be one — same race as above; harmless.
+  - `[false]` `[reject]` (blind) the line numbers in the Code Map are wrong after the diff — they point at the baseline, as intended.
+  - `[false]` `[reject]` (blind) `oversized` unexplained — set by the workflow when the spec exceeds the size guide.
+  - `[medium]` `[patch]` (verification-gap) the job watcher does not refetch `file-counts`, so Kort/Quiz on 03 go stale after a job — new `isSubjectFileCountsQueryKey`, used by the watcher, predicate test extended (`85967f0`).
+  - `[low]` `[reject]` (verification-gap, other) deleting a card in a session does not refetch `file-counts` — 03 remounts and refetches (staleTime 0).
+  - `[low]` `[reject]` (intent a) «Øvd» without files only covered in vitest — kanttilfelle with its own issue; the rule itself is tested in the backend (5.1).
+  - `[low]` `[patch]` (intent b) backend does not count `kind="model"`, frontend sums `model_cards` — model cards do not exist before epic 7, which registers `model_cards` (same name as the delete texts); same comment as above.
+  - `[low]` `[reject]` (intent c) a new kind needs a frontend change to land in a column — the columns are fixed (Kort, Quiz); choosing the column is the only change.
+  - `[low]` `[reject]` (intent d) status text only for screen readers below 1024 px — epic 2 choice, now with the dot visible; kanttilfelle issue.
+  - `[false]` `[reject]` (intent e) whole-subject coverage thin in e2e — the backend matrix in 5.1 covers the rule; the table only shows it.
+  - `[false]` `[reject]` (intent f) formatting checked by class — e2e checks rendered text and screenshots were compared with mockup 03.
+  - `[false]` `[reject]` (intent g) keyboard and axe OK — no defect.
+  - `[false]` `[reject]` (intent) tests changed in filer/forelesninger/flyt-2 — required by the new columns, no assertion weakened.
+  - `[false]` `[reject]` (intent) R1 exception — deliberate kanttilfelle.
+  - `[low]` `[reject]` (intent) e2e date read from overview — avoids clock/time zone flakiness (#224); the rule itself is backend-tested.
+  - `[low]` `[reject]` (intent) R3a on API fine but page needs constant — duplicate of intent c.
+
 ## Design Notes
 
 Tellingene legges på `file-counts` i stedet for en ny rute: tabellen henter dem allerede, bare forelesninger med filer kan ha innhold, og `files` bygger alt `DeleteScope` for slettebekreftelsen. Det koster én registerspørring per type per forelesning, som er greit for et emne med rundt ti forelesninger.
 
-Kanttilfeller avgjort her (egne issues): en øvd forelesning uten filer viser «Øvd dd.mm», ikke «Ingen filer ennå», så tabellen og sidemenyen aldri sier noe forskjellig; status-prikken vises også under 1024 px.
+Kanttilfeller avgjort her (egne issues #238–#240): en øvd forelesning uten filer viser «Øvd dd.mm», ikke «Ingen filer ennå», så tabellen og sidemenyen aldri sier noe forskjellig; status-prikken vises også under 1024 px.
 
 ## Verification
 
@@ -101,3 +139,25 @@ Kanttilfeller avgjort her (egne issues): en øvd forelesning uten filer viser «
 - `cd backend && uv run pytest` -- expected: alt grønt
 - `cd frontend && npm run test && npx tsc --noEmit` -- expected: alt grønt
 - `cd frontend && npx playwright test` mot `docker compose up --build` -- expected: alt grønt
+
+## Auto Run Result
+
+Status: done
+
+**Summary:** `GET /api/subjects/{id}/file-counts` gives each lecture `content_counts` from the content registry (the same `content_counts` as the delete preview). The lecture table on 03 has Dato, Forelesning, Filer, Kort, Quiz and Status; Kort = flashcards + model_cards, Quiz = quiz_questions, 0 as grey «–», tabular right-aligned numbers. Status comes from `GET /api/overview`: filled dot «Øvd dd.mm», hollow dot «Ikke øvd ennå», or «Ingen filer ennå». The dot also shows below 1024 px. A finished job refetches the file counts.
+
+**Files changed:**
+- `backend/app/modules/files/service.py`, `schemas.py`, `router.py` -- `file_ids_by_lecture`, `content_counts` per lecture.
+- `backend/tests/test_files.py` -- two `test_fr16_…` tests; full-body tests include `content_counts`.
+- `frontend/modules/files/types.ts`, `api.ts` -- type and `isSubjectFileCountsQueryKey`.
+- `frontend/modules/subjects/components/lecture-table.tsx`, `pages/subject-page.tsx` (+ test) -- columns and status.
+- `frontend/modules/generation/components/job-watcher.tsx` (+ test) -- refetch file counts.
+- `frontend/e2e/forelesningstabell.spec.ts` (new), `filer.spec.ts`, `forelesninger.spec.ts`, `brukerreiser/flyt-2-for-eksamen.spec.ts` (column index and comment only).
+
+**Review:** 33 findings: 3 patch entries (one medium: job watcher; two low: comments), 0 deferred, 20 low rejected and 10 false, reasons above.
+
+**Follow-up review recommended:** false (patched: medium 1, low 2).
+
+**Verification:** `uv run pytest` 567 passed; `npm run test` 828 passed; `npx tsc --noEmit` clean; `npx playwright test` 164 passed against `docker compose up --build` (after the review fixes); `forelesningstabell.spec.ts` green 3 runs in a row.
+
+**Residual risks:** lecture-owned content (future summaries) of a lecture without files would not be counted; model cards depend on epic 7 registering `model_cards`.
