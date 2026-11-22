@@ -115,7 +115,7 @@ describe("JobWatcher", () => {
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["lectures", "l1"] });
   });
 
-  it("FR-23: en ferdig jobb oppdaterer kortlisten til alle emner, så antallet på emnesiden stemmer", async () => {
+  it("FR-23, FR-34: en ferdig jobb oppdaterer kortlisten og quizlisten til alle emner, så antallene på emnesiden stemmer", async () => {
     const invalidate = renderWatcher();
     await waitFor(() => expect(calls("/api/jobs/active")).toBe(1));
     finish();
@@ -125,6 +125,8 @@ describe("JobWatcher", () => {
     const query = (queryKey: unknown[]) => ({ queryKey }) as unknown as Parameters<typeof predicate>[0];
     expect(predicate(query(["subjects", "s1", "flashcards"]))).toBe(true);
     expect(predicate(query(["subjects", "s2", "flashcards"]))).toBe(true);
+    expect(predicate(query(["subjects", "s1", "quiz-questions"]))).toBe(true);
+    expect(predicate(query(["subjects", "s2", "quiz-questions"]))).toBe(true);
     expect(predicate(query(["subjects", "s1"]))).toBe(false);
     expect(predicate(query(["subjects", "s1", "lectures"]))).toBe(false);
     expect(predicate(query(["subjects"]))).toBe(false);

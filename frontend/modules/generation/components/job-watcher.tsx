@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 import { Toaster } from "@/components/ui/sonner";
 import { ApiError } from "@/lib/api";
-import { isSubjectFlashcardsQueryKey } from "@/modules/practice/api";
+import { isSubjectPracticeQueryKey } from "@/modules/practice/api";
 
 import { ACTIVE_JOBS_QUERY_KEY, fetchActiveJobs, fetchJob } from "../api";
 import { finishedText } from "../texts";
@@ -95,9 +95,9 @@ export function JobWatcher({ children }: { children: ReactNode }) {
         if (job.status === "running" || !mounted.current) return;
         unfollow(jobId);
         void queryClient.invalidateQueries({ queryKey: ["lectures", job.lecture_id] });
-        // The subject page counts the subject's cards; the job does not say
-        // which subject, so every subject's card list is refetched.
-        void queryClient.invalidateQueries({ predicate: (query) => isSubjectFlashcardsQueryKey(query.queryKey) });
+        // The subject page counts the subject's cards and quiz questions; the
+        // job does not say which subject, so every subject's lists are refetched.
+        void queryClient.invalidateQueries({ predicate: (query) => isSubjectPracticeQueryKey(query.queryKey) });
         if (pathnameRef.current !== `/forelesninger/${job.lecture_id}`) {
           toast(finishedText(job, job.lecture_name), { duration: TOAST_MS });
         }
