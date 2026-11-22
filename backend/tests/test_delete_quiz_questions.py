@@ -101,7 +101,7 @@ async def test_sk6_andres_ukjent_og_ugyldig_quizspormaal_gir_lik_404(
     for response in responses:
         assert response.status_code == 404
         assert response.json() == NOT_FOUND
-    assert responses[0].content == responses[1].content
+    assert responses[0].content == responses[1].content == responses[2].content
     assert await _stored(engine, question["id"]) is not None
 
 
