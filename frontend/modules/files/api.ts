@@ -1,3 +1,5 @@
+import type { QueryKey } from "@tanstack/react-query";
+
 import { apiFetch } from "@/lib/api";
 import type { DeleteCount } from "@/lib/delete-text";
 
@@ -11,6 +13,11 @@ export function filesQueryKey(lectureId: string) {
 }
 export function fileCountsQueryKey(subjectId: string) {
   return ["subjects", subjectId, "file-counts"] as const;
+}
+// True for ["subjects", <any id>, "file-counts"]: the job watcher refetches
+// them when a job ends, since they hold the lecture table's Kort and Quiz.
+export function isSubjectFileCountsQueryKey(key: QueryKey): boolean {
+  return key.length === 3 && key[0] === "subjects" && key[2] === "file-counts";
 }
 
 // GET /api/lectures/{id}/files: sorted by upload time. The frontend never sorts again.
