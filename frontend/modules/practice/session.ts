@@ -48,6 +48,23 @@ export function markCurrent(state: SessionState, mark: Mark): SessionState {
   return { order: state.order, queue, firstMarks, shown };
 }
 
+// Takes a deleted card out of the session (story 3.7, E22). A card never
+// marked leaves the session completely: out of the order, the queue and the
+// shown cards, so the grid loses its cell and the total goes down by one. A
+// marked card keeps its first mark (its cell and the counts stay) and only
+// leaves the queue, so it never comes back. If another card becomes the
+// current one, it counts as shown. An unknown id leaves the state as it is.
+export function removeCard(state: SessionState, id: string): SessionState {
+  if (!state.order.includes(id)) return state;
+  const marked = Object.hasOwn(state.firstMarks, id);
+  const queue = state.queue.filter((other) => other !== id);
+  const order = marked ? state.order : state.order.filter((other) => other !== id);
+  const kept = marked ? state.shown : state.shown.filter((other) => other !== id);
+  const next = queue[0];
+  const shown = next === undefined || kept.includes(next) ? kept : [...kept, next];
+  return { order, queue, firstMarks: state.firstMarks, shown };
+}
+
 // The id of the card being shown, or undefined when the session is finished.
 export function currentCard(state: SessionState): string | undefined {
   return state.queue[0];

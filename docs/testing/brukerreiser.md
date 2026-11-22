@@ -99,6 +99,8 @@ Fil: [`flyt-4-avslutter-etter-semesteret.spec.ts`](../../frontend/e2e/brukerreis
 | Feilvei: hun avbryter, ingenting slettes | FR-5, UX-DR22 | «Feilvei – FR-5, UX-DR22: hun avbryter, og ingenting slettes» | testet |
 | 5. Bekrefter: alt er slettet, og hun er tilbake på innloggingen (01) | FR-5, UX-DR40 | «Steg 5 – FR-5, UX-DR40: hun bekrefter, alt er slettet for godt, og hun er tilbake på innloggingen (01)» | testet |
 
+Steg 3 og 4 sjekker teksten «Alle emner, filer og alt generert innhold slettes for godt: flashcards.». Fra story 3.7 er flashcards meldt inn i telleregisteret, så kontosiden og bekreftelsen nevner dem.
+
 Feilveien kjøres før steg 5, siden det ikke er noe å avbryte når kontoen er slettet. Steg 5 sjekker at innloggingen med samme e-post og passord gir feilmeldingen, og at en ny konto med samme e-post er tom.
 
 ## Det epic 1 har bygd som ingen flyt viser

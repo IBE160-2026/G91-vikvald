@@ -82,8 +82,8 @@ def test_kind() -> Iterator[dict[str, int]]:
 # --- The registry ------------------------------------------------------------
 
 
-def test_ar7_registeret_er_tomt_i_epic_2() -> None:
-    assert registry._counters == {}
+def test_ar7_flashcards_er_innmeldt_som_forste_type() -> None:
+    assert registry.registered_kinds() == ["flashcards"]
 
 
 def test_ar7_samme_type_to_ganger_gir_value_error(test_kind: dict[str, int]) -> None:
@@ -410,8 +410,8 @@ def test_fr12_hver_registrert_type_har_navn_i_meldingsfila() -> None:
     block = block[: block.index("};") + 2]
     nouns = set(re.findall(r"^\s*([a-z][a-z0-9_]*)\s*:", block, flags=re.MULTILINE))
     assert {"lectures", "files"} <= nouns
-    # Empty in epic 2; guards the content types later epics register.
-    missing = sorted(set(registry._counters) - nouns)
+    # Flashcards since story 3.7; guards the content types later epics register.
+    missing = sorted(set(registry.registered_kinds()) - nouns)
     assert not missing, f"Missing in countNouns in frontend/lib/messages.ts: {', '.join(missing)}"
 
 

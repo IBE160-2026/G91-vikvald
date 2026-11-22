@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check, Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { iconProps } from "@/components/icon";
@@ -21,6 +21,10 @@ type Props = {
   // Show the shortcut hint line under the buttons (the switch «Bruk
   // hurtigtaster» is on).
   showHints?: boolean;
+  // «Rediger» and «Slett» in the footer of a flipped card (story 3.7). Left
+  // out, the buttons are not shown.
+  onEdit?: () => void;
+  onDelete?: () => void;
 };
 
 // flashcard (DESIGN.md "Øving", mockup 07): white, at most 768 px, rounded.xl,
@@ -31,10 +35,24 @@ type Props = {
 // bottom. No animation. Text is shown as plain text, never as HTML. Question
 // cards and concept cards look the same.
 //
+// Story 3.7: the footer of a flipped card has the source on the left and the
+// text buttons «Rediger» (pencil) and «Slett» (red, bin) on the right; on a
+// narrow screen they wrap under the source. A click on them never flips the
+// card.
+//
 // Under the card: «Kunne ikke» (outline, ✗) and «Kunne» (primary, ✓), both
 // 208 × 48 px and disabled until the card is flipped. After the flip, focus
 // goes to «Kunne». Under them the shortcut hint line (story 3.4).
-export function Flashcard({ card, flipped, onFlip, onMark, focusOnMount = false, showHints = false }: Props) {
+export function Flashcard({
+  card,
+  flipped,
+  onFlip,
+  onMark,
+  focusOnMount = false,
+  showHints = false,
+  onEdit,
+  onDelete,
+}: Props) {
   const flipRef = useRef<HTMLButtonElement>(null);
   const knownRef = useRef<HTMLButtonElement>(null);
 
@@ -64,6 +82,7 @@ export function Flashcard({ card, flipped, onFlip, onMark, focusOnMount = false,
           {flipped ? null : (
             <Button
               ref={flipRef}
+              data-flip-button=""
               variant="outline"
               className="mt-5"
               onClick={(event) => {
@@ -82,8 +101,40 @@ export function Flashcard({ card, flipped, onFlip, onMark, focusOnMount = false,
               <p className="text-overline text-ink-muted">SVAR</p>
               <p className="mt-2 text-card-answer break-words whitespace-pre-line text-ink">{card.back}</p>
             </div>
-            <div className="border-t border-divider px-7 py-4">
+            <div
+              data-slot="flashcard-footer"
+              className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-divider px-7 py-4"
+            >
               <SourceLink source={card.source} />
+              {onEdit || onDelete ? (
+                <div className="flex flex-wrap gap-1">
+                  {onEdit ? (
+                    <Button
+                      variant="text"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onEdit();
+                      }}
+                    >
+                      <Pencil {...iconProps} />
+                      Rediger
+                    </Button>
+                  ) : null}
+                  {onDelete ? (
+                    <Button
+                      variant="text"
+                      className="text-danger hover:bg-danger-tint"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onDelete();
+                      }}
+                    >
+                      <Trash2 {...iconProps} />
+                      Slett
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </>
         ) : null}

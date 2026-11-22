@@ -331,4 +331,34 @@ describe("DeleteConfirmDialog", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(onDeleted).toHaveBeenCalledTimes(1);
   });
+
+  it("AR-7: en jobb som pågår (409) viser meldingen fra koden, og ingenting er slettet", async () => {
+    const onDeleted = vi.fn();
+    const { opener } = renderHarness({
+      remove: async () => {
+        throw new ApiError(409, "JOB_ALREADY_RUNNING");
+      },
+      onDeleted,
+    });
+    open(opener);
+    await screen.findByText("Det kan ikke angres.");
+    fireEvent.click(dangerButton());
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      "Det lages innhold i denne forelesningen nå. Vent til det er ferdig, og prøv igjen.",
+    );
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    expect(onDeleted).not.toHaveBeenCalled();
+  });
+
+  it("AR-7: en feil uten kode (nettverk) viser fortsatt reserveteksten", async () => {
+    const { opener } = renderHarness({
+      remove: async () => {
+        throw new TypeError("Failed to fetch");
+      },
+    });
+    open(opener);
+    await screen.findByText("Det kan ikke angres.");
+    fireEvent.click(dangerButton());
+    expect((await screen.findByRole("alert")).textContent).toBe(FALLBACK_MESSAGE);
+  });
 });

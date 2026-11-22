@@ -29,6 +29,13 @@ class FlashcardOut(BaseModel):
     source: FlashcardSource
 
 
+class FlashcardUpdate(BaseModel):
+    # The student's new text. A field left out is not changed; an empty (or
+    # only blank) one is rejected by the service with its own error code.
+    front: str | None = None
+    back: str | None = None
+
+
 class LectureRef(BaseModel):
     id: uuid.UUID
     name: str

@@ -22,6 +22,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.errors import AppError, ErrorCode
+from app.modules.content.registry import register_delete_guard
 from app.modules.files.service import pages_for_lecture
 from app.modules.generation.models import JOB_DONE, JOB_FAILED, JOB_RUNNING, Job
 from app.modules.generation.port import GenerationOptions, Generator, Page
@@ -59,6 +60,20 @@ def start_task(job: Coroutine[Any, Any, None]) -> asyncio.Task[None]:
 async def lecture_has_running_job(session: AsyncSession, lecture_id: uuid.UUID) -> bool:
     statement = select(Job.id).where(Job.lecture_id == lecture_id, Job.status == JOB_RUNNING)
     return (await session.execute(statement.limit(1))).first() is not None
+
+
+async def no_running_jobs(session: AsyncSession, lecture_ids: tuple[uuid.UUID, ...]) -> None:
+    """The delete guard (AR-7): AppError(JOB_ALREADY_RUNNING) if any of the
+    lectures has a running job, so a file, lecture, subject or account is never
+    deleted (or a file replaced) under a job that reads it."""
+    statement = select(Job.id).where(Job.lecture_id.in_(lecture_ids), Job.status == JOB_RUNNING)
+    if (await session.execute(statement.limit(1))).first() is not None:
+        raise AppError(ErrorCode.JOB_ALREADY_RUNNING)
+
+
+# Registered when this module is imported (the app imports it at startup), so
+# the delete routes in `files` ask it without importing `generation`.
+register_delete_guard(no_running_jobs)
 
 
 async def create_job(

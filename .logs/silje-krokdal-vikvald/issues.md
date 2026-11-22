@@ -99,7 +99,7 @@
 - [ ] 2026-11-21 [story-2-7-se-kontoen-og-slett-den](978-2026-11-21-13-26-10-story-2-7-se-kontoen-og-slett-den.md) — en opplasting samtidig med kontoslettingen kan etterlate en tom brukermappe
 - [ ] 2026-11-21 [brukerreiser-etter-epic-2](977-2026-11-21-13-43-10-brukerreiser-etter-epic-2.md) — se over valget om flyt 3: tallene for generert innhold venter på epic 3, 4 og 7 (#131)
 - [ ] 2026-11-21 [story-3-1-lag-flashcards-i-demomodus](976-2026-11-21-18-26-23-story-3-1-lag-flashcards-i-demomodus.md) — vurder kanttilfellene fra story 3.1 (#134–#141), særlig slette-registeret (#134) og «Øv nå» (#135)
-- [ ] 2026-11-21 [story-3-1-lag-flashcards-i-demomodus](976-2026-11-21-18-26-23-story-3-1-lag-flashcards-i-demomodus.md) — flyt 4 må vente «… slettes for godt: flashcards.» når story 3.7 melder flashcards inn i slette-registeret (#134)
+- [x] 2026-11-21 [story-3-1-lag-flashcards-i-demomodus](976-2026-11-21-18-26-23-story-3-1-lag-flashcards-i-demomodus.md) — flyt 4 må vente «… slettes for godt: flashcards.» når story 3.7 melder flashcards inn i slette-registeret (#134) (løst 2026-11-22)
 - [ ] 2026-11-21 [story-3-1-lag-flashcards-i-demomodus](976-2026-11-21-18-26-23-story-3-1-lag-flashcards-i-demomodus.md) — følg med på om `vilkar.spec.ts` (FR-11, tastatur) er ustabil under full parallell kjøring
 - [ ] 2026-11-21 [story-3-2-velg-omfang-og-se-genereringen](975-2026-11-21-19-14-56-story-3-2-velg-omfang-og-se-genereringen.md) — vurder kanttilfellene fra story 3.2 (#143–#151), særlig sonner uten next-themes (#150) og jobbvakten som bare spør mens den følger en jobb (#145)
 - [ ] 2026-11-21 [story-3-2-velg-omfang-og-se-genereringen](975-2026-11-21-19-14-56-story-3-2-velg-omfang-og-se-genereringen.md) — oppryddingen i jobbvakten ved utlogging og layouttesten er ikke gjennomgått av et uavhengig lag (oppfølging anbefalt)
@@ -111,3 +111,6 @@
 - [ ] 2026-11-22 [story-3-5-lagre-oekten-og-se-resultatet](972-2026-11-22-01-02-23-story-3-5-lagre-oekten-og-se-resultatet.md) — `pagehide` med `sendBeacon` er bare testet i jsdom
 - [ ] 2026-11-22 [story-3-5-lagre-oekten-og-se-resultatet](972-2026-11-22-01-02-23-story-3-5-lagre-oekten-og-se-resultatet.md) — `erstatt.spec.ts` E18 feilet én gang uten endring og kan være ustabil
 - [ ] 2026-11-22 [story-3-6-ov-paa-flashcards-fra-hele-emnet](971-2026-11-22-01-39-12-story-3-6-ov-paa-flashcards-fra-hele-emnet.md) — vurder kanttilfellene fra story 3.6 (#180–#186), særlig teksten «Tilbake til emnet» (#180) og at kortet står under tabellen på 1280 px (#182)
+- [ ] 2026-11-22 [story-3-7-rett-og-slett-kort](970-2026-11-22-02-22-42-story-3-7-rett-og-slett-kort.md) — vurder kanttilfellene fra story 3.7 (#188–#193), særlig at «Rediger»/«Slett» bare vises på snudd kort (#188) og vaktregisteret (#192)
+- [ ] 2026-11-22 [story-3-7-rett-og-slett-kort](970-2026-11-22-02-22-42-story-3-7-rett-og-slett-kort.md) — 409-meldingen i slettedialogen er bare testet i nettleseren med falskt svar fra serveren
+- [ ] 2026-11-22 [story-3-7-rett-og-slett-kort](970-2026-11-22-02-22-42-story-3-7-rett-og-slett-kort.md) — en jobb som startes i samme øyeblikk som en sletting, er ikke låst ute

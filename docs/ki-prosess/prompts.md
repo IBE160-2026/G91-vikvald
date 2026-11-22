@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-22: Story 3.7 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `3-7-rett-og-slett-kort-og-se-hva-som-slettes`. Hensikten til `bmad-build-auto` var «Story 3.7 fra `_bmad-output/planning-artifacts/epics.md`: Rett og slett kort, og se hva som slettes». Orkestratoren la til konteksten om registeret (#134) og unntaket for brukerreisetesten i flyt 4.
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-3-7-rett-og-slett-kort-og-se-hva-som-slettes.md), PR-en for `story/3-7`, kanttilfellene #188–#193.
+
 ## 2026-11-22: Story 3.6 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `3-6-øv-på-flashcards-fra-hele-emnet`. Hensikten til `bmad-build-auto` var «Story 3.6 fra `_bmad-output/planning-artifacts/epics.md`: Øv på flashcards fra hele emnet».
