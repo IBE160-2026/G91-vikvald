@@ -1,5 +1,6 @@
 """HTTP routes for the content module: GET /api/lectures/{id}/content-counts,
-GET /api/lectures/{id}/flashcards, GET /api/lectures/{id}/quiz-questions, GET /api/subjects/{id}/flashcards, and
+GET /api/lectures/{id}/flashcards, GET /api/lectures/{id}/quiz-questions, GET /api/subjects/{id}/flashcards,
+GET /api/subjects/{id}/quiz-questions, and
 PATCH and DELETE /api/flashcards/{id}.
 
 The lecture page needs only the number of cards; the practice session needs
@@ -27,6 +28,7 @@ from app.modules.content.service import (
     lecture_quiz_questions,
     quiz_question_count,
     subject_flashcards,
+    subject_quiz_questions,
     update_flashcard,
 )
 from app.modules.identity.dependencies import current_user
@@ -72,6 +74,15 @@ async def subject_flashcard_list(
 ) -> list[SubjectFlashcardOut]:
     subject = await get_subject(session, user.id, subject_id)
     return await subject_flashcards(session, subject.id)
+
+
+# As for one lecture, the answer key is sent on purpose (AR-15).
+@subjects_router.get("/{subject_id}/quiz-questions")
+async def subject_quiz_question_list(
+    subject_id: str, user: CurrentUser, session: Session
+) -> list[QuizQuestionOut]:
+    subject = await get_subject(session, user.id, subject_id)
+    return await subject_quiz_questions(session, subject.id)
 
 
 # Editing or deleting a card is not stopped by a running job: the cards belong

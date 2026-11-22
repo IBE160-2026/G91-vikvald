@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircleAlert, Plus, Trash2 } from "lucide-react";
+import { ArrowRight, CircleAlert, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -14,9 +14,14 @@ import { focusHeadingAfterNavigation, useFocusHeadingOnArrival } from "@/lib/foc
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import { fetchFileCounts, fileCountsQueryKey } from "@/modules/files/api";
-import { fetchSubjectFlashcards, subjectFlashcardsQueryKey } from "@/modules/practice/api";
+import {
+  fetchSubjectFlashcards,
+  fetchSubjectQuizQuestions,
+  subjectFlashcardsQueryKey,
+  subjectQuizQuestionsQueryKey,
+} from "@/modules/practice/api";
 import { PracticeAllCard, type PracticeAllRow } from "@/modules/practice/components/practice-all-card";
-import type { SubjectFlashcard } from "@/modules/practice/types";
+import type { QuizQuestion, SubjectFlashcard } from "@/modules/practice/types";
 
 import {
   SUBJECTS_QUERY_KEY,
@@ -40,7 +45,9 @@ import { fileCountLabel, formatWeekdayDate, lectureCountLabel } from "../format"
 // ennå.». Next to the table (under it when the content area is narrower than
 // 1008 px, a container query) stands practice-all-card «Øv på hele emnet»
 // (story 3.6) with the row Flashcards («120 kort fra 6 forelesninger», «Øv på
-// flashcards»), shown only when the subject has cards. Someone else's or a
+// flashcards»), shown only when the subject has cards, and under it the row
+// Quiz («8 spørsmål fra 2 forelesninger», «Start ›», story 4.4), shown only
+// when the subject has quiz questions. Someone else's or a
 // missing subject shows «Fant ikke siden».
 //
 // After a lecture is deleted on 04 she lands here, and the h1 gets focus (#75).
@@ -62,10 +69,20 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
     queryFn: () => fetchSubjectFlashcards(subjectId),
     enabled: subject.isSuccess,
   });
-  const practiceRows = flashcardRows(subjectId, flashcards.data);
+  const quizQuestions = useQuery({
+    queryKey: subjectQuizQuestionsQueryKey(subjectId),
+    queryFn: () => fetchSubjectQuizQuestions(subjectId),
+    enabled: subject.isSuccess,
+  });
+  const practiceRows = [
+    ...flashcardRows(subjectId, flashcards.data),
+    ...quizRows(subjectId, quizQuestions.data),
+  ];
   // Only a failed first load shows the fallback text; a failed background
   // refetch keeps the row it has.
-  const practiceError = flashcards.isError && flashcards.data === undefined;
+  const practiceError =
+    (flashcards.isError && flashcards.data === undefined) ||
+    (quizQuestions.isError && quizQuestions.data === undefined);
   const [lectureDialogOpen, setLectureDialogOpen] = useState(false);
   // Which dialog was opened last; it keeps its mode while it closes.
   const [dialogMode, setDialogMode] = useState<SubjectFormMode>("rename");
@@ -207,6 +224,34 @@ function flashcardRows(subjectId: string, cards: SubjectFlashcard[] | undefined)
       action: (
         <Button asChild>
           <Link href={`/emner/${subjectId}/flashcards`}>Øv på flashcards</Link>
+        </Button>
+      ),
+    },
+  ];
+}
+
+// The row Quiz in «Øv på hele emnet», under Flashcards: «N spørsmål fra M
+// forelesninger» (M is the number of lectures the questions come from) and the
+// text button «Start ›», read as «Start quiz på hele emnet». Always on one
+// line. No row while the questions load or when the subject has none.
+function quizRows(subjectId: string, questions: QuizQuestion[] | undefined): PracticeAllRow[] {
+  if (!questions || questions.length === 0) return [];
+  const lectures = new Set(questions.map((question) => question.lecture.id)).size;
+  return [
+    {
+      id: "quiz",
+      title: "Quiz",
+      scope: `${questions.length} spørsmål fra ${lectureCountLabel(lectures)}`,
+      inline: true,
+      action: (
+        // -mr-2: the text button's padding lies in the card's padding, so the
+        // arrow ends at the card's inner edge (mockup 03) and the scope keeps
+        // one line in the 344 px card.
+        <Button asChild variant="text" className="-mr-2">
+          <Link href={`/emner/${subjectId}/quiz`}>
+            Start <span className="sr-only">quiz på hele emnet</span>
+            <ArrowRight {...iconProps} />
+          </Link>
         </Button>
       ),
     },

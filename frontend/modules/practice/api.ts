@@ -51,6 +51,29 @@ export function fetchSubjectFlashcards(subjectId: string): Promise<SubjectFlashc
   return apiFetch<SubjectFlashcard[]>(`/api/subjects/${encodeURIComponent(subjectId)}/flashcards`);
 }
 
+// The subject's quiz questions: under the subject's key (["subjects", id]),
+// like the subject's cards. A running quiz keeps its own copy.
+export function subjectQuizQuestionsQueryKey(subjectId: string) {
+  return ["subjects", subjectId, "quiz-questions"] as const;
+}
+
+// True for ["subjects", <any id>, "flashcards"] and ["subjects", <any id>,
+// "quiz-questions"]: the job watcher refetches all of them when a job ends,
+// since it does not know the lecture's subject.
+export function isSubjectPracticeQueryKey(key: QueryKey): boolean {
+  return (
+    key.length === 3 && key[0] === "subjects" && (key[2] === "flashcards" || key[2] === "quiz-questions")
+  );
+}
+
+// GET /api/subjects/{id}/quiz-questions: the questions from all the subject's
+// lectures with the answer key, explanation, source and lecture, ordered by
+// lecture date, then file and page. 404 NOT_FOUND for someone else's or a
+// missing subject.
+export function fetchSubjectQuizQuestions(subjectId: string): Promise<QuizQuestion[]> {
+  return apiFetch<QuizQuestion[]>(`/api/subjects/${encodeURIComponent(subjectId)}/quiz-questions`);
+}
+
 // What the student may change on a card: the question (front) and the answer
 // (back). A field left out is not changed.
 export type FlashcardUpdateInput = { front?: string; back?: string };

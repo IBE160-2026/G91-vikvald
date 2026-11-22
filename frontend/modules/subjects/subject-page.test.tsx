@@ -7,7 +7,7 @@ import { focusHeadingAfterNavigation, headingFocusPending, resetHeadingFocus } f
 
 import { SubjectPage } from "./pages/subject-page";
 import type { SubjectFileCounts } from "@/modules/files/types";
-import type { SubjectFlashcard } from "@/modules/practice/types";
+import type { QuizQuestion, SubjectFlashcard } from "@/modules/practice/types";
 import type { Lecture, Subject } from "./types";
 
 // The real notFound() throws to show app/(app)/not-found.tsx; here it only records the call.
@@ -51,6 +51,21 @@ const FILE_COUNTS: SubjectFileCounts = {
 
 // The cards GET /api/subjects/a/flashcards answers with (none by default).
 let subjectFlashcards: SubjectFlashcard[] = [];
+
+// The questions GET /api/subjects/a/quiz-questions answers with (none by default).
+let subjectQuizQuestions: QuizQuestion[] = [];
+
+function quizQuestion(id: string, lectureId: string): QuizQuestion {
+  return {
+    id,
+    question: `Hva er ${id}?`,
+    options: ["a", "b", "c", "d"],
+    correct_index: 0,
+    explanation: `${id} er a.`,
+    source: { file_id: "f1", file_name: "notater.pdf", page_no: 1 },
+    lecture: { id: lectureId, name: lectureId },
+  };
+}
 
 function flashcard(id: string, lectureId: string): SubjectFlashcard {
   return {
@@ -99,6 +114,11 @@ function respond(lectures: Lecture[] = LECTURES, fileCounts: SubjectFileCounts =
       if (!store.has(cards[1])) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
       return jsonResponse(200, cards[1] === "a" ? subjectFlashcards : []);
     }
+    const questions = path.match(/^\/api\/subjects\/([^/]+)\/quiz-questions$/);
+    if (questions) {
+      if (!store.has(questions[1])) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
+      return jsonResponse(200, questions[1] === "a" ? subjectQuizQuestions : []);
+    }
     const preview = path.match(/^\/api\/subjects\/([^/]+)\/delete-preview$/);
     if (preview) {
       const own = lectureStore.filter((lecture) => lecture.subject_id === preview[1]);
@@ -146,6 +166,7 @@ function postCalls() {
 
 beforeEach(() => {
   subjectFlashcards = [];
+  subjectQuizQuestions = [];
   vi.stubGlobal("fetch", fetchMock);
   respond();
 });
@@ -270,7 +291,7 @@ describe("emnesiden", () => {
     async (opener) => {
       fetchMock.mockImplementation(async (url, init) => {
         if (init?.method === "PATCH") return jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } });
-        if (String(url).endsWith("/flashcards")) return jsonResponse(200, []);
+        if (String(url).endsWith("/flashcards") || String(url).endsWith("/quiz-questions")) return jsonResponse(200, []);
         return jsonResponse(200, String(url) === "/api/subjects" ? [MARKETING] : MARKETING);
       });
       renderPage();
@@ -552,6 +573,64 @@ describe("emnesiden", () => {
       const fake = fetchMock.getMockImplementation()!;
       fetchMock.mockImplementation(async (url, init) =>
         String(url).endsWith("/flashcards")
+          ? jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } })
+          : fake(url, init),
+      );
+      renderPage();
+      const alert = await within(await screen.findByRole("region", { name: "Øv på hele emnet" })).findByRole("alert");
+      expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
+    });
+
+    it("FR-34, UX-DR14: raden Quiz under Flashcards med «8 spørsmål fra 2 forelesninger» og «Start ›» til emneøkten", async () => {
+      subjectFlashcards = [flashcard("a", "l1")];
+      subjectQuizQuestions = ["a", "b", "c", "d"]
+        .map((id) => quizQuestion(id, "l1"))
+        .concat(["e", "f", "g", "h"].map((id) => quizQuestion(id, "l2")));
+      renderPage();
+      expect(await screen.findByText("8 spørsmål fra 2 forelesninger")).toBeTruthy();
+      const section = practiceSection();
+      const titles = within(section).getAllByRole("heading", { level: 3 }).map((heading) => heading.textContent);
+      expect(titles).toEqual(["Flashcards", "Quiz"]);
+      const link = within(section).getByRole("link", { name: "Start quiz på hele emnet" });
+      expect(link.getAttribute("href")).toBe("/emner/a/quiz");
+      expect(link.dataset.variant).toBe("text");
+      expect(link.querySelector("svg")).toBeTruthy();
+      // Visible text «Start», the rest only for screen readers.
+      expect(link.querySelector(".sr-only")!.textContent).toBe("quiz på hele emnet");
+      // Always on one line with the action to the right.
+      const row = link.closest("[data-slot='practice-all-row']")!;
+      expect(row.className).toContain("flex-row");
+      expect(row.className).not.toContain("flex-col");
+    });
+
+    it("FR-34: ett spørsmål står i entall: «1 spørsmål fra 1 forelesning»", async () => {
+      subjectQuizQuestions = [quizQuestion("a", "l1")];
+      renderPage();
+      expect(await screen.findByText("1 spørsmål fra 1 forelesning")).toBeTruthy();
+    });
+
+    it("UX-DR14: bare kort gir bare raden Flashcards", async () => {
+      subjectFlashcards = [flashcard("a", "l1")];
+      const client = renderPage();
+      expect(await screen.findByText("1 kort fra 1 forelesning")).toBeTruthy();
+      await waitFor(() => expect(client.getQueryState(["subjects", "a", "quiz-questions"])?.status).toBe("success"));
+      expect(within(practiceSection()).queryByRole("heading", { level: 3, name: "Quiz" })).toBeNull();
+    });
+
+    it("UX-DR14: bare quizspørsmål gir seksjonen med bare raden Quiz", async () => {
+      subjectQuizQuestions = [quizQuestion("a", "l1")];
+      const client = renderPage();
+      expect(await screen.findByText("1 spørsmål fra 1 forelesning")).toBeTruthy();
+      await waitFor(() => expect(client.getQueryState(["subjects", "a", "flashcards"])?.status).toBe("success"));
+      const titles = within(practiceSection()).getAllByRole("heading", { level: 3 }).map((heading) => heading.textContent);
+      expect(titles).toEqual(["Quiz"]);
+    });
+
+    it("FR-34: feil når quizspørsmålene hentes gir reserveteksten i seksjonen", async () => {
+      respond();
+      const fake = fetchMock.getMockImplementation()!;
+      fetchMock.mockImplementation(async (url, init) =>
+        String(url).endsWith("/quiz-questions")
           ? jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } })
           : fake(url, init),
       );

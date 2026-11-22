@@ -71,5 +71,37 @@ describe("MissedList", () => {
       expect(within(list).getByText(symbol, { exact: false, selector: "span" }).getAttribute("aria-hidden")).toBe("true");
     }
     expect(list.querySelectorAll("[data-slot='source-link']")).toHaveLength(1);
+    expect(list.querySelector("[data-slot='missed-lecture']")).toBeNull();
+  });
+
+  it("FR-34: i en quiz på hele emnet står forelesningen under kilden på hver rad", () => {
+    const item = {
+      source: { file_name: "merkevare-notater.pdf", page_no: 7 },
+      chosen: "B",
+      correct: "A",
+      explanation: "A er riktig.",
+    };
+    const { container } = render(
+      <MissedList
+        kind="quiz"
+        items={[
+          { ...item, id: "a", number: 1, front: "Hva er A?", lecture: "Uke 37: Merkevare" },
+          { ...item, id: "b", number: 3, front: "Hva er C?", lecture: "Uke 38: Pris" },
+        ]}
+      />,
+    );
+    const rows = within(container.querySelector("[data-slot='missed-list']") as HTMLElement).getAllByRole("listitem");
+    expect(rows.map((row) => row.querySelector("[data-slot='missed-lecture']")!.textContent)).toEqual([
+      "Forelesning: Uke 37: Merkevare",
+      "Forelesning: Uke 38: Pris",
+    ]);
+    const lecture = rows[0].querySelector("[data-slot='missed-lecture']")!;
+    expect(lecture.className).toContain("text-caption");
+    expect(lecture.className).toContain("text-ink-muted");
+    // Right under the source.
+    expect(lecture.previousElementSibling!.getAttribute("data-slot")).toBe("source-link");
+    // Read as «Forelesning: …» (the label is visually hidden), not run together with the source.
+    expect(lecture.querySelector(".sr-only")!.textContent).toBe("Forelesning: ");
+    expect(rows[0].textContent).toContain("merkevare-notater.pdf, side 7Forelesning: Uke 37: Merkevare");
   });
 });

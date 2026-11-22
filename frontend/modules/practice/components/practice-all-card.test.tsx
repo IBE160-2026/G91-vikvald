@@ -47,6 +47,15 @@ describe("PracticeAllCard", () => {
     expect(card.querySelector("hr")!.className).toContain("border-divider");
   });
 
+  it("UX-DR14: en inline rad står alltid på én linje med handlingen til høyre", () => {
+    render(<PracticeAllCard rows={[FLASHCARDS, { ...QUIZ, inline: true }]} />);
+    const [flashcards, quiz] = document.querySelectorAll("[data-slot='practice-all-row']");
+    expect(flashcards!.className).toContain("flex-col");
+    expect(quiz!.className).toContain("flex-row");
+    expect(quiz!.className).toContain("justify-between");
+    expect(quiz!.className).not.toContain("flex-col");
+  });
+
   it("UX-DR14: uten rader vises verken overskrift eller kort", () => {
     const { container } = render(<PracticeAllCard rows={[]} />);
     expect(container.innerHTML).toBe("");

@@ -50,12 +50,18 @@ function question(id: string, term: string, correct: number, page = 1): QuizQues
 }
 
 let questions: QuizQuestion[] = [];
+// GET /api/subjects/s1/quiz-questions: questions from two lectures.
+let subjectQuestions: QuizQuestion[] = [];
 let lectureStatus = 200;
 let questionsStatus = 200;
 let saveStatus = 204;
 
 beforeEach(() => {
   questions = [question("a", "Merkevare", 1), question("b", "Pris", 0), question("c", "Segment", 3, 2)];
+  subjectQuestions = [
+    question("a", "Merkevare", 1),
+    { ...question("p", "Rabatt", 2), lecture: { id: "l2", name: "Uke 38: Pris" } },
+  ];
   lectureStatus = 200;
   questionsStatus = 200;
   saveStatus = 204;
@@ -76,6 +82,10 @@ beforeEach(() => {
       return jsonResponse(200, LECTURE);
     }
     if (path === "/api/subjects/s1") return jsonResponse(200, SUBJECT);
+    if (path === "/api/subjects/s1/quiz-questions") {
+      if (questionsStatus !== 200) return jsonResponse(questionsStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
+      return jsonResponse(200, subjectQuestions);
+    }
     if (path === "/api/lectures/l1/quiz-questions") {
       if (questionsStatus !== 200) return jsonResponse(questionsStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
       return jsonResponse(200, questions);
@@ -92,12 +102,12 @@ afterEach(() => {
   document.title = "";
 });
 
-function renderPage() {
+function renderPage(props: { lectureId: string } | { subjectId: string } = { lectureId: "l1" }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
       <SideMenuProvider>
-        <QuizSessionPage lectureId="l1" />
+        <QuizSessionPage {...props} />
       </SideMenuProvider>
     </QueryClientProvider>,
   );
@@ -488,6 +498,118 @@ describe("QuizSessionPage", () => {
       expect(h1.className).toContain("sr-only");
       expect(screen.queryByRole("region", { name: "Quiz" })).toBeNull();
       expect(screen.getByText("SPØRSMÅL 1 AV 3")).toBeTruthy();
+    });
+  });
+  describe("hele emnet (story 4.4)", () => {
+    function renderSubject(subjectId = "s1") {
+      renderPage({ subjectId });
+    }
+
+    async function subjectStarted() {
+      expect(await screen.findByText("/ 2")).toBeTruthy();
+    }
+
+    it("FR-34: panelet viser «Quiz» og «Markedsføring, hele emnet», og økten har spørsmålene fra alle forelesningene", async () => {
+      renderSubject();
+      await subjectStarted();
+      await waitFor(() => expect(document.title).toBe("Quiz – Markedsføring – Studiekamerat"));
+      const panel = screen.getByRole("region", { name: "Quiz" });
+      expect(within(panel).getByText("Markedsføring, hele emnet")).toBeTruthy();
+      expect(screen.getByText("SPØRSMÅL 1 AV 2")).toBeTruthy();
+      expect(heading()).toBe("Hva er Merkevare?");
+      expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/subjects/s1/quiz-questions")).toBe(true);
+      expect(fetchMock.mock.calls.some(([url]) => String(url).startsWith("/api/lectures"))).toBe(false);
+    });
+
+    it("FR-34: forklaringskortet viser forelesningen til hvert spørsmål", async () => {
+      renderSubject();
+      await subjectStarted();
+      answer("B");
+      const card = document.querySelector("[data-slot='explanation-card']") as HTMLElement;
+      expect(within(card).getByText("Uke 37: Merkevare")).toBeTruthy();
+      fireEvent.click(button("Neste spørsmål"));
+      answer("C");
+      const next = document.querySelector("[data-slot='explanation-card']") as HTMLElement;
+      expect(within(next).getByText("Uke 38: Pris")).toBeTruthy();
+    });
+
+    it("FR-34, FR-36: resultatet har «Markedsføring, hele emnet», forelesningen ved kilden i lista og «Tilbake til emnet»", async () => {
+      renderSubject();
+      await subjectStarted();
+      answer("A");
+      fireEvent.click(button("Neste spørsmål"));
+      answer("A");
+      fireEvent.click(button("Se resultatet"));
+      expect(screen.getByRole("heading", { level: 2, name: "0 av 2 riktige" })).toBeTruthy();
+      expect(
+        screen.getByText("Markedsføring, hele emnet · her er de 2 du svarte feil på, med riktig svar og kilde"),
+      ).toBeTruthy();
+      const rows = within(document.querySelector("[data-slot='missed-list']") as HTMLElement).getAllByRole("listitem");
+      expect(rows.map((row) => row.querySelector("[data-slot='missed-lecture']")!.textContent)).toEqual([
+        "Forelesning: Uke 37: Merkevare",
+        "Forelesning: Uke 38: Pris",
+      ]);
+      expect(screen.getByRole("link", { name: "Tilbake til emnet" }).getAttribute("href")).toBe("/emner/s1");
+      expect(screen.queryByRole("link", { name: "Tilbake til forelesningen" })).toBeNull();
+      expect(screen.getByText("tilbake til emnet")).toBeTruthy();
+      await waitFor(() =>
+        expect(saved()).toEqual([
+          expect.objectContaining({ kind: "quiz", subject_id: "s1", lecture_id: null, aborted: false, answered: 2 }),
+        ]),
+      );
+      press("Escape");
+      expect(push).toHaveBeenCalledWith("/emner/s1");
+    });
+
+    it("FR-56: avsluttet etter ett bekreftet svar lagres med lecture_id null og aborted, og Esc går til emnesiden", async () => {
+      renderSubject();
+      await subjectStarted();
+      answer("B");
+      press("Escape");
+      expect(screen.getByRole("heading", { level: 2, name: "Avbrutt etter 1 av 2" })).toBeTruthy();
+      await waitFor(() =>
+        expect(saved()).toEqual([
+          expect.objectContaining({ kind: "quiz", subject_id: "s1", lecture_id: null, aborted: true, answered: 1 }),
+        ]),
+      );
+      expect(push).not.toHaveBeenCalled();
+      press("Escape");
+      expect(push).toHaveBeenCalledWith("/emner/s1");
+    });
+
+    it("FR-56: «Avslutt økt» uten bekreftet svar går rett til emnesiden uten POST", async () => {
+      renderSubject();
+      await subjectStarted();
+      fireEvent.click(button("Avslutt økt"));
+      expect(push).toHaveBeenCalledWith("/emner/s1");
+      cleanup();
+      expect(saved()).toHaveLength(0);
+    });
+
+    it("FR-36: «Ta quizen igjen» henter emnets spørsmål på nytt", async () => {
+      renderSubject();
+      await subjectStarted();
+      answer("B");
+      fireEvent.click(button("Avslutt økt"));
+      const before = fetchMock.mock.calls.filter(([url]) => String(url) === "/api/subjects/s1/quiz-questions").length;
+      subjectQuestions = [...subjectQuestions, question("d", "Kanal", 2)];
+      fireEvent.click(button("Ta quizen igjen"));
+      expect(await screen.findByText("SPØRSMÅL 1 AV 3")).toBeTruthy();
+      expect(fetchMock.mock.calls.filter(([url]) => String(url) === "/api/subjects/s1/quiz-questions").length).toBe(
+        before + 1,
+      );
+    });
+
+    it("A15: uten spørsmål vises tomtilstanden med «Tilbake til emnet»", async () => {
+      subjectQuestions = [];
+      renderSubject();
+      expect(await screen.findByRole("heading", { level: 1, name: "Det finnes ingen quizspørsmål her ennå." })).toBeTruthy();
+      expect(screen.getByRole("link", { name: "Tilbake til emnet" }).getAttribute("href")).toBe("/emner/s1");
+    });
+
+    it("FR-4: andres eller ukjent emne gir «Fant ikke siden»", async () => {
+      renderSubject("s9");
+      await waitFor(() => expect(notFound).toHaveBeenCalled());
     });
   });
 });

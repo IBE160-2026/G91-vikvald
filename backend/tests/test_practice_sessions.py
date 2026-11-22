@@ -313,3 +313,17 @@ async def test_fr56_quizokt_lagres(client: AsyncClient, engine: AsyncEngine) -> 
     [row] = await _rows(engine)
     assert (row.kind, row.aborted) == ("quiz", True)
     assert (row.shown, row.answered, row.correct, row.partial, row.wrong) == (5, 2, 1, 0, 1)
+
+
+async def test_fr56_quizokt_for_hele_emnet_lagres_uten_forelesning(client: AsyncClient, engine: AsyncEngine) -> None:
+    # A whole-subject quiz (story 4.4, AR-9): lecture_id null.
+    await _log_in_new_user(client)
+    subject_id = await _new_subject(client)
+    body = _body(subject_id, None, kind="quiz", aborted=True, shown=8, answered=1, correct=0, wrong=1)
+
+    assert (await client.post(SESSIONS, json=body)).status_code == 204
+
+    [row] = await _rows(engine)
+    assert str(row.subject_id) == subject_id
+    assert row.lecture_id is None
+    assert (row.kind, row.aborted, row.answered, row.correct, row.wrong) == ("quiz", True, 1, 0, 1)
