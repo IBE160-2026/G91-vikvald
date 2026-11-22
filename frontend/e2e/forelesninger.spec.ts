@@ -72,9 +72,9 @@ test.describe("Forelesninger (story 2.2)", () => {
     await registerNewUser(page);
     const subjectId = await createSubjectViaApi(page, "Markedsføring");
 
-    // The front page says 0 lectures.
+    // The front page's card says there are no lectures.
     await page.goto("/");
-    await expect(page.locator("main li")).toContainText("0 forelesninger");
+    await expect(page.locator("main li")).toContainText("Ingen forelesninger ennå");
 
     await page.goto(`/emner/${subjectId}`);
     await expect(page.getByRole("heading", { level: 2 })).toHaveText("Forelesninger etter dato");
@@ -123,7 +123,7 @@ test.describe("Forelesninger (story 2.2)", () => {
     await expectNoAxeViolations(page);
 
     await page.goto("/");
-    await expect(page.locator("main li")).toContainText("1 forelesning");
+    await expect(page.locator("main li")).toContainText("0 av 1 forelesning øvd");
   });
 
   test("FR-15: tabellen og sidemenyen har API-rekkefølgen, ukenummer og hul prikk, og raden lenker til 04, uten axe-brudd", async ({
@@ -164,7 +164,7 @@ test.describe("Forelesninger (story 2.2)", () => {
     await expect(page.locator("main h1")).toHaveText("Uke 37: Merkevare");
 
     await page.goto("/");
-    await expect(page.locator("main li")).toContainText("3 forelesninger");
+    await expect(page.locator("main li")).toContainText("0 av 3 forelesninger øvd");
   });
 
   test("UX-DR7: et emne åpnes og lukkes med pilknappen og bare tastatur, med aria-expanded og fokusring", async ({
