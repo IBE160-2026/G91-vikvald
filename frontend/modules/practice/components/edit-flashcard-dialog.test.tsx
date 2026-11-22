@@ -114,6 +114,19 @@ describe("EditFlashcardDialog", () => {
     expect(screen.getByRole("dialog")).toBeTruthy();
   });
 
+  it("SK-6: feilen på et felt forsvinner når hun skriver i det, men ikke på det andre", () => {
+    const { front, back } = setup();
+    fireEvent.change(front, { target: { value: "" } });
+    fireEvent.change(back, { target: { value: "" } });
+    save();
+    fireEvent.change(front, { target: { value: "N" } });
+    expect(front.getAttribute("aria-invalid")).toBeNull();
+    expect(front.getAttribute("aria-describedby")).toBeNull();
+    expect(screen.queryByText("Skriv inn spørsmålet.")).toBeNull();
+    expect(back.getAttribute("aria-invalid")).toBe("true");
+    expect(screen.getByText("Skriv inn svaret.")).toBeTruthy();
+  });
+
   it("SK-6: tomt svar alene gir fokus i «Svar»", () => {
     const { front, back } = setup();
     fireEvent.change(back, { target: { value: "\n  " } });

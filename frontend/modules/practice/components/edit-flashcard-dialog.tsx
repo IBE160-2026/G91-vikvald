@@ -118,7 +118,11 @@ export function EditFlashcardDialog({ open, card, onClose, onSaved }: Props) {
           name="front"
           value={front}
           error={errors.front}
-          onChange={(event) => setFront(event.target.value)}
+          onChange={(event) => {
+            setFront(event.target.value);
+            setErrors((current) => ({ ...current, front: undefined }));
+            setFormError(null);
+          }}
         />
         <TextAreaField
           ref={backRef}
@@ -126,7 +130,11 @@ export function EditFlashcardDialog({ open, card, onClose, onSaved }: Props) {
           name="back"
           value={back}
           error={errors.back}
-          onChange={(event) => setBack(event.target.value)}
+          onChange={(event) => {
+            setBack(event.target.value);
+            setErrors((current) => ({ ...current, back: undefined }));
+            setFormError(null);
+          }}
         />
         {formError ? (
           <p role="alert" className="flex items-start gap-2 rounded-md bg-danger-tint p-3 text-meta text-danger">
