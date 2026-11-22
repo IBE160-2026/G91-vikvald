@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Trash2 } from "lucide-react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 import { useEffect, useId, useRef, type KeyboardEvent } from "react";
 
@@ -36,6 +36,9 @@ type Props = {
   onSelect: (index: number) => void;
   onConfirm: () => void;
   onNext: () => void;
+  // «Slett» in the footer (story 4.5): opens the delete confirmation. Without
+  // it, no «Slett» is shown.
+  onDelete?: () => void;
   // Put focus on the question (h2) when it appears. Not on the first question.
   focusOnMount?: boolean;
   // The hint line (the switch «Bruk hurtigtaster» is on).
@@ -62,6 +65,11 @@ type Props = {
 // ignores a held Enter as well, so a held key never confirms and moves on in
 // one press (E26). The status region is mounted from the start and empty
 // before confirmation; focus is never moved by it.
+//
+// «Slett» (story 4.5, UX-DR29): a red text button in the footer, right to the
+// left of the main button, both before and after confirmation. It only calls
+// onDelete; the choice and the confirmation stay as they are. There is no
+// «Rediger»: quiz questions cannot be edited.
 export function QuizQuestion({
   question,
   number,
@@ -72,6 +80,7 @@ export function QuizQuestion({
   onSelect,
   onConfirm,
   onNext,
+  onDelete,
   focusOnMount = false,
   showHints = false,
   colorIndex,
@@ -112,6 +121,7 @@ export function QuizQuestion({
         ref={titleRef}
         id={titleId}
         tabIndex={-1}
+        data-question-title
         className="mt-2 text-quiz-question break-words whitespace-pre-line text-ink"
       >
         {question.question}
@@ -162,22 +172,30 @@ export function QuizQuestion({
       ) : null}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <div className="min-w-0">{showHints ? <ShortcutHints hints={quizHints(hintStep)} align="start" /> : null}</div>
-        {confirmed ? (
-          <Button ref={buttonRef} size="lg" className="ml-auto" onClick={onNext} onKeyDown={nextKeyDown}>
-            {last ? (
-              "Se resultatet"
-            ) : (
-              <>
-                Neste spørsmål
-                <ArrowRight {...iconProps} />
-              </>
-            )}
-          </Button>
-        ) : (
-          <Button size="lg" className="ml-auto" disabled={selected === null} onClick={onConfirm}>
-            Bekreft svar
-          </Button>
-        )}
+        <div className="ml-auto flex flex-wrap items-center gap-3">
+          {onDelete ? (
+            <Button variant="text" className="text-danger hover:bg-danger-tint" onClick={onDelete}>
+              <Trash2 {...iconProps} />
+              Slett
+            </Button>
+          ) : null}
+          {confirmed ? (
+            <Button ref={buttonRef} size="lg" onClick={onNext} onKeyDown={nextKeyDown}>
+              {last ? (
+                "Se resultatet"
+              ) : (
+                <>
+                  Neste spørsmål
+                  <ArrowRight {...iconProps} />
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button size="lg" disabled={selected === null} onClick={onConfirm}>
+              Bekreft svar
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

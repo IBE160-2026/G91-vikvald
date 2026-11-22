@@ -20,7 +20,17 @@ const QUESTION: QuizQuestionData = {
 
 // The page's part: the choice and the confirmation, so the component can be
 // tested as the student uses it.
-function Harness({ onNext = vi.fn(), last = false, showHints = true }: { onNext?: () => void; last?: boolean; showHints?: boolean }) {
+function Harness({
+  onNext = vi.fn(),
+  last = false,
+  showHints = true,
+  onDelete,
+}: {
+  onNext?: () => void;
+  last?: boolean;
+  showHints?: boolean;
+  onDelete?: () => void;
+}) {
   const [selected, setSelected] = useState<number | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   return (
@@ -34,6 +44,7 @@ function Harness({ onNext = vi.fn(), last = false, showHints = true }: { onNext?
       onSelect={setSelected}
       onConfirm={() => setConfirmed(true)}
       onNext={onNext}
+      onDelete={onDelete}
       showHints={showHints}
       colorIndex={0}
     />
@@ -131,6 +142,43 @@ describe("QuizQuestion", () => {
     fireEvent.click(button("Bekreft svar"));
     expect(hints()).toBe("A–D velg svarEnter se resultatetEsc avslutt");
     expect(document.activeElement).toBe(button("Se resultatet"));
+  });
+
+  it("FR-37, UX-DR29: «Slett» står i bunnfeltet før og etter bekreftelse, og det finnes ingen «Rediger»", () => {
+    const onDelete = vi.fn();
+    const { container } = render(<Harness onDelete={onDelete} />);
+    const before = button("Slett");
+    expect(before.dataset.variant).toBe("text");
+    expect(before.className).toContain("text-danger");
+    // Right to the left of the main button, in the same row.
+    expect(before.nextElementSibling).toBe(button("Bekreft svar"));
+    expect(screen.queryByRole("button", { name: "Rediger" })).toBeNull();
+    fireEvent.click(screen.getByRole("radio", { name: /En pris/ }));
+    fireEvent.click(button("Bekreft svar"));
+    expect(button("Slett").nextElementSibling).toBe(button("Neste spørsmål"));
+    expect(screen.queryByRole("button", { name: "Rediger" })).toBeNull();
+    expect(container.querySelector("[data-question-title]")!.textContent).toBe("Hva er Merkevare?");
+  });
+
+  it("FR-37: klikk på «Slett» kaller bare onDelete og endrer ikke valget eller bekreftelsen", () => {
+    const onDelete = vi.fn();
+    const onNext = vi.fn();
+    render(<Harness onDelete={onDelete} onNext={onNext} />);
+    fireEvent.click(screen.getByRole("radio", { name: /En kanal/ }));
+    fireEvent.click(button("Slett"));
+    expect(onDelete).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("radio", { name: /En kanal/ }).getAttribute("aria-checked")).toBe("true");
+    expect(button("Bekreft svar").disabled).toBe(false);
+    fireEvent.click(button("Bekreft svar"));
+    fireEvent.click(button("Slett"));
+    expect(onDelete).toHaveBeenCalledTimes(2);
+    expect(onNext).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: /Neste spørsmål/ })).toBeTruthy();
+  });
+
+  it("FR-37: uten onDelete vises ingen «Slett»", () => {
+    render(<Harness />);
+    expect(screen.queryByRole("button", { name: "Slett" })).toBeNull();
   });
 
   it("UX-DR26: uten hurtigtaster er hint-linja borte", () => {

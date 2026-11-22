@@ -205,6 +205,38 @@ describe("quiz: answerCurrent og advance", () => {
     expect(gridCells(state).map((cell) => cell.mark)).toEqual(["missed", "known"]);
   });
 
+  it("FR-37, E22: et bekreftet spørsmål som slettes før «Neste», beholder svaret og ruten, og neste vises", () => {
+    const before = answerCurrent(startSession(["A", "B", "C"]), "known");
+    const state = removeCard(before, "A");
+    expect(totalCount(state)).toBe(3);
+    expect(currentCard(state)).toBe("B");
+    expect(shownCount(state)).toBe(2);
+    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 1, correct: 1, wrong: 0 });
+    expect(gridCells(state).map((cell) => [cell.id, cell.mark, cell.current])).toEqual([
+      ["A", "known", false],
+      ["B", null, true],
+      ["C", null, false],
+    ]);
+  });
+
+  it("FR-37, E22: et ubekreftet spørsmål som slettes, forsvinner fra ruten og totalen", () => {
+    const before = advance(answerCurrent(startSession(["A", "B", "C"]), "missed"));
+    const state = removeCard(before, "B");
+    expect(totalCount(state)).toBe(2);
+    expect(currentCard(state)).toBe("C");
+    expect(shownCount(state)).toBe(2);
+    expect(gridCells(state).map((cell) => cell.id)).toEqual(["A", "C"]);
+    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 1, correct: 0, wrong: 1 });
+  });
+
+  it("FR-37, E22: siste bekreftede spørsmål slettet gir en ferdig quiz; eneste ubekreftede gir en tom", () => {
+    const last = answerCurrent(advance(answerCurrent(startSession(["A", "B"]), "known")), "missed");
+    const finished = removeCard(last, "B");
+    expect(isFinished(finished)).toBe(true);
+    expect(sessionCounts(finished)).toEqual({ shown: 2, answered: 2, correct: 1, wrong: 1 });
+    expect(removeCard(startSession(["A"]), "A").order).toEqual([]);
+  });
+
   it("FR-34: en ferdig økt endres ikke", () => {
     const done = advance(startSession(["A"]));
     expect(advance(done)).toBe(done);

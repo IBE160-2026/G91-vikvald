@@ -93,3 +93,9 @@ export function updateFlashcard(id: string, input: FlashcardUpdateInput): Promis
 export function deleteFlashcard(id: string): Promise<void> {
   return apiFetch<void>(`/api/flashcards/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
+
+// DELETE /api/quiz-questions/{id} (story 4.5): 204, the question is gone. 404
+// NOT_FOUND when it is already gone (or not hers). Quiz questions cannot be edited.
+export function deleteQuizQuestion(id: string): Promise<void> {
+  return apiFetch<void>(`/api/quiz-questions/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
