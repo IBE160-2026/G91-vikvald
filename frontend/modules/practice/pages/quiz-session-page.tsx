@@ -17,13 +17,16 @@ import { fetchLecture, fetchSubject, lectureQueryKey, subjectQueryKey } from "@/
 
 import { quizAdapter } from "../adapter";
 import { fetchLectureQuizQuestions, lectureQuizQuestionsQueryKey } from "../api";
+import { MissedList, type MissedQuizItem } from "../components/missed-list";
 import { QuizQuestion } from "../components/quiz-question";
+import { ResultSummary } from "../components/result-summary";
 import { SessionPanel } from "../components/session-panel";
 import { ShortcutHints, quizResultHints } from "../components/shortcut-hints";
 import {
   advance,
   answerCurrent,
   currentCard,
+  gridCells,
   isFinished,
   sessionCounts,
   shownCount,
@@ -36,15 +39,23 @@ import type { QuizQuestion as QuizQuestionData } from "../types";
 import { useSessionSaver, type SaverSnapshot } from "../use-session-saver";
 
 const FINISHED = "Økten er ferdig";
+const FINISHED_SAVED = "Økten er ferdig og lagret";
 
-// The questions of a session: copied once from the first fetch made after the page opened, by id.
-type Session = { questions: Record<string, QuizQuestionData>; state: SessionState };
+// The questions of a session: copied once from the first fetch made after the
+// page opened, by id. answers holds the option (0–3) she confirmed on each
+// question (the first confirmation counts), for the list of wrong answers.
+type Session = {
+  questions: Record<string, QuizQuestionData>;
+  state: SessionState;
+  answers: Record<string, number>;
+};
 
 // A new session over these questions, in a new random order (FR-34).
 function newSession(questions: readonly QuizQuestionData[]): Session {
   return {
     questions: Object.fromEntries(questions.map((question) => [question.id, question])),
     state: startSession(shuffle(questions.map((question) => question.id))),
+    answers: {},
   };
 }
 
@@ -70,10 +81,19 @@ function newSession(questions: readonly QuizQuestionData[]): Session {
 // the result; with none it goes straight back and sends nothing. Navigation,
 // «Logg ut» and pagehide work as in epic 3 (the saver).
 //
-// The result (the simple view of this story; story 4.3 adds the rest): the
-// overline «QUIZ FERDIG», the h2 «11 av 15 riktige» (aborted: «Avbrutt etter
-// 12 av 20»), the lecture's name, the fallback text if saving failed, and the
-// outline button «Tilbake til forelesningen». The title gets focus; Esc goes back.
+// The result (story 4.3, mockup 10): result-summary with kind="quiz" (the
+// overline «QUIZ FERDIG», the h2 «11 av 15 riktige» or «Avbrutt etter 12 av
+// 20», the lecture's name and how many she got wrong), the fallback text if
+// saving failed, missed-list with kind="quiz" (her answer, the correct answer,
+// the explanation and the source for each wrong answer), and a footer with the
+// hint line on the left and «Tilbake til forelesningen» (outline link) and
+// «Ta quizen igjen» (primary) on the right. The title gets focus. Enter takes
+// the quiz again (not while another button or link has focus), Esc goes back.
+//
+// «Ta quizen igjen» fetches the questions again (if that fails, the session's
+// own questions are used), starts the saver over with a new session_id, and
+// starts a new session in a new order with focus on the first question. A ref
+// keeps a double press during the fetch from starting two sessions.
 //
 // Keys (lib/practice-shortcuts.ts): «a»–«d» and «A»–«D» choose (single keys,
 // only before confirmation), Enter confirms when something is chosen (and
@@ -103,6 +123,8 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
   // focus on its title.
   const [step, setStep] = useState(0);
   const [aborted, setAborted] = useState(false);
+  // «Ta quizen igjen» is waiting for the questions.
+  const restartingRef = useRef(false);
   const resultTitleRef = useRef<HTMLHeadingElement>(null);
   const shortcutsOn = useShortcutsEnabled();
   const openShortcuts = useOpenShortcuts();
@@ -147,7 +169,17 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
   function confirm() {
     if (!question || confirmed || selected === null) return;
     const mark = selected === question.correct_index ? "known" : "missed";
-    setSession((old) => (old ? { ...old, state: answerCurrent(old.state, mark) } : old));
+    const id = question.id;
+    const chosen = selected;
+    setSession((old) =>
+      old
+        ? {
+            ...old,
+            state: answerCurrent(old.state, mark),
+            answers: Object.hasOwn(old.answers, id) ? old.answers : { ...old.answers, [id]: chosen },
+          }
+        : old,
+    );
   }
 
   function next() {
@@ -155,6 +187,26 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
     setSession((old) => (old ? { ...old, state: advance(old.state) } : old));
     setSelected(null);
     setStep((old) => old + 1);
+  }
+
+  // «Ta quizen igjen»: the questions the lecture has now (or the session's own,
+  // if the fetch fails), a new order, a new session_id and a new start time.
+  async function playAgain() {
+    if (!session || restartingRef.current) return;
+    restartingRef.current = true;
+    const own = session.state.order.map((id) => session.questions[id]);
+    try {
+      const result = await questions.refetch();
+      const fresh = !result.isError && result.data ? result.data : own;
+      saver.restart();
+      setSession(newSession(fresh));
+      setAborted(false);
+      setSelected(null);
+      // A new key for the question, and focus on its title when it appears.
+      setStep((old) => old + 1);
+    } finally {
+      restartingRef.current = false;
+    }
   }
 
   // «Avslutt økt» and Esc: nothing confirmed goes straight back; otherwise the
@@ -194,6 +246,7 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
     ? []
     : showResult
       ? [
+          { key: "Enter", action: () => void playAgain() },
           { key: "Escape", action: back },
           { key: "?", action: openShortcuts },
         ]
@@ -250,12 +303,13 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
         {collapsed ? <h1 className="sr-only">{quizAdapter.kindLabel}</h1> : null}
         {showResult ? (
           <QuizResult
-            state={session.state}
+            session={session}
             aborted={aborted}
             scopeName={name}
             saveFailed={saver.status === "failed"}
             titleRef={resultTitleRef}
             backHref={backPath}
+            onPlayAgain={() => void playAgain()}
             showHints={shortcutsOn}
           />
         ) : question ? (
@@ -277,67 +331,88 @@ export function QuizSessionPage({ lectureId }: { lectureId: string }) {
         ) : null}
       </div>
       <div role="status" className="sr-only">
-        {finished ? FINISHED : ""}
+        {finished ? (saver.status === "saved" ? FINISHED_SAVED : FINISHED) : ""}
       </div>
     </div>
   );
 }
 
-// The title over the quiz result: «11 av 15 riktige», or where she stopped
-// («Avbrutt etter 12 av 20», with 12 the confirmed answers).
-export function quizResultTitle({
-  total,
-  answered,
-  correct,
-  aborted,
-}: {
-  total: number;
-  answered: number;
-  correct: number;
-  aborted: boolean;
-}): string {
-  return aborted ? `Avbrutt etter ${answered} av ${total}` : `${correct} av ${total} riktige`;
-}
-
 type QuizResultProps = {
-  state: SessionState;
+  session: Session;
   aborted: boolean;
   scopeName: string;
   saveFailed: boolean;
   titleRef: Ref<HTMLHeadingElement>;
   backHref: string;
+  onPlayAgain: () => void;
   showHints: boolean;
 };
 
-// The simple result of story 4.2 (result-summary, mockup 10, without what
-// story 4.3 adds): the overline QUIZ FERDIG, the title in result-title (an h2
-// that gets focus), the lecture's name, the fallback text if saving failed,
-// the outline button «Tilbake til forelesningen», and the hint line.
-function QuizResult({ state, aborted, scopeName, saveFailed, titleRef, backHref, showHints }: QuizResultProps) {
-  const counts = sessionCounts(state);
+// The result page (mockup 10) in the quiz column: the summary, the fallback
+// text if saving failed, the wrong answers (in the grid's order, with what she
+// chose), and the footer with the hint line on the left and the buttons on
+// the right.
+function QuizResult({
+  session,
+  aborted,
+  scopeName,
+  saveFailed,
+  titleRef,
+  backHref,
+  onPlayAgain,
+  showHints,
+}: QuizResultProps) {
+  const counts = sessionCounts(session.state);
+  const missed: MissedQuizItem[] = gridCells(session.state)
+    .filter((cell) => cell.mark === "missed")
+    .map((cell) => {
+      const question = session.questions[cell.id];
+      const chosen = session.answers[cell.id];
+      return {
+        id: cell.id,
+        number: cell.number,
+        front: question.question,
+        source: question.source,
+        chosen: chosen === undefined ? "" : question.options[chosen],
+        correct: question.options[question.correct_index],
+        explanation: question.explanation,
+      };
+    });
+
   return (
     <div data-slot="quiz-result" className="flex w-full max-w-quiz-column flex-col">
-      <p className="text-overline text-ink-muted">QUIZ FERDIG</p>
-      <h2 ref={titleRef} tabIndex={-1} className="mt-2 text-result-title text-ink">
-        {quizResultTitle({ total: state.order.length, answered: counts.answered, correct: counts.correct, aborted })}
-      </h2>
-      <p className="mt-2 text-body-sm break-words text-ink-muted">{scopeName}</p>
+      <ResultSummary
+        kind="quiz"
+        total={session.state.order.length}
+        counts={counts}
+        aborted={aborted}
+        scopeName={scopeName}
+        titleRef={titleRef}
+      />
       {saveFailed ? (
         <p role="alert" className="mt-4 flex items-start gap-2 rounded-md bg-danger-tint p-3 text-meta text-danger">
           <CircleAlert {...iconProps} className="mt-[3px] shrink-0" />
           <span>{FALLBACK_MESSAGE}</span>
         </p>
       ) : null}
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Button asChild variant="outline" size="lg" className="w-[224px]">
-          <Link href={backHref}>Tilbake til forelesningen</Link>
-        </Button>
-      </div>
-      {showHints ? (
-        <div className="mt-5">
-          <ShortcutHints hints={quizResultHints("tilbake til forelesningen")} align="start" />
+      {missed.length > 0 ? (
+        <div className="mt-6">
+          <MissedList kind="quiz" items={missed} />
         </div>
       ) : null}
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <div className="min-w-0">
+          {showHints ? <ShortcutHints hints={quizResultHints("tilbake til forelesningen")} align="start" /> : null}
+        </div>
+        <div className="ml-auto flex flex-wrap gap-3">
+          <Button asChild variant="outline" size="lg">
+            <Link href={backHref}>Tilbake til forelesningen</Link>
+          </Button>
+          <Button size="lg" onClick={onPlayAgain}>
+            Ta quizen igjen
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
