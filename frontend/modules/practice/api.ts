@@ -36,3 +36,23 @@ export function isSubjectFlashcardsQueryKey(key: QueryKey): boolean {
 export function fetchSubjectFlashcards(subjectId: string): Promise<SubjectFlashcard[]> {
   return apiFetch<SubjectFlashcard[]>(`/api/subjects/${encodeURIComponent(subjectId)}/flashcards`);
 }
+
+// What the student may change on a card: the question (front) and the answer
+// (back). A field left out is not changed.
+export type FlashcardUpdateInput = { front?: string; back?: string };
+
+// PATCH /api/flashcards/{id}: 200 with the saved card (the text trimmed at both
+// ends). 422 FLASHCARD_FRONT_REQUIRED / FLASHCARD_BACK_REQUIRED for an empty
+// field (nothing is saved); 404 NOT_FOUND for someone else's or a missing card.
+export function updateFlashcard(id: string, input: FlashcardUpdateInput): Promise<Flashcard> {
+  return apiFetch<Flashcard>(`/api/flashcards/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+// DELETE /api/flashcards/{id}: 204, the card is gone. 404 NOT_FOUND when it is
+// already gone (or not hers).
+export function deleteFlashcard(id: string): Promise<void> {
+  return apiFetch<void>(`/api/flashcards/${encodeURIComponent(id)}`, { method: "DELETE" });
+}

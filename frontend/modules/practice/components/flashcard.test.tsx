@@ -91,4 +91,34 @@ describe("Flashcard", () => {
     expect(known.compareDocumentPosition(hints) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(hints.textContent).toContain("Mellomrom snu kortet");
   });
+
+  it("FR-27: et snudd kort har kilden til venstre og «Rediger» og «Slett» som tekstknapper til høyre", () => {
+    const onEdit = vi.fn();
+    const onDelete = vi.fn();
+    const onFlip = vi.fn();
+    const { container } = render(
+      <Flashcard card={CARD} flipped onFlip={onFlip} onMark={vi.fn()} onEdit={onEdit} onDelete={onDelete} />,
+    );
+    const footer = container.querySelector("[data-slot='flashcard-footer']")!;
+    expect(footer.className).toContain("justify-between");
+    expect(footer.className).toContain("flex-wrap");
+    const edit = screen.getByRole("button", { name: "Rediger" });
+    const remove = screen.getByRole("button", { name: "Slett" });
+    expect(edit.dataset.variant).toBe("text");
+    expect(remove.dataset.variant).toBe("text");
+    expect(remove.className).toContain("text-danger");
+    const source = footer.querySelector("[data-slot='source-link']")!;
+    expect(source.compareDocumentPosition(edit) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    fireEvent.click(edit);
+    fireEvent.click(remove);
+    expect(onEdit).toHaveBeenCalledOnce();
+    expect(onDelete).toHaveBeenCalledOnce();
+    expect(onFlip).not.toHaveBeenCalled();
+  });
+
+  it("FR-27: et kort som ikke er snudd, har ikke «Rediger» og «Slett»", () => {
+    render(<Flashcard card={CARD} flipped={false} onFlip={vi.fn()} onMark={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />);
+    expect(screen.queryByRole("button", { name: "Rediger" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Slett" })).toBeNull();
+  });
 });
