@@ -4,6 +4,8 @@ import { Fragment, type ReactNode } from "react";
 import { iconProps } from "@/components/icon";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 
+import type { LastSessionLines } from "../last-session";
+
 // One practice type in the card: «Flashcards», «120 kort fra 6 forelesninger»
 // and its button. Quiz is added the same way, free text later.
 export type PracticeAllRow = {
@@ -21,6 +23,9 @@ type Props = {
   rows: readonly PracticeAllRow[];
   // A query behind the rows failed: the fallback text in role="alert".
   error?: boolean;
+  // SISTE ØKT at the bottom (story 5.1), already as text (last-session.ts).
+  // Left out when the subject has no sessions.
+  lastSession?: LastSessionLines | null;
 };
 
 // practice-all-card (DESIGN.md "Oversikt", mockup 03): the h2 «Øv på hele
@@ -31,7 +36,13 @@ type Props = {
 // query on the card). An inline row keeps its action to the right at every
 // width. No rows and no error: nothing at all, neither heading
 // nor card.
-export function PracticeAllCard({ rows, error = false }: Props) {
+//
+// SISTE ØKT (UX-DR14, mockup 03) stands at the bottom of the card, under a
+// hairline: the overline SISTE ØKT (an h3 «Siste økt» for screen readers), the
+// type and scope («Quiz · Uke 37: Merkevare») and the date and result
+// («09.11 · 12 av 15 riktige»). It is shown only inside the card, so only when
+// the card has at least one row.
+export function PracticeAllCard({ rows, error = false, lastSession = null }: Props) {
   if (rows.length === 0 && !error) return null;
   return (
     <section aria-labelledby="practice-all-heading">
@@ -69,6 +80,19 @@ export function PracticeAllCard({ rows, error = false }: Props) {
                 </div>
               </Fragment>
             ))}
+            {lastSession ? (
+              <>
+                <hr className="my-4 border-divider" />
+                <div data-slot="last-session">
+                  <h3 className="sr-only">Siste økt</h3>
+                  <p aria-hidden="true" className="text-overline text-ink-muted">
+                    SISTE ØKT
+                  </p>
+                  <p className="mt-2 text-label font-medium text-ink">{lastSession.title}</p>
+                  <p className="mt-1 text-body-sm text-ink-muted">{lastSession.detail}</p>
+                </div>
+              </>
+            ) : null}
           </div>
         ) : null}
       </div>
