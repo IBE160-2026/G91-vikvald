@@ -1,8 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { CircleAlert, Plus } from "lucide-react";
-import Link from "next/link";
 import { useRef, useState } from "react";
 
 import { iconProps } from "@/components/icon";
@@ -10,27 +9,39 @@ import { Button } from "@/components/ui/button";
 import { examLine } from "@/lib/exam";
 import { useFocusHeadingOnArrival } from "@/lib/focus-heading";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
+import { fetchFileCounts, fileCountsQueryKey } from "@/modules/files/api";
+import type { SubjectFileCounts } from "@/modules/files/types";
 import { OVERVIEW_QUERY_KEY, fetchOverview } from "@/modules/practice/api";
 import type { Overview } from "@/modules/practice/types";
 
 import { SUBJECTS_QUERY_KEY, fetchSubjects } from "../api";
-import { SubjectDot } from "../components/subject-dot";
+import { SubjectCard } from "../components/subject-card";
 import { SubjectFormDialog } from "../components/subject-form-dialog";
-import { formatDate, lectureCountLabel, semesterLabel } from "../format";
+import { semesterLabel } from "../format";
 import type { Subject } from "../types";
 
 // The front page (mockup 02): no sidebar, 80 px margin on both sides. The h1
 // «Dine emner», the semester and today's date under it, and the outline button
-// «Nytt emne» on the right. Her subjects stand in a simple list in a white card
-// (epic 5 replaces it with the semester line and subject cards). With no subjects
-// there is one sentence about the app and the primary button «Lag ditt første emne».
-// Between the subtitle and the list stands one exam line per subject (story
-// 5.3): the name and «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd».
+// «Nytt emne» on the right. Under the subtitle stands one exam line per subject
+// (story 5.3): the name and «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger
+// øvd». Under the lines, one subject card per subject in a grid (story 5.4,
+// FR-58, UX-DR12). With no subjects there is one sentence about the app and the
+// primary button «Lag ditt første emne».
 // After a subject is deleted she lands here, and the h1 gets focus (#75).
 export function HomePage() {
   const subjects = useQuery({ queryKey: SUBJECTS_QUERY_KEY, queryFn: fetchSubjects });
-  // The counts N and M (story 5.3). Refetched when a session is saved.
+  // The counts N and M (story 5.3) and «øvd» per lecture for the cards (5.4).
+  // Invalidated when a session is saved, so the page shows the new status
+  // without a reload.
   const overview = useQuery({ queryKey: OVERVIEW_QUERY_KEY, queryFn: fetchOverview });
+  // The cards' counts: each subject's file counts, under the same query key as
+  // the lecture table on 03 (refetched each time the page is shown).
+  const fileCounts = useQueries({
+    queries: (subjects.data ?? []).map((subject) => ({
+      queryKey: fileCountsQueryKey(subject.id),
+      queryFn: () => fetchFileCounts(subject.id),
+    })),
+  });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [today] = useState(() => new Date());
   const hasSubjects = (subjects.data?.length ?? 0) > 0;
@@ -63,7 +74,14 @@ export function HomePage() {
 
       {subjects.data && hasSubjects ? <ExamLines subjects={subjects.data} overview={overview.data} /> : null}
 
-      {subjects.data && hasSubjects ? <SubjectList subjects={subjects.data} /> : null}
+      {subjects.data && hasSubjects ? (
+        <SubjectCards
+          subjects={subjects.data}
+          overview={overview.data}
+          overviewError={overview.isError}
+          fileCounts={fileCounts.map((query) => ({ data: query.data, isError: query.isError }))}
+        />
+      ) : null}
 
       {subjects.data && !hasSubjects ? (
         <div className="mt-6 flex flex-col items-start gap-4">
@@ -85,8 +103,7 @@ export function HomePage() {
 // overview. Until the overview is loaded, or when it fails, only the exam part
 // is shown. Today is read again every time the page is drawn.
 // A list for screen readers (role="list"), built from div elements so it is
-// not one more `li` in the page: the user journeys in e2e/brukerreiser/ find
-// the subject list's rows as `main li`, and they stay unchanged.
+// not one more `li` in the page: `main li` is the subject cards.
 function ExamLines({ subjects, overview }: { subjects: Subject[]; overview: Overview | undefined }) {
   const today = new Date();
   return (
@@ -104,27 +121,39 @@ function ExamLines({ subjects, overview }: { subjects: Subject[]; overview: Over
   );
 }
 
-function SubjectList({ subjects }: { subjects: Subject[] }) {
+// The subject cards in a grid (DESIGN.md "Layout", mockup 02): a `ul` with one
+// `li` per card in the subject list's order, card-gap between them. Three
+// columns when the content is at least 768 px wide, two from 576 px, otherwise
+// one (a container query on the list's own width).
+function SubjectCards({
+  subjects,
+  overview,
+  overviewError,
+  fileCounts,
+}: {
+  subjects: Subject[];
+  overview: Overview | undefined;
+  overviewError: boolean;
+  fileCounts: { data: SubjectFileCounts | undefined; isError: boolean }[];
+}) {
   return (
-    <ul className="mt-6 rounded-lg border border-border-card bg-surface shadow-lift">
-      {subjects.map((subject) => (
-        <li
-          key={subject.id}
-          className="flex items-center gap-4 border-b border-divider px-4 py-3 last:border-b-0"
-        >
-          <SubjectDot colorIndex={subject.color_index} />
-          <Link
-            href={`/emner/${subject.id}`}
-            className="min-w-0 flex-1 truncate rounded-sm text-item-title text-ink hover:text-brand"
-          >
-            {subject.name}
-          </Link>
-          <span className="text-meta text-ink-muted">{lectureCountLabel(subject.lecture_count)}</span>
-          <span className="w-[160px] text-right text-meta text-ink-muted">
-            Eksamen {formatDate(subject.exam_date)}
-          </span>
-        </li>
-      ))}
-    </ul>
+    <div className="@container mt-6">
+      <ul className="grid grid-cols-1 gap-card-gap @min-[576px]:grid-cols-2 @min-[768px]:grid-cols-3">
+        {subjects.map((subject, index) => {
+          const counts = fileCounts[index];
+          return (
+            <li key={subject.id}>
+              <SubjectCard
+                subject={subject}
+                lectures={overview?.subjects.find((item) => item.id === subject.id)?.lectures}
+                fileCounts={counts?.data}
+                // A failed refetch keeps the data from before; the error wins only without data.
+                error={(overviewError && !overview) || ((counts?.isError ?? false) && !counts?.data)}
+              />
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

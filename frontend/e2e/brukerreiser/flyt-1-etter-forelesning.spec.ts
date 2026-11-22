@@ -152,12 +152,14 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
   });
 
   test("Steg 2 (åpner emnet) – FR-6: forsiden (02) viser Markedsføring med eksamen, og hun åpner emnet", async () => {
+    // The subject card (story 5.4) and the exam line over the cards (story 5.3).
     const item = page.locator("main li").filter({ hasText: "Markedsføring" });
-    await expect(item).toContainText("0 forelesninger");
-    await expect(item).toContainText("Eksamen 04.12.2026");
+    await expect(item).toContainText("Ingen forelesninger ennå");
+    const examLine = page.locator('main [role="listitem"]').filter({ hasText: "Markedsføring" });
+    await expect(examLine).toContainText(/Eksamen (var )?04\.12/);
     await expectNoAxeViolations(page);
 
-    await item.getByRole("link", { name: "Markedsføring" }).click();
+    await item.getByRole("link", { name: "Åpne Markedsføring" }).click();
     await expect(page).toHaveURL(/\/emner\/[0-9a-f-]{36}$/);
     await expect(page.locator("main h1")).toHaveText("Markedsføring");
     await expect(page.getByText("Eksamen fredag 04.12.2026")).toBeVisible();
@@ -228,7 +230,7 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
 
   test("Steg 6 (sidemenyen) – FR-3, FR-7, UX-DR7: noen dager senere logger hun inn og åpner forelesningen fra sidemenyen", async () => {
     await logIn();
-    await page.locator("main li").getByRole("link", { name: "Markedsføring" }).click();
+    await page.locator("main li").getByRole("link", { name: "Åpne Markedsføring" }).click();
     await expect(page.locator("main h1")).toHaveText("Markedsføring");
 
     const nav = page.getByRole("navigation", { name: "Emner" });

@@ -125,12 +125,14 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
   test("Steg 1 (åpner emnet) – UJ-2, FR-6: forsiden (02) viser Markedsføring med åtte forelesninger og eksamen, og hun åpner emnet", async () => {
     await page.goto("/");
     await expectOnHomePage(page);
+    // The subject card (story 5.4) and the exam line over the cards (story 5.3).
     const item = page.locator("main li").filter({ hasText: "Markedsføring" });
-    await expect(item).toContainText("8 forelesninger");
-    await expect(item).toContainText(`Eksamen ${exam.shown}`);
+    await expect(item).toContainText("av 8 forelesninger øvd");
+    const examLine = page.locator('main [role="listitem"]').filter({ hasText: "Markedsføring" });
+    await expect(examLine).toContainText(`Eksamen ${exam.shown.slice(0, 5)}, om 3 uker`);
     await expectNoAxeViolations(page);
 
-    await item.getByRole("link", { name: "Markedsføring" }).click();
+    await item.getByRole("link", { name: "Åpne Markedsføring" }).click();
     await expect(page).toHaveURL(/\/emner\/[0-9a-f-]{36}$/);
     await expect(page.locator("main h1")).toHaveText("Markedsføring");
   });

@@ -134,7 +134,7 @@ test.describe("Emner (story 2.1)", () => {
     await expectNoAxeViolations(page);
   });
 
-  test("FR-6: forsiden lister emnene i opprettingsrekkefølge med prikk, lenke, antall og eksamen, uten sidemeny", async ({
+  test("FR-6, UX-DR12: forsiden viser emnekortene i opprettingsrekkefølge med prikk, navn, «Åpne ›» og fremdrift, og eksamenslinja, uten sidemeny", async ({
     page,
   }) => {
     await registerNewUser(page);
@@ -142,15 +142,22 @@ test.describe("Emner (story 2.1)", () => {
     const second = await createSubjectViaApi(page, "Samfunnsøkonomi", "2026-12-11");
     await page.goto("/");
 
+    // One subject card per subject (story 5.4), the exam date in the exam line over them.
     const items = page.locator("main li");
     await expect(items).toHaveCount(2);
-    await expect(items.nth(0).getByRole("link")).toHaveText("Markedsføring");
-    await expect(items.nth(0).getByRole("link")).toHaveAttribute("href", `/emner/${first}`);
-    await expect(items.nth(0)).toContainText("0 forelesninger");
-    await expect(items.nth(0)).toContainText("Eksamen 04.12.2026");
-    await expect(items.nth(1).getByRole("link")).toHaveAttribute("href", `/emner/${second}`);
-    await expect(items.nth(1)).toContainText("Eksamen 11.12.2026");
+    await expect(items.nth(0).getByRole("heading", { level: 2 })).toHaveText("Markedsføring");
+    await expect(items.nth(0).getByRole("link", { name: "Åpne Markedsføring" })).toHaveAttribute("href", `/emner/${first}`);
+    await expect(items.nth(0)).toContainText("Ingen forelesninger ennå");
+    await expect(items.nth(1).getByRole("link", { name: "Åpne Samfunnsøkonomi" })).toHaveAttribute(
+      "href",
+      `/emner/${second}`,
+    );
     await expect(items.locator('[aria-hidden="true"][data-color-index]')).toHaveCount(2);
+    const examLines = page.locator('main [role="listitem"]');
+    await expect(examLines.nth(0)).toContainText("Markedsføring");
+    await expect(examLines.nth(0)).toContainText(/Eksamen (var )?04\.12/);
+    await expect(examLines.nth(1)).toContainText("Samfunnsøkonomi");
+    await expect(examLines.nth(1)).toContainText(/Eksamen (var )?11\.12/);
     await expect(page.locator("nav")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Nytt emne" })).toBeVisible();
     await expect(page.getByText(INTRO)).toHaveCount(0);
