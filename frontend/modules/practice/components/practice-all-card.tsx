@@ -5,13 +5,16 @@ import { iconProps } from "@/components/icon";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 
 // One practice type in the card: «Flashcards», «120 kort fra 6 forelesninger»
-// and its button. Quiz and free-text rows are added the same way later.
+// and its button. Quiz is added the same way, free text later.
 export type PracticeAllRow = {
   // Stable and unique within the card (e.g. "flashcards").
   id: string;
   title: string;
   scope: string;
   action: ReactNode;
+  // Always on one line, with the action to the right, also in a narrow card
+  // (a short text button like «Start ›», mockup 03).
+  inline?: boolean;
 };
 
 type Props = {
@@ -25,7 +28,8 @@ type Props = {
 // type, split by hairlines. A row has the title (item-title), the scope under
 // it in muted grey, and the action: under them in a narrow card (stretched to
 // the card's width, as in the mockup), to the right in a wide one (container
-// query on the card). No rows and no error: nothing at all, neither heading
+// query on the card). An inline row keeps its action to the right at every
+// width. No rows and no error: nothing at all, neither heading
 // nor card.
 export function PracticeAllCard({ rows, error = false }: Props) {
   if (rows.length === 0 && !error) return null;
@@ -51,7 +55,11 @@ export function PracticeAllCard({ rows, error = false }: Props) {
                 {index > 0 ? <hr className="my-4 border-divider" /> : null}
                 <div
                   data-slot="practice-all-row"
-                  className="flex flex-col gap-3 @md:flex-row @md:items-center @md:justify-between"
+                  className={
+                    row.inline
+                      ? "flex flex-row items-center justify-between gap-3"
+                      : "flex flex-col gap-3 @md:flex-row @md:items-center @md:justify-between"
+                  }
                 >
                   <div className="min-w-0">
                     <h3 className="text-item-title">{row.title}</h3>
