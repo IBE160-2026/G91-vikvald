@@ -63,6 +63,9 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
     enabled: subject.isSuccess,
   });
   const practiceRows = flashcardRows(subjectId, flashcards.data);
+  // Only a failed first load shows the fallback text; a failed background
+  // refetch keeps the row it has.
+  const practiceError = flashcards.isError && flashcards.data === undefined;
   const [lectureDialogOpen, setLectureDialogOpen] = useState(false);
   // Which dialog was opened last; it keeps its mode while it closes.
   const [dialogMode, setDialogMode] = useState<SubjectFormMode>("rename");
@@ -133,7 +136,7 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
             </div>
 
             <div className="@container mt-6">
-              <div className="flex flex-col gap-6 @min-[1008px]:flex-row @min-[1008px]:items-start @min-[1008px]:gap-column-gap">
+              <div className="flex flex-col gap-column-gap @min-[1008px]:flex-row @min-[1008px]:items-start">
                 <section aria-labelledby="lectures-heading" className="min-w-0 flex-1">
                   <h2 id="lectures-heading" className="text-section-title">
                     Forelesninger <span className="text-body-sm font-normal text-ink-muted">etter dato</span>
@@ -151,9 +154,9 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
                     ) : null}
                   </div>
                 </section>
-                {practiceRows.length > 0 || flashcards.isError ? (
+                {practiceRows.length > 0 || practiceError ? (
                   <div className="@min-[1008px]:w-[344px] @min-[1008px]:shrink-0">
-                    <PracticeAllCard rows={practiceRows} error={flashcards.isError} />
+                    <PracticeAllCard rows={practiceRows} error={practiceError} />
                   </div>
                 ) : null}
               </div>

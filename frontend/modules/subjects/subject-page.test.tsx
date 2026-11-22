@@ -133,6 +133,7 @@ function renderPage(id = "a") {
       <SubjectPage subjectId={id} />
     </QueryClientProvider>,
   );
+  return client;
 }
 
 function patchCalls() {
@@ -538,11 +539,10 @@ describe("emnesiden", () => {
     });
 
     it("UX-DR14: uten kort vises ingen seksjon «Øv på hele emnet»", async () => {
-      renderPage();
+      const client = renderPage();
       expect(await screen.findByRole("table")).toBeTruthy();
-      await waitFor(() =>
-        expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/subjects/a/flashcards")).toBe(true),
-      );
+      // Wait until the empty card list has arrived, not only been asked for.
+      await waitFor(() => expect(client.getQueryState(["subjects", "a", "flashcards"])?.status).toBe("success"));
       expect(screen.queryByRole("region", { name: "Øv på hele emnet" })).toBeNull();
       expect(screen.queryByText("Øv på hele emnet")).toBeNull();
     });

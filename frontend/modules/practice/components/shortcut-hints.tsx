@@ -14,12 +14,12 @@ export const FLASHCARD_HINTS: readonly ShortcutHint[] = [
   { key: "Esc", text: "avslutt" },
 ];
 
-// The result page (mockup 08). backText is the back button's text in lower
-// case: «tilbake til forelesningen» or «tilbake til emnet».
-export function resultHints(backText: string): readonly ShortcutHint[] {
+// The result page (mockup 08). backHint is where Esc goes: «tilbake til
+// forelesningen» or «tilbake til emnet».
+export function resultHints(backHint: string): readonly ShortcutHint[] {
   return [
     { key: "Enter", text: "øv igjen" },
-    { key: "Esc", text: backText },
+    { key: "Esc", text: backHint },
   ];
 }
 

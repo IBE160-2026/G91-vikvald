@@ -23,7 +23,7 @@ describe("PracticeAllCard", () => {
     const heading = within(section).getByRole("heading", { level: 2, name: "Øv på hele emnet" });
     expect(heading.className).toContain("text-section-title");
     const card = section.querySelector("[data-slot='practice-all-card']")!;
-    for (const token of ["bg-surface", "border-border-card", "rounded-lg", "shadow-lift", "p-6", "@container"]) {
+    for (const token of ["bg-surface", "border-border-card", "rounded-lg", "shadow-lift", "p-4", "@container"]) {
       expect(card.className).toContain(token);
     }
     const title = within(section).getByRole("heading", { level: 3, name: "Flashcards" });

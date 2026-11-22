@@ -114,7 +114,8 @@ test.describe("Øv på flashcards fra hele emnet (story 3.6)", () => {
     await expect(start).toHaveAttribute("href", `/emner/${subjectId}/flashcards`);
     // Not room side by side at 1280: the card stands under the table.
     const table = page.getByRole("table");
-    expect((await section.boundingBox())!.y).toBeGreaterThan((await table.boundingBox())!.y);
+    const tableBox = (await table.boundingBox())!;
+    expect((await section.boundingBox())!.y).toBeGreaterThanOrEqual(tableBox.y + tableBox.height);
     await expectNoHorizontalScroll(page);
     await expectNoAxeViolations(page);
 
@@ -137,7 +138,9 @@ test.describe("Øv på flashcards fra hele emnet (story 3.6)", () => {
   test("UX-DR14: et emne uten kort har ingen seksjon «Øv på hele emnet»", async ({ page }) => {
     const subjectId = await newSubject(page);
     await newLecture(page, subjectId, "Uke 37: Merkevare", "2026-09-11");
+    const cards = page.waitForResponse((response) => new URL(response.url()).pathname === `/api/subjects/${subjectId}/flashcards`);
     await page.goto(`/emner/${subjectId}`);
+    expect(await (await cards).json()).toEqual([]);
     await expect(page.getByRole("table")).toBeVisible();
     await expect(page.getByText("Øv på hele emnet")).toHaveCount(0);
     await expectNoAxeViolations(page);
@@ -230,6 +233,8 @@ test.describe("Øv på flashcards fra hele emnet (story 3.6)", () => {
     page,
   }) => {
     const subjectId = await subjectWithTwoLectures(page);
+    // «Etter» as in a slow clock: the browser's time is five minutes behind the
+    // server's, so a time taken from it would be before the cards were made.
     await page.clock.setSystemTime(new Date(Date.now() - 5 * 60_000));
     const saves = captureSaves(page);
     await page.goto(`/emner/${subjectId}/flashcards`);
@@ -239,7 +244,10 @@ test.describe("Øv på flashcards fra hele emnet (story 3.6)", () => {
     const saved = page.waitForResponse((response) => new URL(response.url()).pathname === SAVE_PATH);
     await panel(page).getByRole("button", { name: "Avslutt økt" }).click();
     expect((await saved).status()).toBe(204);
+    expect(saves).toHaveLength(1);
     const body = saves[0].postDataJSON();
+    expect(body.subject_id).toBe(subjectId);
+    expect(body.lecture_id).toBeNull();
     expect(body).not.toHaveProperty("started_at");
     expect(body.duration_seconds).toBeGreaterThanOrEqual(0);
     expect(body.duration_seconds).toBeLessThan(120);

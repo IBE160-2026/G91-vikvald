@@ -44,14 +44,14 @@ export function PracticeAllCard({ rows, error = false }: Props) {
         {rows.length > 0 ? (
           <div
             data-slot="practice-all-card"
-            className="@container rounded-lg border border-border-card bg-surface p-6 shadow-lift"
+            className="@container rounded-lg border border-border-card bg-surface p-4 shadow-lift"
           >
             {rows.map((row, index) => (
               <Fragment key={row.id}>
-                {index > 0 ? <hr className="my-5 border-divider" /> : null}
+                {index > 0 ? <hr className="my-4 border-divider" /> : null}
                 <div
                   data-slot="practice-all-row"
-                  className="flex flex-col gap-4 @md:flex-row @md:items-center @md:justify-between"
+                  className="flex flex-col gap-3 @md:flex-row @md:items-center @md:justify-between"
                 >
                   <div className="min-w-0">
                     <h3 className="text-item-title">{row.title}</h3>

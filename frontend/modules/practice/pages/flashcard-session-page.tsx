@@ -74,6 +74,8 @@ type Scope = {
   saveLectureId: string | null;
   backPath: string;
   backText: string;
+  // The hint line's text for Esc on the result page.
+  backHint: string;
 };
 
 function useScope({ lectureId, subjectId }: ScopeProps): Scope {
@@ -111,6 +113,7 @@ function useScope({ lectureId, subjectId }: ScopeProps): Scope {
       saveLectureId: null,
       backPath: `/emner/${subjectId}`,
       backText: "Tilbake til emnet",
+      backHint: "tilbake til emnet",
     };
   }
   return {
@@ -123,6 +126,7 @@ function useScope({ lectureId, subjectId }: ScopeProps): Scope {
     saveLectureId: lectureId ?? null,
     backPath: `/forelesninger/${lectureId}`,
     backText: "Tilbake til forelesningen",
+    backHint: "tilbake til forelesningen",
   };
 }
 
@@ -221,7 +225,7 @@ export function FlashcardSessionPage(props: ScopeProps) {
     setStep((old) => old + 1);
   }
 
-  const { backPath, backText } = scope;
+  const { backPath, backText, backHint } = scope;
   const back = () => router.push(backPath);
   // «Avslutt økt» and Esc: nothing marked goes straight back; otherwise the
   // session is saved as aborted and the result page is shown.
@@ -325,6 +329,7 @@ export function FlashcardSessionPage(props: ScopeProps) {
             titleRef={resultTitleRef}
             backHref={backPath}
             backText={backText}
+            backHint={backHint}
             onPlayAgain={playAgain}
             showHints={shortcutsOn}
           />
@@ -355,6 +360,7 @@ type ResultViewProps = {
   titleRef: Ref<HTMLHeadingElement>;
   backHref: string;
   backText: string;
+  backHint: string;
   onPlayAgain: () => void;
   showHints: boolean;
 };
@@ -371,6 +377,7 @@ function ResultView({
   titleRef,
   backHref,
   backText,
+  backHint,
   onPlayAgain,
   showHints,
 }: ResultViewProps) {
@@ -414,7 +421,7 @@ function ResultView({
       </div>
       {showHints ? (
         <div className="mt-5">
-          <ShortcutHints hints={resultHints(backText.toLowerCase())} />
+          <ShortcutHints hints={resultHints(backHint)} />
         </div>
       ) : null}
     </div>
