@@ -5,6 +5,7 @@ edit or delete a flashcard."""
 import hashlib
 import uuid
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,7 +36,12 @@ class NewFlashcard:
 
 def add_flashcards(session: AsyncSession, cards: list[NewFlashcard]) -> None:
     """Add the cards to the session. New cards are added to the existing ones,
-    never in their place. The caller commits (one transaction with the job)."""
+    never in their place. The caller commits (one transaction with the job).
+
+    The batch shares one created_at, and position is each card's place in the
+    batch, so the lists can order by "the order they were made in" without
+    ties (issue #224)."""
+    saved_at = datetime.now(UTC)
     session.add_all(
         Flashcard(
             id=uuid.uuid4(),
@@ -45,8 +51,10 @@ def add_flashcards(session: AsyncSession, cards: list[NewFlashcard]) -> None:
             front=card.front,
             back=card.back,
             formula_flag=False,
+            created_at=saved_at,
+            position=position,
         )
-        for card in cards
+        for position, card in enumerate(cards)
     )
 
 
@@ -79,9 +87,13 @@ def shuffle_options(question: str, options: tuple[str, ...], correct_index: int)
 def add_quiz_questions(session: AsyncSession, questions: list[NewQuizQuestion]) -> None:
     """Add the questions to the session with their options shuffled once
     (shuffle_options). New questions are added to the existing ones, never in
-    their place (FR-33). The caller commits (one transaction with the job)."""
+    their place (FR-33). The caller commits (one transaction with the job).
+
+    The batch shares one created_at, and position is each question's place in
+    the batch, as for add_flashcards (issue #224)."""
+    saved_at = datetime.now(UTC)
     rows: list[QuizQuestion] = []
-    for item in questions:
+    for position, item in enumerate(questions):
         options, correct_index = shuffle_options(item.question, item.options, item.correct_index)
         rows.append(
             QuizQuestion(
@@ -93,6 +105,8 @@ def add_quiz_questions(session: AsyncSession, questions: list[NewQuizQuestion]) 
                 options=options,
                 correct_index=correct_index,
                 explanation=item.explanation,
+                created_at=saved_at,
+                position=position,
             )
         )
     session.add_all(rows)
@@ -104,7 +118,7 @@ async def quiz_question_texts(session: AsyncSession, lecture_id: uuid.UUID) -> l
         select(QuizQuestion.question)
         .join(File, QuizQuestion.file_id == File.id)
         .where(File.lecture_id == lecture_id)
-        .order_by(QuizQuestion.created_at, QuizQuestion.id)
+        .order_by(QuizQuestion.created_at, QuizQuestion.position, QuizQuestion.id)
     )
     return list(await session.scalars(statement))
 
@@ -128,7 +142,7 @@ async def lecture_quiz_questions(session: AsyncSession, lecture_id: uuid.UUID) -
         .join(File, QuizQuestion.file_id == File.id)
         .join(Lecture, File.lecture_id == Lecture.id)
         .where(File.lecture_id == lecture_id)
-        .order_by(File.uploaded_at, File.id, QuizQuestion.page_no, QuizQuestion.created_at, QuizQuestion.id)
+        .order_by(File.uploaded_at, File.id, QuizQuestion.page_no, QuizQuestion.created_at, QuizQuestion.position, QuizQuestion.id)
     )
     return [
         QuizQuestionOut(
@@ -161,6 +175,7 @@ async def subject_quiz_questions(session: AsyncSession, subject_id: uuid.UUID) -
             File.id,
             QuizQuestion.page_no,
             QuizQuestion.created_at,
+            QuizQuestion.position,
             QuizQuestion.id,
         )
     )
@@ -192,7 +207,7 @@ async def flashcard_fronts(session: AsyncSession, lecture_id: uuid.UUID) -> list
         select(Flashcard.front)
         .join(File, Flashcard.file_id == File.id)
         .where(File.lecture_id == lecture_id)
-        .order_by(Flashcard.created_at, Flashcard.id)
+        .order_by(Flashcard.created_at, Flashcard.position, Flashcard.id)
     )
     return list(await session.scalars(statement))
 
@@ -214,7 +229,7 @@ async def lecture_flashcards(session: AsyncSession, lecture_id: uuid.UUID) -> li
         select(Flashcard, File.original_name)
         .join(File, Flashcard.file_id == File.id)
         .where(File.lecture_id == lecture_id, Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS))
-        .order_by(File.uploaded_at, File.id, Flashcard.page_no, Flashcard.created_at, Flashcard.id)
+        .order_by(File.uploaded_at, File.id, Flashcard.page_no, Flashcard.created_at, Flashcard.position, Flashcard.id)
     )
     return [
         FlashcardOut(
@@ -245,6 +260,7 @@ async def subject_flashcards(session: AsyncSession, subject_id: uuid.UUID) -> li
             File.id,
             Flashcard.page_no,
             Flashcard.created_at,
+            Flashcard.position,
             Flashcard.id,
         )
     )
