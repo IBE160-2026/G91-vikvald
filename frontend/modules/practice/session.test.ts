@@ -5,6 +5,7 @@ import {
   gridCells,
   isFinished,
   markCurrent,
+  removeCard,
   repeatingLeft,
   sessionCounts,
   shownCount,
@@ -119,5 +120,61 @@ describe("økten", () => {
     markCurrent(state, "missed");
     expect(state.queue).toEqual(["A", "B"]);
     expect(state.firstMarks).toEqual({});
+  });
+});
+
+describe("removeCard", () => {
+  it("FR-27: et umarkert kort som vises, tas ut av rutenettet og totalen, og neste kort vises", () => {
+    const state = removeCard(startSession(["A", "B", "C"]), "A");
+    expect(state.order).toEqual(["B", "C"]);
+    expect(currentCard(state)).toBe("B");
+    expect(shownCount(state)).toBe(1);
+    expect(totalCount(state)).toBe(2);
+    expect(gridCells(state).map((cell) => cell.id)).toEqual(["B", "C"]);
+  });
+
+  it("FR-27: et umarkert kort som ikke er vist ennå, tas ut uten å endre gjeldende kort", () => {
+    const state = removeCard(run(["A", "B", "C"], ["known"]), "C");
+    expect(state.order).toEqual(["A", "B"]);
+    expect(state.queue).toEqual(["B"]);
+    expect(state.shown).toEqual(["A", "B"]);
+    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 1, correct: 1, wrong: 0 });
+  });
+
+  it("FR-27: et markert kort beholder ruten og første markering, men kommer ikke igjen", () => {
+    // A missed, B known: A is back as the current card.
+    const before = run(["A", "B", "C"], ["missed", "known"]);
+    expect(before.queue).toEqual(["C", "A"]);
+    const state = removeCard(before, "A");
+    expect(state.order).toEqual(["A", "B", "C"]);
+    expect(state.queue).toEqual(["C"]);
+    expect(state.firstMarks).toEqual({ A: "missed", B: "known" });
+    expect(gridCells(state)[0]).toMatchObject({ id: "A", mark: "missed", current: false });
+    expect(sessionCounts(state)).toEqual({ shown: 3, answered: 2, correct: 1, wrong: 1 });
+  });
+
+  it("FR-27: blir et nytt kort gjeldende, regnes det som vist", () => {
+    // A missed: B is shown. B is deleted: C becomes current and is shown.
+    const state = removeCard(run(["A", "B", "C"], ["missed"]), "B");
+    expect(state.order).toEqual(["A", "C"]);
+    expect(state.queue).toEqual(["C", "A"]);
+    expect(state.shown).toEqual(["A", "C"]);
+  });
+
+  it("FR-27: siste kort slettet når noe er markert, gir en ferdig økt", () => {
+    const state = removeCard(run(["A", "B"], ["known"]), "B");
+    expect(isFinished(state)).toBe(true);
+    expect(totalCount(state)).toBe(1);
+    expect(sessionCounts(state)).toEqual({ shown: 1, answered: 1, correct: 1, wrong: 0 });
+  });
+
+  it("FR-27: siste kort slettet uten markeringer gir en tom økt", () => {
+    const state = removeCard(startSession(["A"]), "A");
+    expect(state).toEqual({ order: [], queue: [], firstMarks: {}, shown: [] });
+  });
+
+  it("FR-27: ukjent id endrer ingenting", () => {
+    const before = startSession(["A", "B"]);
+    expect(removeCard(before, "X")).toBe(before);
   });
 });
