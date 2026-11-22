@@ -24,6 +24,7 @@ from app.modules.generation.router import jobs_router
 from app.modules.generation.router import lectures_router as generation_lectures_router
 from app.modules.generation.service import fail_interrupted_jobs
 from app.modules.identity.router import router as identity_router
+from app.modules.practice.router import overview_router
 from app.modules.practice.router import router as practice_router
 from app.modules.subjects.router import lectures_router
 from app.modules.subjects.router import router as subjects_router
@@ -80,6 +81,7 @@ def create_app() -> FastAPI:
     app.include_router(flashcards_router)
     app.include_router(quiz_questions_router)
     app.include_router(practice_router)
+    app.include_router(overview_router)
     return app
 
 

@@ -1,6 +1,7 @@
-"""Request body for POST /api/practice-sessions."""
+"""Request body for POST /api/practice-sessions and the response of GET /api/overview."""
 
 import uuid
+from datetime import date, datetime
 from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, Field, model_validator
@@ -45,3 +46,42 @@ class PracticeSessionIn(BaseModel):
         if self.answered > self.shown:
             raise ValueError("answered must not be above shown")
         return self
+
+
+class OverviewLecture(BaseModel):
+    id: uuid.UUID
+    name: str
+    date: date
+    # Whether at least one session counts for the lecture (practiced_lectures).
+    practiced: bool
+    # The newest started_at among those sessions, or null.
+    last_practiced_at: datetime | None
+
+
+class LastSessionOut(BaseModel):
+    kind: PracticeKind
+    # Null for a session over the whole subject.
+    lecture_id: uuid.UUID | None
+    started_at: datetime
+    aborted: bool
+    shown: int
+    answered: int
+    correct: int
+    partial: int
+    wrong: int
+
+
+class OverviewSubject(BaseModel):
+    id: uuid.UUID
+    name: str
+    color_index: int
+    exam_date: date
+    # In the same order as GET /api/subjects/{id}/lectures.
+    lectures: list[OverviewLecture]
+    # The subject's newest session, or null when it has none.
+    last_session: LastSessionOut | None
+
+
+class OverviewOut(BaseModel):
+    # In the same order as GET /api/subjects.
+    subjects: list[OverviewSubject]

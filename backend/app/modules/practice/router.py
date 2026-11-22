@@ -1,4 +1,4 @@
-"""HTTP route for the practice module: POST /api/practice-sessions."""
+"""HTTP routes for the practice module: POST /api/practice-sessions and GET /api/overview."""
 
 from typing import Annotated
 
@@ -10,10 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import get_session
 from app.modules.identity.dependencies import current_user
 from app.modules.identity.models import User
-from app.modules.practice.schemas import PracticeSessionIn
-from app.modules.practice.service import save_session
+from app.modules.practice.schemas import OverviewOut, PracticeSessionIn
+from app.modules.practice.service import overview, save_session
 
 router = APIRouter(prefix="/api/practice-sessions")
+# The overview of all her subjects with «øvd» per lecture (story 5.1).
+overview_router = APIRouter(prefix="/api/overview")
 
 CurrentUser = Annotated[User, Depends(current_user)]
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -38,3 +40,10 @@ async def create_practice_session(request: Request, user: CurrentUser, session: 
         ) from None
     await save_session(session, user.id, data)
     return Response(status_code=204)
+
+
+@overview_router.get("")
+async def get_overview(user: CurrentUser, session: Session) -> OverviewOut:
+    """Her subjects and lectures with practiced / last_practiced_at, and each
+    subject's last session. Only her own data."""
+    return await overview(session, user.id)

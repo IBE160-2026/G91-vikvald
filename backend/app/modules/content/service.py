@@ -133,6 +133,22 @@ async def quiz_question_count(session: AsyncSession, lecture_id: uuid.UUID) -> i
     return int(await session.scalar(statement) or 0)
 
 
+async def first_quiz_question_times(
+    session: AsyncSession, lecture_ids: tuple[uuid.UUID, ...]
+) -> dict[uuid.UUID, datetime]:
+    """When each lecture got its first quiz question. Lectures without
+    questions are missing."""
+    if not lecture_ids:
+        return {}
+    statement = (
+        select(File.lecture_id, func.min(QuizQuestion.created_at))
+        .join(File, QuizQuestion.file_id == File.id)
+        .where(File.lecture_id.in_(lecture_ids))
+        .group_by(File.lecture_id)
+    )
+    return {lecture_id: first for lecture_id, first in (await session.execute(statement)).all()}
+
+
 async def lecture_quiz_questions(session: AsyncSession, lecture_id: uuid.UUID) -> list[QuizQuestionOut]:
     """The lecture's quiz questions with the answer key, source and lecture,
     ordered as lecture_flashcards: file (upload order), page, the order they
@@ -220,6 +236,22 @@ async def flashcard_count(session: AsyncSession, lecture_id: uuid.UUID) -> int:
         .where(File.lecture_id == lecture_id, Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS))
     )
     return int(await session.scalar(statement) or 0)
+
+
+async def first_flashcard_times(
+    session: AsyncSession, lecture_ids: tuple[uuid.UUID, ...]
+) -> dict[uuid.UUID, datetime]:
+    """When each lecture got its first flashcard (qa or concept; model cards do
+    not count, as in flashcard_count). Lectures without cards are missing."""
+    if not lecture_ids:
+        return {}
+    statement = (
+        select(File.lecture_id, func.min(Flashcard.created_at))
+        .join(File, Flashcard.file_id == File.id)
+        .where(File.lecture_id.in_(lecture_ids), Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS))
+        .group_by(File.lecture_id)
+    )
+    return {lecture_id: first for lecture_id, first in (await session.execute(statement)).all()}
 
 
 async def lecture_flashcards(session: AsyncSession, lecture_id: uuid.UUID) -> list[FlashcardOut]:
