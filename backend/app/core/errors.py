@@ -44,6 +44,8 @@ class ErrorCode(StrEnum):
     GENERATION_FAILED = "GENERATION_FAILED"
     GENERATION_TIMEOUT = "GENERATION_TIMEOUT"
     JOB_INTERRUPTED = "JOB_INTERRUPTED"
+    FLASHCARD_FRONT_REQUIRED = "FLASHCARD_FRONT_REQUIRED"
+    FLASHCARD_BACK_REQUIRED = "FLASHCARD_BACK_REQUIRED"
 
 
 # HTTP status for each code.
@@ -77,6 +79,9 @@ ERROR_STATUS: dict[ErrorCode, int] = {
     ErrorCode.GENERATION_FAILED: 500,
     ErrorCode.GENERATION_TIMEOUT: 504,
     ErrorCode.JOB_INTERRUPTED: 500,
+    # A student edit of a card with an empty (or only blank) field.
+    ErrorCode.FLASHCARD_FRONT_REQUIRED: 422,
+    ErrorCode.FLASHCARD_BACK_REQUIRED: 422,
 }
 
 

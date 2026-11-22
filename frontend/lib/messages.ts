@@ -44,6 +44,9 @@ export const messages = {
   GENERATION_FAILED: "Vi klarte ikke å lage {content}. Ingenting er lagret. Prøv igjen.",
   GENERATION_TIMEOUT: "Vi klarte ikke å lage {content}. Ingenting er lagret. Prøv igjen.",
   JOB_INTERRUPTED: "Vi klarte ikke å lage {content}. Ingenting er lagret. Prøv igjen.",
+  // Editing a card (story 3.7): an empty question or answer.
+  FLASHCARD_FRONT_REQUIRED: "Skriv inn spørsmålet.",
+  FLASHCARD_BACK_REQUIRED: "Skriv inn svaret.",
   // Frontend-only: the request never reached the server.
   NETWORK_ERROR: FALLBACK_MESSAGE,
   // Frontend-only: the exam date field does not hold a real date as dd.mm.åååå.
