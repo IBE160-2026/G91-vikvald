@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SideMenuProvider } from "@/components/side-menu";
@@ -57,6 +57,8 @@ let subjectCards: SubjectFlashcard[] = [];
 let lectureStatus = 200;
 let flashcardsStatus = 200;
 let saveStatus = 204;
+// The answer to DELETE /api/flashcards/{id} (story 3.7).
+let deleteStatus = 204;
 let client: QueryClient;
 
 beforeEach(() => {
@@ -65,14 +67,26 @@ beforeEach(() => {
   lectureStatus = 200;
   flashcardsStatus = 200;
   saveStatus = 204;
+  deleteStatus = 204;
   notFound.mockReset();
   push.mockReset();
   // Just below 1: the shuffle keeps the order, so the test knows it.
   vi.spyOn(Math, "random").mockReturnValue(0.999);
   vi.stubGlobal("fetch", fetchMock);
   fetchMock.mockReset();
-  fetchMock.mockImplementation(async (url) => {
+  fetchMock.mockImplementation(async (url, init) => {
     const path = String(url);
+    if (path.startsWith("/api/flashcards/")) {
+      if (init?.method === "DELETE") {
+        if (deleteStatus === 204) return new Response(null, { status: 204 });
+        return jsonResponse(deleteStatus, { error: { code: deleteStatus === 404 ? "NOT_FOUND" : "INTERNAL_ERROR", details: {} } });
+      }
+      // PATCH: the card as saved (trimmed), with its source.
+      const id = path.slice("/api/flashcards/".length);
+      const body = JSON.parse(String(init?.body)) as { front: string; back: string };
+      const old = [...cards, ...subjectCards].find((other) => other.id === id)!;
+      return jsonResponse(200, { id, kind: old.kind, source: old.source, front: body.front.trim(), back: body.back.trim() });
+    }
     if (path === "/api/practice-sessions") {
       if (saveStatus === 204) return new Response(null, { status: 204 });
       return jsonResponse(saveStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
@@ -636,6 +650,175 @@ describe("FlashcardSessionPage", () => {
     it("FR-4: andres eller ukjent emne gir «Fant ikke siden»", async () => {
       renderPage(undefined, { subjectId: "s9" });
       await waitFor(() => expect(notFound).toHaveBeenCalled());
+    });
+  });
+
+  describe("rett og slett kort (story 3.7)", () => {
+    // The requests to /api/flashcards/{id} with this method.
+    function cardCalls(method: string): string[] {
+      return fetchMock.mock.calls
+        .filter(([url, init]) => String(url).startsWith("/api/flashcards/") && init?.method === method)
+        .map(([url]) => String(url));
+    }
+
+    async function openDelete() {
+      fireEvent.click(button("Snu kortet"));
+      fireEvent.click(button("Slett"));
+      const dialog = await screen.findByRole("dialog", { name: "Slette kortet?" });
+      await within(dialog).findByText("Det kan ikke angres.");
+      return dialog;
+    }
+
+    it("FR-27: «Rediger», nytt svar og «Lagre» lagrer med PATCH, og kortet viser det nye svaret med en gang", async () => {
+      renderPage();
+      expect(await screen.findByText("/ 3")).toBeTruthy();
+      const invalidate = vi.spyOn(client, "invalidateQueries");
+      fireEvent.click(button("Snu kortet"));
+      const edit = button("Rediger");
+      edit.focus();
+      fireEvent.click(edit);
+      const answer = screen.getByLabelText("Svar") as HTMLTextAreaElement;
+      expect(answer.value).toBe("Merkevare er et begrep i faget.");
+      fireEvent.change(answer, { target: { value: "  Et navn som skiller produkter.  " } });
+      fireEvent.click(button("Lagre"));
+
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(cardCalls("PATCH")).toEqual(["/api/flashcards/a"]);
+      expect(screen.getByText("Et navn som skiller produkter.")).toBeTruthy();
+      // Still the same card, still flipped, and focus back on «Rediger».
+      expect(front()).toBe("Merkevare");
+      expect(counter()).toBe("1");
+      await waitFor(() => expect(document.activeElement).toBe(button("Rediger")));
+      // The lecture's queries and every subject's card list are refetched.
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["lectures", "l1"] });
+      expect(invalidate).toHaveBeenCalledWith(expect.objectContaining({ predicate: expect.any(Function) }));
+    });
+
+    it("UX-DR22, E22: sletting av et umarkert kort viser bekreftelsen og tar ruten ut: «1 / 2»", async () => {
+      renderPage();
+      expect(await screen.findByText("/ 3")).toBeTruthy();
+      const dialog = await openDelete();
+      expect(within(dialog).getByText("Merkevare")).toBeTruthy();
+      expect(dialog.textContent).not.toContain("Dette sletter også");
+      expect(document.activeElement).toBe(within(dialog).getByRole("button", { name: "Avbryt" }));
+      expect(within(dialog).getByRole("button", { name: "Slett kortet" }).dataset.variant).toBe("danger");
+
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett kortet" }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(cardCalls("DELETE")).toEqual(["/api/flashcards/a"]);
+      expect(screen.getByText("/ 2")).toBeTruthy();
+      expect(counter()).toBe("1");
+      expect(front()).toBe("Pris");
+      expect(screen.queryByText("SVAR")).toBeNull();
+      await waitFor(() => expect(document.activeElement).toBe(button("Snu kortet")));
+    });
+
+    it("UX-DR27: «Avbryt» og Esc lar kortet stå i økten og sletter ingenting", async () => {
+      renderPage(undefined, { frame: true });
+      expect(await screen.findByText("/ 3")).toBeTruthy();
+      let dialog = await openDelete();
+      // The session's keys are off while the dialog is open.
+      press("2");
+      expect(screen.getByText("Kunne 0 · Kunne ikke 0")).toBeTruthy();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Avbryt" }));
+      expect(screen.queryByRole("dialog")).toBeNull();
+      fireEvent.click(button("Slett"));
+      dialog = await screen.findByRole("dialog", { name: "Slette kortet?" });
+      fireEvent.keyDown(dialog, { key: "Escape" });
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(cardCalls("DELETE")).toEqual([]);
+      expect(front()).toBe("Merkevare");
+      expect(screen.getByText("/ 3")).toBeTruthy();
+      expect(push).not.toHaveBeenCalled();
+    });
+
+    it("FR-27: et markert kort som kommer igjen, beholder ruten med ✗ og kommer ikke igjen etter sletting", async () => {
+      renderPage();
+      expect(await screen.findByText("/ 3")).toBeTruthy();
+      markWithButtons("Kunne ikke");
+      markWithButtons("Kunne ikke");
+      markWithButtons("Kunne");
+      // Merkevare comes back; it is deleted.
+      expect(front()).toBe("Merkevare");
+      const dialog = await openDelete();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett kortet" }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(screen.getByText("/ 3")).toBeTruthy();
+      expect(screen.getByText("Kort 1: kunne ikke")).toBeTruthy();
+      expect(front()).toBe("Pris");
+      markWithButtons("Kunne");
+      expect(await screen.findByText("Økten er ferdig og lagret")).toBeTruthy();
+      expect(saved()).toEqual([expect.objectContaining({ aborted: false, shown: 3, answered: 3, correct: 1, wrong: 2 })]);
+    });
+
+    it("FR-27: siste kort slettet når noe er markert: økten er ferdig, lagres og viser resultatet", async () => {
+      renderPage();
+      expect(await screen.findByText("/ 3")).toBeTruthy();
+      markWithButtons("Kunne");
+      markWithButtons("Kunne");
+      const dialog = await openDelete();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett kortet" }));
+      expect(await screen.findByRole("heading", { level: 2, name: "Du har gått gjennom alle 2 kortene" })).toBeTruthy();
+      await waitFor(() => expect(saved()).toEqual([expect.objectContaining({ aborted: false, shown: 2, answered: 2 })]));
+      expect(push).not.toHaveBeenCalled();
+    });
+
+    it("FR-27: siste kort slettet uten markeringer går tilbake til forelesningen uten lagring", async () => {
+      cards = [card("a", "Merkevare")];
+      renderPage();
+      expect(await screen.findByText("/ 1")).toBeTruthy();
+      const dialog = await openDelete();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett kortet" }));
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/forelesninger/l1"));
+      expect(saved()).toEqual([]);
+    });
+
+    it("E22: 404 ved sletting (allerede borte) tar også kortet ut", async () => {
+      deleteStatus = 404;
+      renderPage();
+      expect(await screen.findByText("/ 3")).toBeTruthy();
+      const dialog = await openDelete();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett kortet" }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(screen.getByText("/ 2")).toBeTruthy();
+    });
+
+    it("FR-27: en annen feil ved sletting viser reserveteksten, og kortet står", async () => {
+      deleteStatus = 500;
+      renderPage();
+      expect(await screen.findByText("/ 3")).toBeTruthy();
+      const dialog = await openDelete();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett kortet" }));
+      expect((await within(dialog).findByRole("alert")).textContent).toBe(FALLBACK_MESSAGE);
+      expect(screen.getByText("/ 3")).toBeTruthy();
+    });
+
+    it("FR-27: i en emneøkt oppdateres kortets egen forelesning, og siste kort tilbake går til emnet", async () => {
+      subjectCards = [subjectCard("d", "Rabatt", "l2", 3)];
+      renderPage(undefined, { subjectId: "s1" });
+      expect(await screen.findByText("/ 1")).toBeTruthy();
+      const invalidate = vi.spyOn(client, "invalidateQueries");
+      fireEvent.click(button("Snu kortet"));
+      fireEvent.click(button("Rediger"));
+      fireEvent.change(screen.getByLabelText("Spørsmål"), { target: { value: "Hva er rabatt?" } });
+      fireEvent.click(button("Lagre"));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(front()).toBe("Hva er rabatt?");
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["lectures", "l2"] });
+      const predicate = (invalidate.mock.calls.find(([filters]) => filters && "predicate" in filters)![0] as {
+        predicate: (query: { queryKey: readonly unknown[] }) => boolean;
+      }).predicate;
+      expect(predicate({ queryKey: subjectFlashcardsQueryKey("s9") })).toBe(true);
+      expect(predicate({ queryKey: ["subjects", "s9"] })).toBe(false);
+
+      const dialog = await (async () => {
+        fireEvent.click(button("Slett"));
+        return screen.findByRole("dialog", { name: "Slette kortet?" });
+      })();
+      expect(within(dialog).getByText("Hva er rabatt?")).toBeTruthy();
+      await within(dialog).findByText("Det kan ikke angres.");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett kortet" }));
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/emner/s1"));
     });
   });
 });

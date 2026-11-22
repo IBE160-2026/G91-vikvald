@@ -1,11 +1,12 @@
 "use client";
 
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type Ref } from "react";
 
+import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { iconProps } from "@/components/icon";
 import { SideMenu, useCloseSideMenu, useOpenShortcuts, useSideMenuCollapsed } from "@/components/side-menu";
 import { Button } from "@/components/ui/button";
@@ -17,11 +18,14 @@ import { fetchLecture, fetchSubject, lectureQueryKey, subjectQueryKey } from "@/
 
 import { flashcardAdapter } from "../adapter";
 import {
+  deleteFlashcard,
   fetchLectureFlashcards,
   fetchSubjectFlashcards,
+  isSubjectFlashcardsQueryKey,
   lectureFlashcardsQueryKey,
   subjectFlashcardsQueryKey,
 } from "../api";
+import { EditFlashcardDialog } from "../components/edit-flashcard-dialog";
 import { Flashcard } from "../components/flashcard";
 import { MissedList, type MissedItem } from "../components/missed-list";
 import { ResultSummary } from "../components/result-summary";
@@ -32,18 +36,26 @@ import {
   gridCells,
   isFinished,
   markCurrent,
+  removeCard,
   sessionCounts,
   shuffle,
   startSession,
   type SessionState,
 } from "../session";
-import type { Flashcard as FlashcardData, Mark } from "../types";
+import type { Flashcard as FlashcardData, Mark, SubjectFlashcard } from "../types";
 import { useSessionSaver, type SaverSnapshot } from "../use-session-saver";
 
 const FINISHED = "Økten er ferdig";
 
-// The cards of a session: copied once from the first answer, by id.
+// The cards of a session: copied once from the first answer, by id. A card
+// in a subject session also has its lecture (SubjectFlashcard).
 type Session = { cards: Record<string, FlashcardData>; state: SessionState };
+
+// The lecture a card was made from: its own for a subject session's card,
+// otherwise the session's lecture.
+function lectureOf(card: FlashcardData | SubjectFlashcard, lectureId: string | undefined): string | undefined {
+  return "lecture" in card ? card.lecture.id : lectureId;
+}
 
 // A new session over these cards, in a new random order.
 function newSession(cards: readonly FlashcardData[]): Session {
@@ -175,6 +187,17 @@ function useScope({ lectureId, subjectId }: ScopeProps): Scope {
 // Narrow screen: the panel is behind «Meny» in the top bar (SideMenu). Its
 // title is then an h2, and the content has a hidden h1 «Flashcards», so the
 // page always has one h1.
+//
+// Edit and delete (story 3.7): «Rediger» on a flipped card opens «Rediger
+// kortet»; once saved, the card in the session shows the new text at once. «Slett»
+// opens the shared delete confirmation («Slette kortet?», the card's question,
+// no counts). Deleted (204, or 404 when it was already gone): the card leaves
+// the session (removeCard). If the session then has no cards left to show and
+// something is marked, it is finished (saved, result page); with nothing
+// marked (no cards left at all) she goes back to where the session started,
+// and nothing is saved. After a save or a delete, the lecture's queries and
+// every subject's card list are refetched, so «Øv igjen», «Lag og øv» and the
+// subject page show the right numbers. The keys are off while a dialog is open.
 export function FlashcardSessionPage(props: ScopeProps) {
   const router = useRouter();
   const scope = useScope(props);
@@ -192,6 +215,11 @@ export function FlashcardSessionPage(props: ScopeProps) {
   const openShortcuts = useOpenShortcuts();
   const collapsed = useSideMenuCollapsed();
   const closeSideMenu = useCloseSideMenu();
+  const queryClient = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  // The card the delete confirmation is about (kept while the dialog closes).
+  const [deleteTarget, setDeleteTarget] = useState<FlashcardData | null>(null);
 
   // Lock the shuffled list the first time the cards arrive from a fetch made
   // after this page opened (a cached list from an earlier visit may be old).
@@ -252,6 +280,40 @@ export function FlashcardSessionPage(props: ScopeProps) {
     // A new key for the card, and focus on «Snu kortet» when it appears.
     setStep((old) => old + 1);
   }
+  // After a card is saved or deleted: the lecture's queries (its counts and
+  // cards) and every subject's card list (the subject page, a subject
+  // session's «Øv igjen») are refetched. The session itself keeps its copy.
+  function refreshCardQueries(changed: FlashcardData) {
+    const lecture = lectureOf(changed, props.lectureId);
+    if (lecture !== undefined) void queryClient.invalidateQueries({ queryKey: ["lectures", lecture] });
+    void queryClient.invalidateQueries({ predicate: (query) => isSubjectFlashcardsQueryKey(query.queryKey) });
+  }
+
+  function cardSaved(saved: FlashcardData) {
+    const own = session?.cards[saved.id];
+    if (!session || !own) return;
+    // Keep what the session has beyond the API's fields (a subject card's
+    // lecture, which the PATCH answer does not have).
+    const merged = { ...own, front: saved.front, back: saved.back };
+    setSession({ ...session, cards: { ...session.cards, [saved.id]: merged } });
+    refreshCardQueries(merged);
+  }
+
+  function cardDeleted(deleted: FlashcardData) {
+    refreshCardQueries(deleted);
+    if (!session) return;
+    const state = removeCard(session.state, deleted.id);
+    if (state.order.length === 0) {
+      // No cards left and nothing marked: back to where the session started.
+      back();
+      return;
+    }
+    setSession({ ...session, state });
+    setFlipped(false);
+    // The next card is shown as a new card, with focus on «Snu kortet».
+    setStep((old) => old + 1);
+  }
+
   // Errors count only before the session starts: a failed background refetch
   // (job watcher, window focus) never replaces a session in progress.
   if (session === null && scope.owner.error) notFoundOnMissing(scope.owner.error);
@@ -342,9 +404,35 @@ export function FlashcardSessionPage(props: ScopeProps) {
             onMark={mark}
             focusOnMount={step > 0}
             showHints={shortcutsOn}
+            onEdit={() => setEditing(true)}
+            onDelete={() => {
+              setDeleteTarget(card);
+              setDeleting(true);
+            }}
           />
         ) : null}
       </div>
+      {card ? <EditFlashcardDialog open={editing} card={card} onClose={() => setEditing(false)} onSaved={cardSaved} /> : null}
+      {deleteTarget ? (
+        <DeleteConfirmDialog
+          open={deleting}
+          title="Slette kortet?"
+          confirmLabel="Slett kortet"
+          item={{ name: deleteTarget.front }}
+          target="flashcard"
+          previewKey={["flashcards", deleteTarget.id]}
+          // A card takes nothing with it: no counts, only «Det kan ikke angres.».
+          loadCounts={async () => []}
+          remove={() => deleteFlashcard(deleteTarget.id)}
+          onClose={() => setDeleting(false)}
+          onDeleted={() => cardDeleted(deleteTarget)}
+          // The deleted card's «Slett» is gone: focus goes to the result title
+          // (session finished) or to the next card's «Snu kortet».
+          focusAfterDelete={() =>
+            resultTitleRef.current ?? document.querySelector<HTMLElement>("[data-flip-button]")
+          }
+        />
+      ) : null}
       <div role="status" className="sr-only">
         {finished ? FINISHED : ""}
       </div>

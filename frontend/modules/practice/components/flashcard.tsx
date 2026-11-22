@@ -82,6 +82,7 @@ export function Flashcard({
           {flipped ? null : (
             <Button
               ref={flipRef}
+              data-flip-button=""
               variant="outline"
               className="mt-5"
               onClick={(event) => {
