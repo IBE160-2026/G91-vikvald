@@ -57,7 +57,11 @@ let deleteStatus = 204;
 let replaceAnswer: { status: number; code: string; details?: Record<string, unknown> } | undefined;
 // Flashcards in lecture l2 and its latest flashcards job.
 let cardCount = 0;
+// Quiz questions in lecture l2.
+let quizCount = 0;
 let latestJob: Job | null = null;
+// Latest jobs of other kinds in lecture l2 (shown with latestJob).
+let otherJobs: Job[] = [];
 // What a started job ends as. It ends the first time the job watcher asks for
 // the running jobs after the start (unless holdJob is set).
 let jobOutcome: { status: "done" | "failed"; created: number | null; error_code: string | null } = {
@@ -73,6 +77,8 @@ function job(changes: Partial<Job> = {}): Job {
     id: "j1",
     lecture_id: "l2",
     kind: "flashcards",
+    // As stored by the backend: the same scope as requested.
+    params: { requested: changes.requested ?? 20 },
     status: "running",
     requested: 20,
     created: null,
@@ -132,24 +138,30 @@ function respond() {
         const code = startStatus === 409 ? "JOB_ALREADY_RUNNING" : "LECTURE_HAS_NO_FILES";
         return jsonResponse(startStatus, { error: { code, details: {} } });
       }
-      const body = JSON.parse(String(init.body)) as { params: { requested: number } };
-      latestJob = job({ id: `j${Date.now()}`, requested: body.params.requested });
+      const body = JSON.parse(String(init.body)) as Pick<Job, "kind" | "params">;
+      otherJobs = [...otherJobs, ...(latestJob && latestJob.kind !== body.kind ? [latestJob] : [])].filter(
+        (other) => other.kind !== body.kind,
+      );
+      latestJob = job({ id: `j${Date.now()}`, kind: body.kind, params: body.params, requested: body.params.requested });
       return jsonResponse(202, latestJob);
     }
-    if (path === "/api/lectures/l2/jobs/latest") return jsonResponse(200, latestJob ? [latestJob] : []);
+    if (path === "/api/lectures/l2/jobs/latest") return jsonResponse(200, [...otherJobs, ...(latestJob ? [latestJob] : [])]);
     if (path === "/api/jobs/active") {
       if (latestJob?.status === "running" && !holdJob) {
         latestJob = { ...latestJob, ...jobOutcome, discarded: 0, finished_at: "2026-11-21T10:00:03Z" };
-        if (jobOutcome.status === "done") cardCount += jobOutcome.created ?? 0;
+        if (jobOutcome.status === "done" && latestJob.kind === "quiz") quizCount += jobOutcome.created ?? 0;
+        else if (jobOutcome.status === "done") cardCount += jobOutcome.created ?? 0;
       }
       return jsonResponse(200, latestJob?.status === "running" ? [{ ...latestJob, lecture_name: "Uke 38: Prising" }] : []);
     }
     if (latestJob && path === `/api/jobs/${latestJob.id}`) {
       return jsonResponse(200, { ...latestJob, lecture_name: "Uke 38: Prising" });
     }
-    if (path === "/api/lectures/l2/content-counts") return jsonResponse(200, { flashcards: cardCount });
+    if (path === "/api/lectures/l2/content-counts") {
+      return jsonResponse(200, { flashcards: cardCount, quiz_questions: quizCount });
+    }
     if (/^\/api\/lectures\/l1\/(jobs\/latest|content-counts)$/.test(path)) {
-      return jsonResponse(200, path.endsWith("latest") ? [] : { flashcards: 0 });
+      return jsonResponse(200, path.endsWith("latest") ? [] : { flashcards: 0, quiz_questions: 0 });
     }
     const filePreview = path.match(/^\/api\/files\/([^/]+)\/delete-preview$/);
     if (filePreview) {
@@ -225,7 +237,9 @@ beforeEach(() => {
   deleteStatus = 204;
   replaceAnswer = undefined;
   cardCount = 0;
+  quizCount = 0;
   latestJob = null;
+  otherJobs = [];
   jobOutcome = { status: "done", created: 20, error_code: null };
   holdJob = false;
   pathname = "/forelesninger/l2";
@@ -956,8 +970,9 @@ describe("forelesningssiden", () => {
 describe("Lag og øv (story 3.1 og 3.2)", () => {
   const FAILED = "Vi klarte ikke å lage flashcardene. Ingenting er lagret. Prøv igjen.";
 
+  // The Flashcards row (the Quiz row stands under it in the same region).
   function createRegion() {
-    return screen.getByRole("region", { name: "Lag og øv" });
+    return screen.getByRole("group", { name: "Flashcards" });
   }
   function rowStatus() {
     return within(createRegion()).getByRole("status");
@@ -968,7 +983,7 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
       .map(([, init]) => JSON.parse(String(init!.body)));
   }
   async function openDialog(name = "Lag flashcards") {
-    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    const region = await screen.findByRole("group", { name: "Flashcards" });
     const button = await within(region).findByRole("button", { name });
     await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
     button.focus();
@@ -986,14 +1001,14 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     renderPage();
     expect(await screen.findByRole("heading", { level: 2, name: "Lag og øv" })).toBeTruthy();
-    const region = createRegion();
+    const region = await waitFor(() => createRegion());
     expect(within(region).getByRole("heading", { level: 3, name: "Flashcards" })).toBeTruthy();
     expect(await within(region).findByText("Ingen ennå")).toBeTruthy();
     const create = await within(region).findByRole("button", { name: "Lag flashcards" });
     await waitFor(() => expect((create as HTMLButtonElement).disabled).toBe(false));
     expect(create.dataset.variant).toBe("outline");
     expect(within(region).queryByRole("button", { name: "Øv nå" })).toBeNull();
-    expect(region.parentElement!.className).toContain("flex-wrap");
+    expect(screen.getByRole("region", { name: "Lag og øv" }).parentElement!.className).toContain("flex-wrap");
   });
 
   it("FR-23: «Øv nå» åpner flashcard-økten for forelesningen", async () => {
@@ -1094,7 +1109,7 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
     latestJob = job({ status: "done", created: 12, discarded: 0, finished_at: "2026-11-21T10:00:03Z" });
     renderPage();
     const text = "Det ble laget 12 av inntil 20 flashcards. Notatene ga ikke grunnlag for flere.";
-    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    const region = await screen.findByRole("group", { name: "Flashcards" });
     expect(await within(region).findByText(text)).toBeTruthy();
     expect(rowStatus().textContent).toBe("");
   });
@@ -1144,7 +1159,7 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     latestJob = job({ status: "failed", requested: 10, error_code: "JOB_INTERRUPTED", finished_at: "2026-11-21T10:00:03Z" });
     renderPage();
-    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    const region = await screen.findByRole("group", { name: "Flashcards" });
     expect((await within(region).findByRole("alert")).textContent).toBe(FAILED);
     fireEvent.click(within(region).getByRole("button", { name: "Prøv igjen" }));
     expect(document.activeElement).toBe(screen.getByRole("group", { name: "Flashcards" }));
@@ -1168,7 +1183,7 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
     latestJob = job();
     holdJob = true;
     renderPage();
-    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    const region = await screen.findByRole("group", { name: "Flashcards" });
     expect(await within(region).findByText("Lager flashcards …", { selector: "p" })).toBeTruthy();
     expect(within(region).queryByRole("button")).toBeNull();
   });
@@ -1178,7 +1193,7 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
     latestJob = job();
     holdJob = true;
     renderPage();
-    await within(await screen.findByRole("region", { name: "Lag og øv" })).findByText("Lager flashcards …", { selector: "p" });
+    await within(await screen.findByRole("group", { name: "Flashcards" })).findByText("Lager flashcards …", { selector: "p" });
     const latestCalls = () => fetchMock.mock.calls.filter(([url]) => String(url) === "/api/lectures/l2/jobs/latest").length;
     const before = latestCalls();
     const activeBefore = fetchMock.mock.calls.filter(([url]) => String(url) === "/api/jobs/active").length;
@@ -1191,7 +1206,7 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
     files = [uploadedFile("merkevare.pdf", 3, "f1")];
     cardCount = 5;
     renderPage();
-    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    const region = await screen.findByRole("group", { name: "Flashcards" });
     expect(await within(region).findByText("5 kort")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Slett merkevare.pdf" }));
     const dialog = screen.getByRole("dialog", { name: "Slette fila?" });
@@ -1205,10 +1220,143 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
 
   it("UX-DR18: uten filer er knappen ikke aktiv, og «Last opp notater først.» er koblet til den", async () => {
     renderPage();
-    const region = await screen.findByRole("region", { name: "Lag og øv" });
+    const region = await screen.findByRole("group", { name: "Flashcards" });
     const reason = await within(region).findByText("Last opp notater først.");
     const create = within(region).getByRole("button", { name: "Lag flashcards" }) as HTMLButtonElement;
     expect(create.disabled).toBe(true);
     expect(create.getAttribute("aria-describedby")).toBe(reason.id);
+  });
+});
+
+describe("Quiz-raden (story 4.1)", () => {
+  function quizRow() {
+    return screen.getByRole("group", { name: "Quiz" });
+  }
+  function posts() {
+    return fetchMock.mock.calls
+      .filter(([url, init]) => String(url) === "/api/lectures/l2/jobs" && init?.method === "POST")
+      .map(([, init]) => JSON.parse(String(init!.body)));
+  }
+  async function openQuizDialog(name = "Lag quiz") {
+    const row = await screen.findByRole("group", { name: "Quiz" });
+    const button = await within(row).findByRole("button", { name });
+    await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
+    button.focus();
+    fireEvent.click(button);
+    return { button, dialog: await screen.findByRole("dialog", { name: "Lag quiz" }) };
+  }
+
+  it("FR-28, UX-DR18: Quiz-raden står under Flashcards med skillelinje, «Ingen ennå» og «Lag quiz»", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Quiz" });
+    expect(within(row).getByRole("heading", { level: 3, name: "Quiz" })).toBeTruthy();
+    expect(await within(row).findByText("Ingen ennå")).toBeTruthy();
+    const create = within(row).getByRole("button", { name: "Lag quiz" }) as HTMLButtonElement;
+    await waitFor(() => expect(create.disabled).toBe(false));
+    expect(create.dataset.variant).toBe("outline");
+    const card = row.parentElement!;
+    expect(card.className).toContain("divide-y");
+    expect(card.className).toContain("divide-divider");
+    expect(Array.from(card.children)).toEqual([screen.getByRole("group", { name: "Flashcards" }), row]);
+  });
+
+  it("FR-28: med spørsmål viser raden «15 spørsmål», «Lag flere» og «Øv nå», som ikke er aktiv før quizøkten finnes", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    quizCount = 15;
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Quiz" });
+    expect(await within(row).findByText("15 spørsmål")).toBeTruthy();
+    expect((within(row).getByRole("button", { name: "Øv nå" }) as HTMLButtonElement).disabled).toBe(true);
+    const { dialog } = await openQuizDialog("Lag flere");
+    expect(within(dialog).getByText("Nye spørsmål legges til de 15 du har fra før.")).toBeTruthy();
+  });
+
+  it("FR-29, UX-DR24: dialogen «Lag quiz» med bare tastatur: «Vanlig» og «Middels» valgt, Esc lukker uten jobb og fokus går tilbake", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    renderPage();
+    const { button, dialog } = await openQuizDialog();
+    expect(within(dialog).getByRole("radio", { name: "Vanlig" }).getAttribute("aria-checked")).toBe("true");
+    expect(within(dialog).getByRole("radio", { name: "Middels" }).getAttribute("aria-checked")).toBe("true");
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(button));
+    expect(posts()).toEqual([]);
+  });
+
+  it("FR-28, FR-30, UX-DR19: «Lag quiz» sender omfang og vanskelighetsgrad, Flashcards-raden venter, så kommer spørsmålene", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    jobOutcome = { status: "done", created: 20, error_code: null };
+    holdJob = true;
+    renderPage();
+    const { dialog } = await openQuizDialog();
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Vanskelig" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Lag quiz" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(posts()).toEqual([{ kind: "quiz", params: { requested: 20, difficulty: "hard" } }]);
+    expect(await within(quizRow()).findByText("Lager quizspørsmål …", { selector: "p" })).toBeTruthy();
+    expect(within(quizRow()).getByRole("status").textContent).toBe("Lager quizspørsmål …");
+
+    // The Flashcards row waits, with the reason tied to its button.
+    const flashcards = screen.getByRole("group", { name: "Flashcards" });
+    const reason = await within(flashcards).findByText("Venter til quizspørsmålene er ferdige");
+    const create = within(flashcards).getByRole("button", { name: "Lag flashcards" }) as HTMLButtonElement;
+    expect(create.disabled).toBe(true);
+    expect(create.getAttribute("aria-describedby")).toBe(reason.id);
+
+    holdJob = false;
+    expect(await within(quizRow()).findByText("20 spørsmål", {}, { timeout: 3000 })).toBeTruthy();
+    expect(within(quizRow()).getByRole("status").textContent).toBe(
+      "Quizspørsmålene er ferdige: 20 spørsmål i Uke 38: Prising.",
+    );
+    await waitFor(() => expect(within(flashcards).queryByText("Venter til quizspørsmålene er ferdige")).toBeNull());
+    expect((within(flashcards).getByRole("button", { name: "Lag flashcards" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("UX-DR19: en flashcardsjobb som kjører, gjør «Lag quiz» inaktiv med «Venter til flashcardene er ferdige»", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    latestJob = job();
+    holdJob = true;
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Quiz" });
+    const reason = await within(row).findByText("Venter til flashcardene er ferdige");
+    const create = within(row).getByRole("button", { name: "Lag quiz" }) as HTMLButtonElement;
+    expect(create.disabled).toBe(true);
+    expect(create.getAttribute("aria-describedby")).toBe(reason.id);
+  });
+
+  it("FR-30: færre enn valgt og ingenting har quiztekstene", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    quizCount = 12;
+    otherJobs = [
+      job({ kind: "quiz", status: "done", created: 12, discarded: 0, finished_at: "2026-11-21T10:00:03Z" }),
+    ];
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Quiz" });
+    expect(
+      await within(row).findByText("Det ble laget 12 av inntil 20 spørsmål. Notatene ga ikke grunnlag for flere."),
+    ).toBeTruthy();
+  });
+
+  it("FR-21: en feilet quizjobb gir feilteksten og «Prøv igjen» med samme omfang og vanskelighetsgrad", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    otherJobs = [
+      job({
+        kind: "quiz",
+        params: { requested: 10, difficulty: "easy" },
+        requested: 10,
+        status: "failed",
+        error_code: "GENERATION_TIMEOUT",
+        finished_at: "2026-11-21T10:00:03Z",
+      }),
+    ];
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Quiz" });
+    expect((await within(row).findByRole("alert")).textContent).toBe(
+      "Vi klarte ikke å lage quizspørsmålene. Ingenting er lagret. Prøv igjen.",
+    );
+    fireEvent.click(within(row).getByRole("button", { name: "Prøv igjen" }));
+    expect(document.activeElement).toBe(row);
+    await waitFor(() => expect(posts()).toEqual([{ kind: "quiz", params: { requested: 10, difficulty: "easy" } }]));
   });
 });

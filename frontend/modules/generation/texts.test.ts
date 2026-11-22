@@ -8,6 +8,7 @@ function job(changes: Partial<Job> = {}): Job {
     id: "j1",
     lecture_id: "l1",
     kind: "flashcards",
+    params: { requested: 20 },
     status: "done",
     requested: 20,
     created: 20,
@@ -69,5 +70,38 @@ describe("finishedText", () => {
       "Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.",
     );
     expect(finishedText(job({ status: "failed", error_code: "JOB_INTERRUPTED" }), "Uke 37")).toBe(FAILED);
+  });
+});
+
+describe("tekstene for quiz", () => {
+  const texts = generationTexts.quiz;
+
+  it("FR-30: jobbtekst, færre, ingenting og ferdig har de godkjente ordlydene", () => {
+    expect(texts.jobText).toBe("Lager quizspørsmål …");
+    expect(texts.fewer(12, 20)).toBe("Det ble laget 12 av inntil 20 spørsmål. Notatene ga ikke grunnlag for flere.");
+    expect(texts.nothing).toBe("Notatene ga ikke grunnlag for spørsmål. Ingenting er lagret.");
+    expect(texts.done(15, "Uke 37: Merkevare")).toBe("Quizspørsmålene er ferdige: 15 spørsmål i Uke 37: Merkevare.");
+  });
+
+  it("FR-21: feil, tidsgrense og avbrutt gir samme feiltekst om quizspørsmålene", () => {
+    for (const code of ["GENERATION_FAILED", "GENERATION_TIMEOUT", "JOB_INTERRUPTED", null]) {
+      expect(texts.failed(code)).toBe("Vi klarte ikke å lage quizspørsmålene. Ingenting er lagret. Prøv igjen.");
+    }
+  });
+
+  it("UX-DR19: ventetekstene for de andre radene", () => {
+    expect(generationTexts.flashcards.waiting).toBe("Venter til flashcardene er ferdige");
+    expect(texts.waiting).toBe("Venter til quizspørsmålene er ferdige");
+  });
+
+  it("FR-30: jobOutcome og finishedText bruker quiztekstene for en quizjobb", () => {
+    const quizJob = job({ kind: "quiz", params: { requested: 20, difficulty: "medium" }, created: 12 });
+    expect(jobOutcome(quizJob)).toEqual({
+      type: "fewer",
+      text: "Det ble laget 12 av inntil 20 spørsmål. Notatene ga ikke grunnlag for flere.",
+    });
+    expect(finishedText({ ...quizJob, created: 0 }, "Uke 37")).toBe(
+      "Notatene ga ikke grunnlag for spørsmål. Ingenting er lagret.",
+    );
   });
 });

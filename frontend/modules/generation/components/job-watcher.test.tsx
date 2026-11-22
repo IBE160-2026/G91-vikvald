@@ -21,6 +21,7 @@ function tracked(changes: Partial<TrackedJob> = {}): TrackedJob {
     id: "j1",
     lecture_id: "l1",
     kind: "flashcards",
+    params: { requested: 20 },
     status: "running",
     requested: 20,
     created: null,

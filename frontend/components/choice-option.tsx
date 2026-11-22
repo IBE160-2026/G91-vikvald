@@ -11,6 +11,10 @@ export type ChoiceOptionProps = {
   title: string;
   // «Inntil 20 kort»
   description: string;
+  // card (the default): title over the explanation, for cards side by side
+  // (scope). row: a full-width row with the explanation after the title
+  // (difficulty in «Lag quiz»).
+  layout?: "card" | "row";
   className?: string;
 };
 
@@ -20,8 +24,9 @@ export type ChoiceOptionProps = {
 // has brand-tint, a 1.5 px brand edge and the filled brand radio button. The
 // whole card is a label, so a click anywhere chooses it; the radio button
 // itself gets the focus ring, its name from the title and its description
-// from the explanation.
-export function ChoiceOption({ value, title, description, className }: ChoiceOptionProps) {
+// from the explanation. layout="row" gives a full-width row with the title
+// and explanation on one line (wrapping when narrow), for the difficulty rows.
+export function ChoiceOption({ value, title, description, layout = "card", className }: ChoiceOptionProps) {
   const titleId = useId();
   const descriptionId = useId();
   return (
@@ -34,11 +39,14 @@ export function ChoiceOption({ value, title, description, className }: ChoiceOpt
       )}
     >
       <RadioGroupItem value={value} aria-labelledby={titleId} aria-describedby={descriptionId} className="mt-[3px]" />
-      <span className="min-w-0">
-        <span id={titleId} className="block text-item-title text-ink">
+      <span
+        data-layout={layout}
+        className={cn("min-w-0", layout === "row" && "flex flex-wrap items-baseline gap-x-3 gap-y-1")}
+      >
+        <span id={titleId} className={cn("text-item-title text-ink", layout === "row" ? "min-w-[96px]" : "block")}>
           {title}
         </span>
-        <span id={descriptionId} className="mt-1 block text-meta text-ink-muted">
+        <span id={descriptionId} className={cn("text-meta text-ink-muted", layout === "row" ? "" : "mt-1 block")}>
           {description}
         </span>
       </span>

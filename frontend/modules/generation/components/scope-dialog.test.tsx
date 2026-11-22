@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { JobKind } from "../types";
 import { ScopeDialog } from "./scope-dialog";
 
 const fetchMock = vi.fn<typeof fetch>();
@@ -22,18 +23,19 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function renderDialog(onStart = vi.fn(), onClose = vi.fn(), open = true) {
+function renderDialog(onStart = vi.fn(), onClose = vi.fn(), open = true, kind: JobKind = "flashcards", contentCount = 0) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const view = (isOpen: boolean) => (
     <QueryClientProvider client={client}>
       <ScopeDialog
+        kind={kind}
         open={isOpen}
         onClose={onClose}
         onStart={onStart}
         lectureName="Uke 37: Merkevare"
         fileCount={1}
         pageCount={1}
-        cardCount={0}
+        contentCount={contentCount}
       />
     </QueryClientProvider>
   );
@@ -79,5 +81,70 @@ describe("ScopeDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "Avbryt" }));
     expect(onClose).toHaveBeenCalledOnce();
     expect(onStart).not.toHaveBeenCalled();
+  });
+
+  it("FR-17: «Lag flashcards» har ingen vanskelighetsgrad og starter uten den", () => {
+    const { onStart } = renderDialog();
+    const dialog = screen.getByRole("dialog", { name: "Lag flashcards" });
+    expect(within(dialog).queryByRole("radiogroup", { name: "Vanskelighetsgrad" })).toBeNull();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Lag flashcards" }));
+    expect(onStart).toHaveBeenCalledWith(20);
+    expect(onStart.mock.calls[0]).toHaveLength(1);
+  });
+});
+
+describe("ScopeDialog for quiz", () => {
+  it("FR-29, UX-DR24: «Lag quiz» har omfang i spørsmål og tre vanskelighetsrader, med «Vanlig» og «Middels» valgt", () => {
+    renderDialog(vi.fn(), vi.fn(), true, "quiz", 15);
+    const dialog = screen.getByRole("dialog", { name: "Lag quiz" });
+    expect(within(dialog).getByText("Nye spørsmål legges til de 15 du har fra før.")).toBeTruthy();
+    for (const scope of [10, 20, 30]) expect(within(dialog).getByText(`Inntil ${scope} spørsmål`)).toBeTruthy();
+    const scope = within(dialog).getByRole("radiogroup", { name: "Omfang" });
+    expect(within(scope).getByRole("radio", { name: "Vanlig" }).getAttribute("aria-checked")).toBe("true");
+    const difficulty = within(dialog).getByRole("radiogroup", { name: "Vanskelighetsgrad" });
+    const rows = within(difficulty).getAllByRole("radio");
+    expect(rows.map((radio) => document.getElementById(radio.getAttribute("aria-labelledby")!)!.textContent)).toEqual([
+      "Lett",
+      "Middels",
+      "Vanskelig",
+    ]);
+    expect(rows.map((radio) => document.getElementById(radio.getAttribute("aria-describedby")!)!.textContent)).toEqual([
+      "Kjenne igjen en definisjon",
+      "Forstå sammenhenger",
+      "Bruke stoffet på et eksempel",
+    ]);
+    expect(within(difficulty).getByRole("radio", { name: "Middels" }).getAttribute("aria-checked")).toBe("true");
+    expect(difficulty.className).toContain("grid-cols-1");
+    expect(difficulty.className).not.toContain("grid-cols-3");
+    const buttons = within(dialog).getAllByRole("button").map((button) => button.textContent);
+    expect(buttons.slice(-2)).toEqual(["Avbryt", "Lag quiz"]);
+  });
+
+  it("FR-29: piltastene flytter bare innen gruppen, og «Lag quiz» starter med omfang og vanskelighetsgrad", async () => {
+    const { onStart } = renderDialog(vi.fn(), vi.fn(), true, "quiz");
+    const dialog = screen.getByRole("dialog", { name: "Lag quiz" });
+    const medium = within(dialog).getByRole("radio", { name: "Middels" });
+    medium.focus();
+    fireEvent.keyDown(medium, { key: "ArrowDown" });
+    const hard = within(dialog).getByRole("radio", { name: "Vanskelig" });
+    await waitFor(() => expect(hard.getAttribute("aria-checked")).toBe("true"));
+    expect(document.activeElement).toBe(hard);
+    // The scope did not change.
+    expect(within(dialog).getByRole("radio", { name: "Vanlig" }).getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Lag quiz" }));
+    expect(onStart).toHaveBeenCalledWith(20, "hard");
+  });
+
+  it("FR-29: «Middels» er valgt igjen neste gang dialogen åpnes", async () => {
+    const onStart = vi.fn();
+    const { reopen } = renderDialog(onStart, vi.fn(), true, "quiz");
+    fireEvent.click(screen.getByRole("radio", { name: "Lett" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Dyp" }));
+    reopen(false);
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    reopen(true);
+    const dialog = await screen.findByRole("dialog", { name: "Lag quiz" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Lag quiz" }));
+    expect(onStart).toHaveBeenCalledWith(20, "medium");
   });
 });

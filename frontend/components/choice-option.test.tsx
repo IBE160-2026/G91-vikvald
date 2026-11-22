@@ -44,3 +44,19 @@ describe("ChoiceOption", () => {
     expect(screen.getByRole("radio", { name: "Rask" }).getAttribute("aria-checked")).toBe("true");
   });
 });
+
+describe("ChoiceOption som rad", () => {
+  it("UX-DR24: layout=row gir tittel og forklaring på én linje, med samme navn og beskrivelse", () => {
+    render(
+      <RadioGroup aria-label="Vanskelighetsgrad" defaultValue="medium">
+        <ChoiceOption value="easy" title="Lett" description="Kjenne igjen en definisjon" layout="row" />
+      </RadioGroup>,
+    );
+    const radio = screen.getByRole("radio", { name: "Lett" });
+    expect(document.getElementById(radio.getAttribute("aria-describedby")!)!.textContent).toBe(
+      "Kjenne igjen en definisjon",
+    );
+    const text = radio.closest("label")!.querySelector('[data-layout="row"]')!;
+    expect(text.className).toContain("flex");
+  });
+});
