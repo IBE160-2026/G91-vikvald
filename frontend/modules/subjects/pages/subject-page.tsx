@@ -52,6 +52,7 @@ import { fileCountLabel, formatWeekdayDate, lectureCountLabel } from "../format"
 // Quiz («8 spørsmål fra 2 forelesninger», «Start ›», story 4.4), shown only
 // when the subject has quiz questions. At the bottom of the card stands SISTE
 // ØKT (story 5.1), from GET /api/overview, when the subject has a session.
+// The table's Status («Øvd 03.11») also comes from the overview (story 5.2).
 // Someone else's or a missing subject shows «Fant ikke siden».
 //
 // After a lecture is deleted on 04 she lands here, and the h1 gets focus (#75).
@@ -178,7 +179,14 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
                         <span>{FALLBACK_MESSAGE}</span>
                       </p>
                     ) : null}
-                    {lectures.data && lectures.data.length > 0 ? <LectureTable lectures={lectures.data} fileCounts={fileCounts.data} /> : null}
+                    {lectures.data && lectures.data.length > 0 ? (
+                      <LectureTable
+                        lectures={lectures.data}
+                        fileCounts={fileCounts.data}
+                        overviewLectures={overviewSubject?.lectures}
+                        overviewSettled={overview.data !== undefined || overview.isError}
+                      />
+                    ) : null}
                     {lectures.data && lectures.data.length === 0 ? (
                       <p className="text-body-sm text-ink-muted">Ingen forelesninger ennå.</p>
                     ) : null}

@@ -9,10 +9,18 @@ export type UploadedFile = {
   uploaded_at: string;
 };
 
+// One count from the content registry, e.g. { kind: "flashcards", count: 3 }.
+export type ContentCount = {
+  kind: string;
+  count: number;
+};
+
 export type LectureFileCount = {
   lecture_id: string;
   file_count: number;
   page_count: number;
+  // The registry's counts for the lecture, in registration order, without 0.
+  content_counts: ContentCount[];
 };
 
 export type SubjectFileCounts = {

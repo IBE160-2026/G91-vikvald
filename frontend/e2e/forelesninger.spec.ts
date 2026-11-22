@@ -140,7 +140,7 @@ test.describe("Forelesninger (story 2.2)", () => {
     await page.goto(`/emner/${subjectId}`);
     const rows = page.locator("main tbody tr");
     await expect(rows).toHaveCount(3);
-    await expect(page.locator("main thead th")).toHaveText(["Dato", "Forelesning", "Filer", "Status"]);
+    await expect(page.locator("main thead th")).toHaveText(["Dato", "Forelesning", "Filer", "Kort", "Quiz", "Status"]);
     await expect(rows.locator("td:first-child")).toHaveText(["11.09", "11.09", "18.09"]);
     await expect(rows.getByRole("link")).toHaveText(order);
     await expect(rows.nth(0)).toHaveCSS("height", "44px");

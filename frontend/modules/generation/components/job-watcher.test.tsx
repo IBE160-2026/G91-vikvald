@@ -127,6 +127,7 @@ describe("JobWatcher", () => {
     expect(predicate(query(["subjects", "s2", "flashcards"]))).toBe(true);
     expect(predicate(query(["subjects", "s1", "quiz-questions"]))).toBe(true);
     expect(predicate(query(["subjects", "s2", "quiz-questions"]))).toBe(true);
+    expect(predicate(query(["subjects", "s1", "file-counts"]))).toBe(true);
     expect(predicate(query(["subjects", "s1"]))).toBe(false);
     expect(predicate(query(["subjects", "s1", "lectures"]))).toBe(false);
     expect(predicate(query(["subjects"]))).toBe(false);

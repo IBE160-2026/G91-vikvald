@@ -144,8 +144,8 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     await expect(rows.getByRole("link")).toHaveText(LECTURES.map(([name]) => name));
     for (let i = 0; i < LECTURES.length; i += 1) {
       await expect(rows.nth(i).getByRole("cell").nth(2)).toHaveText("1");
-      // She has not practised yet (and «Øvd» comes with story 5.1).
-      await expect(rows.nth(i).getByRole("cell").nth(3)).toHaveText("Ikke øvd ennå");
+      // She has not practised yet, so Status is «Ikke øvd ennå».
+      await expect(rows.nth(i).getByRole("cell").nth(5)).toHaveText("Ikke øvd ennå");
     }
     await expect(sidebarLectures(page)).toHaveCount(8);
     await expectNoAxeViolations(page);

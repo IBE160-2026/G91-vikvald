@@ -137,6 +137,23 @@ async def file_ids_for_lectures(
     return list(await session.scalars(statement))
 
 
+async def file_ids_by_lecture(
+    session: AsyncSession, lecture_ids: Iterable[uuid.UUID]
+) -> dict[uuid.UUID, list[uuid.UUID]]:
+    """The ids of the files in each of these lectures, in one query. A lecture
+    without files is missing from the result."""
+    ids = list(lecture_ids)
+    if not ids:
+        return {}
+    statement = (
+        select(File.lecture_id, File.id).where(File.lecture_id.in_(ids)).order_by(File.lecture_id, File.id)
+    )
+    grouped: dict[uuid.UUID, list[uuid.UUID]] = {}
+    for lecture_id, file_id in (await session.execute(statement)).all():
+        grouped.setdefault(lecture_id, []).append(file_id)
+    return grouped
+
+
 async def delete_file(session: AsyncSession, file_id: uuid.UUID) -> None:
     """Delete the file row in one statement; its pages go with ON DELETE CASCADE.
     The caller commits and removes the PDF afterwards."""

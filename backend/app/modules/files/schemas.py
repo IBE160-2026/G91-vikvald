@@ -14,10 +14,20 @@ class FileOut(BaseModel):
     uploaded_at: datetime
 
 
+class DeleteCount(BaseModel):
+    # "lectures", "files", or a kind from the content registry (in the file
+    # counts only kinds from the registry).
+    kind: str
+    count: int
+
+
 class LectureFileCount(BaseModel):
     lecture_id: uuid.UUID
     file_count: int
     page_count: int
+    # The content registry's counts for the lecture (flashcards, quiz_questions,
+    # ...), in registration order, without the counts that are 0 (FR-16).
+    content_counts: list[DeleteCount]
 
 
 class SubjectFileCounts(BaseModel):
@@ -25,12 +35,6 @@ class SubjectFileCounts(BaseModel):
     file_count: int
     # Only the lectures that have files.
     lectures: list[LectureFileCount]
-
-
-class DeleteCount(BaseModel):
-    # "lectures", "files", or a kind from the content registry.
-    kind: str
-    count: int
 
 
 class DeletePreview(BaseModel):

@@ -15,6 +15,8 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from app.core.errors import AppError, ErrorCode
+from app.modules.content.models import Flashcard, QuizQuestion
+from app.modules.content.registry import DeleteScope, register_counter, unregister_counter
 from app.modules.files import pdf as pdf_module
 from app.modules.files.models import File, FilePage
 from app.modules.files.service import clean_original_name
@@ -388,7 +390,9 @@ async def test_fr8_tellinger_per_forelesning_i_emnet(client: AsyncClient) -> Non
     assert response.status_code == 200
     assert response.json() == {
         "file_count": 3,
-        "lectures": [{"lecture_id": with_files, "file_count": 3, "page_count": 6}],
+        "lectures": [
+            {"lecture_id": with_files, "file_count": 3, "page_count": 6, "content_counts": []}
+        ],
     }
 
 
@@ -397,6 +401,92 @@ async def test_fr8_tellinger_for_emne_uten_filer(client: AsyncClient) -> None:
     subject_id = await _new_subject(client)
     response = await client.get(f"{SUBJECTS}/{subject_id}/file-counts")
     assert response.json() == {"file_count": 0, "lectures": []}
+
+
+async def _add_flashcards(engine: AsyncEngine, file_id: str, count: int, kind: str = "qa") -> None:
+    async with async_sessionmaker(engine)() as session:
+        session.add_all(
+            Flashcard(file_id=uuid.UUID(file_id), kind=kind, front=f"Spørsmål {n}", back="Svar.", page_no=1)
+            for n in range(count)
+        )
+        await session.commit()
+
+
+async def _add_quiz_questions(engine: AsyncEngine, file_id: str, count: int) -> None:
+    async with async_sessionmaker(engine)() as session:
+        session.add_all(
+            QuizQuestion(
+                file_id=uuid.UUID(file_id),
+                page_no=1,
+                question=f"Spørsmål {n}?",
+                options=["A", "B", "C", "D"],
+                correct_index=0,
+                explanation="Fordi.",
+            )
+            for n in range(count)
+        )
+        await session.commit()
+
+
+async def test_fr16_tellinger_per_forelesning(client: AsyncClient, engine: AsyncEngine) -> None:
+    await _log_in_new_user(client)
+    subject_id = await _new_subject(client)
+    first = (await _create_lecture(client, subject_id, "L1")).json()["id"]
+    second = (await _create_lecture(client, subject_id, "L2")).json()["id"]
+    await _create_lecture(client, subject_id, "L3 uten filer")
+    file_a = (await _upload(client, first, make_pdf(["A"]))).json()["id"]
+    file_b = (await _upload(client, first, make_pdf(["B"]))).json()["id"]
+    await _upload(client, second, make_pdf(["C"]))
+    # Three cards and two quiz questions spread over L1's two files.
+    await _add_flashcards(engine, file_a, 2)
+    await _add_flashcards(engine, file_b, 1, kind="concept")
+    await _add_quiz_questions(engine, file_b, 2)
+    # A model card (epic 7) is not registered as a content type yet.
+    await _add_flashcards(engine, file_a, 1, kind="model")
+    # Content in another subject is not counted.
+    other_file = (await _upload(client, await _new_lecture(client), make_pdf(["annet"]))).json()["id"]
+    await _add_flashcards(engine, other_file, 4)
+
+    response = await client.get(f"{SUBJECTS}/{subject_id}/file-counts")
+
+    assert response.status_code == 200
+    lectures = {row["lecture_id"]: row for row in response.json()["lectures"]}
+    assert set(lectures) == {first, second}
+    assert lectures[first]["file_count"] == 2
+    assert lectures[first]["content_counts"] == [
+        {"kind": "flashcards", "count": 3},
+        {"kind": "quiz_questions", "count": 2},
+    ]
+    assert lectures[second]["content_counts"] == []
+
+
+async def test_fr16_ny_innholdstype_kommer_med_i_tellingene_uten_endring_i_files(
+    client: AsyncClient,
+) -> None:
+    kind = "test_kind_fr16"
+    seen: list[DeleteScope] = []
+
+    async def count(_session: AsyncSession, scope: DeleteScope) -> int:
+        seen.append(scope)
+        return len(scope.file_ids) * 10 + len(scope.lecture_ids)
+
+    register_counter(kind, count)
+    try:
+        await _log_in_new_user(client)
+        subject_id = await _new_subject(client)
+        lecture_id = (await _create_lecture(client, subject_id)).json()["id"]
+        await _upload(client, lecture_id, make_pdf(["A"]))
+        await _upload(client, lecture_id, make_pdf(["B"]))
+
+        response = await client.get(f"{SUBJECTS}/{subject_id}/file-counts")
+    finally:
+        unregister_counter(kind)
+
+    assert response.json()["lectures"][0]["content_counts"] == [{"kind": kind, "count": 21}]
+    # The scope is the lecture's files and the lecture itself.
+    assert len(seen) == 1
+    assert seen[0].lecture_ids == (uuid.UUID(lecture_id),)
+    assert len(seen[0].file_ids) == 2
 
 
 async def test_fr8_slettet_forelesning_sletter_filer_og_sider(

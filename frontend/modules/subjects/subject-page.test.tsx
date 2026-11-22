@@ -44,10 +44,10 @@ const LECTURES: Lecture[] = [
   },
 ];
 
-// Two files in Uke 37, none in Uke 38.
+// Two files in Uke 37 (no cards or quiz questions yet), none in Uke 38.
 const FILE_COUNTS: SubjectFileCounts = {
   file_count: 2,
-  lectures: [{ lecture_id: "l1", file_count: 2, page_count: 18 }],
+  lectures: [{ lecture_id: "l1", file_count: 2, page_count: 18, content_counts: [] }],
 };
 
 // The cards GET /api/subjects/a/flashcards answers with (none by default).
@@ -336,7 +336,7 @@ describe("emnesiden", () => {
     expect(await screen.findByRole("heading", { level: 2, name: "Forelesninger etter dato" })).toBeTruthy();
     const table = await screen.findByRole("table");
     const headers = within(table).getAllByRole("columnheader").map((header) => header.textContent);
-    expect(headers).toEqual(["Dato", "Forelesning", "Filer", "Status"]);
+    expect(headers).toEqual(["Dato", "Forelesning", "Filer", "Kort", "Quiz", "Status"]);
     const rows = within(table).getAllByRole("row").slice(1);
     expect(rows.map((row) => within(row).getAllByRole("cell")[0].textContent)).toEqual(["11.09", "18.09"]);
     const links = rows.map((row) => within(row).getByRole("link"));
@@ -357,22 +357,28 @@ describe("emnesiden", () => {
     const rows = within(table).getAllByRole("row").slice(1);
     const cells = rows.map((row) => within(row).getAllByRole("cell").map((cell) => cell.textContent));
     expect(cells).toEqual([
-      ["11.09", "Uke 37: Merkevare", "2", "Ikke øvd ennå"],
-      ["18.09", "Uke 38: Prising og et veldig langt navn som kortes av", "–", "Ingen filer ennå"],
+      ["11.09", "Uke 37: Merkevare", "2", "–", "–", "Ikke øvd ennå"],
+      ["18.09", "Uke 38: Prising og et veldig langt navn som kortes av", "–", "–", "–", "Ingen filer ennå"],
     ]);
     const filesCell = within(rows[0]).getAllByRole("cell")[2];
     expect(filesCell.className).toContain("text-right");
+    expect(filesCell.className).toContain("tabular-nums");
     const dot = rows[0].querySelector('[data-status="not-practised"]');
     expect(dot?.getAttribute("aria-hidden")).toBe("true");
+    // The dot is shown also below 1024 px; only the text is for screen readers there.
+    expect(dot?.parentElement?.className).not.toContain("sr-only");
     expect(rows[1].querySelector("[data-status]")).toBeNull();
     // The arrow is still at the far right, and the whole row is still the link.
-    const lastCell = within(rows[0]).getAllByRole("cell")[3];
+    const lastCell = within(rows[0]).getAllByRole("cell")[5];
     expect(lastCell.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
     expect(within(rows[0]).getByRole("link").className).toContain("after:inset-0");
   });
 
   it("UX-DR13: entall «1 forelesning · 1 fil» og «0 filer» uten filer", async () => {
-    respond([LECTURES[0]], { file_count: 1, lectures: [{ lecture_id: "l1", file_count: 1, page_count: 3 }] });
+    respond([LECTURES[0]], {
+      file_count: 1,
+      lectures: [{ lecture_id: "l1", file_count: 1, page_count: 3, content_counts: [] }],
+    });
     renderPage();
     expect(await screen.findByText("1 forelesning · 1 fil · eksamen fredag 04.12.2026")).toBeTruthy();
     cleanup();
@@ -664,6 +670,157 @@ describe("emnesiden", () => {
       renderPage();
       const alert = await within(await screen.findByRole("region", { name: "Øv på hele emnet" })).findByRole("alert");
       expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
+    });
+  });
+
+  describe("Tellinger og «Øvd» i forelesningstabellen (story 5.2)", () => {
+    function tableCells(row: HTMLElement): (string | null)[] {
+      return within(row).getAllByRole("cell").map((cell) => cell.textContent);
+    }
+
+    function overviewFor(lectures: { id: string; practiced: boolean; last_practiced_at: string | null }[]): Overview {
+      return {
+        subjects: [
+          {
+            id: "a",
+            name: MARKETING.name,
+            color_index: 0,
+            exam_date: MARKETING.exam_date,
+            lectures: lectures.map((item) => {
+              const lecture = LECTURES.find((candidate) => candidate.id === item.id)!;
+              return { ...item, name: lecture.name, date: lecture.date };
+            }),
+            last_session: null,
+          },
+        ],
+      };
+    }
+
+    it("FR-16: Kort og Quiz viser registerets tellinger høyrejustert, og 0 er «–» i dempet grå", async () => {
+      respond(LECTURES, {
+        file_count: 3,
+        lectures: [
+          {
+            lecture_id: "l1",
+            file_count: 2,
+            page_count: 18,
+            content_counts: [
+              { kind: "flashcards", count: 3 },
+              { kind: "quiz_questions", count: 2 },
+            ],
+          },
+          { lecture_id: "l2", file_count: 1, page_count: 4, content_counts: [] },
+        ],
+      });
+      renderPage();
+      const table = await screen.findByRole("table");
+      await waitFor(() => expect(within(table).getAllByText("Ikke øvd ennå")).toHaveLength(2));
+      const rows = within(table).getAllByRole("row").slice(1);
+      expect(tableCells(rows[0]).slice(2, 5)).toEqual(["2", "3", "2"]);
+      expect(tableCells(rows[1]).slice(2, 5)).toEqual(["1", "–", "–"]);
+      const [, , , cards, quiz] = within(rows[0]).getAllByRole("cell");
+      for (const cell of [cards, quiz]) {
+        expect(cell.className).toContain("text-right");
+        expect(cell.className).toContain("tabular-nums");
+        expect(cell.className).toContain("text-ink");
+      }
+      const emptyCards = within(rows[1]).getAllByRole("cell")[3];
+      expect(emptyCards.className).toContain("text-ink-muted");
+    });
+
+    it("UX-DR13: modellkort telles med i Kort", async () => {
+      respond([LECTURES[0]], {
+        file_count: 1,
+        lectures: [
+          {
+            lecture_id: "l1",
+            file_count: 1,
+            page_count: 3,
+            content_counts: [
+              { kind: "flashcards", count: 3 },
+              { kind: "model_cards", count: 2 },
+            ],
+          },
+        ],
+      });
+      renderPage();
+      const table = await screen.findByRole("table");
+      await waitFor(() => expect(within(table).getByText("5")).toBeTruthy());
+      const row = within(table).getAllByRole("row")[1];
+      expect(tableCells(row).slice(2, 5)).toEqual(["1", "5", "–"]);
+    });
+
+    it("FR-16: en øvd forelesning har fylt prikk og «Øvd 03.11» med datoen fra oversikten", async () => {
+      overview = overviewFor([
+        { id: "l1", practiced: true, last_practiced_at: "2026-11-03T09:00:00Z" },
+        { id: "l2", practiced: false, last_practiced_at: null },
+      ]);
+      renderPage();
+      const table = await screen.findByRole("table");
+      expect(await within(table).findByText("Øvd 03.11")).toBeTruthy();
+      const rows = within(table).getAllByRole("row").slice(1);
+      expect(tableCells(rows[0])[5]).toBe("Øvd 03.11");
+      const dot = rows[0].querySelector('[data-status="practised"]')!;
+      expect(dot.getAttribute("aria-hidden")).toBe("true");
+      expect(dot.className).toContain("bg-ink-muted");
+      expect(dot.className).toContain("size-[8px]");
+      expect(dot.className).not.toContain("border");
+      expect(tableCells(rows[1])[5]).toBe("Ingen filer ennå");
+    });
+
+    it("FR-16: en øvd forelesning uten filer viser «Øvd dd.mm», som sidemenyen", async () => {
+      overview = overviewFor([
+        { id: "l1", practiced: false, last_practiced_at: null },
+        { id: "l2", practiced: true, last_practiced_at: "2026-11-03T09:00:00Z" },
+      ]);
+      renderPage();
+      const table = await screen.findByRole("table");
+      expect(await within(table).findByText("Øvd 03.11")).toBeTruthy();
+      const rows = within(table).getAllByRole("row").slice(1);
+      expect(tableCells(rows[1]).slice(2)).toEqual(["–", "–", "–", "Øvd 03.11"]);
+      expect(rows[1].querySelector('[data-status="practised"]')).toBeTruthy();
+      expect(tableCells(rows[0])[5]).toBe("Ikke øvd ennå");
+    });
+
+    it("UX-DR13: Status er tom til oversikten er lastet", async () => {
+      respond();
+      const fake = fetchMock.getMockImplementation()!;
+      let release: () => void = () => {};
+      const waiting = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      fetchMock.mockImplementation(async (url, init) => {
+        if (String(url) === "/api/overview") await waiting;
+        return fake(url, init);
+      });
+      const client = renderPage();
+      const table = await screen.findByRole("table");
+      await waitFor(() => expect(client.getQueryState(["subjects", "a", "file-counts"])?.status).toBe("success"));
+      await waitFor(() => expect(tableCells(within(table).getAllByRole("row")[1])[2]).toBe("2"));
+      const rows = within(table).getAllByRole("row").slice(1);
+      expect(rows.map((row) => tableCells(row)[5])).toEqual(["", ""]);
+      expect(table.querySelector("[data-status]")).toBeNull();
+
+      await act(async () => {
+        release();
+      });
+      await waitFor(() => expect(within(table).getAllByText("Ikke øvd ennå")).toHaveLength(1));
+      expect(within(table).getByText("Ingen filer ennå")).toBeTruthy();
+    });
+
+    it("FR-16: når oversikten feiler, vises forelesninger med filer som «Ikke øvd ennå» uten egen feilmelding", async () => {
+      respond();
+      const fake = fetchMock.getMockImplementation()!;
+      fetchMock.mockImplementation(async (url, init) =>
+        String(url) === "/api/overview" ? jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } }) : fake(url, init),
+      );
+      renderPage();
+      const table = await screen.findByRole("table");
+      await waitFor(() => expect(within(table).getAllByText("Ikke øvd ennå")).toHaveLength(1));
+      expect(within(table).getByText("Ingen filer ennå")).toBeTruthy();
+      expect(table.querySelector('[data-status="practised"]')).toBeNull();
+      const section = screen.getByRole("heading", { level: 2, name: "Forelesninger etter dato" }).closest("section")!;
+      expect(within(section).queryByRole("alert")).toBeNull();
     });
   });
 

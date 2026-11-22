@@ -47,6 +47,7 @@ from app.modules.files.service import (
     delete_file,
     delete_pdfs,
     file_counts,
+    file_ids_by_lecture,
     file_ids_for_lectures,
     get_file,
     list_files,
@@ -222,15 +223,30 @@ async def list_lecture_files(lecture_id: str, user: CurrentUser, session: Sessio
 async def subject_file_counts(
     subject_id: str, user: CurrentUser, session: Session
 ) -> SubjectFileCounts:
+    """Files and pages per lecture that has files, and the content registry's
+    counts for each (the lecture table's Kort and Quiz, FR-16). The counts come
+    from the same registry as the delete preview, so a new content type shows
+    up here without any change in this module."""
     subject = await get_subject(session, user.id, subject_id)
     rows = await file_counts(session, subject.id)
-    return SubjectFileCounts(
-        file_count=sum(count for _, count, _ in rows),
-        lectures=[
-            LectureFileCount(lecture_id=lecture_id, file_count=count, page_count=pages)
-            for lecture_id, count, pages in rows
-        ],
-    )
+    files_by_lecture = await file_ids_by_lecture(session, [lecture_id for lecture_id, _, _ in rows])
+    lectures: list[LectureFileCount] = []
+    for lecture_id, count, pages in rows:
+        scope = DeleteScope(
+            file_ids=tuple(files_by_lecture.get(lecture_id, [])), lecture_ids=(lecture_id,)
+        )
+        lectures.append(
+            LectureFileCount(
+                lecture_id=lecture_id,
+                file_count=count,
+                page_count=pages,
+                content_counts=[
+                    DeleteCount(kind=kind, count=value)
+                    for kind, value in await content_counts(session, scope)
+                ],
+            )
+        )
+    return SubjectFileCounts(file_count=sum(count for _, count, _ in rows), lectures=lectures)
 
 
 # --- Delete preview and delete (FR-6, FR-7, FR-12, FR-14, AR-7, AR-8) ---------

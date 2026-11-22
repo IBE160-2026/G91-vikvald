@@ -187,7 +187,7 @@ test.describe("Filer (story 2.3)", () => {
     await expect(fileRows(page)).toHaveCount(1);
   });
 
-  test("UX-DR13: emnesiden viser antall filer under h1 og Filer og Status i tabellen, uten axe-brudd", async ({
+  test("UX-DR13: emnesiden viser antall filer under h1 og Filer, Kort, Quiz og Status i tabellen, uten axe-brudd", async ({
     page,
   }) => {
     await registerNewUser(page);
@@ -200,10 +200,10 @@ test.describe("Filer (story 2.3)", () => {
     await page.goto(`/emner/${subjectId}`);
     await expect(page.getByText("2 forelesninger · 2 filer · eksamen fredag 04.12.2026")).toBeVisible();
     const table = page.locator("main table");
-    await expect(table.getByRole("columnheader")).toHaveText(["Dato", "Forelesning", "Filer", "Status"]);
+    await expect(table.getByRole("columnheader")).toHaveText(["Dato", "Forelesning", "Filer", "Kort", "Quiz", "Status"]);
     const rows = table.locator("tbody tr");
-    await expect(rows.nth(0).getByRole("cell")).toHaveText(["11.09", "Uke 37: Merkevare", "2", "Ikke øvd ennå"]);
-    await expect(rows.nth(1).getByRole("cell")).toHaveText(["18.09", "Uke 38: Prising", "–", "Ingen filer ennå"]);
+    await expect(rows.nth(0).getByRole("cell")).toHaveText(["11.09", "Uke 37: Merkevare", "2", "–", "–", "Ikke øvd ennå"]);
+    await expect(rows.nth(1).getByRole("cell")).toHaveText(["18.09", "Uke 38: Prising", "–", "–", "–", "Ingen filer ennå"]);
     await expectNoAxeViolations(page);
 
     // The whole row still leads to the lecture page.
