@@ -120,5 +120,7 @@
 - [ ] 2026-11-22 [story-4-1-lag-quizsporsmal](968-2026-11-22-06-51-58-story-4-1-lag-quizsporsmal.md) — slett den midlertidige mappa `frontend/e2e-skjermbilder/` (slettingen ble avvist av tillatelsene)
 - [ ] 2026-11-22 [story-4-1-lag-quizsporsmal](968-2026-11-22-06-51-58-story-4-1-lag-quizsporsmal.md) — følg med på om `filer.spec.ts` (FR-8) er ustabil
 - [ ] 2026-11-22 [story-4-2-ta-quiz-paa-en-forelesning](967-2026-11-22-10-42-29-story-4-2-ta-quiz-paa-en-forelesning.md) — vurder kanttilfellene fra story 4.2 (#206–#212)
-- [ ] 2026-11-22 [story-4-2-ta-quiz-paa-en-forelesning](967-2026-11-22-10-42-29-story-4-2-ta-quiz-paa-en-forelesning.md) — story 4.3 bygger videre på den enkle resultatvisningen og gir Enter «Ta quizen igjen» (#206, #212)
+- [x] 2026-11-22 [story-4-2-ta-quiz-paa-en-forelesning](967-2026-11-22-10-42-29-story-4-2-ta-quiz-paa-en-forelesning.md) — story 4.3 bygger videre på den enkle resultatvisningen og gir Enter «Ta quizen igjen» (#206, #212) (løst 2026-11-22 i story 4.3)
 - [ ] 2026-11-22 [story-4-2-ta-quiz-paa-en-forelesning](967-2026-11-22-10-42-29-story-4-2-ta-quiz-paa-en-forelesning.md) — forklaringskortet mangler «Kilde» foran fila og understrekingen fra skisse 09
+- [ ] 2026-11-22 [story-4-3-se-poengsum-og-feilsvar](966-2026-11-22-11-19-29-story-4-3-se-poengsum-og-feilsvar.md) — vurder kanttilfellene fra story 4.3 (#214–#217)
+- [ ] 2026-11-22 [story-4-3-se-poengsum-og-feilsvar](966-2026-11-22-11-19-29-story-4-3-se-poengsum-og-feilsvar.md) — `erstatt.spec.ts` (filvelgeren) feilet igjen én gang under last
