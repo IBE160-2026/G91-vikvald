@@ -114,3 +114,4 @@
 - [ ] 2026-11-22 [story-3-7-rett-og-slett-kort](970-2026-11-22-02-22-42-story-3-7-rett-og-slett-kort.md) — vurder kanttilfellene fra story 3.7 (#188–#193), særlig at «Rediger»/«Slett» bare vises på snudd kort (#188) og vaktregisteret (#192)
 - [ ] 2026-11-22 [story-3-7-rett-og-slett-kort](970-2026-11-22-02-22-42-story-3-7-rett-og-slett-kort.md) — 409-meldingen i slettedialogen er bare testet i nettleseren med falskt svar fra serveren
 - [ ] 2026-11-22 [story-3-7-rett-og-slett-kort](970-2026-11-22-02-22-42-story-3-7-rett-og-slett-kort.md) — en jobb som startes i samme øyeblikk som en sletting, er ikke låst ute
+- [ ] 2026-11-22 [brukerreiser-etter-epic-3](969-2026-11-22-05-56-22-brukerreiser-etter-epic-3.md) — brukerreisetestene utvides med quiz når epic 4 er ferdig, og med modellkort når epic 7 er ferdig (#131)
