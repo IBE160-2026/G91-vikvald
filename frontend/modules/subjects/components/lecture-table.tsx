@@ -12,7 +12,9 @@ import type { Lecture } from "../types";
 
 // Which kinds from the content registry (GET /api/subjects/{id}/file-counts,
 // `content_counts`) each count column adds up. Model cards (epic 7) are counted
-// as cards once the backend registers them.
+// as cards once the backend registers them. `model_cards` is the kind name the
+// delete texts already use for model cards (frontend/lib/messages.ts), so epic 7
+// must register its counter under that name.
 export const COUNT_COLUMN_KINDS = {
   cards: ["flashcards", "model_cards"],
   quiz: ["quiz_questions"],
