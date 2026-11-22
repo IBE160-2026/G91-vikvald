@@ -9,6 +9,8 @@ from pydantic import BaseModel
 class ContentCounts(BaseModel):
     # Flashcards (qa and concept) made from the lecture's files.
     flashcards: int
+    # Quiz questions made from the lecture's files.
+    quiz_questions: int
 
 
 class FlashcardSource(BaseModel):

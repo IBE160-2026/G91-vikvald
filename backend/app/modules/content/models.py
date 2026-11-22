@@ -3,7 +3,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, Uuid, false
+from sqlalchemy import JSON, Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, Uuid, false
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
@@ -35,4 +35,28 @@ class Flashcard(Base):
     page_no: Mapped[int] = mapped_column(Integer)
     # Always false for now; the formula rule comes in epic 6.
     formula_flag: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utc_now)
+
+
+class QuizQuestion(Base):
+    __tablename__ = "quiz_questions"
+    __table_args__ = (
+        CheckConstraint("correct_index >= 0 AND correct_index <= 3", name="ck_quiz_questions_correct_index"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    # The file the question was made from. Deleting the file deletes its questions.
+    file_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("files.id", ondelete="CASCADE"), index=True
+    )
+    # The PDF's own page number, starting at 1.
+    page_no: Mapped[int] = mapped_column(Integer)
+    # Always false for now; the formula rule comes in epic 6.
+    formula_flag: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    question: Mapped[str] = mapped_column(Text)
+    # The four options, in the order shown as A-D (shuffled once when saved).
+    options: Mapped[list[str]] = mapped_column(JSON)
+    # The correct option's place in `options` (0-3).
+    correct_index: Mapped[int] = mapped_column(Integer)
+    explanation: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utc_now)
