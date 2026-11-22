@@ -170,6 +170,23 @@ test.describe("Lagre økten og se resultatet (story 3.5)", () => {
     expect(saves).toHaveLength(1);
   });
 
+  test("UX-DR10, UX-DR33: på 768 px lukkes panelet når «Avslutt økt» trykkes i det, og fokus går til resultatet", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 768, height: 900 });
+    const { lectureId } = await lectureWithThreeCards(page);
+    await page.goto(`/forelesninger/${lectureId}/flashcards`);
+    await mark(page, "Kunne");
+    await page.getByRole("button", { name: "Meny" }).click();
+    const sheet = page.getByRole("dialog", { name: "Flashcards" });
+    await sheet.getByRole("button", { name: "Avslutt økt" }).click();
+
+    await expect(sheet).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 2, name: "Avbrutt etter 1 av 3" })).toBeFocused();
+    await expectNoHorizontalScroll(page);
+    await expectNoAxeViolations(page);
+  });
+
   test("UX-DR33: «Avslutt økt» og Esc uten markerte kort går rett tilbake og lagrer ingenting", async ({ page }) => {
     const { lectureId } = await lectureWithThreeCards(page);
     const saves = captureSaves(page);

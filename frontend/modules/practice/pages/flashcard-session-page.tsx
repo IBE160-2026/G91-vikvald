@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type Ref } from "react";
 
 import { iconProps } from "@/components/icon";
-import { SideMenu, useOpenShortcuts, useSideMenuCollapsed } from "@/components/side-menu";
+import { SideMenu, useCloseSideMenu, useOpenShortcuts, useSideMenuCollapsed } from "@/components/side-menu";
 import { Button } from "@/components/ui/button";
 import { notFoundOnMissing } from "@/lib/api";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
@@ -112,6 +112,7 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
   const shortcutsOn = useShortcutsEnabled();
   const openShortcuts = useOpenShortcuts();
   const collapsed = useSideMenuCollapsed();
+  const closeSideMenu = useCloseSideMenu();
 
   // Lock the shuffled list the first time the cards arrive from a fetch made
   // after this page opened (a cached list from an earlier visit may be old).
@@ -156,6 +157,9 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
     }
     saver.abort();
     setAborted(true);
+    // On a narrow screen «Avslutt økt» is in the panel: close it, so the
+    // result page (and its title, which gets focus) is not hidden under it.
+    closeSideMenu(() => resultTitleRef.current);
   }
 
   // «Øv igjen»: the cards the lecture has now (or the locked ones, if the
