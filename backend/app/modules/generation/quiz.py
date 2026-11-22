@@ -24,7 +24,6 @@ DIFFICULTIES = {
     "medium": "Middels: forstå sammenhenger",
     "hard": "Vanskelig: bruke stoffet på et eksempel",
 }
-DEFAULT_DIFFICULTY = "medium"
 
 
 def build_prompt(difficulty: str) -> str:
@@ -88,7 +87,7 @@ class LooseQuizQuestion(BaseModel):
     correct_index: StrictInt | None = None
     explanation: StrictStr | None = None
     file_id: uuid.UUID | None = None
-    page_no: int | None = None
+    page_no: StrictInt | None = None
 
 
 def validate_item(item: Any, pages: list[Page]) -> LooseQuizQuestion | None:

@@ -6,6 +6,7 @@ guard, the cascade and the migration (AR-13)."""
 
 import asyncio
 import sqlite3
+import typing
 import uuid
 from pathlib import Path
 from typing import Any
@@ -22,7 +23,7 @@ from app.main import app
 from app.modules.content import registry as content_registry
 from app.modules.content.models import QuizQuestion
 from app.modules.content.service import shuffle_options
-from app.modules.generation import quiz
+from app.modules.generation import quiz, schemas
 from app.modules.generation.mock import InvalidMockGenerator, MockGenerator
 from app.modules.generation.port import GenerationOptions, Page
 from app.modules.generation.providers import get_generator
@@ -192,6 +193,8 @@ def _question(**changes: object) -> dict[str, object]:
         _question(explanation=None),
         _question(page_no=3),
         _question(file_id=uuid.uuid4()),
+        _question(page_no=True),
+        _question(page_no="1"),
         "ikke et objekt",
         None,
         {},
@@ -249,6 +252,10 @@ def test_fr31_instruksen_har_beskrivelsen_av_valgt_vanskelighetsgrad(difficulty:
     assert "{difficulty}" not in prompt
     others = set(quiz.DIFFICULTIES.values()) - {description}
     assert not any(other in prompt for other in others)
+
+
+def test_fr29_vanskelighetsgradene_i_instruksen_og_api_et_er_de_samme() -> None:
+    assert set(quiz.DIFFICULTIES) == set(typing.get_args(schemas.Difficulty))
 
 
 def test_fr31_instruksen_har_reglene() -> None:

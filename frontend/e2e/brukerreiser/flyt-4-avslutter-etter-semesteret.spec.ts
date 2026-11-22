@@ -72,7 +72,7 @@ test.describe("FR-3, FR-5 / flyt 4: Klara avslutter etter semesteret", () => {
 
   test("Steg 3 – FR-5, UX-DR39: under «Slett kontoen» står det hva som slettes og hvor mye hun har", async () => {
     const card = page.getByRole("region", { name: "Slett kontoen" });
-    // What goes (the generated content kinds registered so far: flashcards since story 3.7), and how much she has.
+    // What goes (the generated content kinds registered so far: flashcards since story 3.7 and quiz questions since story 4.1), and how much she has.
     await expect(
       card.getByText("Alle emner, filer og alt generert innhold slettes for godt: flashcards og quizspørsmål. Det kan ikke angres."),
     ).toBeVisible();

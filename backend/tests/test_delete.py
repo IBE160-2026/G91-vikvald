@@ -82,7 +82,7 @@ def test_kind() -> Iterator[dict[str, int]]:
 # --- The registry ------------------------------------------------------------
 
 
-def test_ar7_flashcards_er_innmeldt_som_forste_type() -> None:
+def test_ar7_flashcards_og_quizsporsmal_er_innmeldt_som_forste_typer() -> None:
     assert registry.registered_kinds() == ["flashcards", "quiz_questions"]
 
 

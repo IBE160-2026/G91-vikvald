@@ -67,7 +67,7 @@ def _counts(response: Response) -> list[dict[str, object]]:
 # --- The registry ------------------------------------------------------------
 
 
-def test_ar7_flashcards_er_innmeldt_for_typer_som_kommer_senere() -> None:
+def test_ar7_flashcards_og_quizsporsmal_er_innmeldt_for_typer_som_kommer_senere() -> None:
     async def count(_session: AsyncSession, _scope: registry.DeleteScope) -> int:
         return 1
 
