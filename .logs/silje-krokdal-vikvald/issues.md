@@ -130,3 +130,5 @@
 - [ ] 2026-11-22 [story-4-5-slett-et-darlig-sporsmal](963-2026-11-22-15-55-00-story-4-5-slett-et-darlig-sporsmal.md) — vurder kanttilfellene fra story 4.5 (#226–#229), særlig om slettede spørsmål og kort skal huskes (#229)
 - [ ] 2026-11-22 [story-4-5-slett-et-darlig-sporsmal](963-2026-11-22-15-55-00-story-4-5-slett-et-darlig-sporsmal.md) — `vilkar.spec.ts:150` og `logg-inn.spec.ts:140` feilet hver én gang i fulle Playwright-kjøringer, grønne alene (2026-11-22, brukerreiser etter epic 4: ikke feilet i to fulle kjøringer og 8 gjentakelser hver, årsak ikke funnet)
 - [ ] 2026-11-22 [brukerreiser-etter-epic-4](962-2026-11-22-16-24-42-brukerreiser-etter-epic-4.md) — vurder om «Lag quiz» skal være sperret også mens forespørselen «start flashcards-jobben» er underveis
+- [ ] 2026-11-22 [story-5-1-regn-ut-oevd](961-2026-11-22-17-08-47-story-5-1-regn-ut-oevd.md) — vurder kanttilfellene fra story 5.1 (#233–#236), særlig resultatteksten i SISTE ØKT (#233)
+- [ ] 2026-11-22 [story-5-1-regn-ut-oevd](961-2026-11-22-17-08-47-story-5-1-regn-ut-oevd.md) — forelesningstabellen viser «Ikke øvd ennå» for øvde forelesninger til story 5.2 er bygd
