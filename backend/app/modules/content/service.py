@@ -17,6 +17,7 @@ from app.modules.content.schemas import (
     FlashcardSource,
     FlashcardUpdate,
     LectureRef,
+    QuizQuestionOut,
     SubjectFlashcardOut,
 )
 from app.modules.files.models import File
@@ -116,6 +117,31 @@ async def quiz_question_count(session: AsyncSession, lecture_id: uuid.UUID) -> i
         .where(File.lecture_id == lecture_id)
     )
     return int(await session.scalar(statement) or 0)
+
+
+async def lecture_quiz_questions(session: AsyncSession, lecture_id: uuid.UUID) -> list[QuizQuestionOut]:
+    """The lecture's quiz questions with the answer key, source and lecture,
+    ordered as lecture_flashcards: file (upload order), page, the order they
+    were made in. The options stay in stored order (A-D)."""
+    statement = (
+        select(QuizQuestion, File.original_name, Lecture.id, Lecture.name)
+        .join(File, QuizQuestion.file_id == File.id)
+        .join(Lecture, File.lecture_id == Lecture.id)
+        .where(File.lecture_id == lecture_id)
+        .order_by(File.uploaded_at, File.id, QuizQuestion.page_no, QuizQuestion.created_at, QuizQuestion.id)
+    )
+    return [
+        QuizQuestionOut(
+            id=item.id,
+            question=item.question,
+            options=list(item.options),
+            correct_index=item.correct_index,
+            explanation=item.explanation,
+            source=FlashcardSource(file_id=item.file_id, file_name=file_name, page_no=item.page_no),
+            lecture=LectureRef(id=ref_id, name=ref_name),
+        )
+        for item, file_name, ref_id, ref_name in (await session.execute(statement)).all()
+    ]
 
 
 async def count_quiz_questions(session: AsyncSession, scope: DeleteScope) -> int:

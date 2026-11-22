@@ -14,6 +14,23 @@ export const FLASHCARD_HINTS: readonly ShortcutHint[] = [
   { key: "Esc", text: "avslutt" },
 ];
 
+// The quiz (story 4.2, mockup 09): what Enter does depends on where she is:
+// before confirming it confirms, after it goes to the next question, and on
+// the last question it shows the result.
+export function quizHints(step: "confirm" | "next" | "result"): readonly ShortcutHint[] {
+  const enter = step === "confirm" ? "bekreft svar" : step === "next" ? "neste spørsmål" : "se resultatet";
+  return [
+    { key: "A–D", text: "velg svar" },
+    { key: "Enter", text: enter },
+    { key: "Esc", text: "avslutt" },
+  ];
+}
+
+// The quiz result (story 4.2): only the way back.
+export function quizResultHints(backHint: string): readonly ShortcutHint[] {
+  return [{ key: "Esc", text: backHint }];
+}
+
 // The result page (mockup 08). backHint is where Esc goes: «tilbake til
 // forelesningen» or «tilbake til emnet».
 export function resultHints(backHint: string): readonly ShortcutHint[] {
@@ -23,12 +40,21 @@ export function resultHints(backHint: string): readonly ShortcutHint[] {
   ];
 }
 
-export function ShortcutHints({ hints }: { hints: readonly ShortcutHint[] }) {
+export function ShortcutHints({
+  hints,
+  align = "center",
+}: {
+  hints: readonly ShortcutHint[];
+  // Centred under buttons, or at the start of the line (the quiz's footer).
+  align?: "center" | "start";
+}) {
   return (
     <ul
       data-slot="shortcut-hints"
       aria-label="Hurtigtaster"
-      className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
+      className={
+        "flex flex-wrap items-center gap-x-5 gap-y-2 " + (align === "center" ? "justify-center" : "justify-start")
+      }
     >
       {hints.map((hint) => (
         <li key={hint.key} className="flex items-center gap-2 text-body-sm text-ink-muted">

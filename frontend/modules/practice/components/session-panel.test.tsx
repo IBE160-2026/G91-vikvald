@@ -2,8 +2,8 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { flashcardAdapter } from "../adapter";
-import { markCurrent, startSession, type SessionState } from "../session";
+import { flashcardAdapter, quizAdapter } from "../adapter";
+import { advance, answerCurrent, markCurrent, startSession, type SessionState } from "../session";
 import type { Mark } from "../types";
 import { SessionPanel } from "./session-panel";
 
@@ -152,5 +152,25 @@ describe("SessionPanel", () => {
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
     expect(screen.getByRole("region", { name: "Flashcards" })).toBeTruthy();
     expect(screen.getByRole("heading", { level: 2, name: "Flashcards" })).toBeTruthy();
+  });
+
+  it("UX-DR8: quizpanelet viser «Quiz», «3 riktige · 2 feil» og quizforklaringen, uten «Repeterer»", () => {
+    let state = startSession(ids(5));
+    for (const mark of ["known", "known", "known", "missed"] as Mark[]) state = advance(answerCurrent(state, mark));
+    state = answerCurrent(state, "missed");
+    render(<SessionPanel adapter={quizAdapter} state={state} scopeName="Uke 37: Merkevare" onEnd={vi.fn()} />);
+    expect(screen.getByRole("heading", { level: 1, name: "Quiz" })).toBeTruthy();
+    expect(screen.getByText("3 riktige · 2 feil")).toBeTruthy();
+    expect(screen.queryByText(/Repeterer/)).toBeNull();
+    expect(screen.getByText("Riktig")).toBeTruthy();
+    expect(screen.getByText("Feil")).toBeTruthy();
+    expect(screen.queryByText("Ikke besvart ennå")).toBeTruthy();
+  });
+
+  it("UX-DR8: før første svar viser quizpanelet «1 / 5» og «0 riktige · 0 feil»", () => {
+    render(<SessionPanel adapter={quizAdapter} state={startSession(ids(5))} scopeName="Uke 37: Merkevare" onEnd={vi.fn()} />);
+    expect(screen.getByText("/ 5")).toBeTruthy();
+    expect(screen.getByText("0 riktige · 0 feil")).toBeTruthy();
+    expect(screen.getByText("Ikke besvart ennå")).toBeTruthy();
   });
 });

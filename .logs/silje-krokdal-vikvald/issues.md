@@ -119,3 +119,6 @@
 - [ ] 2026-11-22 [story-4-1-lag-quizsporsmal](968-2026-11-22-06-51-58-story-4-1-lag-quizsporsmal.md) — koble quizinstruksen til ekte modell og stopp spørsmål som finnes fra før (epic 6)
 - [ ] 2026-11-22 [story-4-1-lag-quizsporsmal](968-2026-11-22-06-51-58-story-4-1-lag-quizsporsmal.md) — slett den midlertidige mappa `frontend/e2e-skjermbilder/` (slettingen ble avvist av tillatelsene)
 - [ ] 2026-11-22 [story-4-1-lag-quizsporsmal](968-2026-11-22-06-51-58-story-4-1-lag-quizsporsmal.md) — følg med på om `filer.spec.ts` (FR-8) er ustabil
+- [ ] 2026-11-22 [story-4-2-ta-quiz-paa-en-forelesning](967-2026-11-22-10-42-29-story-4-2-ta-quiz-paa-en-forelesning.md) — vurder kanttilfellene fra story 4.2 (#206–#212)
+- [ ] 2026-11-22 [story-4-2-ta-quiz-paa-en-forelesning](967-2026-11-22-10-42-29-story-4-2-ta-quiz-paa-en-forelesning.md) — story 4.3 bygger videre på den enkle resultatvisningen og gir Enter «Ta quizen igjen» (#206, #212)
+- [ ] 2026-11-22 [story-4-2-ta-quiz-paa-en-forelesning](967-2026-11-22-10-42-29-story-4-2-ta-quiz-paa-en-forelesning.md) — forklaringskortet mangler «Kilde» foran fila og understrekingen fra skisse 09

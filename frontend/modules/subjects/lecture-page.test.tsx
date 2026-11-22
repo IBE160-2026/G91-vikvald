@@ -1261,13 +1261,16 @@ describe("Quiz-raden (story 4.1)", () => {
     expect(Array.from(card.children)).toEqual([screen.getByRole("group", { name: "Flashcards" }), row]);
   });
 
-  it("FR-28: med spørsmål viser raden «15 spørsmål», «Lag flere» og «Øv nå», som ikke er aktiv før quizøkten finnes", async () => {
+  it("FR-28, FR-32: med spørsmål viser raden «15 spørsmål», «Lag flere» og «Øv nå», som åpner quizøkten", async () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     quizCount = 15;
     renderPage();
     const row = await screen.findByRole("group", { name: "Quiz" });
     expect(await within(row).findByText("15 spørsmål")).toBeTruthy();
-    expect((within(row).getByRole("button", { name: "Øv nå" }) as HTMLButtonElement).disabled).toBe(true);
+    const practice = within(row).getByRole("button", { name: "Øv nå" }) as HTMLButtonElement;
+    await waitFor(() => expect(practice.disabled).toBe(false));
+    fireEvent.click(practice);
+    expect(push).toHaveBeenCalledWith("/forelesninger/l2/quiz");
     const { dialog } = await openQuizDialog("Lag flere");
     expect(within(dialog).getByText("Nye spørsmål legges til de 15 du har fra før.")).toBeTruthy();
   });

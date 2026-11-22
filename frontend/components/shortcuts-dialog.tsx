@@ -31,6 +31,14 @@ const GROUPS: { title: string; rows: Row[] }[] = [
     ],
   },
   {
+    title: "Quiz",
+    rows: [
+      { keys: "A–D", action: "Velg svar" },
+      { keys: "Enter", action: "Bekreft svar, deretter neste spørsmål" },
+      { keys: "Esc", action: "Avslutt økten" },
+    ],
+  },
+  {
     title: "Resultat",
     rows: [
       { keys: "Enter", action: "Øv igjen" },

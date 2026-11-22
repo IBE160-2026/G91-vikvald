@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  advance,
+  answerCurrent,
   currentCard,
   gridCells,
   isFinished,
@@ -176,5 +178,36 @@ describe("removeCard", () => {
   it("FR-27: ukjent id endrer ingenting", () => {
     const before = startSession(["A", "B"]);
     expect(removeCard(before, "X")).toBe(before);
+  });
+});
+
+describe("quiz: answerCurrent og advance", () => {
+  it("FR-35: bekreftelse setter merket uten å flytte køen, og første svar gjelder", () => {
+    const start = startSession(["A", "B", "C"]);
+    const answered = answerCurrent(start, "missed");
+    expect(currentCard(answered)).toBe("A");
+    expect(answered.queue).toEqual(["A", "B", "C"]);
+    expect(sessionCounts(answered)).toEqual({ shown: 1, answered: 1, correct: 0, wrong: 1 });
+    expect(gridCells(answered)[0]).toMatchObject({ mark: "missed", current: true });
+    expect(answerCurrent(answered, "known")).toBe(answered);
+  });
+
+  it("FR-34: advance tar spørsmålet ut av køen for godt og viser neste", () => {
+    let state = startSession(["A", "B"]);
+    state = advance(answerCurrent(state, "missed"));
+    expect(currentCard(state)).toBe("B");
+    expect(shownCount(state)).toBe(2);
+    expect(repeatingLeft(state)).toBeNull();
+    state = advance(answerCurrent(state, "known"));
+    expect(isFinished(state)).toBe(true);
+    expect(currentCard(state)).toBeUndefined();
+    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 2, correct: 1, wrong: 1 });
+    expect(gridCells(state).map((cell) => cell.mark)).toEqual(["missed", "known"]);
+  });
+
+  it("FR-34: en ferdig økt endres ikke", () => {
+    const done = advance(startSession(["A"]));
+    expect(advance(done)).toBe(done);
+    expect(answerCurrent(done, "known")).toBe(done);
   });
 });

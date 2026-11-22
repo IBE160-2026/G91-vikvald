@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-20-2026 14:01
-last_updated: 11-22-2026 06:45
+last_updated: 11-22-2026 07:32
 project: G91-vikvald
 project_key: NOKEY
 tracking_system: file-system
@@ -66,7 +66,7 @@ development_status:
 
   epic-4: in-progress
   4-1-lag-quizspørsmål-fra-en-forelesning: done
-  4-2-ta-quiz-på-en-forelesning: backlog
+  4-2-ta-quiz-på-en-forelesning: done
   4-3-se-poengsum-og-feilsvar-etter-quizen: backlog
   4-4-ta-quiz-på-hele-emnet: backlog
   4-5-slett-et-dårlig-spørsmål-under-quizen: backlog

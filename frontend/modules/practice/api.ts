@@ -2,7 +2,7 @@ import type { QueryKey } from "@tanstack/react-query";
 
 import { apiFetch } from "@/lib/api";
 
-import type { Flashcard, SubjectFlashcard } from "./types";
+import type { Flashcard, QuizQuestion, SubjectFlashcard } from "./types";
 
 // Starts with the lecture's own key (["lectures", id]), so invalidating the
 // lecture (as the job watcher does) also refetches the cards. A running session
@@ -16,6 +16,20 @@ export function lectureFlashcardsQueryKey(lectureId: string) {
 // missing lecture.
 export function fetchLectureFlashcards(lectureId: string): Promise<Flashcard[]> {
   return apiFetch<Flashcard[]>(`/api/lectures/${encodeURIComponent(lectureId)}/flashcards`);
+}
+
+// The lecture's quiz questions: under the lecture's key (["lectures", id]), so
+// the job watcher refetches them when a quiz job ends. A running quiz keeps
+// its own copy.
+export function lectureQuizQuestionsQueryKey(lectureId: string) {
+  return ["lectures", lectureId, "quiz-questions"] as const;
+}
+
+// GET /api/lectures/{id}/quiz-questions: the lecture's questions with the
+// answer key, explanation, source and lecture, ordered by file and page. 404
+// NOT_FOUND for someone else's or a missing lecture.
+export function fetchLectureQuizQuestions(lectureId: string): Promise<QuizQuestion[]> {
+  return apiFetch<QuizQuestion[]>(`/api/lectures/${encodeURIComponent(lectureId)}/quiz-questions`);
 }
 
 // The subject's cards: under the subject's key (["subjects", id]), so the
