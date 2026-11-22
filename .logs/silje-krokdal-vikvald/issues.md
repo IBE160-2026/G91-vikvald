@@ -135,3 +135,6 @@
 - [ ] 2026-11-22 [story-5-2-tellinger-og-oevd-i-tabellen](960-2026-11-22-22-13-03-story-5-2-tellinger-og-oevd-i-tabellen.md) — vurder kanttilfellene fra story 5.2 (#238–#240), særlig «Øvd» for en forelesning uten filer (#238)
 - [ ] 2026-11-22 [story-5-2-tellinger-og-oevd-i-tabellen](960-2026-11-22-22-13-03-story-5-2-tellinger-og-oevd-i-tabellen.md) — raden «Ingen filer ennå» i forelesningstabellen har ingen hul prikk, slik skisse 03 viser
 - [ ] 2026-11-22 [story-5-3-eksamenslinja](959-2026-11-22-22-59-00-story-5-3-eksamenslinja.md) — vurder kanttilfellene fra story 5.3 (#242–#245), særlig plasseringen av eksamenslinjene på forsiden (#244)
+- [ ] 2026-11-22 [story-5-4-emnekort](958-2026-11-22-23-47-13-story-5-4-emnekort.md) — vurder kanttilfellene fra story 5.4 (#247–#254), særlig hvor knappen står på kortet (#254) og tellingslinja uten 0 (#248)
+- [ ] 2026-11-22 [story-5-4-emnekort](958-2026-11-22-23-47-13-story-5-4-emnekort.md) — modellkort (epic 7) og fritekst (epic 8) må legges til i `PRACTICE_KINDS` i `frontend/modules/subjects/next-step.ts`, ellers telles og startes de ikke fra emnekortet
+- [ ] 2026-11-22 [story-5-4-emnekort](958-2026-11-22-23-47-13-story-5-4-emnekort.md) — `vilkar.spec.ts:68` feilet én gang i en full Playwright-kjøring rett etter ombygging, grønn alene og i neste fulle kjøring
