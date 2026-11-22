@@ -56,10 +56,9 @@ function isNotFound(error: unknown): boolean {
 // takes) shows a text in role="alert", and nothing is deleted: for a failed
 // delete with an error code, the code's text (e.g. 409 JOB_ALREADY_RUNNING:
 // «Det lages innhold i denne forelesningen nå. …», story 3.7); otherwise the
-// fallback text. A 404 on DELETE
-// means it is already gone (e.g. deleted in another tab), so it counts as
-// deleted. While the delete runs, both buttons are off, and «Avbryt», the
-// cross and Esc do nothing.
+// fallback text. A 404 on DELETE means it is already gone (e.g. deleted in
+// another tab), so it counts as deleted. While the delete runs, both buttons
+// are off, and «Avbryt», the cross and Esc do nothing.
 export function DeleteConfirmDialog({
   open,
   title,
