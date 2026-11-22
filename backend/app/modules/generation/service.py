@@ -172,6 +172,7 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
     options = GenerationOptions(
         requested=job.requested,
         existing_keys=await content_type.existing_keys(session, job.lecture_id),
+        difficulty=(job.params or {}).get("difficulty"),
     )
     # End the read transaction before the (possibly slow) model call.
     await session.commit()

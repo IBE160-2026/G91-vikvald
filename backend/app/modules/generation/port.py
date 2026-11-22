@@ -26,6 +26,9 @@ class GenerationOptions:
     # Keys of content that already exists (for flashcards: the fronts, in lower
     # case), so «Lag flere» does not make the same cards again.
     existing_keys: frozenset[str] = field(default_factory=frozenset)
+    # The chosen difficulty ("easy", "medium" or "hard") for types that have
+    # one (quiz); None for the others. The mock rules ignore it.
+    difficulty: str | None = None
 
 
 class Generator(Protocol):

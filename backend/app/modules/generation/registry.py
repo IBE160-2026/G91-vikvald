@@ -4,6 +4,7 @@ A content type registers its kind, its mock rule, its loose model, its
 validation, how existing content is found and how valid items are saved
 (through the content module), and its prompt file. The pipeline only knows this
 registry, so a new type (quiz, model cards, ...) needs no change to the pipeline.
+A type that has a difficulty (quiz) says so with uses_difficulty.
 """
 
 import uuid
@@ -26,6 +27,10 @@ ValidateItem = Callable[[Any, list[Page]], BaseModel | None]
 ExistingKeys = Callable[[AsyncSession, uuid.UUID], Awaitable[frozenset[str]]]
 # Adds the valid items to the session; the pipeline commits.
 Save = Callable[[AsyncSession, list[Any]], Awaitable[None]]
+# How LLM_PROVIDER=mock-invalid breaks item number `index` of the mock list
+# (SK-4): index % 4 == 0 stays valid, the others are broken so validate_item
+# throws them away.
+BreakItem = Callable[[dict[str, Any], int], dict[str, Any]]
 
 
 @dataclass(frozen=True)
@@ -38,6 +43,10 @@ class ContentType:
     save: Save
     # The instructions for a real model (epic 6). The mock models never read it.
     prompt_file: Path
+    break_item: BreakItem
+    # Whether a job takes params.difficulty (quiz). For the other types a
+    # difficulty in the request is a validation error.
+    uses_difficulty: bool = False
 
 
 _types: dict[str, ContentType] = {}
@@ -64,4 +73,4 @@ def is_registered(kind: str) -> bool:
 def _ensure_builtin_types() -> None:
     # Importing a type's module registers it. Done here (not at the top) so the
     # type modules can import this one.
-    from app.modules.generation import flashcards  # noqa: F401
+    from app.modules.generation import flashcards, quiz  # noqa: F401

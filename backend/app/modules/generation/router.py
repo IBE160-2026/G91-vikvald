@@ -53,6 +53,7 @@ def _job_out(job: Job) -> JobOut:
         id=job.id,
         lecture_id=job.lecture_id,
         kind=job.kind,
+        params=job.params,
         status=job.status,  # type: ignore[arg-type]
         requested=job.requested,
         created=job.created,
@@ -76,8 +77,9 @@ async def start_job(
     if not await list_files(session, lecture.id):
         raise AppError(ErrorCode.LECTURE_HAS_NO_FILES)
     params = body.params or JobParams()
+    # Without empty fields: flashcards stay {"requested": 20}.
     job = await create_job(
-        session, lecture.id, body.kind, params.model_dump(), params.requested
+        session, lecture.id, body.kind, params.model_dump(exclude_none=True), params.requested
     )
     answer = _job_out(job)
     start_task(run_job(job.id, generator, sessionmaker))
