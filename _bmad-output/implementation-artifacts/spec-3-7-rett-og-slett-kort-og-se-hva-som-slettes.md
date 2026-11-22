@@ -3,7 +3,7 @@ title: 'Story 3.7: Rett og slett kort, og se hva som slettes'
 type: 'feature'
 created: '2026-11-22'
 baseline_revision: '406425a62f0bd13a0d2fc7cc11ac2ee60e1c7fec'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -107,6 +107,39 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-22 — Review pass
+- verdicts: 29 findings — high 0, medium 0, low 25, false 4, maybe-false 0
+- findings:
+  - `[low]` `[patch]` Verifisering: ingen test sjekket at en sletting ugyldiggjør forelesningens og emnenes kortlister — ny Vitest-test spionerer rett før «Slett kortet», både vanlig sletting og siste kort (`e12782e`).
+  - `[low]` `[reject]` Intensjon: «Rediger»/«Slett» vises bare på snudd kort — bunnfeltet med kilden finnes bare da, slik skisse 07 og epic-konteksten beskriver; ført som kanttilfelle.
+  - `[low]` `[reject]` Intensjon: tomt felt testes i nettleseren uten ekte 422 gjennom UI-et — API-et testes i pytest og koden-til-felt i Vitest; en ekte rundtur krever å slå av nettleserens sjekk.
+  - `[low]` `[reject]` Intensjon: 409-meldingen testes i e2e bare for fildialogen, og med mocket svar — alle dialogene bruker samme komponent; demojobber er ferdige før testen rekker å slette.
+  - `[low]` `[reject]` Intensjon: tellingene for forelesning, emne og konto testes bare i API-et — frontenden viser listen fra API-et uendret, og setningen er testet fra før.
+  - `[low]` `[reject]` Intensjon: bare ett E22-tilfelle i e2e — resten dekkes av `removeCard`- og sidetestene i Vitest.
+  - `[low]` `[patch]` Intensjon: eierskapstestene het `test_fr4_…`, men kriteriet er SK-6 — omdøpt til `test_sk6_…` (`b3b6349`).
+  - `[low]` `[reject]` Intensjon: tidsluken mellom vakten og slettingen — ført i spesifikasjonen; jobben feiler da uten å lagre.
+  - `[false]` `[reject]` Blind: KI-sporet mangler — føres i senere steg på samme branch (story-prompten punkt 5).
+  - `[low]` `[reject]` Blind: testen for at vakten er meldt inn importerer selv modulen — den parametriserte 409-testen går gjennom appen fra `create_app()` og ville feilet uten vakten.
+  - `[low]` `[patch]` Blind: vakten ble sjekket før låsen i `delete_one_lecture` — flyttet etter `lock_lecture` (`b2a9f7d`). At de andre rutene ikke låser, er avvist: samme tidsluke som over.
+  - `[false]` `[reject]` Blind og kant: «denne forelesningen» passer ikke for emne og konto — storien (E9) krever akkurat denne teksten fra meldingsfila for emne og konto.
+  - `[low]` `[reject]` Blind: et rettet kort ser ut som et generert kort med kilde — kilden er der kortet kom fra; ingen krav om merking, og det ville trengt en migrasjon.
+  - `[low]` `[reject]` Blind og kant: `FlashcardUpdate` har ingen lengdegrense, og `PATCH {}` er en no-op — ingen krav om grense; en tom endring endrer ingenting og skader ikke.
+  - `[low]` `[patch]` Blind og kant: flagget i `_ensure_builtin_counters` ble satt før innmeldingen — settes nå etter (`e24329a`).
+  - `[low]` `[patch]` Blind: feilen i redigeringsdialogen ble stående når hun skrev — feltets feil fjernes ved endring, som i `name-date-dialog` (`b327e24`). PATCH uten endring er avvist: ufarlig.
+  - `[low]` `[reject]` Blind: backendtestene sjekker ikke at kortene forsvinner med forelesning, emne og konto — kaskaden går gjennom fila, og kaskaden er testet i epic 2; erstatning bruker filens forhåndsvisning.
+  - `[low]` `[reject]` Blind: fokus finnes med `document.querySelector("[data-flip-button]")` — det er bare ett kort på siden; en ref gjennom flere komponenter er mer kode for ingen gevinst.
+  - `[low]` `[reject]` Blind: e2e for AR-7 går mot mocket svar — samme som over.
+  - `[low]` `[patch]` Blind: kommentaren i `delete-confirm-dialog.tsx` var brutt midt i en setning — brukket om (`aefd2e9`).
+  - `[low]` `[patch]` Kant: «Øv igjen» rett etter en sletting eller lagring brukte gammel kortliste til ny henting var ferdig (eller for alltid om den feilet) — cachen oppdateres med `setQueryData` før ugyldiggjøringen, med tester (`e12782e`).
+  - `[false]` `[reject]` Kant (dublett av lengdegrense) — se over.
+  - `[false]` `[reject]` Kant (dublett av 409-teksten) — se over.
+  - `[low]` `[patch]` Kant (dublett av flagget i registeret) — rettet sammen med raden over (`e24329a`).
+  - `[low]` `[reject]` Intensjon: R2 er lest med alle akseptkriteriene — beskrivende, ingen feil.
+  - `[low]` `[reject]` Intensjon: kontoteksten og brukerreise flyt 4 er endret — følger av #134 og er tillatt for denne storien.
+  - `[low]` `[reject]` Intensjon: redigering og sletting stoppes ikke av en jobb — valgt og testet; kortene hører til fila.
+  - `[low]` `[reject]` Intensjon: 404 ved sletting regnes som slettet — samme regel som den felles slettebekreftelsen fra 2.5.
+  - `[low]` `[reject]` Intensjon: aksen og tastaturet — beskrivende, stemmer med storien.
+
 ## Design Notes
 
 - **Hvorfor et vaktregister:** arkitekturen lar `files` kalle `content`, ikke `generation`, og `generation` eier `jobs`. Vakten følger samme mønster som telleregisteret: `generation` melder seg inn, `files` spør `content`. Da kan quiz og senere jobbtyper bruke samme vakt uten endring i slettekoden.
@@ -118,3 +151,29 @@ deferred: []
 - `cd backend && uv run pytest` -- grønne
 - `cd frontend && npm run test && npx tsc --noEmit` -- grønne
 - `docker compose up --build -d && cd frontend && npx playwright test` -- grønne
+
+## Auto Run Result
+
+**Sammendrag:** Story 3.7 er bygd. Nye ruter `PATCH`/`DELETE /api/flashcards/{id}` lar studenten rette og slette kort (tomme felt gir `FLASHCARD_FRONT_REQUIRED`/`FLASHCARD_BACK_REQUIRED`, andres kort 404). Flashcards er meldt inn i telleregisteret, så forhåndsvisningene for fil, erstatning, forelesning, emne og konto teller dem, og kontoteksten sier «… slettes for godt: flashcards.» (#134). Et vaktregister i `content` lar `generation` stoppe sletting og erstatning med `409 JOB_ALREADY_RUNNING` mens en jobb pågår, og slettedialogen viser meldingen fra meldingsfila. I økten har det snudde kortet «Rediger» og «Slett» i bunnfeltet, med dialogen «Rediger kortet» og den felles bekreftelsen «Slette kortet?»; et slettet kort tas ut etter reglene i E22.
+
+**Filer:**
+- `backend/app/core/errors.py`, `frontend/lib/messages.ts`: to nye feilkoder med godkjente tekster.
+- `backend/app/modules/content/{registry,service,schemas,router}.py`, `backend/app/main.py`: rutene, tellingen og vaktregisteret.
+- `backend/app/modules/generation/service.py`: vakten `no_running_jobs` meldes inn.
+- `backend/app/modules/files/router.py`: vakten før hver sletting og erstatning.
+- `backend/tests/test_edit_flashcards.py`, `test_delete_flashcards_counts.py` (nye), `test_delete.py`, `test_account_delete.py` (registeret er ikke lenger tomt).
+- `frontend/components/ui/textarea.tsx`: shadcn-tekstområde tilpasset tokenene.
+- `frontend/components/delete-confirm-dialog.tsx` (+ test), `frontend/lib/delete-text.ts`: meldingen fra feilkoden, `DeleteTarget` «flashcard».
+- `frontend/modules/practice/{session,api}.ts`, `components/{flashcard,edit-flashcard-dialog}.tsx`, `pages/flashcard-session-page.tsx` (+ tester): knappene, dialogen, `removeCard`, cache.
+- `frontend/e2e/rett-og-slett-kort.spec.ts` (ny), `konto.spec.ts`, `brukerreiser/flyt-4-…spec.ts`, `docs/testing/brukerreiser.md`: ny kontotekst.
+
+**Gjennomgang:** 29 funn: 9 rader rettet (alle low, 7 rettinger), 16 low avvist med begrunnelse, 4 falske. Ingenting utsatt.
+
+**Oppfølging anbefalt:** nei. Rettet etter alvorlighet: low 7.
+
+**Verifisering:**
+- `uv run pytest`: 460 bestått.
+- `npm run test`: 700 bestått. `npx tsc --noEmit`: rent.
+- `npx playwright test` mot `docker compose up --build`: 121 bestått.
+
+**Gjenstående risiko:** 409-meldingen i nettleseren er bare testet med et falskt svar fra serveren (demojobber er for raske); den ekte 409 er testet i pytest for alle fem rutene. En jobb som startes i samme øyeblikk som en sletting, er ikke låst ute. Bare prøvd i Chromium.
