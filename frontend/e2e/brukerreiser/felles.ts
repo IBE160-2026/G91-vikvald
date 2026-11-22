@@ -119,3 +119,42 @@ export async function today(page: Page): Promise<{ dayMonth: string; full: strin
     return { dayMonth, full: `${dayMonth}.${now.getFullYear()}` };
   });
 }
+
+// Makes flashcards from the lecture's files through the API (the mock model
+// makes one card per definition sentence, «X er …») and waits until there are
+// `expected` cards. For flows that start after the cards exist.
+export async function makeFlashcardsViaApi(page: Page, lectureId: string, requested: 10 | 20 | 30, expected: number) {
+  const response = await page.request.post(`/api/lectures/${lectureId}/jobs`, {
+    data: { kind: "flashcards", params: { requested } },
+  });
+  expect(response.status()).toBe(202);
+  await expect
+    .poll(async () => (await (await page.request.get(`/api/lectures/${lectureId}/content-counts`)).json()).flashcards, {
+      timeout: 15_000,
+    })
+    .toBe(expected);
+}
+
+export async function flashcardCountViaApi(page: Page, lectureId: string): Promise<number> {
+  const response = await page.request.get(`/api/lectures/${lectureId}/flashcards`);
+  expect(response.status()).toBe(200);
+  return ((await response.json()) as unknown[]).length;
+}
+
+// «Lag og øv» on the lecture page (04).
+export function createSection(page: Page): Locator {
+  return page.getByRole("region", { name: "Lag og øv" });
+}
+
+// The session panel (07, 08), where the sidebar is during a session.
+export function sessionPanel(page: Page): Locator {
+  return page.getByRole("region", { name: "Flashcards" });
+}
+
+// The question on the card in the session (07).
+export function cardFront(page: Page): Locator {
+  return page.locator('[data-slot="flashcard"]').locator("p").nth(1);
+}
+
+// The path the session is saved to (FR-56).
+export const SAVE_PATH = "/api/practice-sessions";
