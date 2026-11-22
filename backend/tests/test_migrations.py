@@ -254,7 +254,7 @@ def test_ar5_upgrade_head_lager_jobs_og_flashcards_med_cascade_og_delvis_unik_in
 
         card_columns = {row[1]: row for row in connection.execute("PRAGMA table_info(flashcards)")}
         assert set(card_columns) == {
-            "id", "file_id", "kind", "front", "back", "page_no", "formula_flag", "created_at",
+            "id", "file_id", "kind", "front", "back", "page_no", "formula_flag", "created_at", "position",
         }
         for name, row in card_columns.items():
             assert row[3] == (0 if name == "back" else 1), name
@@ -326,3 +326,19 @@ def test_ar9_downgrade_til_0006_fjerner_practice_sessions(tmp_path: Path) -> Non
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master")}
     assert "practice_sessions" not in tables
     assert "flashcards" in tables
+
+
+def test_issue_224_upgrade_head_gir_position_med_0_som_standard(tmp_path: Path) -> None:
+    db_file = tmp_path / "m.db"
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_file}")
+    command.upgrade(cfg, "head")
+    with sqlite3.connect(db_file) as connection:
+        for table in ("flashcards", "quiz_questions"):
+            columns = {row[1]: row for row in connection.execute(f"PRAGMA table_info({table})")}
+            # Type INTEGER, NOT NULL, server default 0 (so existing rows get 0).
+            assert (columns["position"][2], columns["position"][3], columns["position"][4]) == ("INTEGER", 1, "'0'")
+    command.downgrade(cfg, "0008_create_quiz_questions")
+    with sqlite3.connect(db_file) as connection:
+        for table in ("flashcards", "quiz_questions"):
+            assert "position" not in {row[1] for row in connection.execute(f"PRAGMA table_info({table})")}

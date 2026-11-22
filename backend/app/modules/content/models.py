@@ -36,6 +36,9 @@ class Flashcard(Base):
     # Always false for now; the formula rule comes in epic 6.
     formula_flag: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utc_now)
+    # The order the row was made in within the batch it was saved with. A batch
+    # shares one created_at, so this keeps "the order they were made in" fixed.
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
 
 class QuizQuestion(Base):
@@ -60,3 +63,6 @@ class QuizQuestion(Base):
     correct_index: Mapped[int] = mapped_column(Integer)
     explanation: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utc_now)
+    # The order the row was made in within the batch it was saved with. A batch
+    # shares one created_at, so this keeps "the order they were made in" fixed.
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
