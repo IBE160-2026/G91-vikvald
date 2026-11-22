@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-22: Brukerreisetestene utvidet etter epic 3
+
+Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 3 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).
+
+**Resultat:** flyt 1 har fått «Lag flashcards», øvingen og resultatet, og feilveiene for færre kort og feilet generering. Flyt 2 har fått øving på hele emnet og i forelesningen, og feilveiene for å rette og slette kort og avslutte med Esc. Flyt 3 har fått flashcards i tellingene. Oversikten [brukerreiser.md](../testing/brukerreiser.md) viser status for hvert steg.
+
 ## 2026-11-22: Story 3.7 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `3-7-rett-og-slett-kort-og-se-hva-som-slettes`. Hensikten til `bmad-build-auto` var «Story 3.7 fra `_bmad-output/planning-artifacts/epics.md`: Rett og slett kort, og se hva som slettes». Orkestratoren la til konteksten om registeret (#134) og unntaket for brukerreisetesten i flyt 4.
