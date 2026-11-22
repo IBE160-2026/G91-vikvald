@@ -158,7 +158,7 @@ async def test_fr27_kort_kan_rettes_og_slettes_mens_en_jobb_pagar(
 
 
 @pytest.mark.parametrize("method", ["PATCH", "DELETE"])
-async def test_fr4_andres_ukjent_og_ugyldig_kort_gir_lik_404(
+async def test_sk6_andres_ukjent_og_ugyldig_kort_gir_lik_404(
     client: AsyncClient, lecture: str, engine: AsyncEngine, method: str
 ) -> None:
     card = (await _cards_in(client, lecture))[0]
@@ -178,7 +178,7 @@ async def test_fr4_andres_ukjent_og_ugyldig_kort_gir_lik_404(
     assert stored.front == card["front"]
 
 
-async def test_fr4_modellkort_kan_ikke_rettes_her(client: AsyncClient, lecture: str, engine: AsyncEngine) -> None:
+async def test_sk6_modellkort_kan_ikke_rettes_her(client: AsyncClient, lecture: str, engine: AsyncEngine) -> None:
     card = (await _cards_in(client, lecture))[0]
     model_id = uuid.uuid4()
     async with async_sessionmaker(engine)() as session:
@@ -193,7 +193,7 @@ async def test_fr4_modellkort_kan_ikke_rettes_her(client: AsyncClient, lecture: 
 
 
 @pytest.mark.parametrize("method", ["PATCH", "DELETE"])
-async def test_fr4_kortrutene_krever_innlogging(client: AsyncClient, method: str) -> None:
+async def test_sk6_kortrutene_krever_innlogging(client: AsyncClient, method: str) -> None:
     client.cookies.clear()
     response = await client.request(method, f"{FLASHCARDS}/{uuid.uuid4()}", json={"front": "x"})
     assert response.status_code == 401
