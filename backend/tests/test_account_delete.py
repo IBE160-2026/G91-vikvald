@@ -63,7 +63,7 @@ async def test_fr5_forhandsvisning_teller_emner_forelesninger_og_filer(client: A
             {"kind": "lectures", "count": 3},
             {"kind": "files", "count": 4},
         ],
-        "content_kinds": [],
+        "content_kinds": ["flashcards"],
     }
 
 
@@ -71,7 +71,7 @@ async def test_fr5_tom_konto_gir_tom_liste(client: AsyncClient) -> None:
     await _log_in_new_user(client)
     response = await client.get(PREVIEW)
     assert response.status_code == 200
-    assert response.json() == {"counts": [], "content_kinds": []}
+    assert response.json() == {"counts": [], "content_kinds": ["flashcards"]}
 
 
 async def test_fr5_emne_uten_forelesninger_utelater_nuller(client: AsyncClient) -> None:
@@ -93,17 +93,17 @@ async def test_ar7_registrert_type_er_med_i_content_kinds_og_tellingene(client: 
     await _log_in_new_user(client)
     # Before anything is uploaded: the kind is named, but its count of 0 is left out.
     empty = (await client.get(PREVIEW)).json()
-    assert empty == {"counts": [], "content_kinds": [TEST_KIND]}
+    assert empty == {"counts": [], "content_kinds": ["flashcards", TEST_KIND]}
 
     await _fill_account(client)
     body = (await client.get(PREVIEW)).json()
     # The scope has all 4 files and all 3 lectures: 4 + 2 * 3.
     assert body["counts"][-1] == {"kind": TEST_KIND, "count": 10}
-    assert body["content_kinds"] == [TEST_KIND]
+    assert body["content_kinds"] == ["flashcards", TEST_KIND]
 
 
-def test_ar7_registered_kinds_er_tom_i_epic_2() -> None:
-    assert registry.registered_kinds() == []
+def test_ar7_registered_kinds_gir_flashcards() -> None:
+    assert registry.registered_kinds() == ["flashcards"]
 
 
 def test_ar7_subjects_er_reservert() -> None:

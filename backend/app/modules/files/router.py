@@ -28,7 +28,12 @@ from app.core.errors import AppError, ErrorCode
 from app.core.security import clear_session_cookie
 from app.modules.files import pdf
 from app.modules.files.models import File
-from app.modules.content.registry import DeleteScope, content_counts, registered_kinds
+from app.modules.content.registry import (
+    DeleteScope,
+    check_delete_allowed,
+    content_counts,
+    registered_kinds,
+)
 from app.modules.files.schemas import (
     AccountDeletePreview,
     DeleteCount,
@@ -195,6 +200,9 @@ async def replace_file(file_id: str, request: Request, user: CurrentUser, sessio
     old = await get_file(session, user.id, file_id)
     if user.terms_accepted_at is None:
         raise AppError(ErrorCode.TERMS_NOT_ACCEPTED)
+    # A job reading the lecture's files stops the replace (AR-7), before the
+    # body is read.
+    await check_delete_allowed(session, (old.lecture_id,))
     name, data = await _read_upload(request)
     pages = await asyncio.to_thread(pdf.read_pages, data)
     old_id, lecture_id, owner_id = old.id, old.lecture_id, user.id
@@ -253,6 +261,9 @@ async def file_delete_preview(file_id: str, user: CurrentUser, session: Session)
 @files_router.delete("/{file_id}", status_code=204)
 async def delete_one_file(file_id: str, user: CurrentUser, session: Session) -> Response:
     file = await get_file(session, user.id, file_id)
+    # Every delete below asks the guards first (AR-7): a running job on an
+    # affected lecture gives 409 JOB_ALREADY_RUNNING and nothing is deleted.
+    await check_delete_allowed(session, (file.lecture_id,))
     file_id_to_remove = file.id
     await delete_file(session, file_id_to_remove)
     owner_id = user.id
@@ -276,6 +287,7 @@ async def lecture_delete_preview(
 async def delete_one_lecture(lecture_id: str, user: CurrentUser, session: Session) -> Response:
     lecture = await get_lecture(session, user.id, lecture_id)
     lecture_id_to_remove = lecture.id
+    await check_delete_allowed(session, (lecture_id_to_remove,))
     await lock_lecture(session, lecture_id_to_remove)
     # Collected before the delete: afterwards the rows are gone.
     file_ids = await file_ids_for_lectures(session, [lecture_id_to_remove])
@@ -301,7 +313,9 @@ async def subject_delete_preview(
 async def delete_one_subject(subject_id: str, user: CurrentUser, session: Session) -> Response:
     subject = await get_subject(session, user.id, subject_id)
     subject_id_to_remove = subject.id
-    file_ids = await file_ids_for_lectures(session, await lecture_ids(session, subject_id_to_remove))
+    lectures = await lecture_ids(session, subject_id_to_remove)
+    await check_delete_allowed(session, tuple(lectures))
+    file_ids = await file_ids_for_lectures(session, lectures)
     await delete_subject(session, subject_id_to_remove)
     owner_id = user.id
     await session.commit()
@@ -336,6 +350,8 @@ async def delete_account(user: CurrentUser, session: Session) -> Response:
     the commit (AR-8); a disk error is logged with her id and the answer is
     still 204. The session cookie is removed."""
     owner_id = user.id
+    lectures = await lecture_ids_for_subjects(session, await subject_ids_for_user(session, owner_id))
+    await check_delete_allowed(session, tuple(lectures))
     await delete_user(session, owner_id)
     await session.commit()
     try:
