@@ -3,7 +3,7 @@ title: 'Story 3.6: Øv på flashcards fra hele emnet'
 type: 'feature'
 created: '2026-11-22'
 baseline_revision: '729050aea1d8905a7dfce7a25fdeab2bf44c3ada'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -94,6 +94,31 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-22 — Review pass
+- verdicts: 21 findings — high 0, medium 0, low 14, false 7, maybe-false 0
+- findings:
+  - `[false]` `[reject]` Blind: KI-sporet i `docs/ki-prosess/` mangler — føres i senere steg på samme branch (story-prompten punkt 5).
+  - `[false]` `[reject]` Blind: sprintstatusen er ikke oppdatert — settes i story-promptens punkt 4 før PR.
+  - `[low]` `[reject]` Blind: kortet viser ikke forelesningen, og to filer med samme navn kan ikke skilles — akseptkriteriet sier at kilden viser fil og side; forelesningen i API-et brukes til å telle forelesninger.
+  - `[low]` `[reject]` Blind: emnesiden henter alle kortene for å telle dem — valgt i spesifikasjonen; listen er liten, og en egen tellerute er mer kode.
+  - `[low]` `[reject]` Blind: layouten hopper når kortene er lastet — kortet kommer bare når det finnes innhold; en plassholder ville vist en tom flate for emner uten kort.
+  - `[low]` `[patch]` Blind: plasseringssjekken på 1280 px var svak — sammenligner nå med tabellens bunn.
+  - `[low]` `[patch]` Blind: klokketesten sjekket for lite — sjekker nå én lagring, `subject_id`, `lecture_id: null`, og en kommentar forklarer «etter».
+  - `[low]` `[patch]` Blind: hintteksten ble laget med `toLowerCase()` av knappeteksten — eget felt `backHint` i omfanget.
+  - `[low]` `[reject]` Blind: `useScope` har uklare navn og slåtte-av spørringer med tom nøkkel — virker, og hooks må kalles i fast rekkefølge; ingen konkret skade.
+  - `[low]` `[reject]` Blind: jobbovervåkeren laster alle emners kortlister på nytt — bare aktive spørringer hentes faktisk; jobben har ikke `subject_id`.
+  - `[low]` `[reject]` Blind: synlighetsregelen står to steder — den ytre regelen styrer bredden; samles når quizraden kommer.
+  - `[low]` `[reject]` Blind: feiltesten bruker hardkodet tekst og feilen har ingen «Prøv igjen»-knapp — samme reservetekst og mønster som ellers i appen.
+  - `[low]` `[reject]` Blind: testhull (to filer i én forelesning, slettet forelesning, at kortene ikke hentes for ukjent emne) — rekkefølgen i forelesningen og kaskaden er testet fra før; `enabled` er standard React Query.
+  - `[low]` `[patch]` Kant: en mislykket bakgrunnshenting viste reserveteksten over en gammel rad — feilen vises bare når det ikke finnes data (`practiceError`).
+  - `[low]` `[patch]` Verifisering: testene for emne uten kort kunne bestå før svaret kom — Vitest venter på at spørringen er `success`, Playwright venter på svaret `[]`.
+  - `[low]` `[reject]` Intensjon: forelesningsnavnet finnes bare i API-et — samme som over.
+  - `[false]` `[reject]` Intensjon: FR-56-lagringen testes bare som kropp — raden med `lecture_id` tom er testet i `test_fr56_okt_uten_forelesning_lagres_for_hele_emnet`, og ruten er uendret.
+  - `[false]` `[reject]` Intensjon: regelen fra story 5.1 er ikke bygd — storien sier selv at 5.1 eier funksjonen.
+  - `[false]` `[reject]` Intensjon: tilfeldig rekkefølge testes ikke i e2e — `shuffle` er enhetstestet og brukes uendret.
+  - `[false]` `[reject]` Intensjon: ingen ny backendtest `test_fr56_…` — den finnes fra 3.5 og dekker emneøkten; nye frontendtester har «FR-56».
+  - `[false]` `[reject]` Intensjon: entallstilfellet er ikke bekreftet — `subject-page.test.tsx` «FR-23: ett kort står i entall».
+
 ## Design Notes
 
 - **Hvorfor én side med to omfang:** øktrammen (blanding, lagring, resultat, taster, smal skjerm) er den samme; bare kortkilde, navn og tilbakevei skiller. Et lite omfangsobjekt inne i siden gir én kodevei, så rettinger i økten gjelder begge.
@@ -106,3 +131,33 @@ deferred: []
 - `cd backend && uv run pytest` -- grønne
 - `cd frontend && npm run test && npx tsc --noEmit` -- grønne
 - `docker compose up --build -d && cd frontend && npx playwright test` -- grønne
+
+## Auto Run Result
+
+**Sammendrag:** Story 3.6 er bygd. Ny rute `GET /api/subjects/{id}/flashcards` gir alle kortene i emnet med kilde og forelesning. Emnesiden har kortet «Øv på hele emnet» med raden Flashcards («N kort fra M forelesninger», «Øv på flashcards»), som bare vises når emnet har kort. `/emner/<id>/flashcards` gjenbruker øktsiden med emnet som omfang («<emne> · hele emnet»), lagrer med `lecture_id: null`, og alle veier tilbake går til emnesiden («Tilbake til emnet»).
+
+**Filer:**
+- `backend/app/modules/content/{schemas,service,router}.py`, `backend/app/main.py`: ruten og spørringen.
+- `backend/tests/test_subject_flashcards.py`: rekkefølge, tomt emne, modellkort, 404, 401.
+- `frontend/modules/practice/{api,types}.ts`: spørring og type.
+- `frontend/modules/practice/components/practice-all-card.tsx` (+ test): generelt kort med rader.
+- `frontend/modules/subjects/pages/subject-page.tsx` (+ test): raden Flashcards og layout med container query.
+- `frontend/modules/generation/components/job-watcher.tsx` (+ test): emnets kortliste oppdateres etter en jobb.
+- `frontend/modules/practice/pages/flashcard-session-page.tsx` (+ test), `components/shortcut-hints.tsx` (+ test): omfang forelesning eller emne.
+- `frontend/app/(app)/emner/[subjectId]/flashcards/page.tsx`: ruten.
+- `frontend/e2e/hele-emnet.spec.ts`: emnesiden, økten, lagring, tilbake, 404 og klokketesten.
+
+**Gjennomgang:** 21 funn: 5 rettet (alle low), 9 low avvist med begrunnelse, 7 falske. Ingenting utsatt.
+
+**Funnet i skjermbildene (rettet i `b33c15f`):** kortet hadde 40 px luft (`p-6` er 40 px i skalaen) mot 24 px i skisse 03, og avstanden til tabellen var 40 px mot 32 px.
+
+**Rettet KI-feil (`1e6bf16`):** klokketesten satte nettleserens klokke fem minutter *foran*; kravet er fem minutter *etter*.
+
+**Oppfølging anbefalt:** nei. Rettet etter alvorlighet: low 5.
+
+**Verifisering:**
+- `uv run pytest`: 432 bestått.
+- `npm run test`: 669 bestått. `npx tsc --noEmit`: rent.
+- `npx playwright test` mot `docker compose up --build`: 117 bestått (pluss to midlertidige skjermbildetester).
+
+**Gjenstående risiko:** på 1280 px står kortet under tabellen, ikke ved siden av som i skissen (1440 px). Bare prøvd i Chromium.
