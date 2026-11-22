@@ -26,9 +26,13 @@ export function quizHints(step: "confirm" | "next" | "result"): readonly Shortcu
   ];
 }
 
-// The quiz result (story 4.2): only the way back.
+// The quiz result (mockup 10, story 4.3): Enter takes the quiz again, Esc goes
+// back to where it started («tilbake til forelesningen»).
 export function quizResultHints(backHint: string): readonly ShortcutHint[] {
-  return [{ key: "Esc", text: backHint }];
+  return [
+    { key: "Enter", text: "ta quizen igjen" },
+    { key: "Esc", text: backHint },
+  ];
 }
 
 // The result page (mockup 08). backHint is where Esc goes: «tilbake til

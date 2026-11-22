@@ -9,7 +9,7 @@ import { SHORTCUTS_KEY } from "@/lib/practice-shortcuts";
 import type { Lecture, Subject } from "@/modules/subjects/types";
 
 import type { QuizQuestion } from "../types";
-import { QuizSessionPage, quizResultTitle } from "./quiz-session-page";
+import { QuizSessionPage } from "./quiz-session-page";
 
 const notFound = vi.fn();
 const push = vi.fn();
@@ -132,13 +132,6 @@ async function started() {
   expect(await screen.findByText("/ 3")).toBeTruthy();
 }
 
-describe("quizResultTitle", () => {
-  it("FR-56, UX-DR33: «11 av 15 riktige», og avbrutt «Avbrutt etter 12 av 20»", () => {
-    expect(quizResultTitle({ total: 15, answered: 15, correct: 11, aborted: false })).toBe("11 av 15 riktige");
-    expect(quizResultTitle({ total: 20, answered: 12, correct: 3, aborted: true })).toBe("Avbrutt etter 12 av 20");
-  });
-});
-
 describe("QuizSessionPage", () => {
   it("FR-32, UX-DR8: panelet viser «Quiz», forelesningen, «1 / 3», «0 riktige · 0 feil» og rutenettet; spørsmålet uten forklaring", async () => {
     renderPage();
@@ -192,7 +185,8 @@ describe("QuizSessionPage", () => {
     expect(document.activeElement).toBe(title);
     expect(screen.getByText("QUIZ FERDIG")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Tilbake til forelesningen" }).getAttribute("href")).toBe("/forelesninger/l1");
-    expect(await screen.findByText("Økten er ferdig og lagret")).toBeTruthy();
+    const panel = screen.getByRole("region", { name: "Quiz" });
+    expect(await within(panel).findByText("Økten er ferdig og lagret")).toBeTruthy();
     expect(saved()).toEqual([
       expect.objectContaining({
         kind: "quiz",
@@ -206,9 +200,117 @@ describe("QuizSessionPage", () => {
         partial: 0,
       }),
     ]);
-    expect(screen.queryByText("Ta quizen igjen")).toBeNull();
     cleanup();
     expect(saved()).toHaveLength(1);
+  });
+
+  // The order is kept (Math.random is mocked): a (correct B), b (correct A),
+  // c (correct D).
+  async function finishQuiz(letters: ("A" | "B" | "C" | "D")[]) {
+    renderPage();
+    await started();
+    letters.forEach((letter, index) => {
+      answer(letter);
+      fireEvent.click(button(index === letters.length - 1 ? "Se resultatet" : "Neste spørsmål"));
+    });
+  }
+
+  it("FR-36, UX-DR34, UX-DR35: ferdig quiz med ett feilsvar viser undertittel og lista med ditt svar, riktig svar, forklaring og kilde", async () => {
+    await finishQuiz(["B", "B", "D"]);
+    expect(screen.getByRole("heading", { level: 2, name: "2 av 3 riktige" }).className).toContain("text-result-title");
+    expect(
+      screen.getByText("Uke 37: Merkevare · her er den ene du svarte feil på, med riktig svar og kilde"),
+    ).toBeTruthy();
+    const list = document.querySelector("[data-slot='missed-list']") as HTMLElement;
+    const rows = within(list).getAllByRole("listitem");
+    expect(rows.map((row) => row.textContent)).toEqual([
+      "Spørsmål 2:Hva er Pris?merkevare-notater.pdf, side 1✗ Ditt svarSvar B om Pris✓ Riktig svarSvar A om PrisPris er et begrep i faget.",
+    ]);
+    expect(list.querySelectorAll("[data-slot='source-link']")).toHaveLength(1);
+    // No fields with «Kunne» or a percentage for the quiz.
+    expect(document.querySelector("[data-slot='result-field']")).toBeNull();
+    expect(screen.queryByText(/%/)).toBeNull();
+  });
+
+  it("FR-36: alle riktige gir bare omfanget i undertittelen og ingen liste", async () => {
+    await finishQuiz(["B", "A", "D"]);
+    expect(screen.getByRole("heading", { level: 2, name: "3 av 3 riktige" })).toBeTruthy();
+    const summary = document.querySelector("[data-slot='result-summary']") as HTMLElement;
+    expect(within(summary).getByText("Uke 37: Merkevare")).toBeTruthy();
+    expect(document.querySelector("[data-slot='missed-list']")).toBeNull();
+  });
+
+  it("FR-36: avbrutt etter to svar viser poengsummen for de besvarte og feilsvaret", async () => {
+    renderPage();
+    await started();
+    answer("C");
+    fireEvent.click(button("Neste spørsmål"));
+    answer("A");
+    fireEvent.click(button("Avslutt økt"));
+    expect(screen.getByText("QUIZ FERDIG")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: "Avbrutt etter 2 av 3" })).toBeTruthy();
+    expect(
+      screen.getByText("Uke 37: Merkevare · 1 av 2 riktige · her er den ene du svarte feil på, med riktig svar og kilde"),
+    ).toBeTruthy();
+    const rows = within(document.querySelector("[data-slot='missed-list']") as HTMLElement).getAllByRole("listitem");
+    expect(rows).toHaveLength(1);
+    expect(rows[0].textContent).toContain("Svar C om Merkevare");
+    expect(rows[0].textContent).toContain("Svar B om Merkevare");
+  });
+
+  it("FR-36: det levende området sier «Økten er ferdig og lagret» når økten er lagret", async () => {
+    await finishQuiz(["B", "A", "D"]);
+    const live = screen.getAllByRole("status").at(-1)!;
+    await waitFor(() => expect(live.textContent).toBe("Økten er ferdig og lagret"));
+  });
+
+  it("FR-36: «Ta quizen igjen» henter spørsmålene på nytt og starter en ny økt med ny session_id", async () => {
+    await finishQuiz(["B", "B", "D"]);
+    await waitFor(() => expect(saved()).toHaveLength(1));
+    const fetchesBefore = fetchMock.mock.calls.filter(([url]) => String(url) === "/api/lectures/l1/quiz-questions").length;
+    fireEvent.click(button("Ta quizen igjen"));
+    // A second press while the fetch runs starts nothing more.
+    fireEvent.click(button("Ta quizen igjen"));
+    expect(await screen.findByText("SPØRSMÅL 1 AV 3")).toBeTruthy();
+    expect(
+      fetchMock.mock.calls.filter(([url]) => String(url) === "/api/lectures/l1/quiz-questions").length,
+    ).toBe(fetchesBefore + 1);
+    expect(document.activeElement).toBe(screen.getByRole("heading", { level: 2, name: "Hva er Merkevare?" }));
+    expect(screen.getByText("0 riktige · 0 feil")).toBeTruthy();
+    expect(screen.queryByText("Økten er ferdig og lagret")).toBeNull();
+    for (const radio of screen.getAllByRole("radio")) expect(radio.getAttribute("aria-checked")).toBe("false");
+
+    answer("A");
+    fireEvent.click(button("Avslutt økt"));
+    expect(screen.getByRole("heading", { level: 2, name: "Avbrutt etter 1 av 3" })).toBeTruthy();
+    // The new session's list has only its own wrong answer.
+    const rows = within(document.querySelector("[data-slot='missed-list']") as HTMLElement).getAllByRole("listitem");
+    expect(rows.map((row) => row.textContent?.slice(0, 11))).toEqual(["Spørsmål 1:"]);
+    await waitFor(() => expect(saved()).toHaveLength(2));
+    expect(saved()[1]).toEqual(expect.objectContaining({ aborted: true, answered: 1, correct: 0 }));
+    expect(saved()[1].session_id).not.toBe(saved()[0].session_id);
+  });
+
+  it("FR-36: feiler hentingen, starter den nye økten med spørsmålene fra forrige økt", async () => {
+    await finishQuiz(["B", "A", "D"]);
+    questionsStatus = 500;
+    fireEvent.click(button("Ta quizen igjen"));
+    expect(await screen.findByText("SPØRSMÅL 1 AV 3")).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("FR-36: har forelesningen ingen spørsmål lenger, vises tomtilstanden", async () => {
+    await finishQuiz(["B", "A", "D"]);
+    questions = [];
+    fireEvent.click(button("Ta quizen igjen"));
+    expect(await screen.findByRole("heading", { level: 1, name: "Det finnes ingen quizspørsmål her ennå." })).toBeTruthy();
+  });
+
+  it("FR-36: nye spørsmål fra hentingen kommer med i den nye økten", async () => {
+    await finishQuiz(["B", "A", "D"]);
+    questions = [...questions, question("d", "Kanal", 2)];
+    fireEvent.click(button("Ta quizen igjen"));
+    expect(await screen.findByText("SPØRSMÅL 1 AV 4")).toBeTruthy();
   });
 
   it("FR-34: neste spørsmål starter uten valg, med «Bekreft svar» inaktiv, og Enter gjør ingenting", async () => {
@@ -326,6 +428,31 @@ describe("QuizSessionPage", () => {
       expect(screen.getByRole("heading", { level: 2, name: "Avbrutt etter 1 av 3" })).toBeTruthy();
       press("Escape");
       expect(push).toHaveBeenCalledWith("/forelesninger/l1");
+    });
+
+    it("FR-36, UX-DR33: på resultatet tar Enter quizen igjen, men ikke en holdt Enter eller Enter på lenken", async () => {
+      renderPage();
+      await started();
+      answer("A");
+      fireEvent.click(button("Avslutt økt"));
+      expect(screen.getByRole("list", { name: "Hurtigtaster" }).textContent).toBe(
+        "Enter ta quizen igjenEsc tilbake til forelesningen",
+      );
+      press("Enter", { repeat: true });
+      fireEvent.keyDown(screen.getByRole("link", { name: "Tilbake til forelesningen" }), { key: "Enter" });
+      expect(screen.getByRole("heading", { level: 2, name: "Avbrutt etter 1 av 3" })).toBeTruthy();
+      press("Enter");
+      expect(await screen.findByText("SPØRSMÅL 1 AV 3")).toBeTruthy();
+    });
+
+    it("FR-36: ? på resultatet viser «Øv igjen / Ta quizen igjen» i hurtigtastdialogen", async () => {
+      renderPage();
+      await started();
+      answer("A");
+      fireEvent.click(button("Avslutt økt"));
+      press("?");
+      const dialog = await screen.findByRole("dialog", { name: "Hurtigtaster" });
+      expect(within(dialog).getByText("Øv igjen / Ta quizen igjen")).toBeTruthy();
     });
 
     it("UX-DR31: hint-linja står til venstre i bunnlinja, og ? åpner dialogen med Quiz-gruppen", async () => {

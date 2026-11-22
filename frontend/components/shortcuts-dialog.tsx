@@ -41,7 +41,7 @@ const GROUPS: { title: string; rows: Row[] }[] = [
   {
     title: "Resultat",
     rows: [
-      { keys: "Enter", action: "Øv igjen" },
+      { keys: "Enter", action: "Øv igjen / Ta quizen igjen" },
       { keys: "Esc", action: "Tilbake" },
     ],
   },

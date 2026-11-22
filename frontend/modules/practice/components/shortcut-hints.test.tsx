@@ -2,7 +2,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { FLASHCARD_HINTS, ShortcutHints, quizHints, resultHints } from "./shortcut-hints";
+import { FLASHCARD_HINTS, ShortcutHints, quizHints, quizResultHints, resultHints } from "./shortcut-hints";
 
 afterEach(cleanup);
 
@@ -54,5 +54,11 @@ describe("ShortcutHints", () => {
     expect(texts("confirm")).toEqual(["A–D velg svar", "Enter bekreft svar", "Esc avslutt"]);
     expect(texts("next")).toEqual(["A–D velg svar", "Enter neste spørsmål", "Esc avslutt"]);
     expect(texts("result")).toEqual(["A–D velg svar", "Enter se resultatet", "Esc avslutt"]);
+  });
+
+  it("FR-36: quizresultatet har «Enter ta quizen igjen» og «Esc tilbake til forelesningen»", () => {
+    render(<ShortcutHints hints={quizResultHints("tilbake til forelesningen")} align="start" />);
+    const items = within(screen.getByRole("list", { name: "Hurtigtaster" })).getAllByRole("listitem");
+    expect(items.map((item) => item.textContent)).toEqual(["Enter ta quizen igjen", "Esc tilbake til forelesningen"]);
   });
 });
