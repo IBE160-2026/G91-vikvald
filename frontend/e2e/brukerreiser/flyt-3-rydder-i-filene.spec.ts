@@ -9,7 +9,10 @@ import {
   fileRows,
   flashcardCountViaApi,
   makeFlashcardsViaApi,
+  makeQuizViaApi,
   pdfFile,
+  quizQuestionsViaApi,
+  quizRow,
   registerWithTermsViaApi,
   today,
   uploadViaApi,
@@ -18,9 +21,9 @@ import {
 // Flow 3 in EXPERIENCE.md («Brukerreiser (Key Flows)»), a support flow for FR-12 and FR-13.
 // The flow starts on the lecture page (04) and has no login step of its own, so
 // the account, subject, lecture, the old file and the flashcards are made
-// through the API first. The old file gives 18 flashcards, as in the flow, and
-// the other file one. Quiz questions (epic 4) and model cards (epic 7) are not
-// built yet; see docs/testing/brukerreiser.md.
+// through the API first. The old file gives 18 flashcards and 11 quiz
+// questions, as in the flow, and the other file one of each. Model cards
+// (epic 7) are not built yet; see docs/testing/brukerreiser.md.
 // The steps share one browser context and run in order, like one visit by Klara.
 test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
   test.describe.configure({ mode: "serial" });
@@ -52,7 +55,25 @@ test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
     await uploadViaApi(page, lectureId, pdfFile("merkevare-lysark.pdf", ["Markedsplan er en plan for salget."]));
     // «Vanlig»: up to 20 cards, 18 from the old file and 1 from the slides.
     await makeFlashcardsViaApi(page, lectureId, 20, 19);
+    // The quiz gives 19 questions the same way. Earlier, Klara deleted seven
+    // bad questions from the old file during the quiz (FR-37), so 11 are left
+    // from it, as in the flow, and 1 from the slides.
+    await makeQuizViaApi(page, lectureId, 20, 19);
+    const fromOldFile = (await quizQuestionsViaApi(page, "lectures", lectureId)).filter(
+      (question) => question.source.file_name === "merkevare-notater.pdf",
+    );
+    expect(fromOldFile).toHaveLength(18);
+    for (const question of fromOldFile.slice(0, 7)) {
+      expect((await page.request.delete(`/api/quiz-questions/${question.id}`)).status()).toBe(204);
+    }
+    expect(await quizCount()).toBe(12);
   });
+
+  async function quizCount(): Promise<number> {
+    return (await quizQuestionsViaApi(page, "lectures", lectureId)).length;
+  }
+
+  const DELETES_TOO = "Dette sletter også 18 flashcards og 11 quizspørsmål laget fra fila.";
 
   test.afterAll(async () => {
     await context.close();
@@ -68,17 +89,18 @@ test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
     await expect(fileRows(page).nth(0).getByRole("button", { name: "Slett merkevare-notater.pdf" })).toBeVisible();
     await expect(fileRows(page).nth(0).getByRole("button", { name: "Erstatt merkevare-notater.pdf" })).toBeVisible();
     await expect(createSection(page).getByText("19 kort", { exact: true })).toBeVisible();
+    await expect(quizRow(page).getByText("12 spørsmål", { exact: true })).toBeVisible();
     await expectNoAxeViolations(page);
   });
 
-  test("Steg 2 – FR-12, UX-DR22: «Slett» på fila åpner dialogen (14) som viser fila, at 18 flashcards slettes sammen med den, og at det ikke kan angres", async () => {
+  test("Steg 2 – FR-12, UX-DR22: «Slett» på fila åpner dialogen (14) som viser fila, at 18 flashcards og 11 quizspørsmål slettes sammen med den, og at det ikke kan angres", async () => {
     await page.getByRole("button", { name: "Slett merkevare-notater.pdf" }).click();
     const dialog = page.getByRole("dialog", { name: "Slette fila?" });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("merkevare-notater.pdf")).toBeVisible();
     await expect(dialog.getByText("6 sider · Uke 37: Merkevare")).toBeVisible();
-    // Only flashcards: this flow makes no quiz questions yet (#131), and model cards come with epic 7.
-    await expect(dialog.getByText("Dette sletter også 18 flashcards laget fra fila.")).toBeVisible();
+    // Model cards come with epic 7 (#131).
+    await expect(dialog.getByText(DELETES_TOO)).toBeVisible();
     await expect(dialog.getByText("Det kan ikke angres.")).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Slett fila" })).toBeVisible();
     await expectNoAxeViolations(page);
@@ -93,7 +115,9 @@ test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
     await expect(fileRows(page)).toHaveCount(2);
     expect(await fileNamesViaApi(page, lectureId)).toEqual(["merkevare-notater.pdf", "merkevare-lysark.pdf"]);
     expect(await flashcardCountViaApi(page, lectureId)).toBe(19);
+    expect(await quizCount()).toBe(12);
     await expect(createSection(page).getByText("19 kort", { exact: true })).toBeVisible();
+    await expect(quizRow(page).getByText("12 spørsmål", { exact: true })).toBeVisible();
     await expectNoAxeViolations(page);
   });
 
@@ -108,15 +132,16 @@ test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
     await expect(dialog.getByText("merkevare-notater.pdf", { exact: true })).toBeVisible();
     await expect(dialog.getByText("6 sider · Uke 37: Merkevare")).toBeVisible();
     await expect(dialog.getByText("Erstattes med merkevare-notater-v2.pdf.")).toBeVisible();
-    await expect(dialog.getByText("Dette sletter også 18 flashcards laget fra fila.")).toBeVisible();
+    await expect(dialog.getByText(DELETES_TOO)).toBeVisible();
     await expect(dialog.getByText("Det kan ikke angres.")).toBeVisible();
     await expectNoAxeViolations(page);
     // Nothing is replaced before she confirms.
     expect(await fileNamesViaApi(page, lectureId)).toEqual(["merkevare-notater.pdf", "merkevare-lysark.pdf"]);
     expect(await flashcardCountViaApi(page, lectureId)).toBe(19);
+    expect(await quizCount()).toBe(12);
   });
 
-  test("Steg 5 – FR-13, FR-16, UX-DR16, UX-DR18: hun bekrefter, den nye fila står i lista, og tallene i «Lag og øv» viser hva som er igjen", async () => {
+  test("Steg 5 – FR-13, FR-16, UX-DR16, UX-DR18: hun bekrefter, den nye fila står i lista, og tallene for flashcards og quiz i «Lag og øv» viser hva som er igjen", async () => {
     const dialog = page.getByRole("dialog", { name: "Erstatte fila?" });
     await dialog.getByRole("button", { name: "Erstatt fila" }).click();
     await expect(dialog).toHaveCount(0);
@@ -130,13 +155,18 @@ test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
     await expect(page.getByRole("heading", { level: 2, name: "Filer" })).toBeFocused();
     expect(await fileNamesViaApi(page, lectureId)).toEqual(["merkevare-lysark.pdf", "merkevare-notater-v2.pdf"]);
 
-    // The 18 cards from the old file are gone; the one from the slides is left,
-    // and she can make new content from the new file.
+    // The 18 cards and 11 questions from the old file are gone; one of each
+    // from the slides is left, and she can make new content from the new file.
     const section = createSection(page);
     await expect(section.getByText("1 kort", { exact: true })).toBeVisible();
     expect(await flashcardCountViaApi(page, lectureId)).toBe(1);
     await expect(section.getByRole("button", { name: "Lag flere" })).toBeEnabled();
     await expect(section.getByRole("button", { name: "Øv nå" })).toBeEnabled();
+    const quiz = quizRow(page);
+    await expect(quiz.getByText("1 spørsmål", { exact: true })).toBeVisible();
+    expect(await quizCount()).toBe(1);
+    await expect(quiz.getByRole("button", { name: "Lag flere" })).toBeEnabled();
+    await expect(quiz.getByRole("button", { name: "Øv nå" })).toBeEnabled();
     await expectNoAxeViolations(page);
   });
 });
