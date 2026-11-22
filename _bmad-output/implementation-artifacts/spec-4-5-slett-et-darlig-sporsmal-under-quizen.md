@@ -3,14 +3,28 @@ title: 'Story 4.5: Slett et dårlig spørsmål under quizen'
 type: 'feature'
 created: '2026-11-22'
 baseline_revision: 'cb1999935fe835bc7c572fb46a948659059da9af'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-4-context.md'
   - '{project-root}/_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/DESIGN.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      A deleted quiz question can be generated again by «+ Lag flere», since duplicate checking only sees questions that still exist.
+    evidence: |-
+      quiz_question_texts (story 4.1) lists stored questions; a deleted one is gone from it, and the mock rule makes the same question from the same page. Same for flashcards since 3.7. A fix needs a record of deleted texts (migration).
+    location: >-
+      backend/app/modules/content/service.py (quiz_question_texts)
+    severity: medium
+  - summary: >-
+      CI does not run Playwright, so keyboard and axe checks in the e2e suite run only locally.
+    evidence: |-
+      .github/workflows/ci.yml runs uv run pytest and npm run test only. Applies to the whole e2e suite.
+    location: >-
+      .github/workflows/ci.yml
+    severity: low
 ---
 
 <intent-contract>
@@ -90,6 +104,35 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-22 — Review pass
+- verdicts: 25 findings — high 0, medium 1, low 17, false 7, maybe-false 0
+- findings:
+  - `[low]` `[reject]` (intent) R1: sletting mens en jobb pågår er tillatt (204) i stedet for 409 — samme regel som `DELETE /api/flashcards/{id}` i 3.7 (#191); 409-regelen i epic 3 gjelder fil, forelesning, emne og konto. Valgt og ført som kanttilfelle.
+  - `[low]` `[reject]` (intent) R2: emnesidens tall etter sletting testes bare via ugyldiggjøringen i Vitest — emnesiden teller fra `subjects/<id>/quiz-questions`, som API-testen viser er uten spørsmålet, og nøkkelen ugyldiggjøres; en egen e2e gir lite mer.
+  - `[false]` `[reject]` (intent) R4: ingen pytest heter `test_fr37_avbryt_sletter_ingenting` — navnene er eksempler («for eksempel»); avbryt finnes bare i nettleseren og er testet som «FR-37: avbryt sletter ingenting …» i Vitest og Playwright.
+  - `[low]` `[reject]` (intent) Enter med åpen dialog prøves i Playwright bare som «Avbryt» — Vitest trykker Enter og `c` med åpen dialog og ser at valget og «Bekreft svar» er uendret; `usePracticeShortcuts` slår av alle taster når `[role="dialog"]` finnes.
+  - `[false]` `[reject]` (intent) kilden ved «Slett» sjekkes ikke på nytt — kilden står i forklaringskortet som før, uendret av diffen og testet i 4.2.
+  - `[low]` `[patch]` (edge) «Ta quizen igjen» med feilet henting brukte `session.state.order`, som fortsatt har et bekreftet, slettet spørsmål — reserven er nå øktens egen liste i cachen (som `questionDeleted` har filtrert), med ny Vitest-test (`b0a8899`).
+  - `[low]` `[patch]` (edge) kommentaren over `ownQuestionsKey` lovet at spørsmålet aldri kommer tilbake — sann etter rettingen over (`b0a8899`).
+  - `[false]` `[reject]` (edge) emnets telling sjekkes ikke i backend — emnet har ingen telle-rute; API-testen sjekker emnets liste, som emnesiden teller fra.
+  - `[low]` `[patch]` (verification-gap) ingen test for bekreftet, slettet spørsmål og «Ta quizen igjen» med feilet henting — samme rot og retting som over (`b0a8899`).
+  - `[low]` `[defer]` (verification-gap) CI kjører ikke Playwright, så tastatur og axe sjekkes bare lokalt — gjelder hele e2e-pakken fra før (story 1.2 er kuttbar); kjøres i hver story.
+  - `[low]` `[patch]` (verification-gap, other) `playAgain` gir tilbake slettet spørsmål — samme rot (`b0a8899`).
+  - `[low]` `[patch]` (verification-gap, other) testkommentaren om at bare cachen holder spørsmålet ute var feil — skrevet om (`b0a8899`).
+  - `[false]` `[reject]` (blind) KI-sporet og sesjonsloggen mangler — skrives senere i samme kjøring før PR-en.
+  - `[false]` `[reject]` (blind) sprint-status er gammel — oppdateres i samme kjøring etter testene.
+  - `[medium]` `[defer]` (blind) et slettet spørsmål kan lages på nytt av «+ Lag flere», fordi duplikatsjekken (`quiz_question_texts`, story 4.1) bare ser spørsmål som finnes — fra før, gjelder også kort (3.7), og en løsning krever en tabell over slettede tekster (migrasjon) som storien ikke ber om. Kanttilfelle-issue.
+  - `[low]` `[reject]` (blind) `setSession({ ...session, state })` bruker verdien fra siste render — sletting skjer etter en brukerhandling med ny render, og mønsteret er det samme som `cardDeleted` i 3.7.
+  - `[low]` `[reject]` (blind) `deleteTarget` nullstilles aldri — dialogen er lukket og får nytt mål ved neste «Slett»; nullstilling midt i lukkingen ville fjernet teksten mens dialogen tones ut (samme som 3.7).
+  - `[false]` `[reject]` (blind) `ownQuestionsKey` kan bli `["lectures", ""]` — `ScopeProps` krever enten `lectureId` eller `subjectId`.
+  - `[low]` `[reject]` (blind) 404- og 500-testene sjekker lite — 404 bruker samme vei som 204 (testet grundig), og 500-veien er den felles dialogen, testet i 2.5/3.7.
+  - `[low]` `[reject]` (blind) emneøkten er bare testet med mock — samme side og samme kode; forelesningen hentes fra spørsmålet, og Vitest dekker at `l2` ugyldiggjøres.
+  - `[low]` `[patch]` (blind) 404-testen sammenlignet bare to av tre svar — sammenligner nå alle tre (`2b4f191`).
+  - `[low]` `[reject]` (blind) eierskapsoppslaget er kopiert fra `get_flashcard` — to korte funksjoner med ulike modeller og filtre; en felles hjelper gir mer kode enn den sparer.
+  - `[low]` `[reject]` (blind) «Slett» heter bare «Slett» og er ikke `size="lg"` — samme navn og størrelse som «Slett» på kortet i 3.7; det står rett under spørsmålet, og dialogen viser hele spørsmålet før noe slettes.
+  - `[low]` `[reject]` (blind) `tabTo` fra toppen er skjør — mønsteret fra `rett-og-slett-kort.spec.ts`, og testen skal vise at «Slett» nås med bare tastatur.
+  - `[false]` `[reject]` (blind) `frontend/e2e-skjermbilder/` bør ignoreres eller slettes — mappa skal ligge urørt etter instruks og blir aldri lagt til.
+
 ## Design Notes
 
 - **Plassering av «Slett»:** skisse 09 tegner ikke knappen, og kilden står bare i forklaringskortet etter bekreftelse. Storien krever «Slett» også før bekreftelse, så knappen står fast i bunnfeltet under spørsmålet (raden med hintlinja og hovedknappen), samme sted før og etter, i stedet for å flytte seg inn i forklaringskortet. Kanttilfelle.
@@ -102,3 +145,28 @@ deferred: []
 - `cd backend && uv run pytest` -- expected: alt grønt
 - `cd frontend && npm run test && npx tsc --noEmit && npm run lint` -- expected: alt grønt
 - `cd frontend && npx playwright test` mot `docker compose up --build` -- expected: alt grønt
+
+## Auto Run Result
+
+Status: done
+
+**Summary:** Story 4.5 is built. New route `DELETE /api/quiz-questions/{id}` (204; someone else's, unknown or malformed id → the same 404; 401 without login; not blocked by a running job, as cards in 3.7). The quiz session has a red text button «Slett» in the footer next to «Bekreft svar»/«Neste spørsmål», before and after confirmation, and no «Rediger». It opens the shared delete confirmation «Slette spørsmålet?» with the question text, «Det kan ikke angres.» and «Slett spørsmålet»; «Avbryt» has initial focus and Esc/«Avbryt» return focus to «Slett». A deleted question leaves the session with `removeCard` (E22): unconfirmed leaves the counter and grid, confirmed keeps its answer; nothing left → result if something was answered, otherwise back. The cache and the lecture/subject lists are refreshed.
+
+**Files changed:**
+- `backend/app/modules/content/service.py`, `router.py`, `backend/app/main.py` -- `get_quiz_question`, `delete_quiz_question`, the route.
+- `backend/tests/test_delete_quiz_questions.py` (new) -- 204/gone/counts, job running, 404, 401.
+- `frontend/lib/delete-text.ts`, `frontend/modules/practice/api.ts` -- `"quiz-question"`, `deleteQuizQuestion`.
+- `frontend/modules/practice/components/quiz-question.tsx` (+ test) -- «Slett» in the footer.
+- `frontend/modules/practice/pages/quiz-session-page.tsx` (+ test) -- dialog, E22, cache, «Ta quizen igjen» fallback.
+- `frontend/modules/practice/session.test.ts` -- quiz cases for `removeCard`.
+- `frontend/e2e/slett-quizsporsmal.spec.ts` (new) -- keyboard only, axe 1280/768, lecture page count.
+- `docs/skjermbilder/story-4-5/` -- screenshots.
+
+**Review:** 25 findings: 6 rows patched (one root cause: «Ta quizen igjen» after a failed refetch could bring back a deleted, confirmed question; plus the 404 test comparing all three bodies), 2 deferred (re-generation of a deleted question by «+ Lag flere», medium; Playwright not in CI, low), 17 rejected with reasons in the triage log (7 false).
+
+**Follow-up review recommended:** false (patched: low 6, no high or medium).
+
+**Verification:** `uv run pytest` 545 passed; `npm run test` 801 passed (66 files); `npx tsc --noEmit` clean; `npx playwright test` against `docker compose up --build` 148 passed (a first full run had one failure in `vilkar.spec.ts:150`, a file-chooser timeout unrelated to this story, which passed 12/12 alone and in the next full run). `npm run lint` does not exist in this project (no lint script), so it was not run.
+
+**Residual risks:** A deleted question can be generated again by «+ Lag flere» (deferred, issue). Bare prøvd i Chromium.
+
