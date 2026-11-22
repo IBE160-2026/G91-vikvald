@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-22: Story 5.2 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `5-2-vis-tellinger-og-øvd-03-11-i-forelesningstabellen-kan-kuttes`. Hensikten til `bmad-build-auto` var «Story 5.2 fra `_bmad-output/planning-artifacts/epics.md`: Vis tellinger og «Øvd 03.11» i forelesningstabellen».
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-5-2-vis-tellinger-og-oevd-i-forelesningstabellen.md), PR-en for `story/5-2`, kanttilfellene #238–#240.
+
 ## 2026-11-22: Story 5.1 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `5-1-regn-ut-øvd-ett-sted-og-vis-det-i-sidemenyen-og-siste-økt`. Hensikten til `bmad-build-auto` var «Story 5.1 fra `_bmad-output/planning-artifacts/epics.md`: Regn ut «øvd» ett sted og vis det i sidemenyen og SISTE ØKT». Orkestratoren la til konteksten om øktdataene, AR-9, klokketesten (#186), `position`-kolonnen og sidemenyen.
