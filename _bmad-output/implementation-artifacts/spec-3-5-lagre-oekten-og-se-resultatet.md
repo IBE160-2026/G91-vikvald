@@ -3,7 +3,7 @@ title: 'Story 3.5: Lagre økten og se resultatet'
 type: 'feature'
 created: '2026-11-22'
 baseline_revision: '04e242be76989e95cdaa65bc7fef813a16f9b0a9'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -106,6 +106,42 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-22 — Review pass
+- verdicts: 31 findings — high 0, medium 4, low 23, false 4, maybe-false 0
+- merknad: Blind Hunter ble avbrutt av API-grensen første gang og kjørt på nytt; radene under er fra den fullstendige kjøringen. Edge Case Hunter ble også kjørt på nytt.
+- findings:
+  - `[low]` `[patch]` Verifisering: `ON CONFLICT` på Postgres testes aldri (pytest kjører SQLite) — ny e2e-sak i `lagre-okt.spec.ts` sender samme `session_id` to ganger (JSON og `text/plain`) mot Docker/Postgres og venter 204 begge ganger.
+  - `[medium]` `[patch]` Verifisering (annet): en lagring fra forrige økt som svarer etter «Øv igjen», setter `saved`/`failed` på den nye økten — `generationRef` økes av `restart()`, og status oppdateres bare når den stemmer; ny enhetstest.
+  - `[medium]` `[patch]` Intensjon: klokketesten brukte forelesningsøkt, klokke foran og `lecture.created_at`, ikke en emneøkt mot kort laget rett før med klokka fem minutter etter — ny test `test_ar9_emneokt_starter_etter_kort_laget_rett_for_selv_med_klokke_fem_minutter_etter` med ekte kort fra jobben.
+  - `[low]` `[reject]` Intensjon: e2e for navigering markerer ett kort og sjekker forespørselen, ikke raden — lagringen av raden er dekket av backendtestene, og e2e ser at serveren svarer 204.
+  - `[low]` `[reject]` Intensjon: `pagehide`/`sendBeacon` er bare testet i jsdom — Playwright utløser ikke `pagehide` pålitelig når en fane lukkes; enhetstestene dekker beacon og reserven.
+  - `[low]` `[reject]` Intensjon: «Logg ut» venter høyst 3 s — valgt med vilje så utloggingen aldri henger; ført som kanttilfelle.
+  - `[false]` `[reject]` Intensjon: krav-ID i frontendtester har ikke `test_…`-form — frontendtestene har brukt «FR-56: …» siden story 1.1; `test_…`-formen gjelder pytest, og der er den brukt.
+  - `[medium]` `[patch]` Blind: utloggingen venter ikke på en lagring som allerede er i gang (etter «Avslutt økt» eller siste kort) — `pendingRef` holder lagringen, og oppgaven før utlogging venter på den; ny enhetstest.
+  - `[low]` `[reject]` Blind: en lagring som feiler, prøves aldri igjen — valgt i spesifikasjonen (reserveteksten, ikke nytt forsøk); ført som kanttilfelle med issue.
+  - `[low]` `[reject]` Blind: en side hentet fra bfcache lagres ikke på nytt — sjeldent; valgt i spesifikasjonen.
+  - `[low]` `[patch]` Blind: testen for `started_at` med varighet 0 kan ikke feile, og `started_at` klemmes ikke — dekket av den nye emneøkt-testen over; klemming til forelesningens tid er ikke krav og avvises.
+  - `[false]` `[reject]` Blind: `text/plain` fjerner CORS-forhåndssjekken — innloggingscookien er `SameSite=Lax` og sendes ikke med en POST fra en annen nettside, så ruten svarer 401.
+  - `[low]` `[reject]` Blind: ingen CHECK-regler i databasen — bare ruten skriver tabellen, og skjemaet sjekker reglene.
+  - `[low]` `[patch]` Blind: `partial` godtas for flashcards og quiz — 422 når `partial ≠ 0` og typen ikke er `freetext`; nye testtilfeller.
+  - `[low]` `[reject]` Blind: overlinjen «ØKT FERDIG» også for avbrutt økt — spesifikasjonen bruker overlinjen for begge; det finnes ingen godkjent alternativ tekst. Står som avvik i PR-en.
+  - `[low]` `[reject]` Blind: «Øv igjen» henter ikke kortene på nytt og har ingen håndtering av tom liste — jobbovervåkeren holder hurtigbufferen fersk; en tom liste viser «Det finnes ingen flashcards her ennå.» med vei tilbake.
+  - `[low]` `[reject]` Blind: varigheten tar med lastetiden — noen hundre millisekunder; påvirker ikke resultatet.
+  - `[low]` `[reject]` Blind: `session_id` er unik på tvers av brukere — tilfeldig UUID som ingen andre kjenner.
+  - `[low]` `[patch]` Blind: Postgres-veien er ikke testet — samme som første rad; e2e-saken er lagt til.
+  - `[low]` `[reject]` Blind: kroppen leses uten størrelsesgrense — ruten krever innlogging, og Next-proxyen har en grense.
+  - `[false]` `[reject]` Blind: KI-sporet og sesjonsloggen mangler — føres i senere steg på samme branch (story-prompten punkt 5 og 6).
+  - `[low]` `[patch]` Blind: kommentaren i `shortcuts-dialog.tsx` har en kort foreldreløs linje — omformet.
+  - `[low]` `[patch]` Kant: tellingene har ingen øvre grense (over 2^31 gir 500 på Postgres) — `MAX_COUNT = 100_000`; nye 422-tilfeller.
+  - `[low]` `[reject]` Kant: forelesningen slettes mellom sjekken og innsettingen (FK-brudd, 500) — krever sletting i samme millisekund som lagringen.
+  - `[low]` `[patch]` Kant: `partial` for flashcards — samme som over.
+  - `[medium]` `[patch]` Kant: gammel lagring etter `restart()` — samme som over.
+  - `[low]` `[reject]` Kant: bfcache — samme som over.
+  - `[low]` `[reject]` Kant: utloggingen feiler etter at økten er sendt som avbrutt — sjeldent; hun kan fortsette, men resten lagres ikke.
+  - `[false]` `[reject]` Kant: `finish()` med tomt øyeblikksbilde — økten finnes bare når forelesningen (og dermed `subject_id`) er hentet.
+  - `[low]` `[reject]` Kant: «Øv igjen» med tom liste — samme som over.
+  - `[low]` `[reject]` Kant: en lagring som feiler gir null rader — samme som over; kanttilfelle med issue.
+
 ## Design Notes
 
 - **Hvorfor `id` og en egen unik `session_id`:** alle tabellene har `id` som nøkkel; `session_id` er nettleserens nøkkel for å unngå dobbel lagring.
@@ -120,3 +156,34 @@ deferred: []
 - `cd backend && uv run pytest` -- grønne
 - `cd frontend && npm run test && npx tsc --noEmit` -- grønne
 - `docker compose up --build -d && cd frontend && npx playwright test` -- grønne
+
+## Auto Run Result
+
+**Sammendrag:** Story 3.5 er bygd. Backendmodulen `practice` har tabellen `practice_sessions` (migrering 0007) og `POST /api/practice-sessions`, som godtar JSON og `text/plain`, sjekker eierskap via emnet, setter `started_at` med serverens klokke og lagrer med `ON CONFLICT DO NOTHING`. I frontend sender `useSessionSaver` resultatet nøyaktig én gang (ferdig, «Avslutt økt»/Esc, navigering, før utlogging og `pagehide` med `sendBeacon`), og bare når minst ett kort er markert. Resultatsiden (skisse 08) viser `result-summary` og `missed-list`, med «Øv igjen»/Enter og «Tilbake til forelesningen»/Esc. Øktpanelet viser «✓ Økten er ferdig og lagret».
+
+**Filer:**
+- `backend/app/modules/practice/*`, `backend/alembic/versions/0007_create_practice_sessions.py`: tabell, regler og rute.
+- `backend/tests/test_practice_sessions.py`, `test_migrations.py`: rute- og migreringstester.
+- `frontend/modules/practice/save.ts`, `use-session-saver.ts` (+ tester): kropp, UUID, sending én gang.
+- `frontend/lib/before-logout.ts`, `modules/identity/use-logout.ts` (+ tester): utloggingen venter (høyst 3 s).
+- `frontend/modules/practice/components/{result-summary,missed-list,session-panel,shortcut-hints}.tsx`, `adapter.ts`: resultatsiden og panelet.
+- `frontend/modules/practice/pages/flashcard-session-page.tsx` (+ test): lagring, Avslutt-regelen, Øv igjen, taster.
+- `frontend/lib/practice-shortcuts.ts`, `components/shortcuts-dialog.tsx`: Enter-regelen og gruppen «Resultat».
+- `frontend/components/side-menu.tsx` (+ test): `useCloseSideMenu`, så panelet lukkes når økten avsluttes fra det på smal skjerm.
+- `frontend/e2e/lagre-okt.spec.ts` (ny), `flashcard-okt.spec.ts`, `hurtigtaster-og-smal-skjerm.spec.ts`.
+
+**Gjennomgang:** 31 funn. 13 rader ble rettet, og det tilsvarer 8 rettinger (commit `18a4c76`). Medium: utloggingen venter nå på en lagring som er i gang; en gammel lagring etter «Øv igjen» endrer ikke status; klokketesten er nå en emneøkt. Low: øvre grense på tellingene, `partial` bare for fritekst, ubrukt konstant fjernet, e2e for dobbel sending mot Postgres, kommentar. 15 funn ble avvist med begrunnelse, og 4 var falske. Ingenting ble utsatt.
+
+**Funnet i skjermbildene (rettet i `ab1d7f1`):** på 768 px ble panelet stående åpent over resultatsiden når «Avslutt økt» ble trykket i det, og fokus havnet bak panelet. Panelet lukkes nå, og fokus går til resultattittelen. Ny enhetstest og e2e-test.
+
+**Oppfølging anbefalt:** nei. Rettet etter alvorlighet: medium 3, low 5. Alle de tre medium-rettelsene har nye tester, og jeg kan ikke peke på en risiko som ikke er sjekket.
+
+**Verifisering:**
+- `uv run pytest`: 425 bestått.
+- `npm run test`: 651 bestått, deretter side-menu og practice på nytt etter siste retting (97 bestått). `npx tsc --noEmit`: rent.
+- `npx playwright test` mot `docker compose up --build`: 111 bestått. `erstatt.spec.ts` E18 (story 2.6) feilet én gang og besto ved ny kjøring.
+
+**Gjenstående risiko:**
+- `pagehide` med `sendBeacon` er bare testet i jsdom.
+- En lagring som feiler, prøves ikke igjen (kanttilfelle).
+- Bare prøvd i Chromium.
