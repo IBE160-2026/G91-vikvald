@@ -89,6 +89,7 @@ function QuizMissedList({ items }: { items: readonly MissedQuizItem[] }) {
                   <div className="flex min-w-0 flex-col gap-1">
                     <SourceLink source={item.source} />
                     <p data-slot="missed-lecture" className="text-caption break-words text-ink-muted">
+                      <span className="sr-only">Forelesning: </span>
                       {item.lecture}
                     </p>
                   </div>

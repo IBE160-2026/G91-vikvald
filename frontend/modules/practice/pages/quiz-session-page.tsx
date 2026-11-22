@@ -282,8 +282,8 @@ export function QuizSessionPage(props: ScopeProps) {
     setStep((old) => old + 1);
   }
 
-  // «Ta quizen igjen»: the questions the lecture has now (or the session's own,
-  // if the fetch fails), a new order, a new session_id and a new start time.
+  // «Ta quizen igjen»: the questions the lecture (or the whole subject) has now
+  // (or the session's own, if the fetch fails), a new order, a new session_id and a new start time.
   async function playAgain() {
     if (!session || restartingRef.current) return;
     restartingRef.current = true;

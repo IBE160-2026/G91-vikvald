@@ -546,8 +546,8 @@ describe("QuizSessionPage", () => {
       ).toBeTruthy();
       const rows = within(document.querySelector("[data-slot='missed-list']") as HTMLElement).getAllByRole("listitem");
       expect(rows.map((row) => row.querySelector("[data-slot='missed-lecture']")!.textContent)).toEqual([
-        "Uke 37: Merkevare",
-        "Uke 38: Pris",
+        "Forelesning: Uke 37: Merkevare",
+        "Forelesning: Uke 38: Pris",
       ]);
       expect(screen.getByRole("link", { name: "Tilbake til emnet" }).getAttribute("href")).toBe("/emner/s1");
       expect(screen.queryByRole("link", { name: "Tilbake til forelesningen" })).toBeNull();

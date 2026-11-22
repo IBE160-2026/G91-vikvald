@@ -92,14 +92,16 @@ describe("MissedList", () => {
     );
     const rows = within(container.querySelector("[data-slot='missed-list']") as HTMLElement).getAllByRole("listitem");
     expect(rows.map((row) => row.querySelector("[data-slot='missed-lecture']")!.textContent)).toEqual([
-      "Uke 37: Merkevare",
-      "Uke 38: Pris",
+      "Forelesning: Uke 37: Merkevare",
+      "Forelesning: Uke 38: Pris",
     ]);
     const lecture = rows[0].querySelector("[data-slot='missed-lecture']")!;
     expect(lecture.className).toContain("text-caption");
     expect(lecture.className).toContain("text-ink-muted");
     // Right under the source.
     expect(lecture.previousElementSibling!.getAttribute("data-slot")).toBe("source-link");
-    expect(rows[0].textContent).toContain("merkevare-notater.pdf, side 7Uke 37: Merkevare");
+    // Read as «Forelesning: …» (the label is visually hidden), not run together with the source.
+    expect(lecture.querySelector(".sr-only")!.textContent).toBe("Forelesning: ");
+    expect(rows[0].textContent).toContain("merkevare-notater.pdf, side 7Forelesning: Uke 37: Merkevare");
   });
 });

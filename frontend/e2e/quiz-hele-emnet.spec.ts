@@ -237,7 +237,7 @@ test.describe("Quiz på hele emnet (story 4.4)", () => {
     const missed = seen.filter((_, index) => (index + 1) % 2 === 1);
     for (let i = 0; i < 4; i += 1) {
       await expect(rows.nth(i)).toContainText(missed[i].question);
-      await expect(rows.nth(i).locator('[data-slot="missed-lecture"]')).toHaveText(missed[i].lecture.name);
+      await expect(rows.nth(i).locator('[data-slot="missed-lecture"]')).toHaveText(`Forelesning: ${missed[i].lecture.name}`);
     }
     await expect(page.getByRole("list", { name: "Hurtigtaster" })).toHaveText("Enter ta quizen igjenEsc tilbake til emnet");
     await expect(page.getByRole("link", { name: "Tilbake til emnet" })).toHaveAttribute("href", `/emner/${subjectId}`);
