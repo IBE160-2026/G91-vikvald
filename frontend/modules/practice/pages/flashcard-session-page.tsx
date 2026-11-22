@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,12 +16,17 @@ import { useDocumentTitle } from "@/lib/use-document-title";
 import { fetchLecture, fetchSubject, lectureQueryKey, subjectQueryKey } from "@/modules/subjects/api";
 
 import { flashcardAdapter } from "../adapter";
-import { fetchLectureFlashcards, lectureFlashcardsQueryKey } from "../api";
+import {
+  fetchLectureFlashcards,
+  fetchSubjectFlashcards,
+  lectureFlashcardsQueryKey,
+  subjectFlashcardsQueryKey,
+} from "../api";
 import { Flashcard } from "../components/flashcard";
 import { MissedList, type MissedItem } from "../components/missed-list";
 import { ResultSummary } from "../components/result-summary";
 import { SessionPanel } from "../components/session-panel";
-import { RESULT_HINTS, ShortcutHints } from "../components/shortcut-hints";
+import { ShortcutHints, resultHints } from "../components/shortcut-hints";
 import {
   currentCard,
   gridCells,
@@ -48,9 +53,89 @@ function newSession(cards: readonly FlashcardData[]): Session {
   };
 }
 
+// Where the session's cards come from: one lecture (story 3.3) or the whole
+// subject (story 3.6).
+type ScopeProps = { lectureId: string; subjectId?: undefined } | { subjectId: string; lectureId?: undefined };
+
+// What differs between a lecture session and a subject session: where the
+// cards come from, the name in the panel and the result, the way back, and
+// what is saved. Everything else in the session is the same code.
+type Scope = {
+  // The query for the lecture or subject itself: its error (404) counts.
+  owner: UseQueryResult<unknown>;
+  flashcards: UseQueryResult<FlashcardData[]>;
+  // The lecture's or the subject's name (the document title); undefined while loading.
+  name: string | undefined;
+  // The panel's and the result's scope: the lecture name or «<subject> · hele emnet».
+  scopeName: string | undefined;
+  colorIndex: number | undefined;
+  // Saved with the session: the subject, and the lecture (null for a subject session).
+  saveSubjectId: string | undefined;
+  saveLectureId: string | null;
+  backPath: string;
+  backText: string;
+};
+
+function useScope({ lectureId, subjectId }: ScopeProps): Scope {
+  const lecture = useQuery({
+    queryKey: lectureQueryKey(lectureId ?? ""),
+    queryFn: () => fetchLecture(lectureId ?? ""),
+    enabled: lectureId !== undefined,
+  });
+  const ownSubjectId = subjectId ?? lecture.data?.subject_id;
+  const subject = useQuery({
+    queryKey: subjectQueryKey(ownSubjectId ?? ""),
+    queryFn: () => fetchSubject(ownSubjectId ?? ""),
+    enabled: ownSubjectId !== undefined,
+  });
+  const lectureCards = useQuery({
+    queryKey: lectureFlashcardsQueryKey(lectureId ?? ""),
+    queryFn: () => fetchLectureFlashcards(lectureId ?? ""),
+    enabled: lectureId !== undefined && lecture.isSuccess,
+  });
+  const subjectCards = useQuery({
+    queryKey: subjectFlashcardsQueryKey(subjectId ?? ""),
+    queryFn: () => fetchSubjectFlashcards(subjectId ?? ""),
+    enabled: subjectId !== undefined && subject.isSuccess,
+  });
+
+  if (subjectId !== undefined) {
+    const name = subject.data?.name;
+    return {
+      owner: subject,
+      flashcards: subjectCards,
+      name,
+      scopeName: name === undefined ? undefined : `${name} · hele emnet`,
+      colorIndex: subject.data?.color_index,
+      saveSubjectId: subjectId,
+      saveLectureId: null,
+      backPath: `/emner/${subjectId}`,
+      backText: "Tilbake til emnet",
+    };
+  }
+  return {
+    owner: lecture,
+    flashcards: lectureCards,
+    name: lecture.data?.name,
+    scopeName: lecture.data?.name,
+    colorIndex: subject.data?.color_index,
+    saveSubjectId: lecture.data?.subject_id,
+    saveLectureId: lectureId ?? null,
+    backPath: `/forelesninger/${lectureId}`,
+    backText: "Tilbake til forelesningen",
+  };
+}
+
 // The flashcard session for one lecture (story 3.3, mockup 07), at
-// /forelesninger/<id>/flashcards. The session panel stands where the sidebar
-// is, and the card is centred in the area to the right.
+// /forelesninger/<id>/flashcards, or for the whole subject (story 3.6), at
+// /emner/<id>/flashcards. The session panel stands where the sidebar is, and
+// the card is centred in the area to the right.
+//
+// A subject session takes the cards from all the subject's lectures; the panel
+// and the result say «<subject> · hele emnet», the session is saved with
+// lecture_id null, and every way back («Tilbake til emnet», Esc, «Avslutt økt»
+// with nothing marked) goes to the subject page. The text «lecture» below
+// means the subject for a subject session.
 //
 // The cards are shuffled and copied into component state the first time they
 // arrive. The job watcher refetches the lecture's queries when a job ends, but
@@ -86,20 +171,10 @@ function newSession(cards: readonly FlashcardData[]): Session {
 // Narrow screen: the panel is behind «Meny» in the top bar (SideMenu). Its
 // title is then an h2, and the content has a hidden h1 «Flashcards», so the
 // page always has one h1.
-export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
+export function FlashcardSessionPage(props: ScopeProps) {
   const router = useRouter();
-  const lecture = useQuery({ queryKey: lectureQueryKey(lectureId), queryFn: () => fetchLecture(lectureId) });
-  const subjectId = lecture.data?.subject_id;
-  const subject = useQuery({
-    queryKey: subjectQueryKey(subjectId ?? ""),
-    queryFn: () => fetchSubject(subjectId ?? ""),
-    enabled: subjectId !== undefined,
-  });
-  const flashcards = useQuery({
-    queryKey: lectureFlashcardsQueryKey(lectureId),
-    queryFn: () => fetchLectureFlashcards(lectureId),
-    enabled: lecture.isSuccess,
-  });
+  const scope = useScope(props);
+  const { flashcards } = scope;
   const [session, setSession] = useState<Session | null>(null);
   const [flipped, setFlipped] = useState(false);
   // The number of marks so far. Each mark shows the next card as a new card
@@ -120,14 +195,14 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
     setSession(newSession(flashcards.data));
   }
 
-  const subjectIdForSave = lecture.data?.subject_id;
+  const { saveSubjectId, saveLectureId } = scope;
   const saver = useSessionSaver((): SaverSnapshot | null =>
-    session && subjectIdForSave
-      ? { subjectId: subjectIdForSave, lectureId, kind: "flashcards", counts: sessionCounts(session.state) }
+    session && saveSubjectId
+      ? { subjectId: saveSubjectId, lectureId: saveLectureId, kind: "flashcards", counts: sessionCounts(session.state) }
       : null,
   );
 
-  const name = lecture.data?.name;
+  const name = scope.name;
   useDocumentTitle(name ? `Flashcards – ${name} – Studiekamerat` : null);
 
   const finished = session !== null && session.state.order.length > 0 && isFinished(session.state);
@@ -146,8 +221,8 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
     setStep((old) => old + 1);
   }
 
-  const lecturePath = `/forelesninger/${lectureId}`;
-  const back = () => router.push(lecturePath);
+  const { backPath, backText } = scope;
+  const back = () => router.push(backPath);
   // «Avslutt økt» and Esc: nothing marked goes straight back; otherwise the
   // session is saved as aborted and the result page is shown.
   function end() {
@@ -162,7 +237,7 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
     closeSideMenu(() => resultTitleRef.current);
   }
 
-  // «Øv igjen»: the cards the lecture has now (or the locked ones, if the
+  // «Øv igjen»: the cards the lecture (or subject) has now (or the locked ones, if the
   // query has none), a new order, a new session_id and a new start time.
   function playAgain() {
     const cards = flashcards.data ?? (session ? session.state.order.map((id) => session.cards[id]) : []);
@@ -175,14 +250,15 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
   }
   // Errors count only before the session starts: a failed background refetch
   // (job watcher, window focus) never replaces a session in progress.
-  if (session === null && lecture.error) notFoundOnMissing(lecture.error);
+  if (session === null && scope.owner.error) notFoundOnMissing(scope.owner.error);
   if (session === null && flashcards.error) notFoundOnMissing(flashcards.error);
 
-  const loadError = session === null && (lecture.isError || flashcards.isError);
+  const loadError = session === null && (scope.owner.isError || flashcards.isError);
   const currentId = session ? currentCard(session.state) : undefined;
   const card = currentId ? session?.cards[currentId] : undefined;
   const empty = session !== null && session.state.order.length === 0;
-  const practising = session !== null && !empty && !loadError && lecture.data !== undefined;
+  const scopeName = scope.scopeName;
+  const practising = session !== null && !empty && !loadError && scopeName !== undefined;
 
   const bindings: ShortcutBinding[] = !practising
     ? []
@@ -201,7 +277,7 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
         ];
   usePracticeShortcuts(bindings, { singleKeys: shortcutsOn });
 
-  if (loadError || empty || !session || !lecture.data) {
+  if (loadError || empty || !session || scopeName === undefined) {
     return (
       <div className="min-w-0 px-content-inset pt-7 pb-7">
         {loadError ? (
@@ -213,7 +289,7 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
         {empty ? (
           <>
             <h1 className="text-page-title">Det finnes ingen flashcards her ennå.</h1>
-            <BackToLecture href={lecturePath} className="mt-5" />
+            <BackLink href={backPath} text={backText} className="mt-5" />
           </>
         ) : null}
       </div>
@@ -226,8 +302,8 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
         <SessionPanel
           adapter={flashcardAdapter}
           state={session.state}
-          scopeName={lecture.data.name}
-          colorIndex={subject.data?.color_index}
+          scopeName={scopeName}
+          colorIndex={scope.colorIndex}
           onEnd={end}
           aborted={aborted}
           saved={saver.status === "saved"}
@@ -244,10 +320,11 @@ export function FlashcardSessionPage({ lectureId }: { lectureId: string }) {
           <ResultView
             session={session}
             aborted={aborted}
-            scopeName={lecture.data.name}
+            scopeName={scopeName}
             saveFailed={saver.status === "failed"}
             titleRef={resultTitleRef}
-            backHref={lecturePath}
+            backHref={backPath}
+            backText={backText}
             onPlayAgain={playAgain}
             showHints={shortcutsOn}
           />
@@ -277,15 +354,26 @@ type ResultViewProps = {
   saveFailed: boolean;
   titleRef: Ref<HTMLHeadingElement>;
   backHref: string;
+  backText: string;
   onPlayAgain: () => void;
   showHints: boolean;
 };
 
 // The result page (mockup 08) in the 768 px column: the summary, the fallback
 // text if saving failed, the cards she could not («Kunne ikke», in the grid's
-// order), the buttons «Tilbake til forelesningen» (outline link) and «Øv
-// igjen» (primary), centred, and the hint line under them.
-function ResultView({ session, aborted, scopeName, saveFailed, titleRef, backHref, onPlayAgain, showHints }: ResultViewProps) {
+// order), the buttons «Tilbake til forelesningen» or «Tilbake til emnet»
+// (outline link) and «Øv igjen» (primary), centred, and the hint line under them.
+function ResultView({
+  session,
+  aborted,
+  scopeName,
+  saveFailed,
+  titleRef,
+  backHref,
+  backText,
+  onPlayAgain,
+  showHints,
+}: ResultViewProps) {
   const counts = sessionCounts(session.state);
   const missed: MissedItem[] = gridCells(session.state)
     .filter((cell) => cell.mark === "missed")
@@ -318,7 +406,7 @@ function ResultView({ session, aborted, scopeName, saveFailed, titleRef, backHre
       ) : null}
       <div className="mt-6 flex flex-wrap justify-center gap-3">
         <Button asChild variant="outline" size="lg" className="w-[224px]">
-          <Link href={backHref}>Tilbake til forelesningen</Link>
+          <Link href={backHref}>{backText}</Link>
         </Button>
         <Button size="lg" className="w-[224px]" onClick={onPlayAgain}>
           Øv igjen
@@ -326,17 +414,17 @@ function ResultView({ session, aborted, scopeName, saveFailed, titleRef, backHre
       </div>
       {showHints ? (
         <div className="mt-5">
-          <ShortcutHints hints={RESULT_HINTS} />
+          <ShortcutHints hints={resultHints(backText.toLowerCase())} />
         </div>
       ) : null}
     </div>
   );
 }
 
-function BackToLecture({ href, className }: { href: string; className?: string }) {
+function BackLink({ href, text, className }: { href: string; text: string; className?: string }) {
   return (
     <Button asChild variant="outline" className={className}>
-      <Link href={href}>Tilbake til forelesningen</Link>
+      <Link href={href}>{text}</Link>
     </Button>
   );
 }

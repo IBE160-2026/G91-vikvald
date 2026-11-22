@@ -8,8 +8,8 @@ import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { SHORTCUTS_KEY } from "@/lib/practice-shortcuts";
 import type { Lecture, Subject } from "@/modules/subjects/types";
 
-import { lectureFlashcardsQueryKey } from "../api";
-import type { Flashcard } from "../types";
+import { lectureFlashcardsQueryKey, subjectFlashcardsQueryKey } from "../api";
+import type { Flashcard, SubjectFlashcard } from "../types";
 import { FlashcardSessionPage } from "./flashcard-session-page";
 
 const notFound = vi.fn();
@@ -46,7 +46,14 @@ function card(id: string, front: string, page = 1): Flashcard {
   };
 }
 
+// A card in the subject «Markedsføring», from one of its two lectures.
+function subjectCard(id: string, front: string, lecture: "l1" | "l2", page = 1): SubjectFlashcard {
+  const name = lecture === "l1" ? "Uke 37: Merkevare" : "Uke 38: Pris";
+  return { ...card(id, front, page), lecture: { id: lecture, name } };
+}
+
 let cards: Flashcard[] = [];
+let subjectCards: SubjectFlashcard[] = [];
 let lectureStatus = 200;
 let flashcardsStatus = 200;
 let saveStatus = 204;
@@ -54,6 +61,7 @@ let client: QueryClient;
 
 beforeEach(() => {
   cards = [card("a", "Merkevare"), card("b", "Pris"), card("c", "Segment", 2)];
+  subjectCards = [subjectCard("a", "Merkevare", "l1"), subjectCard("d", "Rabatt", "l2", 3)];
   lectureStatus = 200;
   flashcardsStatus = 200;
   saveStatus = 204;
@@ -75,6 +83,7 @@ beforeEach(() => {
       return jsonResponse(200, LECTURE);
     }
     if (path === "/api/subjects/s1") return jsonResponse(200, SUBJECT);
+    if (path === "/api/subjects/s1/flashcards") return jsonResponse(200, subjectCards);
     if (path === "/api/lectures/l1/flashcards") {
       if (flashcardsStatus !== 200) return jsonResponse(flashcardsStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
       return jsonResponse(200, cards);
@@ -91,10 +100,10 @@ afterEach(() => {
   document.title = "";
 });
 
-function renderPage(cached?: Flashcard[], { frame = false } = {}) {
+function renderPage(cached?: Flashcard[], { frame = false, subjectId }: { frame?: boolean; subjectId?: string } = {}) {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   if (cached) client.setQueryData(lectureFlashcardsQueryKey("l1"), cached);
-  const page = <FlashcardSessionPage lectureId="l1" />;
+  const page = subjectId ? <FlashcardSessionPage subjectId={subjectId} /> : <FlashcardSessionPage lectureId="l1" />;
   render(
     <QueryClientProvider client={client}>{frame ? <SideMenuProvider>{page}</SideMenuProvider> : page}</QueryClientProvider>,
   );
@@ -543,6 +552,90 @@ describe("FlashcardSessionPage", () => {
       expect(heading.className).toContain("sr-only");
       expect(screen.queryByRole("region", { name: "Flashcards" })).toBeNull();
       expect(screen.getByRole("button", { name: "Snu kortet" })).toBeTruthy();
+    });
+  });
+
+  describe("hele emnet (story 3.6)", () => {
+    it("FR-23, UX-DR14: kortene fra alle forelesningene, panelet viser «<emne> · hele emnet» med emneprikken, og kilden er fil og side", async () => {
+      renderPage(undefined, { subjectId: "s1" });
+      expect(await screen.findByText("/ 2")).toBeTruthy();
+      await waitFor(() => expect(document.title).toBe("Flashcards – Markedsføring – Studiekamerat"));
+      const scope = screen.getByText("Markedsføring · hele emnet");
+      await waitFor(() => expect(scope.parentElement!.querySelector("[data-color-index='0']")).toBeTruthy());
+      expect(front()).toBe("Merkevare");
+      fireEvent.click(button("Snu kortet"));
+      expect(screen.getByText("definisjoner.pdf, side 1")).toBeTruthy();
+      fireEvent.click(button("Kunne"));
+      expect(front()).toBe("Rabatt");
+      fireEvent.click(button("Snu kortet"));
+      expect(screen.getByText("definisjoner.pdf, side 3")).toBeTruthy();
+    });
+
+    it("FR-56, UX-DR34: en ferdig emneøkt lagres med lecture_id null og subject_id satt, og resultatet sier «hele emnet»", async () => {
+      renderPage(undefined, { subjectId: "s1" });
+      expect(await screen.findByText("/ 2")).toBeTruthy();
+      markWithButtons("Kunne");
+      markWithButtons("Kunne ikke");
+      markWithButtons("Kunne");
+      expect(await screen.findByText("Økten er ferdig og lagret")).toBeTruthy();
+      expect(saved()).toEqual([
+        expect.objectContaining({ subject_id: "s1", lecture_id: null, kind: "flashcards", aborted: false, answered: 2 }),
+      ]);
+      expect(
+        screen.getByText("Markedsføring · hele emnet · kortene du ikke kunne, ble repetert til slutt i økten"),
+      ).toBeTruthy();
+      const back = screen.getByRole("link", { name: "Tilbake til emnet" });
+      expect(back.getAttribute("href")).toBe("/emner/s1");
+    });
+
+    it("UX-DR35: på resultatsiden etter en emneøkt står «Esc tilbake til emnet», og Esc går til emnesiden", async () => {
+      renderPage(undefined, { frame: true, subjectId: "s1" });
+      expect(await screen.findByText("/ 2")).toBeTruthy();
+      for (let index = 0; index < 2; index++) {
+        (document.activeElement as HTMLElement | null)?.blur();
+        press(" ");
+        press("2");
+      }
+      expect(screen.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 2 kortene" })).toBeTruthy();
+      expect(screen.getByRole("list", { name: "Hurtigtaster" }).textContent).toBe("Enter øv igjenEsc tilbake til emnet");
+      press("Escape");
+      expect(push).toHaveBeenCalledWith("/emner/s1");
+    });
+
+    it("UX-DR33: Esc og «Avslutt økt» uten markerte kort går rett til emnesiden og sender ingenting", async () => {
+      renderPage(undefined, { frame: true, subjectId: "s1" });
+      expect(await screen.findByText("/ 2")).toBeTruthy();
+      fetchMock.mockClear();
+      press("Escape");
+      expect(push).toHaveBeenCalledWith("/emner/s1");
+      fireEvent.click(button("Avslutt økt"));
+      expect(push).toHaveBeenLastCalledWith("/emner/s1");
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("FR-23: «Øv igjen» bruker kortene emnet har nå", async () => {
+      renderPage(undefined, { subjectId: "s1" });
+      expect(await screen.findByText("/ 2")).toBeTruthy();
+      markWithButtons("Kunne");
+      markWithButtons("Kunne");
+      expect(await screen.findByText("Økten er ferdig og lagret")).toBeTruthy();
+      subjectCards = [...subjectCards, subjectCard("e", "Segment", "l2", 4)];
+      await act(() => client.invalidateQueries({ queryKey: subjectFlashcardsQueryKey("s1") }));
+      await waitFor(() => expect(client.getQueryData<SubjectFlashcard[]>(subjectFlashcardsQueryKey("s1"))).toHaveLength(3));
+      fireEvent.click(button("Øv igjen"));
+      expect(await screen.findByText("/ 3")).toBeTruthy();
+    });
+
+    it("A15/E1: emne uten kort gir «Det finnes ingen flashcards her ennå.» og «Tilbake til emnet»", async () => {
+      subjectCards = [];
+      renderPage(undefined, { subjectId: "s1" });
+      expect(await screen.findByRole("heading", { level: 1, name: "Det finnes ingen flashcards her ennå." })).toBeTruthy();
+      expect(screen.getByRole("link", { name: "Tilbake til emnet" }).getAttribute("href")).toBe("/emner/s1");
+    });
+
+    it("FR-4: andres eller ukjent emne gir «Fant ikke siden»", async () => {
+      renderPage(undefined, { subjectId: "s9" });
+      await waitFor(() => expect(notFound).toHaveBeenCalled());
     });
   });
 });

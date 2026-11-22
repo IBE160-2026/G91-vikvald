@@ -14,11 +14,14 @@ export const FLASHCARD_HINTS: readonly ShortcutHint[] = [
   { key: "Esc", text: "avslutt" },
 ];
 
-// The result page (mockup 08).
-export const RESULT_HINTS: readonly ShortcutHint[] = [
-  { key: "Enter", text: "øv igjen" },
-  { key: "Esc", text: "tilbake til forelesningen" },
-];
+// The result page (mockup 08). backText is the back button's text in lower
+// case: «tilbake til forelesningen» or «tilbake til emnet».
+export function resultHints(backText: string): readonly ShortcutHint[] {
+  return [
+    { key: "Enter", text: "øv igjen" },
+    { key: "Esc", text: backText },
+  ];
+}
 
 export function ShortcutHints({ hints }: { hints: readonly ShortcutHint[] }) {
   return (
