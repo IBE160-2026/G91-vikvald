@@ -713,6 +713,52 @@ describe("FlashcardSessionPage", () => {
       await waitFor(() => expect(document.activeElement).toBe(button("Snu kortet")));
     });
 
+    it("FR-27: sletting oppfrisker forelesningen og alle emners kortlister, og «Øv igjen» får ikke kortet tilbake", async () => {
+      renderPage();
+      expect(await screen.findByText("/ 3")).toBeTruthy();
+      // The refetch fails, so only the cache change keeps the card out.
+      flashcardsStatus = 500;
+      const dialog = await openDelete();
+      const invalidate = vi.spyOn(client, "invalidateQueries");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett kortet" }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["lectures", "l1"] });
+      expect(invalidate).toHaveBeenCalledWith(expect.objectContaining({ predicate: expect.any(Function) }));
+      expect(client.getQueryData<Flashcard[]>(lectureFlashcardsQueryKey("l1"))!.map((other) => other.id)).toEqual(["b", "c"]);
+
+      markWithButtons("Kunne");
+      fireEvent.click(button("Avslutt økt"));
+      fireEvent.click(button("Øv igjen"));
+      expect(screen.getByText("/ 2")).toBeTruthy();
+    });
+
+    it("FR-27: siste kort slettet uten markeringer oppfrisker også forelesningen og emnelistene", async () => {
+      cards = [card("a", "Merkevare")];
+      renderPage();
+      expect(await screen.findByText("/ 1")).toBeTruthy();
+      const dialog = await openDelete();
+      const invalidate = vi.spyOn(client, "invalidateQueries");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett kortet" }));
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/forelesninger/l1"));
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["lectures", "l1"] });
+      expect(invalidate).toHaveBeenCalledWith(expect.objectContaining({ predicate: expect.any(Function) }));
+    });
+
+    it("FR-27: etter lagring har «Øv igjen» den nye teksten", async () => {
+      cards = [card("a", "Merkevare")];
+      renderPage();
+      expect(await screen.findByText("/ 1")).toBeTruthy();
+      flashcardsStatus = 500;
+      fireEvent.click(button("Snu kortet"));
+      fireEvent.click(button("Rediger"));
+      fireEvent.change(screen.getByLabelText("Spørsmål"), { target: { value: "Hva er en merkevare?" } });
+      fireEvent.click(button("Lagre"));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      fireEvent.click(button("Kunne"));
+      fireEvent.click(await screen.findByRole("button", { name: "Øv igjen" }));
+      expect(front()).toBe("Hva er en merkevare?");
+    });
+
     it("UX-DR27: «Avbryt» og Esc lar kortet stå i økten og sletter ingenting", async () => {
       renderPage(undefined, { frame: true });
       expect(await screen.findByText("/ 3")).toBeTruthy();

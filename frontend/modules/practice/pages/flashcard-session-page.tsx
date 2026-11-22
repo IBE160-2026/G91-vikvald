@@ -283,6 +283,16 @@ export function FlashcardSessionPage(props: ScopeProps) {
   // After a card is saved or deleted: the lecture's queries (its counts and
   // cards) and every subject's card list (the subject page, a subject
   // session's «Øv igjen») are refetched. The session itself keeps its copy.
+  // The session's own card list in the cache, changed at once, so «Øv igjen»
+  // never brings back a deleted card or old text (even if the refetch fails).
+  const ownCardsKey =
+    props.subjectId !== undefined
+      ? subjectFlashcardsQueryKey(props.subjectId)
+      : lectureFlashcardsQueryKey(props.lectureId ?? "");
+  function updateOwnCards(change: (cards: FlashcardData[]) => FlashcardData[]) {
+    queryClient.setQueryData<FlashcardData[]>(ownCardsKey, (old) => (old ? change(old) : old));
+  }
+
   function refreshCardQueries(changed: FlashcardData) {
     const lecture = lectureOf(changed, props.lectureId);
     if (lecture !== undefined) void queryClient.invalidateQueries({ queryKey: ["lectures", lecture] });
@@ -296,10 +306,14 @@ export function FlashcardSessionPage(props: ScopeProps) {
     // lecture, which the PATCH answer does not have).
     const merged = { ...own, front: saved.front, back: saved.back };
     setSession({ ...session, cards: { ...session.cards, [saved.id]: merged } });
+    updateOwnCards((cards) =>
+      cards.map((other) => (other.id === saved.id ? { ...other, front: saved.front, back: saved.back } : other)),
+    );
     refreshCardQueries(merged);
   }
 
   function cardDeleted(deleted: FlashcardData) {
+    updateOwnCards((cards) => cards.filter((other) => other.id !== deleted.id));
     refreshCardQueries(deleted);
     if (!session) return;
     const state = removeCard(session.state, deleted.id);
