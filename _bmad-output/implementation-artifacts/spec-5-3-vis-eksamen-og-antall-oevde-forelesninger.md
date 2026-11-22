@@ -3,7 +3,7 @@ title: 'Story 5.3: Vis «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd»
 type: 'feature'
 created: '2026-11-22'
 baseline_revision: '5b4d944662a46710e92d0e632cbb898b155397cc'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -85,6 +85,32 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-22 — Review pass
+- verdicts: 22 findings — high 0, medium 0, low 11, false 11, maybe-false 0
+- findings:
+  - `[low]` `[patch]` (blind) M goes stale after a lecture is added or deleted: only `SUBJECTS_QUERY_KEY` was invalidated, so 03 could briefly show «2 forelesninger» above «0 av 1 forelesning øvd» — lecture create, lecture delete and subject create now also invalidate `OVERVIEW_QUERY_KEY` (`060bff9`).
+  - `[low]` `[patch]` (blind) a new subject shows only the exam part on 02 until the overview is refetched — same root cause and fix (`060bff9`).
+  - `[low]` `[reject]` (blind) e2e helper `homeLine` also matches the subject-list row — the exact `getByText` inside it picks the right element; the test asserts the right thing.
+  - `[false]` `[reject]` (blind) `div role="list"` shaped to fit tests; names read twice — valid ARIA list; the locked user-journey tests may not change, and the duplicate names are the planned interim state (Design Notes: the lines stand where the timeline goes, 5.4/5.5 replace the list and the lines).
+  - `[false]` `[reject]` (blind) exam date shown twice on 02 — deliberate: the epic-2 list is unchanged by the spec, the lines are the timeline fallback.
+  - `[low]` `[reject]` (blind) today read two ways; tab open over midnight keeps yesterday's countdown — any refetch (window focus, navigation) redraws with a fresh date; a midnight timer adds state for a rare case.
+  - `[false]` `[reject]` (blind) malformed `exam_date` gives NaN — the backend validates `exam_date` as a date; the API never sends another shape.
+  - `[false]` `[reject]` (blind) past exam from an earlier year is ambiguous — «Eksamen var 04.12» is the exact text the story asks for.
+  - `[low]` `[reject]` (blind) no test pins 17 vs 18 days — rounding is tested at 10/11, 21, 24 and 34 days; the rule is one `Math.round`.
+  - `[low]` `[patch]` (blind) no front-page unit test for a new count after refetch — added «SK-22: når oversikten ugyldiggjøres …» (`5e955d7`).
+  - `[low]` `[reject]` (blind) e2e setup does not check status of subject/lecture POSTs — follows the pattern in `ovd.spec.ts`; a failure still fails the test.
+  - `[false]` `[reject]` (blind) KI-spor and session log missing — written later in the same run, before the PR.
+  - `[false]` `[reject]` (blind) rounding and fallback not explained in code — `frontend/lib/exam.ts` comments state both; the story fixes the rounding (24 → 3, 34 → 5).
+  - `[low]` `[patch]` (edge) lecture added on 03 leaves the overview stale — same as the first row (`060bff9`).
+  - `[low]` `[patch]` (edge) new subject on 02 lacks its count — same as the first row (`060bff9`).
+  - `[false]` `[reject]` (edge) NaN for an empty `exam_date` — same refutation as above.
+  - `[low]` `[reject]` (edge) page open across midnight — same as the «today» row above.
+  - `[low]` `[patch]` (verification-gap) the front page's refresh after a saved session is only checked in Playwright, which CI does not run — Vitest test added (`5e955d7`).
+  - `[false]` `[reject]` (verification-gap, other) lecture/subject create does not refresh the overview — duplicate of the first row, already patched.
+  - `[false]` `[reject]` (intent) the today/tomorrow/days/past variants are only tested on the pure function — both pages render `examLine` directly; the one function is what the story requires (`weeksUntilExam` in `frontend/lib/`).
+  - `[false]` `[reject]` (intent) test names «SK-22: …» instead of `test_sk22_…` — the frontend suite's convention (5.1, 5.2); the requirement ID is in every name.
+  - `[false]` `[reject]` (intent) a subject missing from a loaded overview shows only the exam part — covered by the invalidation fix; otherwise a moment until refetch.
+
 ## Design Notes
 
 Linjene på 02 står der semesterlinja står i skisse 02, over emnelista: 5.4 bytter emnelista med emnekort og beholder linjene over, og 5.5 bytter linjene med semesterlinja. Derfor er de en egen liste og ikke en del av radene i emnelista.
@@ -97,3 +123,24 @@ Kanttilfeller avgjort her (egne issues): bare eksamensdelen før oversikten er l
 - `cd frontend && npm run test && npx tsc --noEmit` -- expected: alt grønt
 - `cd backend && uv run pytest` -- expected: alt grønt (ingen endring)
 - `cd frontend && npx playwright test` mot `docker compose up --build` -- expected: alt grønt
+
+## Auto Run Result
+
+Status: done
+
+**Summary:** `frontend/lib/exam.ts` holds the one rule for time to the exam (calendar days, nearest whole week, «om 1 uke», days under seven, «i morgen», «i dag», «var») and the line «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd». N and M are counted from `GET /api/overview`. The front page shows one line per subject above the epic-2 list; the subject page shows the line under the subtitle. Before the overview is loaded, or if it fails, only the exam part is shown. Creating or deleting a lecture and creating a subject now refetch the overview.
+
+**Files changed:**
+- `frontend/lib/exam.ts` (+ `exam.test.ts`) -- the rule and the text, every matrix row tested.
+- `frontend/modules/subjects/pages/home-page.tsx` (+ test) -- exam lines on 02 (`div role="list"`, so the locked `main li` locators in `e2e/brukerreiser/` stay unchanged).
+- `frontend/modules/subjects/pages/subject-page.tsx` (+ test) -- the line on 03.
+- `frontend/modules/subjects/components/lecture-form-dialog.tsx`, `subject-form-dialog.tsx`, `pages/lecture-page.tsx` -- invalidate the overview.
+- `frontend/e2e/eksamenslinje.spec.ts` (new) -- fixed Oslo clock, new count after a session without reload, axe on 02 and 03 at 1280 and 768.
+
+**Review:** 22 findings: patched 6 rows in 2 entries (all low), 0 deferred, 5 low rejected and 11 false, reasons above.
+
+**Follow-up review recommended:** false (patched: high 0, medium 0, low 2 entries).
+
+**Verification:** `npm run test` 853 passed; `npx tsc --noEmit` clean; `uv run pytest` 567 passed; `npx playwright test` 168 passed against `docker compose up --build` (a first run in parallel with pytest had 4 unrelated timing failures; all passed alone and in a full rerun).
+
+**Residual risks:** a tab left open over midnight shows yesterday's countdown until the page redraws.
