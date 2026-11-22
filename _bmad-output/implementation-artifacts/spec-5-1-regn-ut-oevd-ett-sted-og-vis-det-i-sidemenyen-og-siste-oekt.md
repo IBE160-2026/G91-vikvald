@@ -2,8 +2,8 @@
 title: 'Story 5.1: Regn ut «øvd» ett sted og vis det i sidemenyen og SISTE ØKT'
 type: 'feature'
 created: '2026-11-22'
-baseline_revision: '22ef0952d69b09b204c902a3d1f975d65476975d'
-status: 'ready-for-dev'
+baseline_revision: '1172070be921d347fe0d50aa0de3325cb3083e2c'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -91,6 +91,37 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-22 — Review pass
+- verdicts: 27 findings — high 0, medium 4, low 16, false 7, maybe-false 0
+- findings:
+  - `[false]` `[reject]` (blind) KI-spor in `docs/ki-prosess/` not updated — written later in the same run, before the PR.
+  - `[false]` `[reject]` (blind) deleting or regenerating content can turn «øvd» off for a whole-subject session — accepted limitation in the epic context (no extra table); noted in Design Notes.
+  - `[low]` `[reject]` (blind) overview not invalidated after a lecture rename/delete — every page mounts its own sidebar/subject page and the query has staleTime 0, so it refetches on mount; at most a brief stale name.
+  - `[low]` `[reject]` (blind) SISTE ØKT falls back to the type alone for an unknown lecture — only reachable with stale data (sessions cascade with the lecture), see the row above.
+  - `[low]` `[reject]` (blind) a failed overview names every dot «Ikke øvd ennå» — rare, the spec chose hollow dots without data; a third state adds branches for little gain.
+  - `[medium]` `[patch]` (blind) `practiced_lectures` is not what `overview()` uses — `overview()` now calls `practiced_lectures` per subject (b7a642e).
+  - `[low]` `[reject]` (blind) `overview()` makes queries per subject and loads all sessions — a student has a handful of subjects; fine at this scale.
+  - `[low]` `[patch]` (blind) missing backend tests (two subjects, later-registered kind, duplicate kind) — three tests added (b7a642e).
+  - `[low]` `[reject]` (blind) the link name «Uke 37: Merkevare Øvd» reads as one phrase — the dot must have its own name (story AC); choice recorded as a kanttilfelle issue.
+  - `[low]` `[patch]` (blind) e2e expected date from the Node clock can fail at midnight/time zone — now formatted in the browser from the overview's `started_at` (b7a642e); not deferred because it could make tests flaky (#224).
+  - `[low]` `[reject]` (blind) the SQLite UTC fix is written twice — two lines in two modules; a shared helper adds surface.
+  - `[low]` `[reject]` (blind) `formatDayMonth` gives «NaN.NaN» for bad input — the server always sends ISO 8601 dates and times.
+  - `[false]` `[reject]` (edge) content deletion flips «øvd» — same as the accepted limitation above.
+  - `[medium]` `[patch]` (edge) `practiced_lectures` claimed as the only path but bypassed — same patch as above.
+  - `[low]` `[patch]` (verification-gap) no vitest shows a mounted page updating after the overview is invalidated — new test in `subject-page.test.tsx` (b7a642e).
+  - `[false]` `[reject]` (verification-gap, other) content deletion flips «øvd» — accepted limitation.
+  - `[low]` `[patch]` (verification-gap, other) e2e date and time zone — same patch as above.
+  - `[medium]` `[patch]` (verification-gap, other) docstring of `practiced_lectures` wrong about the call path — same patch as above; docstrings now true.
+  - `[medium]` `[patch]` (intent) the API does not call the named function — same patch as above.
+  - `[low]` `[reject]` (intent) the AR-9 test only checks the backend — the frontend only reads `practiced` from the API; a grep for "rules" in TS would be guesswork.
+  - `[false]` `[reject]` (intent) AR-16 met with a parallel register — it lives in the same registry module, with the same pattern; the delete counters take a delete scope and cannot answer "when".
+  - `[low]` `[reject]` (intent) abort/unmount refetch only unit-tested — the same `send()` path as finish, which the e2e test covers.
+  - `[false]` `[reject]` (intent) page 13 not tested — the summary page does not exist yet (epic 9).
+  - `[low]` `[reject]` (intent) no Tab test — the dots sit inside links already tested with the keyboard (`forelesninger.spec.ts`); SISTE ØKT is static text with a heading.
+  - `[low]` `[reject]` (intent) SISTE ØKT only when the card has a row — kanttilfelle chosen in the spec, own issue.
+  - `[low]` `[reject]` (intent) result texts beyond the story's example — kanttilfelle chosen in the spec, own issue.
+  - `[false]` `[reject]` (intent) test names differ from the examples — the story says «for eksempel»; every test name carries a requirement ID.
+
 ## Design Notes
 
 `first_content_times` gir tidspunktet for første innhold per forelesning i stedet for ja/nei for én T, så en emneside med mange emneøkter trenger én spørring per type. «Hadde innhold ved T» er da `first <= T`. Sletter hun alt innhold i en forelesning, mister den «øvd» fra emneøkter (godtatt begrensning i epic-konteksten).
@@ -103,3 +134,27 @@ Kanttilfeller avgjort her (egne issues): resultatteksten i SISTE ØKT for flashc
 - `cd backend && uv run pytest` -- expected: alt grønt
 - `cd frontend && npm run test && npx tsc --noEmit && npm run lint` -- expected: alt grønt
 - `cd frontend && npx playwright test` mot `docker compose up --build` -- expected: alt grønt
+
+## Auto Run Result
+
+Status: done
+
+**Summary:** «Øvd» is worked out in one function, `practiced_lectures` in `practice/service.py`. A lecture session (also aborted) counts for its lecture; a whole-subject session at T counts for each lecture whose first content of the session's kind was made at or before T, answered by `first_content_times` in `content/registry.py`. `GET /api/overview` returns subjects, lectures with `practiced`/`last_practiced_at` and each subject's `last_session`. The sidebar shows filled/hollow dots named «Øvd»/«Ikke øvd ennå», and «Øv på hele emnet» shows SISTE ØKT. The overview is refetched when a save is confirmed.
+
+**Files changed:**
+- `backend/app/modules/content/registry.py`, `service.py` -- first-content register and queries.
+- `backend/app/modules/practice/service.py`, `schemas.py`, `router.py`, `backend/app/main.py` -- the rule and `GET /api/overview`.
+- `backend/tests/test_overview.py` (new) -- 20 tests incl. the clock test and the module boundary.
+- `frontend/lib/dates.ts` (new), `frontend/modules/subjects/format.ts` -- shared `formatDayMonth`.
+- `frontend/modules/practice/api.ts`, `types.ts`, `last-session.ts` (new), `use-session-saver.ts` -- fetch, texts, refetch.
+- `frontend/modules/subjects/components/subject-sidebar.tsx` -- status dots.
+- `frontend/modules/practice/components/practice-all-card.tsx`, `frontend/modules/subjects/pages/subject-page.tsx` -- SISTE ØKT.
+- `frontend/e2e/ovd.spec.ts` (new), `frontend/e2e/forelesninger.spec.ts` and unit tests next to each file.
+
+**Review:** 27 findings: 4 patch rows (one medium root cause: overview now uses `practiced_lectures`; three low: more backend tests, a vitest for the refetch, the e2e date from the browser), 0 deferred, 16 rejected with reasons above, 7 false.
+
+**Follow-up review recommended:** false (patched: medium 1 entry, low 3).
+
+**Verification:** `uv run pytest` 565 passed; `npm run test` 822 passed; `npx tsc --noEmit` clean; `npx playwright test` 159 passed against `docker compose up --build` (after the review fixes). No lint script exists in `frontend/package.json`.
+
+**Residual risks:** the lecture table still shows «Ikke øvd ennå» for practised lectures until story 5.2. Deleting all content of a lecture removes «øvd» from whole-subject sessions (accepted).
