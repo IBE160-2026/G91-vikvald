@@ -499,7 +499,7 @@ def test_ar13_upgrade_head_lager_quiz_questions_med_cascade_indeks_og_sjekk(tmp_
         columns = {row[1]: row for row in connection.execute("PRAGMA table_info(quiz_questions)")}
         assert set(columns) == {
             "id", "file_id", "page_no", "formula_flag", "question", "options",
-            "correct_index", "explanation", "created_at",
+            "correct_index", "explanation", "created_at", "position",
         }
         assert all(row[3] == 1 for row in columns.values())
         keys = list(connection.execute("PRAGMA foreign_key_list(quiz_questions)"))

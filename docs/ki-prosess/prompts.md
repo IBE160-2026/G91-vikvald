@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-22: Retting av ustabil test etter story 4.4 (#224)
+
+Orkestratoren stoppet den autonome kjøringen da en test fra story 4.4 var ustabil på `main`, og Silje godkjente rettingen. En subagent fikk i oppgave å gjenskape feilen, rette ruten (ikke testen) med en fast siste sorteringsnøkkel, sjekke de tilsvarende rutene for flashcards og quiz, bevise rekkefølgen med en ny test og kjøre testfila minst 20 ganger.
+
+**Resultat:** kolonnen `position` og felles tidspunkt per lagring (`7e03e8b`, `8fcf3c9`), PR-en for `fix/224-fast-sortering`, issue #224.
+
 ## 2026-11-22: Story 4.4 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `4-4-ta-quiz-på-hele-emnet`. Hensikten til `bmad-build-auto` var «Story 4.4 fra `_bmad-output/planning-artifacts/epics.md`: Ta quiz på hele emnet». Orkestratoren la til konteksten om quiz fra 4.1–4.3 og øving på hele emnet fra 3.6, og ba om årsaken til den ustabile `erstatt.spec.ts`.

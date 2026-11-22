@@ -126,4 +126,4 @@
 - [x] 2026-11-22 [story-4-3-se-poengsum-og-feilsvar](966-2026-11-22-11-19-29-story-4-3-se-poengsum-og-feilsvar.md) — `erstatt.spec.ts` (filvelgeren) feilet igjen én gang under last (løst 2026-11-22: årsaken var keep-alive-tidsgrensen i Uvicorn, rettet i story 4.4, #222)
 - [ ] 2026-11-22 [story-4-4-ta-quiz-paa-hele-emnet](965-2026-11-22-12-06-48-story-4-4-ta-quiz-paa-hele-emnet.md) — vurder kanttilfellene fra story 4.4 (#219–#222), særlig komma mot « · » i omfanget (#219)
 - [ ] 2026-11-22 [story-4-4-ta-quiz-paa-hele-emnet](965-2026-11-22-12-06-48-story-4-4-ta-quiz-paa-hele-emnet.md) — omfanget i Quiz-raden brytes over to linjer i kortet på 1440 piksler (15 px mot 14 px i skisse 03)
-- [ ] 2026-11-22 [story-4-4-ta-quiz-paa-hele-emnet](965-2026-11-22-12-06-48-story-4-4-ta-quiz-paa-hele-emnet.md) — spørsmål på samme side ordnes etter `created_at`; like tidsstempler gir tilfeldig rekkefølge
+- [x] 2026-11-22 [story-4-4-ta-quiz-paa-hele-emnet](965-2026-11-22-12-06-48-story-4-4-ta-quiz-paa-hele-emnet.md) — spørsmål på samme side ordnes etter `created_at`; like tidsstempler gir tilfeldig rekkefølge (løst 2026-11-22, #224)
