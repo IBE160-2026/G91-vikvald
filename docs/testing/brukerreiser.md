@@ -8,7 +8,7 @@ Kjør dem slik, i `frontend/`, mens appen kjører:
 npx playwright test e2e/brukerreiser
 ```
 
-**Sist oppdatert:** etter epic 3 (flashcards i demomodus med omfang og meldinger, økten for én forelesning og for hele emnet med hurtigtaster, lagret økt og resultatsiden, rette og slette kort, og flashcards i slettetellingene). Før det: epic 2 (emner, forelesninger og sidemenyen, opplasting av PDF med avvisninger, vilkårsdialogen, sletting og erstatning av filer, og kontosiden). Flyt 4 er testet fra start til slutt. Flyt 3 er testet fra start til slutt, med flashcards i tellingene. Det som gjenstår i flyt 3, er quizspørsmål (epic 4) og modellkort (epic 7) i tellingene (#131). I flyt 1 og 2 er alt med flashcards testet. Quiz, semesterlinjen, status «Øvd», modellkort, fritekst og sammendrag er ikke bygd ennå.
+**Sist oppdatert:** etter epic 4 (quiz i demomodus med vanskelighetsgrad, quizøkten for én forelesning og for hele emnet, resultatsiden med poengsum og feilsvar, sletting av et dårlig spørsmål under quizen, og quizspørsmål i slettetellingene). Før det: epic 3 (flashcards) og epic 2 (emner, forelesninger, filer og kontosiden). Flyt 4 er testet fra start til slutt. Flyt 3 er testet fra start til slutt, med flashcards og quizspørsmål i tellingene. Det eneste som gjenstår i flyt 3, er modellkort (epic 7) i tellingene (#131). I flyt 1 og 2 er alt med flashcards og quiz testet. Semesterlinjen, status «Øvd», modellkort, fritekst og sammendrag er ikke bygd ennå.
 
 **Slik leses tabellene**
 
@@ -17,8 +17,8 @@ npx playwright test e2e/brukerreiser
 - **Test** er fila og testnavnet. For steg som ikke er bygd, står storien som skal bygge dem.
 - **Status** er `testet`, `ikke bygd ennå` eller `kuttet` med issue-nummer. Ingen steg er kuttet.
 - **Forutsetning** er noe flyten tar for gitt før første steg, for eksempel at Klara har en konto. I flyt 1 lages forutsetningene i nettleseren. I flyt 2, 3 og 4 lages de gjennom API-et før testen starter (konto, godtatte vilkår, emner, forelesninger og PDF-er), siden flytene starter midt i semesteret og ikke har noe eget innloggingssteg.
-- **PDF-ene** lager testen selv med [`e2e/pdf.ts`](../../frontend/e2e/pdf.ts). Ingen ekte notater brukes. Demomodellen lager ett flashcard per definisjonssetning («X er …»), så PDF-ene har korte definisjoner, høyst tre per side.
-- **Flashcards** lages i nettleseren i flyt 1, slik Klara gjør det. I flyt 2 og 3 lages de gjennom API-et før testen starter, som en del av forutsetningen.
+- **PDF-ene** lager testen selv med [`e2e/pdf.ts`](../../frontend/e2e/pdf.ts). Ingen ekte notater brukes. Demomodellen lager ett flashcard og ett quizspørsmål per definisjonssetning («X er …»), så PDF-ene har korte definisjoner, høyst tre per side. Quiz krever minst fire definisjoner i forelesningen. Med færre lager demomodellen ingen spørsmål.
+- **Flashcards og quiz** lages i nettleseren i flyt 1, slik Klara gjør det. I flyt 2 og 3 lages de gjennom API-et før testen starter, som en del av forutsetningen.
 
 Stegene i hver testfil kjøres i rekkefølge i samme nettleser, som ett besøk av Klara. Feiler ett steg, hoppes resten over.
 
@@ -39,13 +39,12 @@ Fil: [`flyt-1-etter-forelesning.spec.ts`](../../frontend/e2e/brukerreiser/flyt-1
 | 5. Fila står i fillista med antall sider | FR-8, UX-DR16 | «Steg 5 (fila) – FR-8, UX-DR16: fila står i fillista med antall sider» | testet |
 | 5. Hun logger ut | FR-3, UX-DR6, UX-DR40 | «Steg 5 (logg ut) – FR-3, UX-DR6, UX-DR40: Klara logger ut uten bekreftelse og kommer til innloggingen (01)» | testet |
 | 6. Noen dager senere åpner hun forelesningen fra sidemenyen | FR-3, FR-7, UX-DR7 | «Steg 6 (sidemenyen) – FR-3, FR-7, UX-DR7: noen dager senere logger hun inn og åpner forelesningen fra sidemenyen» | testet |
-| 6. «Lag flashcards», hun velger «Vanlig», og jobbstatusen viser at kortene lages | FR-17, NFR-17, UX-DR18, UX-DR19, UX-DR24 | «Steg 6 (lag flashcards) – FR-17, NFR-17, UX-DR18, UX-DR19, UX-DR24: «Lag flashcards», hun velger «Vanlig», og jobbstatusen viser at kortene lages» | testet |
-| 6. «Lag quiz» venter til kortene er ferdige, så «Lag quiz» (06) med «Vanlig» og «Middels» | FR-28, UX-DR18 | – (story 4.1) | ikke bygd ennå |
-| 7. «Øv nå» på flashcards (07), Mellomrom snur, `1`/`2`, «Kunne ikke»-kort kommer igjen | FR-23, FR-24, FR-25, NFR-8, UX-DR27, UX-DR31, UX-DR32 | «Steg 7 – FR-23, FR-24, FR-25, NFR-8, UX-DR27, UX-DR31, UX-DR32: «Øv nå» starter kortøkten (07), Mellomrom snur, 1 og 2 markerer, og kortet hun ikke kunne, kommer igjen» | testet |
-| 7. Hun øver mens quizen lages | FR-28, NFR-17 | – (story 4.1) | ikke bygd ennå |
+| 6. «Lag flashcards», hun velger «Vanlig», jobbstatusen viser at kortene lages, og «Lag quiz» venter til kortene er ferdige | FR-17, FR-28, NFR-17, UX-DR18, UX-DR19, UX-DR24 | «Steg 6 (lag flashcards) – FR-17, FR-28, NFR-17, UX-DR18, UX-DR19, UX-DR24: «Lag flashcards», hun velger «Vanlig», jobbstatusen viser at kortene lages, og «Lag quiz» venter til de er ferdige» | testet |
+| 6. «Lag quiz» (06) med «Vanlig» og «Middels», og jobbstatusen viser at quizen lages | FR-28, FR-29, FR-30, NFR-17, UX-DR18, UX-DR19, UX-DR24 | «Steg 6 (lag quiz) – FR-28, FR-29, FR-30, NFR-17, UX-DR18, UX-DR19, UX-DR24: kortene er ferdige, hun trykker «Lag quiz» (06), velger «Vanlig» og «Middels», og jobbstatusen viser at quizen lages» | testet |
+| 7. Mens quizen lages: «Øv nå» på flashcards (07), Mellomrom snur, `1`/`2`, «Kunne ikke»-kort kommer igjen | FR-23, FR-24, FR-25, FR-28, NFR-8, NFR-17, UX-DR27, UX-DR31, UX-DR32 | «Steg 7 – FR-23, FR-24, FR-25, FR-28, NFR-8, NFR-17, UX-DR27, UX-DR31, UX-DR32: mens quizen lages, starter «Øv nå» kortøkten (07), Mellomrom snur, 1 og 2 markerer, og kortet hun ikke kunne, kommer igjen» | testet |
 | 8. Økten er ferdig (08): «Kunne» og «Kunne ikke» med liste og kilde, og hun går tilbake til forelesningen | FR-26, FR-56, UX-DR34, UX-DR35 | «Steg 8 – FR-26, FR-56, UX-DR34, UX-DR35: økten er ferdig (08) med «Kunne» og «Kunne ikke», lista med kilde, og hun går tilbake til forelesningen» | testet |
-| 9. «Øv nå» på Quiz-raden (09), `A`–`D` og Enter, riktig svar og forklaring med kilde | FR-32, FR-34, FR-35, UX-DR29 | – (story 4.2) | ikke bygd ennå |
-| 10. Resultatsiden (10) med poengsum og feilsvar med kilde | FR-36, UX-DR34, UX-DR35 | – (story 4.3) | ikke bygd ennå |
+| 9. «Øv nå» på Quiz-raden (09), `A`–`D` og Enter, riktig svar og forklaring med kilde | FR-32, FR-34, FR-35, NFR-8, UX-DR29 | «Steg 9 – FR-32, FR-34, FR-35, NFR-8, UX-DR29: quizen er ferdig, «Øv nå» på Quiz-raden starter quizen (09), hun svarer med A–D og Enter, og først da ser hun riktig svar og forklaring med kilde» | testet |
+| 10. Resultatsiden (10) med poengsum og feilsvar med kilde | FR-36, FR-56, UX-DR34, UX-DR35 | «Steg 10 – FR-36, FR-56, UX-DR34, UX-DR35: resultatsiden (10) viser «3 av 4 riktige» og nøyaktig hvilket hun bommet på, med riktig svar og side i notatene» | testet |
 | 11. «Lag sammendrag», leser det (13) med kilde på hvert punkt | FR-53, FR-54, UX-DR38 | – (epic 9) | ikke bygd ennå |
 | Feilvei: Word-fil avvises | FR-9, UX-DR42 | «Feilvei – FR-9, UX-DR42: hun drar inn en Word-fil, og den avvises med beskjed om å lagre som PDF» | testet |
 | Feilvei: skannet PDF uten lesbar tekst | FR-10, UX-DR42 | «Feilvei – FR-10, UX-DR42: en skannet PDF uten lesbar tekst avvises» | testet |
@@ -53,18 +52,19 @@ Fil: [`flyt-1-etter-forelesning.spec.ts`](../../frontend/e2e/brukerreiser/flyt-1
 | Feilvei: genereringen feiler, «Prøv igjen», ingenting halvferdig er lagret | FR-21, UX-DR19 | «Feilvei – FR-21, UX-DR19: genereringen feiler, raden viser meldingen og «Prøv igjen», og ingenting halvferdig er lagret» | testet |
 | Feilvei: færre kort enn valgt | FR-18, UX-DR42 | «Feilvei – FR-18, UX-DR42: notatene gir grunnlag for færre kort enn valgt, og hun får beskjed om hvor mange som ble laget» | testet |
 
-Notatene i flyt 1 har tre definisjoner, så «Vanlig» (inntil 20 kort) gir 3 kort. Feilveien «færre kort enn valgt» kommer derfor rett etter steg 6, slik den ville gjort for Klara. Testene kjøres i denne rekkefølgen: steg 1–8, så feilveiene for opplasting, og til slutt feilveien for generering.
+Notatene i flyt 1 har fire definisjoner på tre sider, så «Vanlig» (inntil 20) gir 4 kort og 4 quizspørsmål. Det er det minste demomodellen kan lage en quiz av. Feilveien «færre kort enn valgt» kommer derfor rett etter at kortene er laget i steg 6, slik den ville gjort for Klara. I steg 9 svarer hun feil på spørsmål 2, så resultatsiden i steg 10 viser «3 av 4 riktige» (i flyten: «11 av 15»). Testene kjøres i denne rekkefølgen: steg 1–10, så feilveiene for opplasting, og til slutt feilveien for generering.
 
-To steder holder testen igjen eller bytter ut et svar fra API-et, fordi demomodellen er for rask eller aldri feiler:
+Tre steder holder testen igjen eller bytter ut et svar fra API-et, fordi demomodellen er for rask eller aldri feiler:
 
-- **Jobbstatusen i steg 6:** En jobb i demomodus er ferdig på rundt ett sekund. Svaret på «start jobben» holdes igjen til testen har sett «Lager flashcards …». Jobben går på serveren imens.
+- **Jobbstatusen i steg 6:** En jobb i demomodus er ferdig på rundt ett sekund. Svaret på «start jobben» holdes igjen til testen har sett «Lager flashcards …». Deretter holdes svaret om den ferdige jobben (`GET /api/jobs/{id}`) igjen til testen har sett at Quiz-raden viser «Venter til flashcardene er ferdige». Jobben går på serveren imens.
+- **Quizen lages mens hun øver (steg 6 og 7):** Svaret om den ferdige quizjobben holdes igjen fra hun trykker «Lag quiz», til hun har startet kortøkten og øvd på alle kortene. Da slippes svaret, og meldingen «Quizspørsmålene er ferdige: 4 spørsmål i Uke 37: Merkevare.» vises i kortøkten.
 - **Genereringen feiler:** Demomodellen feiler aldri. Svaret om siste jobb byttes ut med en feilet jobb, som i [`flashcards.spec.ts`](../../frontend/e2e/flashcards.spec.ts). «Prøv igjen» starter så en ekte jobb med samme omfang. Den gir ingen nye kort, siden notatene er de samme.
 
 De to andre avvisningene ved opplasting (fil over størrelsesgrensen og PDF som ikke kan åpnes) er ikke feilveier i flyt 1. De testes i [`filer.spec.ts`](../../frontend/e2e/filer.spec.ts) og i backend-testene.
 
 ## Flyt 2 – UJ-2: Klara før eksamen
 
-Fil: [`flyt-2-for-eksamen.spec.ts`](../../frontend/e2e/brukerreiser/flyt-2-for-eksamen.spec.ts), `describe`: «UJ-2 / flyt 2: Klara før eksamen». Forutsetningen («Tre uker før eksamen har Klara lastet opp notater fra alle forelesningene i Markedsføring») lages gjennom API-et: emnet med eksamen om tre uker, åtte forelesninger med én PDF hver, og flashcards fra hver av dem (ett per forelesning, tre i «Uke 37: Merkevare», ti i alt).
+Fil: [`flyt-2-for-eksamen.spec.ts`](../../frontend/e2e/brukerreiser/flyt-2-for-eksamen.spec.ts), `describe`: «UJ-2 / flyt 2: Klara før eksamen». Forutsetningen («Tre uker før eksamen har Klara lastet opp notater fra alle forelesningene i Markedsføring») lages gjennom API-et: emnet med eksamen om tre uker, åtte forelesninger med én PDF hver, flashcards fra hver av dem (ett per forelesning, fire i «Uke 37: Merkevare» og «Uke 38: Prising», 14 i alt) og quiz fra de to forelesningene med fire definisjoner (fire spørsmål hver, åtte i alt).
 
 | Steg | Krav-ID-er | Test | Status |
 |---|---|---|---|
@@ -73,7 +73,8 @@ Fil: [`flyt-2-for-eksamen.spec.ts`](../../frontend/e2e/brukerreiser/flyt-2-for-e
 | 2. Emnesiden (03) viser forelesningene med status | FR-7, FR-15, UX-DR7, UX-DR13 | «Steg 2 (forelesningene med status) – FR-7, FR-15, UX-DR7, UX-DR13: emnesiden (03) viser forelesningene etter dato med filer og status» | testet |
 | 2. «Øv på flashcards» i kortet «Øv på hele emnet», og økten (07) blander kort fra alle forelesningene | FR-23, FR-24, FR-25, FR-56, UX-DR14, UX-DR34 | «Steg 2 (øver på hele emnet) – FR-23, FR-24, FR-25, FR-56, UX-DR14, UX-DR34: i kortet «Øv på hele emnet» trykker hun «Øv på flashcards», og økten (07) blander kort fra alle forelesningene» | testet |
 | 2. Status «Øvd» på forelesningene | FR-56, UX-DR13 | – (story 5.1, 5.2) | ikke bygd ennå |
-| 3. Quiz på hele emnet (09), kilden viser forelesningen | FR-32, FR-34, UX-DR29 | – (story 4.4) | ikke bygd ennå |
+| 3. Quiz på hele emnet («Start», 09), kilden viser forelesningen | FR-32, FR-34, UX-DR14, UX-DR29 | «Steg 3 (starter quizen på hele emnet) – FR-32, FR-34, UX-DR14, UX-DR29: etterpå tar hun quiz på hele emnet («Start», 09), og kilden ved spørsmålet viser hvilken forelesning det kommer fra» | testet |
+| 3. Resten av quizen, forelesningen ved hvert spørsmål, og resultatet for hele emnet | FR-34, FR-36, FR-56, UX-DR29, UX-DR34 | «Steg 3 (resten og resultatet) – FR-34, FR-36, FR-56, UX-DR29, UX-DR34: hver forklaring viser forelesningen spørsmålet kommer fra, og resultatet lagres for hele emnet» | testet |
 | 4. Hun åpner «Uke 37: Merkevare» (04) | FR-7, UX-DR7 | «Steg 4 (åpner forelesningen) – FR-7, UX-DR7: hun åpner «Uke 37: Merkevare» (04) med notatene» | testet |
 | 4. Hun øver på flashcards fra forelesningen (07) | FR-23, FR-24, UX-DR9, UX-DR27 | «Steg 4 (øver på flashcards) – FR-23, FR-24, UX-DR9, UX-DR27: hun øver på flashcards fra forelesningen (07)» | testet |
 | 4. Modellkort i flashcard-økten (11), «Endre huskeregel» | FR-42, FR-43, FR-46, UX-DR28 | – (epic 7) | ikke bygd ennå |
@@ -82,25 +83,27 @@ Fil: [`flyt-2-for-eksamen.spec.ts`](../../frontend/e2e/brukerreiser/flyt-2-for-e
 | 7. Resultat med riktig, delvis riktig og feil | FR-51, FR-56, UX-DR34 | – (epic 8) | ikke bygd ennå |
 | Feilvei: rediger et feil kort | FR-27, UX-DR27 | «Feilvei (rediger) – FR-27, UX-DR27: et kort er faglig feil, hun sjekker kilden og retter svaret med «Rediger» i bunnfeltet» | testet |
 | Feilvei: slett et feil kort | FR-27, UX-DR22 | «Feilvei (slett) – FR-27, UX-DR22: hun sletter et feil kort med «Slett», bekrefter, og kortet er borte» | testet |
-| Feilvei: slett eller rediger et feil quizspørsmål | FR-37, UX-DR22 | – (story 4.5) | ikke bygd ennå |
+| Feilvei: slett et feil quizspørsmål (spørsmål kan ikke redigeres, FR-37) | FR-37, UX-DR22, UX-DR29 | «Feilvei (slett quizspørsmål) – FR-37, UX-DR22, UX-DR29: et spørsmål er faglig feil, hun sjekker kilden og sletter det med «Slett» i bunnfeltet, og svaret hun ga, står» | testet |
 | Feilvei: «Inneholder formel – sjekk mot kilden» | FR-41, UX-DR37 | – (story 6.3) | ikke bygd ennå |
 | Feilvei: avslutter halvveis med Esc, resultatet vises og lagres | FR-56, UX-DR33 | «Feilvei (Esc) – FR-56, UX-DR33: hun avslutter økten halvveis med Esc, og resultatet for det hun har gjort, vises og lagres» | testet |
+
+Steg 3 og feilveien for quizspørsmål kjøres i samme quiz på hele emnet: hun svarer på det første spørsmålet, ser kilden, sletter spørsmålet, og tar resten av quizen. Svaret hun ga før slettingen, står (E22), så quizen har fortsatt 8 spørsmål, og resultatet blir «7 av 8 riktige». Flyten sier «Slett» eller «Rediger», men FR-37 sier at spørsmål ikke kan redigeres, så bare «Slett» testes.
 
 Steg 4 og feilveiene for kort og Esc kjøres i samme flashcard-økt i «Uke 37: Merkevare»: hun øver, retter ett kort, sletter ett, markerer ett og trykker Esc. Feilveiene for kort står i flyten uten et bestemt steg. De passer best i denne økten, der steg 4 også skal vise modellkortet når epic 7 er bygd.
 
 ## Flyt 3 – Klara rydder i filene (FR-12, FR-13)
 
-Fil: [`flyt-3-rydder-i-filene.spec.ts`](../../frontend/e2e/brukerreiser/flyt-3-rydder-i-filene.spec.ts), `describe`: «FR-12, FR-13 / flyt 3: Klara rydder i filene». Forutsetningen lages gjennom API-et: en forelesning med den gamle `merkevare-notater.pdf` (6 sider) og lysarkene `merkevare-lysark.pdf`, og flashcards fra begge. Den gamle fila gir 18 flashcards, som i flyten, og lysarkene ett. Alle stegene er testet fra start til slutt. Det som står igjen, er quizspørsmål (11 i flyten, epic 4) og modellkort (2 i flyten, epic 7) i tellingene, se #131.
+Fil: [`flyt-3-rydder-i-filene.spec.ts`](../../frontend/e2e/brukerreiser/flyt-3-rydder-i-filene.spec.ts), `describe`: «FR-12, FR-13 / flyt 3: Klara rydder i filene». Forutsetningen lages gjennom API-et: en forelesning med den gamle `merkevare-notater.pdf` (6 sider) og lysarkene `merkevare-lysark.pdf`, og flashcards og quiz fra begge. Den gamle fila gir 18 flashcards og 18 quizspørsmål, og lysarkene ett av hver. For å få 11 quizspørsmål fra den gamle fila, som i flyten, sletter forutsetningen sju av dem gjennom API-et, som om Klara har slettet dårlige spørsmål under quizen tidligere (FR-37). Alle stegene er testet fra start til slutt. Det eneste som står igjen, er modellkort (2 i flyten, epic 7) i tellingene, se #131.
 
 | Steg | Krav-ID-er | Test | Status |
 |---|---|---|---|
 | 1. Forelesningssiden (04) med en gammel versjon av fila | FR-8, UX-DR16 | «Steg 1 – FR-8, UX-DR16: forelesningssiden (04) viser den gamle versjonen av fila» | testet |
-| 2. «Slett» på fila, dialogen (14) viser fila, at 18 flashcards slettes sammen med den, og at det ikke kan angres | FR-12, UX-DR22 | «Steg 2 – FR-12, UX-DR22: «Slett» på fila åpner dialogen (14) som viser fila, at 18 flashcards slettes sammen med den, og at det ikke kan angres» | testet |
-| 2. Dialogen sier også hvor mange quizspørsmål og modellkort som slettes | FR-12, UX-DR22 | – (story 4.1, 7.1) | ikke bygd ennå |
+| 2. «Slett» på fila, dialogen (14) viser fila, at 18 flashcards og 11 quizspørsmål slettes sammen med den, og at det ikke kan angres | FR-12, UX-DR22 | «Steg 2 – FR-12, UX-DR22: «Slett» på fila åpner dialogen (14) som viser fila, at 18 flashcards og 11 quizspørsmål slettes sammen med den, og at det ikke kan angres» | testet |
+| 2. Dialogen sier også hvor mange modellkort som slettes | FR-12, UX-DR22 | – (story 7.1) | ikke bygd ennå |
 | 3. Fokus på «Avbryt», Esc, ingenting er slettet | FR-12, UX-DR21, UX-DR22 | «Steg 3 – FR-12, UX-DR21, UX-DR22: fokus står på «Avbryt», hun trykker Esc, og ingenting er slettet» | testet |
-| 4. «Erstatt» og ny fil, bekreftelsen sier hva som slettes (18 flashcards) | FR-13, UX-DR21, UX-DR22 | «Steg 4 – FR-13, UX-DR21, UX-DR22: «Erstatt» og den nye fila, bekreftelsen sier hva som slettes» | testet |
-| 5. Bekrefter, den nye fila står i lista, og tallene i «Lag og øv» viser hva som er igjen (1 kort) | FR-13, FR-16, UX-DR16, UX-DR18 | «Steg 5 – FR-13, FR-16, UX-DR16, UX-DR18: hun bekrefter, den nye fila står i lista, og tallene i «Lag og øv» viser hva som er igjen» | testet |
-| 5. Tallene for quiz og modellkort i «Lag og øv» | FR-13, FR-16, UX-DR18 | – (story 4.1, 7.1) | ikke bygd ennå |
+| 4. «Erstatt» og ny fil, bekreftelsen sier hva som slettes (18 flashcards og 11 quizspørsmål) | FR-13, UX-DR21, UX-DR22 | «Steg 4 – FR-13, UX-DR21, UX-DR22: «Erstatt» og den nye fila, bekreftelsen sier hva som slettes» | testet |
+| 5. Bekrefter, den nye fila står i lista, og tallene i «Lag og øv» viser hva som er igjen (1 kort og 1 spørsmål) | FR-13, FR-16, UX-DR16, UX-DR18 | «Steg 5 – FR-13, FR-16, UX-DR16, UX-DR18: hun bekrefter, den nye fila står i lista, og tallene for flashcards og quiz i «Lag og øv» viser hva som er igjen» | testet |
+| 5. Tallet for modellkort i «Lag og øv» | FR-13, FR-16, UX-DR18 | – (story 7.1) | ikke bygd ennå |
 
 ## Flyt 4 – Klara avslutter etter semesteret (FR-3, FR-5)
 
@@ -143,3 +146,13 @@ Disse delene av epic 3 er ikke steg i noen av de fire flytene, og testes derfor 
 - «Øv igjen», «Avslutt økt», lagring når hun går til en annen side eller logger ut, og at samme økt bare lagres én gang ([`lagre-okt.spec.ts`](../../frontend/e2e/lagre-okt.spec.ts))
 - et emne uten kort, og Esc i økten for hele emnet ([`hele-emnet.spec.ts`](../../frontend/e2e/hele-emnet.spec.ts))
 - tomt felt i «Rediger kortet», og sperren mot å slette en fil mens det lages innhold ([`rett-og-slett-kort.spec.ts`](../../frontend/e2e/rett-og-slett-kort.spec.ts))
+
+## Det epic 4 har bygd som ingen flyt viser
+
+Disse delene av epic 4 er ikke steg i noen av de fire flytene, og testes derfor bare i de vanlige Playwright-testene:
+
+- «Lag quiz» med bare tastaturet, piltastene i dialogen og vanskelighetsgraden «Vanskelig» ([`quiz.spec.ts`](../../frontend/e2e/quiz.spec.ts))
+- quizøkten uten hurtigtaster, Esc uten bekreftet svar, og en holdt Enter ([`quiz-okt.spec.ts`](../../frontend/e2e/quiz-okt.spec.ts))
+- «Ta quizen igjen», alle riktige uten liste, og resultatsiden på 768 px ([`quiz-resultat.spec.ts`](../../frontend/e2e/quiz-resultat.spec.ts))
+- Esc og avbrutt quiz på hele emnet, og et emne med både kort og quiz ([`quiz-hele-emnet.spec.ts`](../../frontend/e2e/quiz-hele-emnet.spec.ts))
+- sletting av et spørsmål før svaret er bekreftet, «Avbryt» og Esc i dialogen, og dialogen på 768 px ([`slett-quizsporsmal.spec.ts`](../../frontend/e2e/slett-quizsporsmal.spec.ts))
