@@ -148,9 +148,10 @@ test.describe("Forelesninger (story 2.2)", () => {
     await expect(sidebarLectures(page)).toHaveCount(3);
     for (let i = 0; i < order.length; i += 1) {
       const link = sidebarLectures(page).nth(i);
-      await expect(link).toHaveAccessibleName(order[i]);
+      // The name ends with the status dot's name (story 5.1, UX-DR7).
+      await expect(link).toHaveAccessibleName(`${order[i]} Ikke øvd ennå`);
       await expect(link).toHaveAccessibleDescription(i < 2 ? "Uke 37" : "Uke 38");
-      await expect(link.locator('[aria-hidden="true"][data-status]')).toHaveCount(1);
+      await expect(link.getByRole("img", { name: "Ikke øvd ennå" })).toHaveAttribute("data-status", "not-practised");
       await expect(link).toHaveCSS("height", "32px");
     }
     await expect(page.getByRole("navigation", { name: "Emner" }).getByRole("link", { name: "Markedsføring" })).toContainText("3");
