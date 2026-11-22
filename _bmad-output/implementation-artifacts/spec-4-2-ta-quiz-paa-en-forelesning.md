@@ -3,7 +3,7 @@ title: 'Story 4.2: Ta quiz på en forelesning'
 type: 'feature'
 created: '2026-11-22'
 baseline_revision: 'f1f30da439c374308507ac8b8558a04c79c87653'
-status: 'ready-for-dev'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -93,6 +93,37 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-22 — Review pass
+- verdicts: 26 findings — high 0, medium 1, low 18, false 7, maybe-false 0
+- findings:
+  - `[low]` `[patch]` (verification-gap) `setSelected(null)` in `next()` is not pinned by a test; a carried-over choice would let Enter confirm an answer never chosen — added «FR-34: neste spørsmål starter uten valg …» (no radio checked, «Bekreft svar» disabled, Enter leaves the status empty).
+  - `[low]` `[reject]` (intent) FR-34 shuffle is stubbed in the page test and never observed — `shuffle` is covered by `session.test.ts` since story 3.3 and the page calls the same function; a random-order assertion would be flaky.
+  - `[low]` `[reject]` (intent) Enter on another button («Avslutt økt») is not tested on the quiz page — the rule is the unchanged `resolveShortcut` (CONTROL check), covered by `practice-shortcuts.test.tsx` since story 3.4; the quiz adds no exception.
+  - `[low]` `[reject]` (intent) A–D while a dialog is open is not tested for quiz — same shared `dialogOpen` rule in `resolveShortcut`, covered since story 3.4.
+  - `[low]` `[patch]` (intent) result tests labelled FR-36 belong to story 4.3 — relabelled FR-56/UX-DR33 and FR-34/FR-56. The minimal result itself is a recorded boundary choice (kanttilfelle).
+  - `[low]` `[reject]` (intent) hint «Enter se resultatet» on the last question is not an approved text — it reuses the approved button text «Se resultatet» in the hint form the story uses; recorded as a kanttilfelle.
+  - `[low]` `[reject]` (intent) logout and `pagehide` saving are not tested for quiz — `useSessionSaver` is unchanged and covered by `use-session-saver.test.tsx`; the quiz passes only a different snapshot, and unmount saving is tested on the quiz page.
+  - `[false]` `[reject]` (blind) KI trail and session log missing — written later in the same session before the PR (story prompt steps 5–6).
+  - `[false]` `[reject]` (blind) spec review sections empty while in-review — they are filled by this step; the spec is committed at finalize.
+  - `[low]` `[patch]` (blind) option accessible name can run together («AEt navn») — inserted `{" "}` text nodes between letter, text and result label.
+  - `[low]` `[reject]` (blind) the shortcut dialog lists «Enter Øv igjen» on the quiz result, where Enter does nothing yet — the generic «Resultat» group becomes true when story 4.3 adds «Ta quizen igjen»; a temporary per-page dialog adds surface for days.
+  - `[low]` `[reject]` (blind) blank loading state — same pre-existing pattern as the flashcard session since story 3.3.
+  - `[false]` `[reject]` (blind) nothing guarantees four options — every stored question passed `validate_item` (exactly four options, `correct_index` 0–3, story 4.1) and the DB has a CHECK on `correct_index`; no path writes other rows.
+  - `[false]` `[reject]` (blind) backend lacks a quiz counts check — `PracticeSessionIn.counts_add_up` rejects `partial != 0` for non-freetext and requires `correct + partial + wrong == answered`.
+  - `[low]` `[patch]` (blind) session-panel test name says «1 feil» but asserts «2 feil» — name fixed.
+  - `[low]` `[patch]` (blind) FR-36/A15 IDs — FR-36 relabelled (same as intent row); A15 kept, it is the EXPERIENCE.md empty-state rule also used by the flashcard tests.
+  - `[low]` `[reject]` (blind) e2e helpers duplicated — every e2e spec in the repo defines its own helpers (pre-existing pattern); moving them is a separate refactor.
+  - `[low]` `[patch]` (blind) comment «copied once from the first answer» — now «from the first fetch made after the page opened».
+  - `[low]` `[patch]` (blind) unchecked `_start_quiz(client, other)` in a backend test — asserts 202 now.
+  - `[low]` `[reject]` (blind) aborted result hides the score — the result content belongs to story 4.3 («poengsummen gjelder de besvarte»).
+  - `[low]` `[reject]` (blind) no test for Esc on the result with shortcuts off, or for a refetch during a quiz — Esc is not a single key (always on, tested in 3.4); the refetch guard is the same `session === null` lock as flashcards.
+  - `[low]` `[reject]` (edge) cached questions plus a failed refetch start a session on stale data — same `isFetchedAfterMount` pattern as the flashcard session (pre-existing); needs a cache from an earlier visit and a failing server.
+  - `[medium]` `[patch]` (edge) Esc/«Avslutt økt» after the last question is confirmed saved a fully answered quiz as aborted («Avbrutt etter 5 av 5») — `end()` now finishes the quiz when every question is answered; new test checks `aborted=false` and «2 av 3 riktige».
+  - `[false]` `[reject]` (edge) fewer than four options lets «d» pick a missing option — unreachable, see the four-options row.
+  - `[false]` `[reject]` (edge) schema does not bound options/correct_index — same as the blind four-options row.
+  - `[false]` `[reject]` (edge) letters can be `undefined` — `selected` only comes from the four rendered options and `correct_index` is 0–3 by validation and CHECK.
+- own check after the pass (screenshots against mockup 09): `[low]` `[patch]` the correct option's text was regular weight; the mockup shows 600 — `font-semibold` on the correct option's text.
+
 ## Design Notes
 
 Tidslinje i én økt: `answerCurrent` ved bekreftelse (panelet oppdateres, ruten får ✗/✓ og beholder brand-kanten), `advance` ved «Neste spørsmål». Siste `advance` tømmer køen → `isFinished` → `finish()` og resultat. Uten `repeats=false` ville `repeatingLeft` vist «Repeterer: 1 kort igjen» mellom bekreftelse og neste på siste spørsmål.
@@ -105,3 +136,27 @@ Bokstaven: `"ABCD"[index]`. Statustekst: `Du svarte ${letter}. Svaret er bekreft
 - `cd backend && uv run pytest` -- expected: alt grønt
 - `cd frontend && npm run test && npx tsc --noEmit && npm run lint` -- expected: alt grønt
 - `cd frontend && npx playwright test` mot `docker compose up --build` -- expected: alt grønt
+
+## Auto Run Result
+
+Status: done
+
+**Summary:** The student can take a quiz on one lecture. The backend has `GET /api/lectures/{id}/quiz-questions` (answer key, explanation, source and lecture; 404 for someone else's lecture). The frontend quiz session at `/forelesninger/<id>/quiz` reuses the practice frame: session panel and answer grid through a new `quizAdapter`, two new pure functions (`answerCurrent`, `advance`), the shared shortcuts and `useSessionSaver` with `kind="quiz"`. New components: `quiz-option`, `explanation-card` and `quiz-question`. «Øv nå» on the Quiz row is active. After the last question a minimal result («QUIZ FERDIG», «N av M riktige» / «Avbrutt etter A av N», «Tilbake til forelesningen») is shown; the rest of the result is story 4.3.
+
+**Files changed:**
+- `backend/app/modules/content/{schemas,service,router}.py` -- `QuizQuestionOut`, `lecture_quiz_questions`, the route.
+- `backend/tests/test_quiz_questions.py` (new), `backend/tests/test_practice_sessions.py` -- API tests and a saved quiz session.
+- `frontend/modules/practice/{types,api,session,adapter}.ts` -- data, fetch, `answerCurrent`/`advance`, `quizAdapter` (`itemLabel`, `repeats`).
+- `frontend/modules/practice/components/{answer-grid,session-panel,shortcut-hints}.tsx` -- adapter fields, quiz hints.
+- `frontend/modules/practice/components/{quiz-option,explanation-card,quiz-question}.tsx` (new) -- the question view.
+- `frontend/modules/practice/pages/quiz-session-page.tsx` (new), `frontend/app/(app)/forelesninger/[lectureId]/quiz/page.tsx` (new) -- the session and route.
+- `frontend/components/shortcuts-dialog.tsx`, `frontend/modules/generation/components/quiz-row.tsx` -- «Quiz» group, «Øv nå».
+- `frontend/e2e/quiz-okt.spec.ts` (new), `frontend/e2e/quiz.spec.ts`, plus unit tests next to each file.
+
+**Review:** 26 findings: 9 patched (1 medium: Esc after the last confirmed answer saved a complete quiz as aborted; 8 low), 0 deferred, 17 rejected with reasons in the triage log. One own low finding from the screenshots patched (bold correct option).
+
+**Follow-up review recommended:** false (no high patched, one medium patched and covered by a new test).
+
+**Verification:** `uv run pytest` 530 passed; `npm run test` 754 passed (66 files); `npx tsc --noEmit` clean; `npx playwright test` 137 passed against `docker compose up --build`. `npm run lint` does not exist in `package.json` (the spec's command was wrong); `npx next build` passed in the implementation run.
+
+**Residual risks:** the result view is deliberately minimal until story 4.3; the shortcut dialog's «Resultat» group lists «Enter Øv igjen», which does nothing on the quiz result until 4.3 adds «Ta quizen igjen».
