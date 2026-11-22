@@ -244,7 +244,10 @@ function quizRows(subjectId: string, questions: QuizQuestion[] | undefined): Pra
       scope: `${questions.length} spørsmål fra ${lectureCountLabel(lectures)}`,
       inline: true,
       action: (
-        <Button asChild variant="text">
+        // -mr-2: the text button's padding lies in the card's padding, so the
+        // arrow ends at the card's inner edge (mockup 03) and the scope keeps
+        // one line in the 344 px card.
+        <Button asChild variant="text" className="-mr-2">
           <Link href={`/emner/${subjectId}/quiz`}>
             Start <span className="sr-only">quiz på hele emnet</span>
             <ArrowRight {...iconProps} />
