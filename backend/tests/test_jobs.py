@@ -34,6 +34,7 @@ JOB_FIELDS = {
     "id",
     "lecture_id",
     "kind",
+    "params",
     "status",
     "requested",
     "created",
@@ -474,12 +475,14 @@ async def test_fr38_forelesning_uten_filer_gir_422(client: AsyncClient) -> None:
 @pytest.mark.parametrize(
     "body",
     [
-        {"kind": "quiz"},
         {"kind": "ukjent"},
         {},
         {"kind": "flashcards", "params": {"requested": 15}},
         {"kind": "flashcards", "params": {"requested": 0}},
         {"kind": "flashcards", "params": {"requested": "mange"}},
+        {"kind": "flashcards", "params": {"difficulty": "easy"}},
+        {"kind": "quiz", "params": {"requested": 15}},
+        {"kind": "quiz", "params": {"difficulty": "lett"}},
     ],
 )
 async def test_fr38_ukjent_kind_eller_antall_gir_422(

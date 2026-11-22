@@ -1,6 +1,8 @@
-"""Business logic for stored content: save generated flashcards, count them,
-list them with their source, and let the student edit or delete one."""
+"""Business logic for stored content: save generated flashcards and quiz
+questions, count them, list flashcards with their source, and let the student
+edit or delete a flashcard."""
 
+import hashlib
 import uuid
 from dataclasses import dataclass
 
@@ -8,7 +10,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError, ErrorCode
-from app.modules.content.models import PLAIN_FLASHCARD_KINDS, Flashcard
+from app.modules.content.models import PLAIN_FLASHCARD_KINDS, Flashcard, QuizQuestion
 from app.modules.content.registry import DeleteScope
 from app.modules.content.schemas import (
     FlashcardOut,
@@ -45,6 +47,83 @@ def add_flashcards(session: AsyncSession, cards: list[NewFlashcard]) -> None:
         )
         for card in cards
     )
+
+
+@dataclass(frozen=True)
+class NewQuizQuestion:
+    file_id: uuid.UUID
+    page_no: int
+    question: str
+    # Four texts; options[correct_index] is the correct answer.
+    options: tuple[str, ...]
+    correct_index: int
+    explanation: str
+
+
+def shuffle_options(question: str, options: tuple[str, ...], correct_index: int) -> tuple[list[str], int]:
+    """The options in a fixed shuffled order and the correct option's new place.
+
+    The seed is the SHA-256 of the question and the options (never Python's
+    hash() or random, which change between runs), so the same content always
+    gets the same order: a Fisher-Yates shuffle where byte i of the digest
+    picks the place to swap with."""
+    digest = hashlib.sha256("\x1f".join([question, *options]).encode("utf-8")).digest()
+    order = list(range(len(options)))
+    for i in range(len(order) - 1, 0, -1):
+        j = digest[i] % (i + 1)
+        order[i], order[j] = order[j], order[i]
+    return [options[index] for index in order], order.index(correct_index)
+
+
+def add_quiz_questions(session: AsyncSession, questions: list[NewQuizQuestion]) -> None:
+    """Add the questions to the session with their options shuffled once
+    (shuffle_options). New questions are added to the existing ones, never in
+    their place (FR-33). The caller commits (one transaction with the job)."""
+    rows: list[QuizQuestion] = []
+    for item in questions:
+        options, correct_index = shuffle_options(item.question, item.options, item.correct_index)
+        rows.append(
+            QuizQuestion(
+                id=uuid.uuid4(),
+                file_id=item.file_id,
+                page_no=item.page_no,
+                formula_flag=False,
+                question=item.question,
+                options=options,
+                correct_index=correct_index,
+                explanation=item.explanation,
+            )
+        )
+    session.add_all(rows)
+
+
+async def quiz_question_texts(session: AsyncSession, lecture_id: uuid.UUID) -> list[str]:
+    """The question text of every quiz question made from the lecture's files."""
+    statement = (
+        select(QuizQuestion.question)
+        .join(File, QuizQuestion.file_id == File.id)
+        .where(File.lecture_id == lecture_id)
+        .order_by(QuizQuestion.created_at, QuizQuestion.id)
+    )
+    return list(await session.scalars(statement))
+
+
+async def quiz_question_count(session: AsyncSession, lecture_id: uuid.UUID) -> int:
+    """The number of quiz questions made from the lecture's files."""
+    statement = (
+        select(func.count(QuizQuestion.id))
+        .join(File, QuizQuestion.file_id == File.id)
+        .where(File.lecture_id == lecture_id)
+    )
+    return int(await session.scalar(statement) or 0)
+
+
+async def count_quiz_questions(session: AsyncSession, scope: DeleteScope) -> int:
+    """The quiz questions made from the files in the delete scope (FR-12)."""
+    if not scope.file_ids:
+        return 0
+    statement = select(func.count(QuizQuestion.id)).where(QuizQuestion.file_id.in_(scope.file_ids))
+    return int(await session.scalar(statement) or 0)
 
 
 async def flashcard_fronts(session: AsyncSession, lecture_id: uuid.UUID) -> list[str]:

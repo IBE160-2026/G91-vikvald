@@ -100,6 +100,21 @@ def validate_item(item: Any, pages: list[Page]) -> LooseFlashcard | None:
     return card
 
 
+def break_item(item: dict[str, Any], index: int) -> dict[str, Any]:
+    """For LLM_PROVIDER=mock-invalid (SK-4): index % 4 == 1 gets an empty
+    front, == 2 a page that does not exist, == 3 an unknown kind. Index % 4 == 0
+    stays valid."""
+    item = dict(item)
+    match index % 4:
+        case 1:
+            item["front"] = ""
+        case 2:
+            item["page_no"] = 9999
+        case 3:
+            item["kind"] = "unknown"
+    return item
+
+
 async def existing_keys(session: AsyncSession, lecture_id: uuid.UUID) -> frozenset[str]:
     return frozenset(front.casefold() for front in await flashcard_fronts(session, lecture_id))
 
@@ -129,5 +144,6 @@ register_content_type(
         existing_keys=existing_keys,
         save=save,
         prompt_file=PROMPT_FILE,
+        break_item=break_item,
     )
 )

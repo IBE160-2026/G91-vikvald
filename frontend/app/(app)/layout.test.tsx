@@ -23,6 +23,7 @@ const JOB = {
   id: "j1",
   lecture_id: "l1",
   kind: "flashcards",
+  params: { requested: 20 },
   status: "done",
   requested: 20,
   created: 18,

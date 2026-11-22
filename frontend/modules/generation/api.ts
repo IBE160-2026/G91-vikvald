@@ -1,6 +1,6 @@
 import { apiFetch } from "@/lib/api";
 
-import type { ContentCounts, Job, JobKind, Requested, TrackedJob } from "./types";
+import type { ContentCounts, Difficulty, Job, JobKind, Requested, TrackedJob } from "./types";
 
 // Query keys. They start with the lecture's own key (["lectures", id]), so
 // invalidating a lecture also refreshes its jobs and counts.
@@ -23,11 +23,18 @@ export function fetchContentCounts(lectureId: string): Promise<ContentCounts> {
 }
 
 // POST /api/lectures/{id}/jobs: 202 with the running job. The scope is always
-// sent: 10, 20 or 30 cards at most.
-export function startJob(lectureId: string, kind: JobKind, requested: Requested): Promise<Job> {
+// sent: 10, 20 or 30 items at most. The difficulty only for quiz (the backend
+// rejects it for flashcards).
+export function startJob(
+  lectureId: string,
+  kind: JobKind,
+  requested: Requested,
+  difficulty?: Difficulty,
+): Promise<Job> {
+  const params = difficulty ? { requested, difficulty } : { requested };
   return apiFetch<Job>(`/api/lectures/${encodeURIComponent(lectureId)}/jobs`, {
     method: "POST",
-    body: JSON.stringify({ kind, params: { requested } }),
+    body: JSON.stringify({ kind, params }),
   });
 }
 

@@ -141,9 +141,10 @@ export async function flashcardCountViaApi(page: Page, lectureId: string): Promi
   return ((await response.json()) as unknown[]).length;
 }
 
-// «Lag og øv» on the lecture page (04).
+// The Flashcards row in «Lag og øv» on the lecture page (04). Since story 4.1
+// the Quiz row stands under it with its own «Ingen ennå», status and buttons.
 export function createSection(page: Page): Locator {
-  return page.getByRole("region", { name: "Lag og øv" });
+  return page.getByRole("region", { name: "Lag og øv" }).getByRole("group", { name: "Flashcards" });
 }
 
 // The session panel (07, 08), where the sidebar is during a session.

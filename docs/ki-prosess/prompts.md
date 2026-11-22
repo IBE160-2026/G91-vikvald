@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-22: Story 4.1 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `4-1-lag-quizspørsmål-fra-en-forelesning`. Hensikten til `bmad-build-auto` var «Story 4.1 fra `_bmad-output/planning-artifacts/epics.md`: Lag quizspørsmål fra en forelesning». Orkestratoren la til konteksten om registeret fra epic 3, slettevakten og unntaket for teksten i flyt 3 og 4.
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-4-1-lag-quizsporsmal-fra-en-forelesning.md), PR-en for `story/4-1`, kanttilfellene #197–#204.
+
 ## 2026-11-22: Brukerreisetestene utvidet etter epic 3
 
 Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 3 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).

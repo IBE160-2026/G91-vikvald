@@ -178,7 +178,7 @@ def test_ar5_flashcards_er_registrert_med_promptfil() -> None:
     for rule in ("bokmål", "(brand)", "qa", "concept", "PDF-siden"):
         assert rule in prompt
     with pytest.raises(KeyError):
-        get_content_type("quiz")
+        get_content_type("model_cards")
 
 
 def test_ar5_samme_type_to_ganger_er_en_feil() -> None:

@@ -1,5 +1,5 @@
-// The texts for a generation job, per content type (only flashcards so far;
-// quiz comes in epic 4). All are approved word for word in story 3.2.
+// The texts for a generation job, per content type. The flashcards texts are
+// approved word for word in story 3.2, the quiz texts in story 4.1.
 
 import { messageWithDetails } from "@/lib/messages";
 
@@ -16,6 +16,8 @@ export type GenerationTexts = {
   nothing: string;
   // Done, for the message on other pages and the end of a full job.
   done: (created: number, lectureName: string) => string;
+  // Shown in the other rows while a job of this type runs in the lecture.
+  waiting: string;
 };
 
 // The codes a failed job is stored with. Any other code gives the text for
@@ -35,6 +37,16 @@ export const generationTexts: Record<JobKind, GenerationTexts> = {
       `Det ble laget ${created} av inntil ${requested} flashcards. Notatene ga ikke grunnlag for flere.`,
     nothing: "Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.",
     done: (created, lectureName) => `Flashcardene er ferdige: ${created} kort i ${lectureName}.`,
+    waiting: "Venter til flashcardene er ferdige",
+  },
+  quiz: {
+    jobText: "Lager quizspørsmål …",
+    failed: failedText("quizspørsmålene"),
+    fewer: (created, requested) =>
+      `Det ble laget ${created} av inntil ${requested} spørsmål. Notatene ga ikke grunnlag for flere.`,
+    nothing: "Notatene ga ikke grunnlag for spørsmål. Ingenting er lagret.",
+    done: (created, lectureName) => `Quizspørsmålene er ferdige: ${created} spørsmål i ${lectureName}.`,
+    waiting: "Venter til quizspørsmålene er ferdige",
   },
 };
 

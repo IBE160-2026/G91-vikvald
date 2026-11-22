@@ -19,6 +19,7 @@ import { FileList } from "@/modules/files/components/file-list";
 import { UploadZone, rejectionText } from "@/modules/files/components/upload-zone";
 import type { UploadedFile } from "@/modules/files/types";
 import { FlashcardsRow } from "@/modules/generation/components/flashcards-row";
+import { QuizRow } from "@/modules/generation/components/quiz-row";
 
 import {
   SUBJECTS_QUERY_KEY,
@@ -218,9 +219,17 @@ export function LecturePage({ lectureId }: { lectureId: string }) {
                 <h2 id="create-heading" className="text-section-title">
                   Lag og øv
                 </h2>
-                <div className="mt-3 rounded-lg border border-border-card bg-surface shadow-lift">
+                {/* One row per content type, separated by a divider line. */}
+                <div className="mt-3 divide-y divide-divider rounded-lg border border-border-card bg-surface shadow-lift">
                   <FlashcardsRow
-                    key={lectureId}
+                    key={`flashcards-${lectureId}`}
+                    lectureId={lectureId}
+                    lectureName={lecture.data.name}
+                    fileCount={files.data?.length}
+                    pageCount={files.data?.reduce((sum, file) => sum + file.page_count, 0)}
+                  />
+                  <QuizRow
+                    key={`quiz-${lectureId}`}
                     lectureId={lectureId}
                     lectureName={lecture.data.name}
                     fileCount={files.data?.length}

@@ -18,6 +18,7 @@ from app.modules.content.service import (
     delete_flashcard,
     flashcard_count,
     lecture_flashcards,
+    quiz_question_count,
     subject_flashcards,
     update_flashcard,
 )
@@ -36,7 +37,10 @@ Session = Annotated[AsyncSession, Depends(get_session)]
 @lectures_router.get("/{lecture_id}/content-counts")
 async def lecture_content_counts(lecture_id: str, user: CurrentUser, session: Session) -> ContentCounts:
     lecture = await get_lecture(session, user.id, lecture_id)
-    return ContentCounts(flashcards=await flashcard_count(session, lecture.id))
+    return ContentCounts(
+        flashcards=await flashcard_count(session, lecture.id),
+        quiz_questions=await quiz_question_count(session, lecture.id),
+    )
 
 
 @lectures_router.get("/{lecture_id}/flashcards")
