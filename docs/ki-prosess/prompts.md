@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-22: Brukerreisetestene utvidet etter epic 4
+
+Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 4 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).
+
+**Resultat:** flyt 1 har fått «Lag quiz», øvingen mens quizen lages, quizøkten og resultatsiden (steg 6, 7, 9 og 10). Flyt 2 har fått quiz på hele emnet og feilveien for å slette et dårlig spørsmål. Flyt 3 har fått quizspørsmål i tellingene, så bare modellkort gjenstår (#131). Oversikten [brukerreiser.md](../testing/brukerreiser.md) viser status for hvert steg.
+
 ## 2026-11-22: Story 4.5 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `4-5-slett-et-dårlig-spørsmål-under-quizen`. Hensikten til `bmad-build-auto` var «Story 4.5 fra `_bmad-output/planning-artifacts/epics.md`: Slett et dårlig spørsmål under quizen». Orkestratoren la til konteksten om sletting i økten fra 3.7, quiz fra 4.1–4.4 og regelen om at sorteringsfunn ikke utsettes (#224).

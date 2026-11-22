@@ -147,6 +147,79 @@ export function createSection(page: Page): Locator {
   return page.getByRole("region", { name: "Lag og øv" }).getByRole("group", { name: "Flashcards" });
 }
 
+// The Quiz row in «Lag og øv» on the lecture page (04).
+export function quizRow(page: Page): Locator {
+  return page.getByRole("region", { name: "Lag og øv" }).getByRole("group", { name: "Quiz" });
+}
+
+// Makes quiz questions from the lecture's files through the API, «Middels»,
+// and waits until there are `expected`. The mock model makes one question per
+// definition sentence, and nothing from fewer than four.
+export async function makeQuizViaApi(page: Page, lectureId: string, requested: 10 | 20 | 30, expected: number) {
+  const response = await page.request.post(`/api/lectures/${lectureId}/jobs`, {
+    data: { kind: "quiz", params: { requested, difficulty: "medium" } },
+  });
+  expect(response.status()).toBe(202);
+  await expect
+    .poll(
+      async () => (await (await page.request.get(`/api/lectures/${lectureId}/content-counts`)).json()).quiz_questions,
+      { timeout: 15_000 },
+    )
+    .toBe(expected);
+}
+
+// A quiz question as the API gives it, with the answer key (AR-15).
+export type ApiQuestion = {
+  id: string;
+  question: string;
+  options: string[];
+  correct_index: number;
+  explanation: string;
+  source: { file_name: string; page_no: number };
+  lecture: { name: string };
+};
+
+// The quiz questions of a lecture (`lectures`) or a subject (`subjects`).
+export async function quizQuestionsViaApi(
+  page: Page,
+  owner: "lectures" | "subjects",
+  id: string,
+): Promise<ApiQuestion[]> {
+  const response = await page.request.get(`/api/${owner}/${id}/quiz-questions`);
+  expect(response.status()).toBe(200);
+  return (await response.json()) as ApiQuestion[];
+}
+
+// The question in the quiz session (09).
+export function quizQuestion(page: Page): Locator {
+  return page.locator('[data-slot="quiz-question"]');
+}
+
+// Answers the question on screen with A–D and Enter, right or wrong (the
+// option after the correct one), and checks that the answer is shown only now,
+// with the explanation and its source. Returns the question.
+export async function answerQuizQuestion(page: Page, questions: ApiQuestion[], right: boolean): Promise<ApiQuestion> {
+  const text = await quizQuestion(page).getByRole("heading", { level: 2 }).textContent();
+  const question = questions.find((item) => item.question === text);
+  expect(question).toBeDefined();
+  const card = page.locator('[data-slot="explanation-card"]');
+  await expect(card).toHaveCount(0);
+  const chosen = right ? question!.correct_index : (question!.correct_index + 1) % 4;
+  await page.keyboard.press("abcd"[chosen]);
+  await expect(quizQuestion(page).getByRole("radio").nth(chosen)).toBeChecked();
+  await page.keyboard.press("Enter");
+  const correctLetter = "ABCD"[question!.correct_index];
+  await expect(quizQuestion(page).getByRole("status")).toContainText(
+    right ? "Riktig." : `Feil. Riktig svar er ${correctLetter}.`,
+  );
+  await expect(card).toContainText("Forklaring");
+  await expect(card).toContainText(question!.explanation);
+  await expect(card.locator('[data-slot="source-link"]')).toHaveText(
+    `${question!.source.file_name}, side ${question!.source.page_no}`,
+  );
+  return question!;
+}
+
 // The session panel (07, 08), where the sidebar is during a session.
 export function sessionPanel(page: Page): Locator {
   return page.getByRole("region", { name: "Flashcards" });

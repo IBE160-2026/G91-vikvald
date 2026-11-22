@@ -1,9 +1,11 @@
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 
 import {
+  type ApiQuestion,
   PASSWORD,
   SAVE_PATH,
   WORD_FILE,
+  answerQuizQuestion,
   cardFront,
   createSection,
   dropFiles,
@@ -13,6 +15,8 @@ import {
   fileRows,
   flashcardCountViaApi,
   pdfFile,
+  quizQuestionsViaApi,
+  quizRow,
   sessionPanel,
   sidebarLectures,
   today,
@@ -20,10 +24,11 @@ import {
 } from "./felles";
 
 // Flow 1 in EXPERIENCE.md («Brukerreiser (Key Flows)»), UJ-1 in the PRD.
-// Only the steps that are built are tested; the rest (the quiz and the
-// summary) are listed as «ikke bygd ennå» in docs/testing/brukerreiser.md.
-// The notes have three definition sentences, so the mock model makes three
-// flashcards, fewer than «Vanlig» (up to 20).
+// Only the steps that are built are tested; the rest (the semester line and
+// the summary) are listed as «ikke bygd ennå» in docs/testing/brukerreiser.md.
+// The notes have four definition sentences on three pages, so the mock model
+// makes four flashcards and four quiz questions, fewer than «Vanlig» (up to
+// 20). The mock model makes no quiz from fewer than four definitions.
 // The steps share one browser context and run in order, like one visit by Klara.
 test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
   test.describe.configure({ mode: "serial" });
@@ -33,20 +38,44 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     "Bare PDF-filer kan lastes opp. Lagre Word-dokumentet som PDF (Fil → Lagre som → PDF) og prøv igjen.";
   const NO_TEXT = "Vi fant ingen tekst i denne PDF-en. Den kan være skannet. Last opp en PDF der teksten kan merkes.";
   const TOO_MANY = "Fila har 51 sider. Grensen er 50 sider. Del den opp og last opp delene hver for seg.";
-  const FEWER = "Det ble laget 3 av inntil 20 flashcards. Notatene ga ikke grunnlag for flere.";
+  const FEWER = "Det ble laget 4 av inntil 20 flashcards. Notatene ga ikke grunnlag for flere.";
+  const QUIZ_FEWER = "Det ble laget 4 av inntil 20 spørsmål. Notatene ga ikke grunnlag for flere.";
+  const QUIZ_DONE = "Quizspørsmålene er ferdige: 4 spørsmål i Uke 37: Merkevare.";
   const FAILED = "Vi klarte ikke å lage flashcardene. Ingenting er lagret. Prøv igjen.";
   const NOTHING_NEW = "Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.";
   const NOTES = [
     "Merkevare er et navn som skiller et produkt fra andre.",
     "Posisjonering er plassen merket har i hodet til kunden.",
-    "Lojalitet er at kunden velger merket igjen.",
+    "Lojalitet er at kunden velger merket igjen. Logo er merkets tegn.",
   ];
+  const FRONTS = ["Merkevare", "Posisjonering", "Lojalitet", "Logo"];
   let context: BrowserContext;
   let page: Page;
   let todayFull: string;
   let lectureId: string;
   // The question on the card she marked «Kunne ikke» in step 7.
   let missedFront: string;
+  // The quiz questions with the answer key (step 9), and the one she gets wrong.
+  let questions: ApiQuestion[];
+  let missedQuestion: { question: ApiQuestion; chosen: number };
+  // A demo job is over in about a second. To see what the page shows while a
+  // job runs, the answer about the finished job (GET /api/jobs/{id}, asked by
+  // the job watcher) is held back; the job itself is done on the server.
+  const isJobResult = (url: URL) => /^\/api\/jobs\/[0-9a-f-]{36}$/.test(url.pathname);
+  async function holdJobResult(): Promise<() => Promise<void>> {
+    let release!: () => void;
+    const released = new Promise<void>((resolve) => (release = resolve));
+    await page.route(isJobResult, async (route) => {
+      await released;
+      await route.fallback();
+    });
+    return async () => {
+      release();
+      await page.unroute(isJobResult);
+    };
+  }
+  // Releases the held answer about the quiz job (from step 6 to step 7).
+  let releaseQuizResult: () => Promise<void>;
 
   test.beforeAll(async ({ browser }, testInfo) => {
     context = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
@@ -216,7 +245,7 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await expectNoAxeViolations(page);
   });
 
-  test("Steg 6 (lag flashcards) – FR-17, NFR-17, UX-DR18, UX-DR19, UX-DR24: «Lag flashcards», hun velger «Vanlig», og jobbstatusen viser at kortene lages", async () => {
+  test("Steg 6 (lag flashcards) – FR-17, FR-28, NFR-17, UX-DR18, UX-DR19, UX-DR24: «Lag flashcards», hun velger «Vanlig», jobbstatusen viser at kortene lages, og «Lag quiz» venter til de er ferdige", async () => {
     const section = createSection(page);
     await expect(section.getByText("Ingen ennå")).toBeVisible();
     await section.getByRole("button", { name: "Lag flashcards" }).click();
@@ -254,11 +283,22 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     const answered = page.waitForResponse(
       (response) => response.request().method() === "POST" && response.url().endsWith(`/api/lectures/${lectureId}/jobs`),
     );
+    const releaseResult = await holdJobResult();
     release();
     expect((await answered).status()).toBe(202);
     await page.unroute(jobsUrl);
 
-    await expect(section.getByText("3 kort", { exact: true })).toBeVisible({ timeout: 10_000 });
+    // «Lag quiz» waits until the cards are done.
+    const quiz = quizRow(page);
+    await expect(quiz.getByText("Venter til flashcardene er ferdige")).toBeVisible();
+    await expect(quiz.getByRole("button", { name: "Lag quiz" })).toBeDisabled();
+    await expect(section.getByText("Lager flashcards …", { exact: true }).first()).toBeVisible();
+    await expectNoAxeViolations(page);
+    await releaseResult();
+
+    await expect(section.getByText("4 kort", { exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(quiz.getByText("Venter til flashcardene er ferdige")).toHaveCount(0);
+    await expect(quiz.getByRole("button", { name: "Lag quiz" })).toBeEnabled();
     await expect(section.getByRole("button", { name: "Øv nå" })).toBeVisible();
     await expect(section.getByRole("button", { name: "Lag flere" })).toBeVisible();
     await expectNoAxeViolations(page);
@@ -271,11 +311,45 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await expectNoAxeViolations(page);
   });
 
-  test("Steg 7 – FR-23, FR-24, FR-25, NFR-8, UX-DR27, UX-DR31, UX-DR32: «Øv nå» starter kortøkten (07), Mellomrom snur, 1 og 2 markerer, og kortet hun ikke kunne, kommer igjen", async () => {
+  test("Steg 6 (lag quiz) – FR-28, FR-29, FR-30, NFR-17, UX-DR18, UX-DR19, UX-DR24: kortene er ferdige, hun trykker «Lag quiz» (06), velger «Vanlig» og «Middels», og jobbstatusen viser at quizen lages", async () => {
+    const quiz = quizRow(page);
+    await expect(quiz.getByText("Ingen ennå")).toBeVisible();
+    await quiz.getByRole("button", { name: "Lag quiz" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "Lag quiz" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText("Uke 37: Merkevare · 1 fil, 3 sider")).toBeVisible();
+    await expectNoAxeViolations(page);
+    await dialog.getByRole("radio", { name: "Vanlig" }).check();
+    await dialog.getByRole("radio", { name: "Middels" }).check();
+    await expect(dialog.getByRole("radio", { name: "Vanlig" })).toBeChecked();
+    await expect(dialog.getByRole("radio", { name: "Middels" })).toBeChecked();
+
+    // The answer about the finished quiz job is held until she practises in step 7.
+    releaseQuizResult = await holdJobResult();
+    const started = page.waitForRequest(
+      (request) => request.method() === "POST" && request.url().endsWith(`/api/lectures/${lectureId}/jobs`),
+    );
+    await dialog.getByRole("button", { name: "Lag quiz" }).click();
+    expect((await started).postDataJSON()).toEqual({ kind: "quiz", params: { requested: 20, difficulty: "medium" } });
+    await expect(dialog).toBeHidden();
+
+    await expect(quiz.getByText("Lager quizspørsmål …", { exact: true }).first()).toBeVisible();
+    await expect(quiz.getByText("Du kan bruke resten av appen imens.")).toBeVisible();
+    // The flashcards wait to make more, but she can practise them.
+    const section = createSection(page);
+    await expect(section.getByText("Venter til quizspørsmålene er ferdige")).toBeVisible();
+    await expect(section.getByRole("button", { name: "Lag flere" })).toBeDisabled();
+    await expect(section.getByRole("button", { name: "Øv nå" })).toBeEnabled();
+    await expectNoAxeViolations(page);
+  });
+
+  test("Steg 7 – FR-23, FR-24, FR-25, FR-28, NFR-8, NFR-17, UX-DR27, UX-DR31, UX-DR32: mens quizen lages, starter «Øv nå» kortøkten (07), Mellomrom snur, 1 og 2 markerer, og kortet hun ikke kunne, kommer igjen", async () => {
+    await expect(quizRow(page).getByText("Lager quizspørsmål …", { exact: true }).first()).toBeVisible();
     await createSection(page).getByRole("button", { name: "Øv nå" }).click();
     await expect(page).toHaveURL(`/forelesninger/${lectureId}/flashcards`);
     await expect(page).toHaveTitle("Flashcards – Uke 37: Merkevare – Studiekamerat");
-    await expect(sessionPanel(page).getByText("/ 3")).toBeVisible();
+    await expect(sessionPanel(page).getByText("/ 4")).toBeVisible();
     await expect(page.getByRole("list", { name: "Hurtigtaster" }).getByRole("listitem")).toHaveText([
       "1 Kunne ikke",
       "2 Kunne",
@@ -286,16 +360,16 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
 
     // She reads the question, thinks, and flips with Space.
     missedFront = (await cardFront(page).textContent())!;
-    expect(["Merkevare", "Posisjonering", "Lojalitet"]).toContain(missedFront);
+    expect(FRONTS).toContain(missedFront);
     await page.keyboard.press(" ");
     await expect(page.getByText("SVAR", { exact: true })).toBeVisible();
     await expect(page.locator('[data-slot="flashcard"] [data-slot="source-link"]')).toHaveText(
       /^merkevare-notater\.pdf, side [123]$/,
     );
     await expectNoAxeViolations(page);
-    // `1` for «Kunne ikke» on the first card, `2` for «Kunne» on the other two.
+    // `1` for «Kunne ikke» on the first card, `2` for «Kunne» on the other three.
     await page.keyboard.press("1");
-    for (let i = 0; i < 2; i += 1) {
+    for (let i = 0; i < 3; i += 1) {
       await expect(page.getByRole("button", { name: "Snu kortet" })).toBeFocused();
       await page.keyboard.press(" ");
       await page.keyboard.press("2");
@@ -303,7 +377,13 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
 
     // The card she did not know comes again.
     await expect(sessionPanel(page).getByText("Repeterer: 1 kort igjen")).toBeVisible();
-    await expect(sessionPanel(page).getByText("Kunne 2 · Kunne ikke 1")).toBeVisible();
+    await expect(sessionPanel(page).getByText("Kunne 3 · Kunne ikke 1")).toBeVisible();
+    await expect(cardFront(page)).toHaveText(missedFront);
+    await expectNoAxeViolations(page);
+
+    // The quiz is done while she practises, and a short message says so.
+    await releaseQuizResult();
+    await expect(page.getByText(QUIZ_DONE)).toBeVisible({ timeout: 10_000 });
     await expect(cardFront(page)).toHaveText(missedFront);
     await expectNoAxeViolations(page);
   });
@@ -314,10 +394,10 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await page.keyboard.press("2");
     expect((await saved).status()).toBe(204);
 
-    await expect(page.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 3 kortene" })).toBeFocused();
+    await expect(page.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 4 kortene" })).toBeFocused();
     const fields = page.locator('[data-slot="result-field"]');
     await expect(fields.nth(0)).toContainText("Kunne");
-    await expect(fields.nth(0)).toContainText("2");
+    await expect(fields.nth(0)).toContainText("3");
     await expect(fields.nth(1)).toContainText("Kunne ikke");
     await expect(fields.nth(1)).toContainText("1");
     const missed = page.getByRole("region", { name: "Kortene du ikke kunne" });
@@ -330,7 +410,80 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await page.getByRole("link", { name: "Tilbake til forelesningen" }).click();
     await expect(page).toHaveURL(`/forelesninger/${lectureId}`);
     await expect(page.locator("main h1")).toHaveText("Uke 37: Merkevare");
-    await expect(createSection(page).getByText("3 kort", { exact: true })).toBeVisible();
+    await expect(createSection(page).getByText("4 kort", { exact: true })).toBeVisible();
+    await expectNoAxeViolations(page);
+  });
+
+  test("Steg 9 – FR-32, FR-34, FR-35, NFR-8, UX-DR29: quizen er ferdig, «Øv nå» på Quiz-raden starter quizen (09), hun svarer med A–D og Enter, og først da ser hun riktig svar og forklaring med kilde", async () => {
+    const quiz = quizRow(page);
+    await expect(quiz.getByText("4 spørsmål", { exact: true })).toBeVisible();
+    await expect(quiz.locator('[data-slot="note-surface"]')).toHaveText(QUIZ_FEWER);
+    await expectNoAxeViolations(page);
+    questions = await quizQuestionsViaApi(page, "lectures", lectureId);
+    expect(questions).toHaveLength(4);
+
+    await quiz.getByRole("button", { name: "Øv nå" }).click();
+    await expect(page).toHaveURL(`/forelesninger/${lectureId}/quiz`);
+    await expect(page).toHaveTitle("Quiz – Uke 37: Merkevare – Studiekamerat");
+    const panel = page.getByRole("region", { name: "Quiz" });
+    await expect(panel.getByText("Uke 37: Merkevare")).toBeVisible();
+    await expect(panel.getByText("/ 4")).toBeVisible();
+    await expect(page.getByText("SPØRSMÅL 1 AV 4")).toBeVisible();
+    await expect(page.getByRole("list", { name: "Hurtigtaster" })).toContainText("A–D");
+    await expect(page.getByRole("button", { name: "Bekreft svar" })).toBeDisabled();
+    await expectNoAxeViolations(page);
+
+    // She gets question 2 wrong and the rest right, with the keyboard only.
+    for (let number = 1; number <= 4; number += 1) {
+      await expect(page.getByText(`SPØRSMÅL ${number} AV 4`)).toBeVisible();
+      const right = number !== 2;
+      const question = await answerQuizQuestion(page, questions, right);
+      if (!right) missedQuestion = { question, chosen: (question.correct_index + 1) % 4 };
+      if (number <= 2) await expectNoAxeViolations(page);
+      const next = page.getByRole("button", { name: number === 4 ? "Se resultatet" : "Neste spørsmål" });
+      await expect(next).toBeFocused();
+      if (number < 4) await page.keyboard.press("Enter");
+    }
+    await expect(panel.getByText("3 riktige · 1 feil")).toBeVisible();
+  });
+
+  test("Steg 10 – FR-36, FR-56, UX-DR34, UX-DR35: resultatsiden (10) viser «3 av 4 riktige» og nøyaktig hvilket hun bommet på, med riktig svar og side i notatene", async () => {
+    const saved = page.waitForResponse((response) => new URL(response.url()).pathname === SAVE_PATH);
+    await page.keyboard.press("Enter");
+    const save = await saved;
+    expect(save.status()).toBe(204);
+    expect(save.request().postDataJSON()).toMatchObject({
+      lecture_id: lectureId,
+      kind: "quiz",
+      aborted: false,
+      answered: 4,
+      correct: 3,
+      wrong: 1,
+    });
+
+    await expect(page.getByRole("heading", { level: 2, name: "3 av 4 riktige" })).toBeFocused();
+    const result = page.locator('[data-slot="quiz-result"]');
+    await expect(result.getByText("QUIZ FERDIG")).toBeVisible();
+    await expect(
+      result.getByText("Uke 37: Merkevare · her er den ene du svarte feil på, med riktig svar og kilde"),
+    ).toBeVisible();
+    const rows = page.locator('[data-slot="missed-list"]').getByRole("listitem");
+    await expect(rows).toHaveCount(1);
+    const { question, chosen } = missedQuestion;
+    await expect(rows).toContainText("Spørsmål 2:");
+    await expect(rows).toContainText(question.question);
+    await expect(rows).toContainText(`Ditt svar${question.options[chosen]}`);
+    await expect(rows).toContainText(`Riktig svar${question.options[question.correct_index]}`);
+    await expect(rows.locator('[data-slot="source-link"]')).toHaveText(
+      `merkevare-notater.pdf, side ${question.source.page_no}`,
+    );
+    await expect(page.getByRole("region", { name: "Quiz" }).getByText("Økten er ferdig og lagret")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Ta quizen igjen" })).toBeVisible();
+    await expectNoAxeViolations(page);
+
+    await page.getByRole("link", { name: "Tilbake til forelesningen" }).click();
+    await expect(page).toHaveURL(`/forelesninger/${lectureId}`);
+    await expect(quizRow(page).getByText("4 spørsmål", { exact: true })).toBeVisible();
     await expectNoAxeViolations(page);
   });
 
@@ -390,9 +543,9 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await expect(section.getByRole("alert")).toHaveText(FAILED);
     const retry = section.getByRole("button", { name: "Prøv igjen" });
     await expect(retry).toBeVisible();
-    // Nothing half-made: the three cards from before are all there is.
-    await expect(section.getByText("3 kort", { exact: true })).toBeVisible();
-    expect(await flashcardCountViaApi(page, lectureId)).toBe(3);
+    // Nothing half-made: the four cards from before are all there is.
+    await expect(section.getByText("4 kort", { exact: true })).toBeVisible();
+    expect(await flashcardCountViaApi(page, lectureId)).toBe(4);
     await expectNoAxeViolations(page);
 
     await page.unroute(latestUrl);
@@ -404,8 +557,8 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     // The same notes give no new cards, and nothing is stored twice.
     await expect(section.getByRole("status")).toHaveText(NOTHING_NEW, { timeout: 10_000 });
     await expect(section.getByRole("alert")).toHaveCount(0);
-    await expect(section.getByText("3 kort", { exact: true })).toBeVisible();
-    expect(await flashcardCountViaApi(page, lectureId)).toBe(3);
+    await expect(section.getByText("4 kort", { exact: true })).toBeVisible();
+    expect(await flashcardCountViaApi(page, lectureId)).toBe(4);
     await expectNoAxeViolations(page);
   });
 });
