@@ -3,7 +3,7 @@ title: 'Story 5.4: Vis emnekort med «Neste å øve på» på forsiden'
 type: 'feature'
 created: '2026-11-22'
 baseline_revision: '3f9c5c39dbf423736fb4f134d85694e4f07b7510'
-status: 'ready-for-dev'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -90,6 +90,39 @@ deferred: []
 - Given et kort med «Øv nå», when studenten trykker på den, then åpnes økten for typen grunnen nevner, aldri en tom økt.
 - Given en økt som nettopp er lagret, when studenten går tilbake til forsiden, then viser kortet den nye neste forelesningen og fremdriften uten omlasting.
 
+## Spec Change Log
+
+## Review Triage Log
+
+### 2026-11-22 — Review pass
+- verdicts: 25 findings — high 0, medium 0, low 19, false 6, maybe-false 0
+- findings:
+  - `[low]` `[patch]` (verification-gap) no test that one subject's failing file-counts hits only that card — added «FR-58: når file-counts feiler for ett emne, står reserveteksten bare i det kortet» (`2e8e32b`).
+  - `[low]` `[reject]` (verification-gap, other) `last_practiced_at === null` on a practised lecture gives «N kort, øvd», untested — `_practiced` in `practice/service.py` always sets the time when `practiced` is true; the branch only avoids a crash.
+  - `[low]` `[reject]` (blind) a card stays header-only when the loaded overview lacks the subject — creating a subject invalidates the overview (5.3, `060bff9`), so this lasts until that refetch; no state is lost.
+  - `[low]` `[reject]` (blind) a failed overview puts one alert in every card — only on a server failure; the fallback text is the app's one approved error text (EXPERIENCE.md), and the spec places it per card.
+  - `[low]` `[reject]` (blind) e2e checks weaker: year gone, `(var )?`, `slice(0, 5)` — the year is no longer on 02 by design (#244, the line shows dd.mm); `emner.spec.ts` and flyt 1 run on the real clock, so the line can truthfully be «var» later; flyt 2 is now stricter (exact «om 3 uker»). `emner.spec.ts` never checked the second subject's lecture count (only the first's, still checked as «Ingen forelesninger ennå»).
+  - `[false]` `[reject]` (blind) KI trail missing — written later in the same run, before the PR.
+  - `[false]` `[reject]` (blind) the diff does not show that `package.json` is unchanged — no `package.json`, lockfile or `components.json` change since the baseline is exactly what proves it; the CLI's «cn» package was reverted before commit (logged in `korrigeringer.md`).
+  - `[low]` `[reject]` (blind) «N kort, øvd» wording untested — same as the row above about `last_practiced_at === null`.
+  - `[low]` `[reject]` (blind) no test that file-counts are refetched when 02 is shown again — the query client has no `staleTime` (`lib/query-client.ts`), and the job watcher invalidates every file-counts key when a job ends.
+  - `[low]` `[reject]` (blind) several links named «Øv nå» — each sits in a list item whose heading is the subject name (programmatic context, WCAG 2.4.4); the sketch's text is the approved one.
+  - `[low]` `[reject]` (blind) no loading cue and the card grows when data arrives — two quick local requests; a skeleton adds state for a moment's jump.
+  - `[low]` `[reject]` (blind) «klare til bruk» while a job runs — «Lag flashcards» opens 04, which shows the job status; rare and harmless.
+  - `[false]` `[reject]` (blind) spec line numbers and status — the Code Map refers to the baseline; status is set at finalize; fixing it edits the spec.
+  - `[low]` `[reject]` (intent) columns follow the list's width, not the window — gives three at 1280 and two at 768 as the sketch and UX-DR10's end points; browser zoom shrinks the CSS width, so 200 % also drops columns.
+  - `[false]` `[reject]` (intent) «eldste etter dato» relies on the overview order — that order is the API contract (date, created, id; `list_lectures`, tested in the backend); sorting again would be a second rule.
+  - `[low]` `[reject]` (intent) «sist øvd» only tested on the pure function — the card renders `nextStep` directly, and the function test covers it.
+  - `[false]` `[reject]` (intent) SK-20 only checked in the frontend — the e2e session test runs the real 5.1 function through the card.
+  - `[low]` `[reject]` (intent) «Øv nå» relies on fresh counts — see the stale-counts row below.
+  - `[low]` `[reject]` (intent) the 5.3 test no longer says «no alert on the page» — the spec now wants the fallback in the card when the overview fails; the exam lines still have none.
+  - `[low]` `[reject]` (intent) older tests now check the card text — same as the e2e row above.
+  - `[low]` `[reject]` (edge) overview lacks the subject — same as the first blind row.
+  - `[false]` `[reject]` (edge) unparseable `last_practiced_at` gives NaN — the API sends an ISO datetime (pydantic `datetime`).
+  - `[low]` `[reject]` (edge) cached file-counts may be stale for a moment — refetched on every mount; content is only deleted in sessions or on 03/04, and a click within that moment is unlikely.
+  - `[low]` `[patch]` (edge) a failed background refetch replaced a loaded card with the fallback — the error now only wins when there is no data (`2e8e32b`).
+  - `[low]` `[reject]` (edge) the 5.3 test lost its page-wide alert check — same as the 5.3 row above.
+
 ## Design Notes
 
 file-counts hentes per emne fra forsiden i stedet for å utvide oversikten: tallene kommer da fra samme register og samme spørring som tabellen på 03 (samme hurtigbuffernøkkel), og `practice` trenger ikke lese `files`. Noen få emner gir noen få kall.
@@ -100,3 +133,25 @@ file-counts hentes per emne fra forsiden i stedet for å utvide oversikten: tall
 - `cd frontend && npm run test && npx tsc --noEmit` -- expected: alt grønt
 - `cd backend && uv run pytest` -- expected: alt grønt (ingen endring)
 - `cd frontend && npx playwright test` mot `docker compose up --build` -- expected: alt grønt
+
+## Auto Run Result
+
+Status: done
+
+**Summary:** The front page (02) shows one subject card per subject in a grid under the exam lines from 5.3, instead of the epic-2 list (so the doubled name and date from #244 are gone). A card has the dot and name (h2), «Åpne ›», the counts line («120 kort · 64 quizspørsmål»), NESTE Å ØVE PÅ / NESTE STEG with lecture, reason and one button, and the progress bars with «N av M forelesninger øvd». The choice is one pure function, `nextStep`, built on `GET /api/overview` («øvd» from 5.1) and the per-subject file counts. «Øv nå» links to the first kind with content (flashcards, then quiz), never an empty session. No backend change.
+
+**Files changed:**
+- `frontend/components/ui/card.tsx` (new) -- shadcn card adapted to the tokens.
+- `frontend/modules/subjects/next-step.ts` (+ test) -- counts line and «Neste å øve på» / NESTE STEG, every matrix row tested.
+- `frontend/modules/subjects/components/subject-card.tsx` (new) -- the card.
+- `frontend/modules/subjects/pages/home-page.tsx` (+ test) -- the grid, file counts per subject with `useQueries`.
+- `frontend/e2e/emnekort.spec.ts` (new) -- four card variants, quiz-only starts quiz, new status after a session, Tab order, axe and columns at 1280 and 768.
+- `frontend/e2e/emner.spec.ts`, `forelesninger.spec.ts`, `brukerreiser/flyt-1-…`, `brukerreiser/flyt-2-…` -- find the same content in the cards and the exam lines.
+
+**Review:** 25 findings: 2 patched (both low, `2e8e32b`), 0 deferred, 17 low rejected and 6 false, reasons in the triage log.
+
+**Follow-up review recommended:** false (patched: high 0, medium 0, low 2).
+
+**Verification:** `npm run test` 878 passed; `npx tsc --noEmit` clean; `uv run pytest` 567 passed; `npx playwright test` 174 passed against `docker compose up --build` (one run after the rebuild had one unrelated failure in `vilkar.spec.ts`, which passed alone and in a full rerun).
+
+**Residual risks:** the cards' counts only cover flashcards and quiz; model cards (epic 7) and free text (epic 8) must be added to `PRACTICE_KINDS`.
