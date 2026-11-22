@@ -72,6 +72,28 @@ async def test_fr34_sporsmal_fra_alle_forelesningene_med_kilde_og_forelesning(cl
     assert first["explanation"] == "Alfa er begrepet som heter alfa i faget."
 
 
+async def test_fr34_sporsmalene_i_en_forelesning_kommer_i_fil_og_siderekkefolge(client: AsyncClient) -> None:
+    await _log_in_new_user(client)
+    subject_id = await _new_subject(client)
+    lecture_id = (await _create_lecture(client, subject_id, "Uke 37", "2026-09-11")).json()["id"]
+    first = pdf_with_pages([distinct_definitions(["Alfa", "Beta"]), distinct_definitions(["Gamma"])])
+    second = pdf_with_pages([distinct_definitions(["Delta"])])
+    first_upload = await _upload(client, lecture_id, first, "a-notater.pdf")
+    second_upload = await _upload(client, lecture_id, second, "b-notater.pdf")
+    assert first_upload.status_code == second_upload.status_code == 201
+    assert (await _start_quiz(client, lecture_id)).status_code == 202
+    await _finish_jobs()
+
+    questions = await _subject_quiz_questions(client, subject_id)
+
+    assert [(q["question"], q["source"]["file_id"], q["source"]["page_no"]) for q in questions] == [
+        ("Hva er Alfa?", first_upload.json()["id"], 1),
+        ("Hva er Beta?", first_upload.json()["id"], 1),
+        ("Hva er Gamma?", first_upload.json()["id"], 2),
+        ("Hva er Delta?", second_upload.json()["id"], 1),
+    ]
+
+
 async def test_fr34_samme_dato_ordnes_etter_naar_forelesningen_ble_laget(client: AsyncClient) -> None:
     await _log_in_new_user(client)
     subject_id = await _new_subject(client)
