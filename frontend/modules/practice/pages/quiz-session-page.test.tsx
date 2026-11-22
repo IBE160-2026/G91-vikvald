@@ -689,7 +689,8 @@ describe("QuizSessionPage", () => {
     it("FR-37: sletting fjerner spørsmålet fra cachen og oppfrisker forelesningen og alle emners øvingslister", async () => {
       renderPage();
       await started();
-      // The refetch fails, so only the cache change keeps the question out.
+      // The refetch fails; the deleted (unconfirmed) question is out of the
+      // session's order, and the cache has lost it too.
       questionsStatus = 500;
       const dialog = await openDelete();
       const invalidate = vi.spyOn(client, "invalidateQueries");
@@ -723,6 +724,25 @@ describe("QuizSessionPage", () => {
       expect(screen.getByText("1 riktige · 0 feil")).toBeTruthy();
       expect(heading()).toBe("Hva er Pris?");
       expect(button("Bekreft svar").disabled).toBe(true);
+    });
+
+    it("FR-37: et bekreftet spørsmål som er slettet, kommer ikke tilbake i «Ta quizen igjen» når hentingen feiler", async () => {
+      renderPage();
+      await started();
+      answer("B");
+      await confirmDelete(await openDelete());
+      answer("A");
+      fireEvent.click(button("Neste spørsmål"));
+      answer("D");
+      fireEvent.click(button("Se resultatet"));
+      expect(screen.getByRole("heading", { level: 2, name: "3 av 3 riktige" })).toBeTruthy();
+      // The refetch fails, so only the cache change keeps the question out.
+      questionsStatus = 500;
+      fireEvent.click(button("Ta quizen igjen"));
+      expect(await screen.findByText("SPØRSMÅL 1 AV 2")).toBeTruthy();
+      expect(screen.getByText("/ 2")).toBeTruthy();
+      expect(document.querySelector("[data-question-title]")!.textContent).not.toBe("Hva er Merkevare?");
+      expect(screen.queryByText("Hva er Merkevare?")).toBeNull();
     });
 
     it("FR-37, E22: slett bekreftet feil: resultatet teller feilen og lista viser spørsmålet", async () => {

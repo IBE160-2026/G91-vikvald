@@ -306,12 +306,17 @@ export function QuizSessionPage(props: ScopeProps) {
     setStep((old) => old + 1);
   }
 
-  // «Ta quizen igjen»: the questions the lecture (or the whole subject) has now
-  // (or the session's own, if the fetch fails), a new order, a new session_id and a new start time.
+  // «Ta quizen igjen»: the questions the lecture (or the whole subject) has now,
+  // a new order, a new session_id and a new start time. If the fetch fails: the
+  // session's own question list in the cache (a deleted question is already
+  // taken out of it; an empty list means every question is gone), or, when the
+  // cache has no list, the session's order (which still holds a confirmed
+  // question that was deleted).
   async function playAgain() {
     if (!session || restartingRef.current) return;
     restartingRef.current = true;
-    const own = session.state.order.map((id) => session.questions[id]);
+    const cached = queryClient.getQueryData<QuizQuestionData[]>(ownQuestionsKey);
+    const own = cached ?? session.state.order.map((id) => session.questions[id]);
     try {
       const result = await questions.refetch();
       const fresh = !result.isError && result.data ? result.data : own;
