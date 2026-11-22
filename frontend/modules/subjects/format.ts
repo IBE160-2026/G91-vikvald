@@ -34,11 +34,9 @@ export function formatDate(iso: string): string {
   return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
 }
 
-// "2026-09-11" -> "11.09" (the date column in the lecture table).
-export function formatDayMonth(iso: string): string {
-  const date = fromIso(iso);
-  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}`;
-}
+// "2026-09-11" -> "11.09" (the date column in the lecture table). Shared with
+// the rest of the app, so it lives in lib/dates.ts.
+export { formatDayMonth } from "@/lib/dates";
 
 // Today's date as the student types it, "21.11.2026" (the default in «Ny forelesning»).
 export function todayNorwegian(now: Date = new Date()): string {
