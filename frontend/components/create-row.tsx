@@ -102,11 +102,14 @@ export function CreateRow({
                 <Plus {...iconProps} />
                 Lag flere
               </Button>
+              {/* Practising needs no job: while another row's job runs
+                  («waiting»), «Øv nå» stays active (EXPERIENCE.md flow 1,
+                  step 7: she practises flashcards while the quiz is made). */}
               <Button
                 className="min-w-[184px]"
                 onClick={onPractice}
-                disabled={blocked || !onPractice}
-                aria-describedby={describedBy}
+                disabled={state === "disabled" || !onPractice}
+                aria-describedby={state === "disabled" ? describedBy : undefined}
               >
                 Øv nå
               </Button>

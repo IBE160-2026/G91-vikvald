@@ -89,6 +89,26 @@ describe("CreateRow", () => {
     expect(screen.getAllByText("Lager flashcards …")).toHaveLength(1);
   });
 
+  it("UX-DR18: når en annen rad har en jobb, er «Lag flere» ikke aktiv, men «Øv nå» virker", () => {
+    const onPractice = vi.fn();
+    render(
+      <CreateRow
+        {...props({
+          hasContent: true,
+          state: "waiting",
+          reason: "Venter til quizspørsmålene er ferdige",
+          onPractice,
+        })}
+      />,
+    );
+    const more = screen.getByRole("button", { name: "Lag flere" }) as HTMLButtonElement;
+    const practice = screen.getByRole("button", { name: "Øv nå" }) as HTMLButtonElement;
+    expect(more.disabled).toBe(true);
+    expect(practice.disabled).toBe(false);
+    fireEvent.click(practice);
+    expect(onPractice).toHaveBeenCalledTimes(1);
+  });
+
   it("UX-DR19: levende område er alltid montert og leser announcement; melding og feil vises under raden", () => {
     const { rerender } = render(<CreateRow {...props()} />);
     const status = screen.getByRole("status");
