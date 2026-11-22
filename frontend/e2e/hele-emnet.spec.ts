@@ -226,11 +226,11 @@ test.describe("Øv på flashcards fra hele emnet (story 3.6)", () => {
     await expect(page.locator("main h1")).toHaveText("Fant ikke siden");
   });
 
-  test("AR-9: med nettleserens klokke 5 minutter foran sender økten varighet, ikke klokkeslett, og serveren svarer 204", async ({
+  test("AR-9: med nettleserens klokke 5 minutter etter (kort laget rett før) sender økten varighet, ikke klokkeslett, og serveren svarer 204", async ({
     page,
   }) => {
     const subjectId = await subjectWithTwoLectures(page);
-    await page.clock.setSystemTime(new Date(Date.now() + 5 * 60_000));
+    await page.clock.setSystemTime(new Date(Date.now() - 5 * 60_000));
     const saves = captureSaves(page);
     await page.goto(`/emner/${subjectId}/flashcards`);
     await expect(panel(page).getByText("/ 5")).toBeVisible();
