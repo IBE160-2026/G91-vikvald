@@ -300,3 +300,16 @@ async def test_ar9_emneokt_starter_etter_kort_laget_rett_for_selv_med_klokke_fem
     [row] = await _rows(engine)
     assert row.lecture_id is None
     assert _utc(row.started_at) >= newest_card
+
+
+async def test_fr56_quizokt_lagres(client: AsyncClient, engine: AsyncEngine) -> None:
+    # A quiz session: answered = confirmed answers, partial 0, wrong = answered - correct.
+    await _log_in_new_user(client)
+    subject_id, lecture_id = await _subject_and_lecture(client)
+    body = _body(subject_id, lecture_id, kind="quiz", aborted=True, shown=5, answered=2, correct=1, wrong=1)
+
+    assert (await client.post(SESSIONS, json=body)).status_code == 204
+
+    [row] = await _rows(engine)
+    assert (row.kind, row.aborted) == ("quiz", True)
+    assert (row.shown, row.answered, row.correct, row.partial, row.wrong) == (5, 2, 1, 0, 1)

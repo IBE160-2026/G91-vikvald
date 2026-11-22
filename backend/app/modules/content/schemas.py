@@ -46,3 +46,17 @@ class LectureRef(BaseModel):
 class SubjectFlashcardOut(FlashcardOut):
     # The lecture the card was made from (the subject session spans all of them).
     lecture: LectureRef
+
+
+class QuizQuestionOut(BaseModel):
+    id: uuid.UUID
+    question: str
+    # The four options in stored order, shown as A-D.
+    options: list[str]
+    # The correct option's place in `options` (0-3). Sent on purpose (AR-15):
+    # the app runs locally, and the page shows it only after confirmation.
+    correct_index: int
+    explanation: str
+    source: FlashcardSource
+    # The lecture the question was made from (shown in the explanation card).
+    lecture: LectureRef

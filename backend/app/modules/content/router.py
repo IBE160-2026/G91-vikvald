@@ -1,5 +1,5 @@
 """HTTP routes for the content module: GET /api/lectures/{id}/content-counts,
-GET /api/lectures/{id}/flashcards, GET /api/subjects/{id}/flashcards, and
+GET /api/lectures/{id}/flashcards, GET /api/lectures/{id}/quiz-questions, GET /api/subjects/{id}/flashcards, and
 PATCH and DELETE /api/flashcards/{id}.
 
 The lecture page needs only the number of cards; the practice session needs
@@ -13,11 +13,18 @@ from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
-from app.modules.content.schemas import ContentCounts, FlashcardOut, FlashcardUpdate, SubjectFlashcardOut
+from app.modules.content.schemas import (
+    ContentCounts,
+    FlashcardOut,
+    FlashcardUpdate,
+    QuizQuestionOut,
+    SubjectFlashcardOut,
+)
 from app.modules.content.service import (
     delete_flashcard,
     flashcard_count,
     lecture_flashcards,
+    lecture_quiz_questions,
     quiz_question_count,
     subject_flashcards,
     update_flashcard,
@@ -47,6 +54,16 @@ async def lecture_content_counts(lecture_id: str, user: CurrentUser, session: Se
 async def lecture_flashcard_list(lecture_id: str, user: CurrentUser, session: Session) -> list[FlashcardOut]:
     lecture = await get_lecture(session, user.id, lecture_id)
     return await lecture_flashcards(session, lecture.id)
+
+
+# The answer key is sent with the questions on purpose (AR-15); the quiz page
+# shows it only after the student has confirmed her answer.
+@lectures_router.get("/{lecture_id}/quiz-questions")
+async def lecture_quiz_question_list(
+    lecture_id: str, user: CurrentUser, session: Session
+) -> list[QuizQuestionOut]:
+    lecture = await get_lecture(session, user.id, lecture_id)
+    return await lecture_quiz_questions(session, lecture.id)
 
 
 @subjects_router.get("/{subject_id}/flashcards")
