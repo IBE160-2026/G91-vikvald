@@ -222,7 +222,7 @@ Testene kaller aldri Vertex AI. De kjører alltid med `LLM_PROVIDER=mock`, og ek
 
 ## Testene
 
-Det finnes tre sett med tester. Kommandoene kjøres fra rota i repoet.
+Det finnes tre sett med tester. Hver kodeblokk under starter i rota av repoet. Åpne en ny terminal i rota for hver blokk, eller gå tilbake dit med `cd ..` først.
 
 **Backend** (pytest, med SQLite i minnet, trenger ikke Docker):
 
@@ -254,19 +254,21 @@ npm install
 npx playwright install chromium
 ```
 
-Kjør så testene i `frontend/`:
+Kjør så testene:
 
 ```bash
+cd frontend
 npx playwright test
 ```
 
 Testene av testbrukeren (`e2e/testbruker.spec.ts`) hopper over seg selv hvis databasen hadde kontoer fra før, siden testbrukeren da ikke lages. Vil du at de skal feile i stedet, slik at en ødelagt fylling ikke skjules:
 
 ```bash
+cd frontend
 E2E_REQUIRE_SEED=1 npx playwright test
 ```
 
-Stopp appen etterpå:
+Stopp appen etterpå, fra rota:
 
 ```bash
 docker compose down
@@ -318,8 +320,8 @@ Alle innstillingene har standardverdier, så `.env` er valgfri. Vil du endre noe
 
 ## Lisens og kreditering
 
-Koden er lisensiert under **GNU Affero General Public License versjon 3 (AGPL-3.0)**, se [`LICENSE`](LICENSE). Grunnen er at backenden bruker [PyMuPDF](https://pymupdf.readthedocs.io/) til å lese PDF-er, og PyMuPDF er AGPL-3.0. Et offentlig repo som bruker PyMuPDF, må derfor dele koden sin under AGPL. Endrer du koden og lar andre bruke appen over nett, må du også tilby dem kildekoden til endringene.
+Koden er lisensiert under **GNU Affero General Public License versjon 3 (AGPL-3.0)**, se [`LICENSE`](LICENSE). Grunnen er at backenden bruker [PyMuPDF](https://pymupdf.readthedocs.io/) til å lese PDF-er, og PyMuPDF er lisensiert under AGPL-3.0. Den som deler et program som bygger på PyMuPDF, eller lar andre bruke det over nett, må dele kildekoden under AGPL-3.0. Repoet er offentlig og deles, så koden har samme lisens. Lar du andre bruke en endret utgave av appen over nett, må du også tilby dem kildekoden til endringene.
 
 Eksempelnotatene i `backend/app/seed/notater/` er ikke under AGPL. De bygger på OpenStax *Principles of Marketing* og deles under **CC BY-NC-SA 4.0**, som boka (se [`backend/app/seed/notater/LISENS.md`](backend/app/seed/notater/LISENS.md)). Ingen PDF fra OpenStax ligger i repoet.
 
-Appen bygger på åpen kildekode, blant annet FastAPI, SQLAlchemy, PyMuPDF og pydantic-ai i backenden og Next.js og React i frontenden. Lisensene deres følger med pakkene (`backend/uv.lock` og `frontend/package-lock.json`).
+Appen bygger på åpen kildekode, blant annet FastAPI, SQLAlchemy, PyMuPDF og pydantic-ai i backenden og Next.js og React i frontenden. Pakkene og versjonene står i `backend/uv.lock` og `frontend/package-lock.json`, og lisensen til hver pakke følger med pakken når den installeres.
