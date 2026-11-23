@@ -12,6 +12,8 @@ from app.core.db import Base
 FLASHCARD_KINDS = ("qa", "concept", "model")
 # The types counted and practised as flashcards (model cards have their own place).
 PLAIN_FLASHCARD_KINDS = ("qa", "concept")
+# The kind of a model card (FR-42): front, points and mnemonic, no back.
+MODEL_CARD_KIND = "model"
 
 
 def _utc_now() -> datetime:
@@ -40,6 +42,11 @@ class Flashcard(Base):
     # The order the row was made in within the batch it was saved with. A batch
     # shares one created_at, so this keeps "the order they were made in" fixed.
     position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # Model cards only (epic 7): the points in the notes' order, and the
+    # mnemonic made of their first letters (empty when they all start with the
+    # same letter, FR-44). Both are empty for qa and concept cards.
+    points: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+    mnemonic: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class QuizQuestion(Base):

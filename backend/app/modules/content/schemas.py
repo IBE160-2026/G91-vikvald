@@ -11,6 +11,9 @@ class ContentCounts(BaseModel):
     flashcards: int
     # Quiz questions made from the lecture's files.
     quiz_questions: int
+    # Model cards (kind "model") made from the lecture's files. The lecture
+    # page adds them to the Flashcards row's count.
+    model_cards: int
 
 
 class FlashcardSource(BaseModel):

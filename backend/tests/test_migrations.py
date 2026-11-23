@@ -255,9 +255,10 @@ def test_ar5_upgrade_head_lager_jobs_og_flashcards_med_cascade_og_delvis_unik_in
         card_columns = {row[1]: row for row in connection.execute("PRAGMA table_info(flashcards)")}
         assert set(card_columns) == {
             "id", "file_id", "kind", "front", "back", "page_no", "formula_flag", "created_at", "position",
+            "points", "mnemonic",
         }
         for name, row in card_columns.items():
-            assert row[3] == (0 if name == "back" else 1), name
+            assert row[3] == (0 if name in {"back", "points", "mnemonic"} else 1), name
         card_keys = list(connection.execute("PRAGMA foreign_key_list(flashcards)"))
         assert [(fk[2], fk[3], fk[4], fk[6]) for fk in card_keys] == [
             ("files", "file_id", "id", "CASCADE")

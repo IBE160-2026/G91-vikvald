@@ -27,6 +27,7 @@ from app.modules.content.service import (
     flashcard_count,
     lecture_flashcards,
     lecture_quiz_questions,
+    model_card_count,
     quiz_question_count,
     subject_flashcards,
     subject_quiz_questions,
@@ -51,6 +52,7 @@ async def lecture_content_counts(lecture_id: str, user: CurrentUser, session: Se
     return ContentCounts(
         flashcards=await flashcard_count(session, lecture.id),
         quiz_questions=await quiz_question_count(session, lecture.id),
+        model_cards=await model_card_count(session, lecture.id),
     )
 
 

@@ -5,7 +5,7 @@ function that counts its rows made from a set of files and lectures. The delete
 preview asks the registry, so a new content type shows up in the confirmation
 without any change to the delete code. Flashcards and quiz questions are
 registered by this module itself (the first time the registry is used), so
-they always come first, in that order.
+they always come first, in that order, followed by model cards.
 
 The module also keeps the delete guards (AR-7): a module that owns something
 that must stop a delete (generation's running jobs) registers a guard here, and
@@ -67,10 +67,14 @@ def _ensure_builtin_counters() -> None:
     global _builtin_counters_registered
     if _builtin_counters_registered:
         return
-    from app.modules.content.service import count_flashcards, count_quiz_questions
+    from app.modules.content.service import count_flashcards, count_model_cards, count_quiz_questions
 
     _counters["flashcards"] = count_flashcards
     _counters["quiz_questions"] = count_quiz_questions
+    # Model cards (epic 7) are counted apart from the other flashcards. Always
+    # registered: a card made while FEATURE_MNEMONICS was on is still deleted
+    # with its file, so the confirmation must name it.
+    _counters["model_cards"] = count_model_cards
     # Set only once registered, so a failed import is tried again next time.
     _builtin_counters_registered = True
 
