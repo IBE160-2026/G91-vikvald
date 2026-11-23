@@ -29,12 +29,17 @@ FRONTEND_TEST_GLOBS = [
 ]
 
 # Values in the "Manuell kontroll" column that mean "no manual check".
-NO_REASON = {"", "–", "-"}
+NO_REASON = {"", "–", "—", "-", "n/a"}
 
 _PYTEST_NAME = re.compile(r"^\s*(?:async\s+)?def\s+(test_\w+)", re.MULTILINE)
 _BACKEND_ID = re.compile(r"^fr(\d+)$")
-# The title of it(...), test(...), describe(...) and their variants (test.describe, it.each ...).
-_JS_TITLE = re.compile(r"\b(?:it|test|describe)(?:\.\w+)*\(\s*([\"'`])(.*?)(?<!\\)\1")
+# The title of it(...), test(...), describe(...) and their variants (test.describe,
+# it.skip ...). Not regex.test(...): the name must not follow a dot or a word character.
+_JS_TITLE = re.compile(r"(?<![.\w])(?:it|test|describe)(?:\.\w+)*\(\s*([\"'`])(.*?)(?<!\\)\1")
+# Table-driven tests: it.each([...])("title", ...). The table may span several lines.
+_JS_EACH_TITLE = re.compile(
+    r"(?<![.\w])(?:it|test|describe)(?:\.\w+)*\.each\(.*?\)\(\s*([\"'`])(.*?)(?<!\\)\1", re.DOTALL
+)
 # FR-<n>, but not NFR-<n>.
 _JS_ID = re.compile(r"(?<![A-Za-z])FR-(\d+)(?!\d)")
 _ROW = re.compile(r"^\|\s*((?:FR|SK)-\d+)\s*\|(.*)\|\s*$")
@@ -64,7 +69,8 @@ def requirement_ids_in_tests(repo_root: Path) -> dict[str, set[str]]:
         for path in sorted(frontend.glob(pattern)):
             if "node_modules" in path.parts:
                 continue
-            for _quote, title in _JS_TITLE.findall(path.read_text(encoding="utf-8")):
+            text = path.read_text(encoding="utf-8")
+            for _quote, title in [*_JS_TITLE.findall(text), *_JS_EACH_TITLE.findall(text)]:
                 for number in _JS_ID.findall(title):
                     add(number, path)
     return found
@@ -95,7 +101,7 @@ def missing_requirements(
         plan_rows = rows.get(requirement)
         if not plan_rows:
             missing.append(requirement)
-        elif not found.get(requirement) and plan_rows[0].manual in NO_REASON:
+        elif not found.get(requirement) and plan_rows[0].manual.strip().lower() in NO_REASON:
             missing.append(requirement)
     return missing
 
@@ -131,10 +137,13 @@ def test_sk1_missing_requirements_are_listed(tmp_path: Path) -> None:
     )
     (tmp_path / "frontend" / "e2e").mkdir(parents=True)
     (tmp_path / "frontend" / "e2e" / "x.spec.ts").write_text(
-        'test.describe("FR-5: a flow", () => {\n  test("NFR-2: no requests", () => {});\n});\n', encoding="utf-8"
+        'test.describe("FR-5: a flow", () => {\n  test("NFR-2: no requests", () => {});\n});\n'
+        'it.each([\n  ["a", 1],\n])("FR-7: %s gives %d", () => {});\n'
+        'expect(/x/.test("FR-8: not a test")).toBe(false);\n',
+        encoding="utf-8",
     )
     found = requirement_ids_in_tests(tmp_path)
-    assert set(found) == {"FR-1", "FR-3", "FR-5"}
+    assert set(found) == {"FR-1", "FR-3", "FR-5", "FR-7"}
 
     plan = parse_testplan(
         "| Krav | Hva | Automatiske tester | Manuell kontroll |\n"
@@ -142,12 +151,27 @@ def test_sk1_missing_requirements_are_listed(tmp_path: Path) -> None:
         "| FR-1 | a | `backend/tests/test_x.py` | – |\n"
         "| FR-2 | b | – | Only with the real model. |\n"
         "| FR-3 | c | `backend/tests/test_x.py` | – |\n"
-        "| FR-4 | d | – | – |\n"
+        "| FR-4 | d | – | — |\n"
         "| FR-5 | e | `frontend/e2e/x.spec.ts` | – |\n"
     )
     requirements = ["FR-1", "FR-2", "FR-3", "FR-4", "FR-5", "FR-6"]
     # FR-2 is manual only, FR-4 has neither test nor reason, FR-6 has no row.
     assert missing_requirements(requirements, found, plan) == ["FR-4", "FR-6"]
+
+
+def test_sk1_testplan_files_match_test_names() -> None:
+    """The "Automatiske tester" column lists exactly the files with the ID in a test name."""
+    found = requirement_ids_in_tests(REPO_ROOT)
+    rows = _plan()
+    stale = []
+    for requirement in MUST_REQUIREMENTS:
+        listed = set(rows[requirement][0].files) if rows.get(requirement) else set()
+        actual = found.get(requirement, set())
+        if listed != actual:
+            extra = ", ".join(sorted(listed - actual)) or "none"
+            absent = ", ".join(sorted(actual - listed)) or "none"
+            stale.append(f"{requirement} (listed without a test: {extra}; not listed: {absent})")
+    assert not stale, "Update docs/testplan.md: " + "; ".join(stale)
 
 
 def test_sk1_testplan_lists_sk2_to_sk22() -> None:
