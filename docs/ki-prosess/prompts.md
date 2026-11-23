@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-23: Story 6.5 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `6-5-fullfør-readme-legg-til-lisens-og-vis-testdekningen`.
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-6-5-fullfoer-readme-legg-til-lisens-og-vis-testdekningen.md), [testplanen](../testplan.md), PR-en for `story/6-5`, kanttilfellene #291–#293 og det åpne punktet #290.
+
 ## 2026-11-23: Story 6.4 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `6-4-lag-testbruker-og-eksempelemne-med-eksempelnotater`.
