@@ -10,7 +10,7 @@ import { filesQueryKey } from "@/modules/files/api";
 
 import { contentCountsQueryKey, fetchContentCounts, fetchLatestJobs, latestJobsQueryKey, startJob } from "../api";
 import { generationTexts, jobOutcome } from "../texts";
-import type { ContentCounts, Difficulty, Job, JobKind, Requested } from "../types";
+import type { ContentCounts, Difficulty, Job, JobKind, Requested, ScopedJobKind } from "../types";
 import { useFollowJob } from "./job-watcher";
 import { ScopeDialog } from "./scope-dialog";
 
@@ -24,8 +24,20 @@ export type GenerationRowProps = {
   pageCount: number | undefined;
 };
 
-type Props = GenerationRowProps & {
+// A second job kind the row also starts and follows, with its own text button
+// and no dialog (story 7.1: «Lag modellkort» on the Flashcards row).
+export type ExtraJob = {
   kind: JobKind;
+  // «Lag modellkort».
+  label: string;
+  // The scope sent with the job. There is no dialog, so the largest one.
+  requested: Requested;
+};
+
+type Props = GenerationRowProps & {
+  kind: ScopedJobKind;
+  // The extra kind, or undefined (also when its feature switch is off).
+  extra?: ExtraJob;
   // «Flashcards», «Quiz»: the row's title and the name of its group.
   title: string;
   // The test id of the row's group (e.g. «flashcards-row»).
@@ -64,8 +76,14 @@ type Props = GenerationRowProps & {
 // The always-mounted live region reads the job text when a job starts and,
 // when a job this tab followed ends, the fewer, nothing or done text. An error
 // is read by role="alert" instead, not twice. Focus never moves for a message.
+//
+// With `extra`, the row follows the newest job (by started_at) of its own kind
+// and the extra kind, and shows that job's text, error or nothing message.
+// «Prøv igjen» starts the same kind again. The extra button starts its job
+// directly, without the dialog.
 export function GenerationRow({
   kind,
+  extra,
   title,
   testId,
   countOf,
@@ -77,12 +95,13 @@ export function GenerationRow({
   fileCount,
   pageCount,
 }: Props) {
-  const texts = generationTexts[kind];
   const queryClient = useQueryClient();
   const followJob = useFollowJob();
   const jobs = useQuery({ queryKey: latestJobsQueryKey(lectureId), queryFn: () => fetchLatestJobs(lectureId) });
   const counts = useQuery({ queryKey: contentCountsQueryKey(lectureId), queryFn: () => fetchContentCounts(lectureId) });
   const [starting, setStarting] = useState(false);
+  // The kind being started, for the job text before the job is known.
+  const [startingKind, setStartingKind] = useState<JobKind>(kind);
   const [announcement, setAnnouncement] = useState("");
   const [startError, setStartError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -93,9 +112,15 @@ export function GenerationRow({
   const rowRef = useRef<HTMLDivElement>(null);
   const startedFromDialog = useRef(false);
 
-  const job = jobs.data?.find((other) => other.kind === kind);
-  // A running job of another kind in the same lecture (at most one runs).
-  const otherRunning = jobs.data?.find((other) => other.kind !== kind && other.status === "running");
+  const ownKinds: JobKind[] = extra ? [kind, extra.kind] : [kind];
+  const isOwn = (other: Job) => ownKinds.includes(other.kind);
+  // The newest of the row's jobs (one per kind from jobs/latest).
+  const job = jobs.data
+    ?.filter(isOwn)
+    .reduce<Job | undefined>((newest, other) => (!newest || other.started_at > newest.started_at ? other : newest), undefined);
+  const texts = generationTexts[job?.kind ?? kind];
+  // A running job of another row's kind in the same lecture (at most one runs).
+  const otherRunning = jobs.data?.find((other) => !isOwn(other) && other.status === "running");
 
   useEffect(() => {
     if (!job) return;
@@ -118,18 +143,19 @@ export function GenerationRow({
     else setAnnouncement("");
   }, [job, lectureId, lectureName, queryClient, followJob, texts]);
 
-  async function start(requested: Requested, difficulty?: Difficulty) {
+  async function start(startKind: JobKind, requested: Requested, difficulty?: Difficulty) {
     setStarting(true);
+    setStartingKind(startKind);
     setStartError(null);
     try {
-      const started = await startJob(lectureId, kind, requested, difficulty);
+      const started = await startJob(lectureId, startKind, requested, difficulty);
       followed.current = started.id;
       followJob(started.id);
       queryClient.setQueryData<Job[]>(latestJobsQueryKey(lectureId), (old) => [
-        ...(old ?? []).filter((other) => other.kind !== kind),
+        ...(old ?? []).filter((other) => other.kind !== startKind),
         started,
       ]);
-      setAnnouncement(texts.jobText);
+      setAnnouncement(generationTexts[startKind].jobText);
     } catch (caught) {
       setStartError(caught instanceof ApiError ? messageFor(caught.code) : FALLBACK_MESSAGE);
       // The files were deleted elsewhere: refresh them, so the button is no longer active.
@@ -146,14 +172,21 @@ export function GenerationRow({
   function startFromDialog(requested: Requested, difficulty?: Difficulty) {
     startedFromDialog.current = true;
     setDialogOpen(false);
-    void start(requested, difficulty);
+    void start(kind, requested, difficulty);
   }
 
   function retry(failedJob: Job) {
     rowRef.current?.focus();
-    // The same choices as the failed job.
+    // The same kind and choices as the failed job.
     const requested = (failedJob.params?.requested ?? failedJob.requested) as Requested;
-    void start(requested, failedJob.params?.difficulty);
+    void start(failedJob.kind, requested, failedJob.params?.difficulty);
+  }
+
+  function startExtra() {
+    if (!extra) return;
+    // The button goes away while the job runs, so the row keeps the focus.
+    rowRef.current?.focus();
+    void start(extra.kind, extra.requested);
   }
 
   const count = counts.data ? countOf(counts.data) : 0;
@@ -186,8 +219,9 @@ export function GenerationRow({
         createLabel={createLabel}
         onCreate={() => setDialogOpen(true)}
         onCreateMore={() => setDialogOpen(true)}
+        extraAction={extra ? { label: extra.label, onClick: startExtra } : undefined}
         onPractice={onPractice}
-        jobText={texts.jobText}
+        jobText={generationTexts[starting ? startingKind : (job?.kind ?? kind)].jobText}
         announcement={announcement}
         message={message}
         error={startError ?? failed ?? loadError}

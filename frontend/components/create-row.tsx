@@ -26,6 +26,10 @@ export type CreateRowProps = {
   onCreate: () => void;
   // The text button with content: «Lag flere».
   onCreateMore: () => void;
+  // An optional extra text button, shown with and without content, before the
+  // other buttons (e.g. «Lag modellkort» on the Flashcards row, story 7.1).
+  // Not active in waiting and disabled, like the other «Lag …» buttons.
+  extraAction?: { label: string; onClick: () => void };
   // «Øv nå»: opens the session (the Flashcards row gives it from story 3.3).
   // Without it the button is shown but not active (for types without practice yet).
   onPractice?: () => void;
@@ -59,6 +63,7 @@ export function CreateRow({
   createLabel,
   onCreate,
   onCreateMore,
+  extraAction,
   onPractice,
   jobText,
   announcement,
@@ -94,6 +99,11 @@ export function CreateRow({
           ) : null}
         </div>
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          {state !== "running" && extraAction ? (
+            <Button variant="text" onClick={extraAction.onClick} disabled={blocked} aria-describedby={describedBy}>
+              {extraAction.label}
+            </Button>
+          ) : null}
           {state === "running" ? (
             <JobStatus text={jobText} />
           ) : hasContent ? (
