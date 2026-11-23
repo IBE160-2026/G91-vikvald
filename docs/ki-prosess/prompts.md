@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-23: Story 6.1 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `6-1-koble-gemini-på-vertex-ai-inn-bak-språkmodellporten`. Hensikten til `bmad-build-auto` var «Story 6.1 fra `_bmad-output/planning-artifacts/epics.md`: Koble Gemini på Vertex AI inn bak språkmodellporten».
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-6-1-koble-gemini-paa-vertex-ai-inn-bak-spraakmodellporten.md), PR-en for `story/6-1`, kanttilfellene #267–#271.
+
 ## 2026-11-23: Brukerreisetestene utvidet etter epic 5
 
 Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 5 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).
