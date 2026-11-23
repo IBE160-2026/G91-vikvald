@@ -1,7 +1,7 @@
 """Quiz questions as a content type: the mock rule (NFR-2a), the loose model,
-the validation, how mock-invalid breaks a question (SK-4), the prompt with the
-chosen difficulty, and saving through the content module. Importing this
-module registers the type."""
+the validation, how mock-invalid breaks a question (SK-4), the difficulty
+descriptions for the instructions, and saving through the content module.
+Importing this module registers the type."""
 
 import uuid
 from pathlib import Path
@@ -16,20 +16,15 @@ from app.modules.generation.port import GenerationOptions, Page
 from app.modules.generation.registry import ContentType, register_content_type
 
 KIND = "quiz"
-PROMPT_FILE = Path(__file__).resolve().parent / "prompts" / "quiz.txt"
+INSTRUCTIONS_FILE = Path(__file__).resolve().parent / "instructions" / "quiz.md"
 OPTION_COUNT = 4
-# The difficulty descriptions put into the prompt (FR-31), as in the dialog «Lag quiz».
+# The difficulty descriptions put into the instructions in place of
+# «{difficulty}» (FR-28, by vertex.instructions_for), as in the dialog «Lag quiz».
 DIFFICULTIES = {
     "easy": "Lett: kjenne igjen en definisjon",
     "medium": "Middels: forstå sammenhenger",
     "hard": "Vanskelig: bruke stoffet på et eksempel",
 }
-
-
-def build_prompt(difficulty: str) -> str:
-    """The quiz instructions with the description of the chosen difficulty.
-    An unknown difficulty is a KeyError (the request is validated before)."""
-    return PROMPT_FILE.read_text(encoding="utf-8").replace("{difficulty}", DIFFICULTIES[difficulty])
 
 
 def _definitions(pages: list[Page]) -> list[tuple[str, str, str, Page]]:
@@ -160,7 +155,7 @@ register_content_type(
         validate_item=validate_item,
         existing_keys=existing_keys,
         save=save,
-        prompt_file=PROMPT_FILE,
+        instructions_file=INSTRUCTIONS_FILE,
         break_item=break_item,
         uses_difficulty=True,
     )

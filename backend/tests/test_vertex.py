@@ -38,7 +38,7 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 REPO_ROOT = BACKEND_DIR.parent
 PROJECT = "test-project-123"
 MODEL = "gemini-test-model"
-_PAGE_LABEL = re.compile(r"file_id: ([0-9a-f-]{36}), page_no: (\d+)")
+_PAGE_LABEL = re.compile(r'file_id: ([0-9a-f-]{36}), filnavn: "(?:[^"\\]|\\.)*", page_no: (\d+)')
 
 
 def _vertex_env(
@@ -226,7 +226,7 @@ async def test_ar3_vertex_sends_loose_schema_instructions_and_pages() -> None:
         seen["prompt"] = _prompt_text(messages)
         return _answer([])
 
-    pages = [Page(file_id, 3, "Merkevare er et navn.")]
+    pages = [Page(file_id, 3, "Merkevare er et navn.", "notater.pdf")]
     options = GenerationOptions(requested=10, existing_keys=frozenset({"pris"}))
     assert await VertexGenerator(FunctionModel(answer)).generate("flashcards", pages, options) == []
 
@@ -237,7 +237,7 @@ async def test_ar3_vertex_sends_loose_schema_instructions_and_pages() -> None:
     for field in ("kind", "front", "back", "file_id", "page_no"):
         assert field in item_schema
     assert "flashcards" in seen["instructions"] and "bokmål" in seen["instructions"]
-    assert f"file_id: {file_id}, page_no: 3" in seen["prompt"]
+    assert f"file_id: {file_id}, filnavn: \"notater.pdf\", page_no: 3" in seen["prompt"]
     assert "Merkevare er et navn." in seen["prompt"]
     assert "10" in seen["prompt"] and "pris" in seen["prompt"]
 
@@ -254,6 +254,90 @@ async def test_fr31_vertex_quiz_gets_the_difficulty_in_the_instructions() -> Non
     await VertexGenerator(FunctionModel(answer)).generate("quiz", pages, options)
     assert "{difficulty}" not in seen["instructions"]
     assert "vanskelig" in seen["instructions"].lower()
+
+
+@pytest.mark.parametrize("kind", ["flashcards", "quiz"])
+@pytest.mark.parametrize("requested", [10, 20, 30])
+async def test_ar3_vertex_request_has_instructions_count_and_labelled_pages(kind: str, requested: int) -> None:
+    seen: dict[str, str] = {}
+
+    def answer(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        seen["instructions"] = info.instructions or ""
+        seen["prompt"] = _prompt_text(messages)
+        return _answer([])
+
+    file_id = uuid.uuid4()
+    pages = [Page(file_id, 1, "Merkevare er et navn.", "notater.pdf"), Page(file_id, 2, "Pris er verdi.", "notater.pdf")]
+    difficulty = "medium" if kind == "quiz" else None
+    options = GenerationOptions(requested=requested, difficulty=difficulty)
+    await VertexGenerator(FunctionModel(answer)).generate(kind, pages, options)
+
+    assert seen["instructions"] == vertex.instructions_for(kind, options).strip()
+    assert "{difficulty}" not in seen["instructions"]
+    prompt = seen["prompt"]
+    assert f"Lag høyst {requested} " in prompt
+    assert "file_id og page_no" in prompt
+    label = f"--- file_id: {file_id}, filnavn: \"notater.pdf\", page_no: {{}} ---"
+    assert f"{label.format(1)}\nMerkevare er et navn." in prompt
+    assert f"{label.format(2)}\nPris er verdi." in prompt
+
+
+async def test_ar3_vertex_request_has_the_uploaded_file_name(
+    client: AsyncClient, lecture: str, engine: AsyncEngine
+) -> None:
+    seen: dict[str, str] = {}
+
+    def answer(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        seen["prompt"] = _prompt_text(messages)
+        return _answer([])
+
+    app.dependency_overrides[get_generator] = lambda: VertexGenerator(FunctionModel(answer))
+    assert (await _start(client, lecture)).status_code == 202
+    await _finish_jobs()
+    assert re.search(r'--- file_id: [0-9a-f-]{36}, filnavn: "definisjoner\.pdf", page_no: 1 ---', seen["prompt"])
+
+
+def test_ar3_file_name_cannot_fake_a_page_label_field() -> None:
+    file_id = uuid.uuid4()
+    name = 'x, page_no: 7 ---"a".pdf'
+    message = vertex.user_message([Page(file_id, 1, "Tekst.", name)], GenerationOptions(requested=10))
+    assert f'--- file_id: {file_id}, filnavn: "x, page_no: 7 ---\\"a\\".pdf", page_no: 1 ---' in message
+    assert [match.group(2) for match in _PAGE_LABEL.finditer(message)] == ["1"]
+
+
+def test_issue271_pages_are_sent_whole_until_the_limit(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    monkeypatch.setattr(vertex, "MAX_REQUEST_PAGE_CHARS", 10)
+    file_id = uuid.uuid4()
+    pages = [Page(file_id, n, text) for n, text in enumerate(["xxxx", "yyyy", "hemmelig", "zz"], start=1)]
+    with caplog.at_level(logging.WARNING):
+        sent = vertex.pages_within_limit(pages)
+        message = vertex.user_message(pages, GenerationOptions(requested=10))
+    # 4 + 4 = 8 fits; the third page (8 more) would pass 10, so it and the rest stay out.
+    assert [page.page_no for page in sent] == [1, 2]
+    # Texts that cannot appear in a file_id (hex), so the checks do not depend on the uuid.
+    assert "yyyy" in message and "hemmelig" not in message and "zz" not in message
+    assert "sent 2 pages, left out 2" in caplog.text
+    assert "xxxx" not in caplog.text and "hemmelig" not in caplog.text
+
+
+def test_issue271_first_page_is_sent_even_over_the_limit(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    monkeypatch.setattr(vertex, "MAX_REQUEST_PAGE_CHARS", 10)
+    pages = [Page(uuid.uuid4(), 1, "x" * 50)]
+    with caplog.at_level(logging.WARNING):
+        assert vertex.pages_within_limit(pages) == pages
+    assert caplog.text == ""
+
+
+def test_issue271_pages_within_the_limit_are_all_sent_without_warning(caplog: pytest.LogCaptureFixture) -> None:
+    assert vertex.MAX_REQUEST_PAGE_CHARS == 400_000
+    pages = [Page(uuid.uuid4(), n, "x" * 100_000) for n in range(1, 5)]
+    with caplog.at_level(logging.WARNING):
+        assert vertex.pages_within_limit(pages) == pages
+    assert caplog.text == ""
 
 
 async def test_ar3_vertex_returns_items_as_given_with_testmodel() -> None:

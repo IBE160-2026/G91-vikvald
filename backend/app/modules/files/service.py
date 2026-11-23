@@ -173,13 +173,17 @@ async def delete_pdfs(user_id: uuid.UUID, file_ids: Iterable[uuid.UUID]) -> None
 
 async def pages_for_lecture(
     session: AsyncSession, lecture_id: uuid.UUID
-) -> list[tuple[uuid.UUID, int, str]]:
-    """(file_id, page_no, text) for every page of the lecture's files: files in
-    upload order (then by id), each file's pages from page 1. Always the same order."""
+) -> list[tuple[uuid.UUID, int, str, str]]:
+    """(file_id, page_no, text, original_name) for every page of the lecture's
+    files: files in upload order (then by id), each file's pages from page 1.
+    Always the same order."""
     statement = (
-        select(FilePage.file_id, FilePage.page_no, FilePage.text)
+        select(FilePage.file_id, FilePage.page_no, FilePage.text, File.original_name)
         .join(File, FilePage.file_id == File.id)
         .where(File.lecture_id == lecture_id)
         .order_by(File.uploaded_at, File.id, FilePage.page_no)
     )
-    return [(file_id, page_no, text) for file_id, page_no, text in (await session.execute(statement)).all()]
+    return [
+        (file_id, page_no, text, original_name)
+        for file_id, page_no, text, original_name in (await session.execute(statement)).all()
+    ]

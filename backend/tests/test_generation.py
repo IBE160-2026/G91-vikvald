@@ -171,12 +171,12 @@ def test_ar4_validate_item_godtar_qa_og_concept() -> None:
     assert flashcards.validate_item(_card(file_id=str(FILE_ID)), pages) is not None
 
 
-def test_ar5_flashcards_er_registrert_med_promptfil() -> None:
+def test_ar5_flashcards_er_registrert_med_instruksfil() -> None:
     content_type = get_content_type("flashcards")
     assert content_type.kind == "flashcards"
     assert content_type.loose_model is flashcards.LooseFlashcard
-    prompt = content_type.prompt_file.read_text(encoding="utf-8")
-    for rule in ("bokmål", "(brand)", "qa", "concept", "PDF-siden"):
+    prompt = content_type.instructions_file.read_text(encoding="utf-8")
+    for rule in ("bokmål", "(brand)", "qa", "concept", "page_no"):
         assert rule in prompt
     with pytest.raises(KeyError):
         get_content_type("model_cards")
