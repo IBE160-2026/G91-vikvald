@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-23: Story 6.3 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `6-3-send-sider-med-formler-som-bilde-og-merk-innholdet-kan-kutte`.
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-6-3-send-sider-med-formler-som-bilde-og-merk-innholdet.md), PR-en for `story/6-3`, kanttilfellene #279–#283 og det åpne punktet #278.
+
 ## 2026-11-23: Story 6.2 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `6-2-fastsett-instruksene-til-modellen-for-flashcards-og-quiz`. Instruksene til modellen er en del av koden, i `backend/app/modules/generation/instructions/`.
