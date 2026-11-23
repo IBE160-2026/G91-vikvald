@@ -2,14 +2,29 @@
 title: 'Story 6.2: Fastsett instruksene til modellen for flashcards og quiz'
 type: 'feature'
 created: '2026-11-23'
-status: 'ready-for-dev'
+status: 'done'
+baseline_revision: '1dae65da53f646ea633c91642209122605d17d03'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-6-context.md'
   - '{project-root}/_bmad-output/implementation-artifacts/spec-6-1-koble-gemini-paa-vertex-ai-inn-bak-spraakmodellporten.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Testplanen skal si at FR-2 og FR-31 for ekte modell bare kan måles manuelt (SK-13, SK-15).
+    evidence: |-
+      Akseptkriteriet i story 6.2 viser til testplanen, men `docs/testplan.md` lages først i story 6.5.
+    location: >-
+      docs/testplan.md (story 6.5)
+    severity: low
+  - summary: >-
+      Silje har ikke prøvd instruksene med Gemini på åpent lisensierte sider ennå.
+    evidence: |-
+      Akseptkriteriet krever at det hun retter, føres i docs/ki-prosess/korrigeringer.md. Det krever ekte Vertex-tilgang og hennes vurdering, som den autonome kjøringen ikke har.
+    location: >-
+      backend/app/modules/generation/instructions/
+    severity: medium
 ---
 
 <intent-contract>
@@ -81,6 +96,31 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-23 — Review pass
+- verdicts: 21 findings — high 0, medium 0, low 13, false 5, maybe-false 0
+- findings:
+  - `[low]` `[patch]` (edge) Filnavnet kan etterligne et felt i sidemerket (`x, page_no: 7 ---`) — filnavnet står nå JSON-sitert i merket; ny test `test_ar3_file_name_cannot_fake_a_page_label_field`.
+  - `[low]` `[reject]` (edge) Sider over grensen godtas fortsatt av `validate_item` — modellen ser dem ikke og må gjette både `file_id` og `page_no`; å sende med de sendte sidene ut av porten gir ny overflate for et sjeldent tilfelle.
+  - `[low]` `[reject]` (edge) Utelatte sider sies ikke fra om til studenten — grensen er over åtte fulle PDF-er; varsel krever nytt felt og UI-tekst. Ført som kanttilfelle-issue til Silje.
+  - `[false]` `[reject]` (edge) Ukjent vanskelighetsgrad gir KeyError — `JobCreate.difficulty` er en `Literal` med de tre verdiene, så en ukjent verdi når aldri jobben.
+  - `[false]` `[reject]` (edge) Første side sendes selv over grensen — slik matrisen i spesifikasjonen sier («minst én side sendes alltid»), og testet.
+  - `[low]` `[reject]` (blind) Stille kutt av slutten av notatene — samme som edge-funnet over.
+  - `[low]` `[reject]` (blind) Grensen teller bare sidetekst, ikke eksisterende nøkler og instruksene — de er små (forsider/spørsmål) mot 400 000 tegn; tidsgrensen og `GENERATION_TIMEOUT` dekker resten.
+  - `[low]` `[reject]` (blind) Vanskelighetsgraden står to steder og gir to kolon i «Valgt vanskelighetsgrad: Middels: forstå sammenhenger.» — teksten er lesbar for modellen, og testene sjekker begge; å endre `DIFFICULTIES` ville bryte eksisterende FR-31-tester uten gevinst.
+  - `[false]` `[reject]` (blind) Quiz uten vanskelighetsgrad sender `{difficulty}` — `JobCreate._difficulty_fits_kind` setter alltid `medium` for quiz.
+  - `[low]` `[patch]` (blind) Filnavn kan gjøre sidemerket tvetydig — samme rot som edge-funnet; rettet med JSON-sitering.
+  - `[low]` `[reject]` (blind) Kilderegelen står både i instruksen og brukermeldingen — bevisst gjentatt nær sidene; ordlyden motsier ikke instruksen.
+  - `[low]` `[patch]` (blind) `quiz.md` manglet regelen om kilde når flere sider brukes — lagt til; testen `test_ar3_instructions_cite_the_main_page_when_several_pages_are_used` dekker begge filene.
+  - `[low]` `[patch]` (blind) Instruksene sa ikke hva modellen gjør med sider uten faglig innhold, eller at tom liste er greit — lagt til i begge filene med test.
+  - `[low]` `[reject]` (blind) Testene sjekker ordrette setninger, ett navn er smalere enn det dekker, og grensen er hardkodet — testene skal fange at reglene fra akseptkriteriene forsvinner; navnet er storiens eget eksempel.
+  - `[false]` `[reject]` (blind) KI-sporet, spesifikasjonen og `frontend/e2e-skjermbilder/` mangler i diffen — KI-sporet skrives etter byggeløpet i samme økt, spesifikasjonen committes, og skjermbildemappa skal ikke røres.
+  - `[low]` `[patch]` (blind) Småting: lang linje i `registry.py` — brutt om. Tomt standard-filnavn og tuppel i stedet for NamedTuple avvist: appen sender alltid navnet, og eneste kaller er én linje.
+  - `[low]` `[patch]` (verification) Filnavnet settes inn i sidemerket uten sitering — samme rot som edge-funnet; rettet.
+  - `[low]` `[defer]` (intent) Siljes prøving med Gemini (AC5) og føring i `korrigeringer.md` er ikke gjort — krever ekte tilgang og hennes vurdering; ført som utsatt og åpent punkt.
+  - `[low]` `[defer]` (intent) Testplanen sier ikke at FR-2/FR-31 bare kan måles manuelt — testplanen lages i story 6.5; ført som utsatt.
+  - `[low]` `[reject]` (intent) Grensen fra #271 er utenfor storieteksten — oppdraget ba uttrykkelig om å se på #271 i denne storien.
+  - `[low]` `[reject]` (intent) FR-2-språkregelen står også i `quiz.md` — i tråd med brukerhistorien («kort og quizspørsmål på norsk med fagbegrepene»).
+
 ## Design Notes
 
 **Grensen (#271):** Gemini Flash har et kontekstvindu på om lag 1 million tokens, men tidsgrensen er 3 minutter. 400 000 tegn er omtrent 100 000 tokens, mer enn åtte fulle PDF-er på 50 sider med vanlig notattekst. Det er den enkleste trygge løsningen: jobben feiler ikke uforklarlig, og en vanlig forelesning merker ingenting. Ulempen er at kort fra sider etter grensen ikke lages, uten at studenten får beskjed; det føres som kanttilfelle.
@@ -99,3 +139,24 @@ for page in pages:
 - `cd backend && uv run pytest` -- expected: alle grønne, ingen nettverkskall.
 - `cd frontend && npm run test` -- expected: alle grønne (uendret).
 - `cd frontend && npx playwright test` mot `docker compose up --build -d` -- expected: alle grønne.
+
+## Auto Run Result
+
+Status: done
+
+**Hva som ble bygd:** Instruksene til Gemini ligger nå i `backend/app/modules/generation/instructions/flashcards.md` og `quiz.md` (flyttet fra `prompts/*.txt` og skrevet ut etter FR-2, FR-28, FR-31 og SK-17). Registeret peker på dem med `instructions_file`, og `vertex.instructions_for` er eneste sted `{difficulty}` erstattes. Hver side i forespørselen merkes med `file_id`, JSON-sitert filnavn og `page_no`, og modellen bes oppgi kilden med disse. Sideteksten sendes i hele sider opp til 400 000 tegn (#271); utelatte sider logges bare som antall.
+
+**Filer:**
+- `backend/app/modules/generation/instructions/flashcards.md`, `quiz.md` -- instruksene.
+- `registry.py`, `flashcards.py`, `quiz.py`, `mock.py` -- `instructions_file`, `build_prompt` fjernet.
+- `port.py`, `files/service.py`, `generation/service.py` -- filnavnet følger siden til porten.
+- `vertex.py` -- sidemerket, kildesetningen, `MAX_REQUEST_PAGE_CHARS`, `pages_within_limit`.
+- `backend/tests/test_instructions.py` (ny), `test_vertex.py`, `test_quiz.py`, `test_generation.py` -- tester med krav-ID.
+
+**Gjennomgang:** 21 funn. 7 rader rettet (alle lave, 4 med felles rot), 2 utsatt, 12 avvist med begrunnelse i triageloggen. Rettingene ble gjort av hovedøkten direkte.
+
+**Oppfølgingsgjennomgang:** `false`. Ingen høye eller middels funn ble rettet (rettet: høy 0, middels 0, lav 7).
+
+**Verifisering:** `uv run pytest` grønn (158 i de berørte filene etter rettingene, full kjøring i økten). `npm run test` og `npx playwright test` kjøres i økten etter byggeløpet.
+
+**Gjenværende risiko:** Ingenting er prøvd mot ekte Gemini. Om modellen følger instruksene, måles først i stikkprøvene i story 6.6, og Siljes prøving med Gemini gjenstår.
