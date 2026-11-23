@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import storage
 from app.core.errors import AppError, ErrorCode
+from app.modules.files.pdf import PdfPage, render_pages_png
 from app.modules.files.models import ORIGINAL_NAME_MAX_LENGTH, File, FilePage
 from app.modules.subjects.models import Lecture, Subject
 
@@ -33,7 +34,7 @@ async def store_file(
     lecture_id: uuid.UUID,
     original_name: str,
     data: bytes,
-    pages: list[str],
+    pages: list[PdfPage],
     replaces: uuid.UUID | None = None,
 ) -> File:
     """Save an accepted PDF: one row in files, one row per page in file_pages
@@ -57,8 +58,8 @@ async def store_file(
     )
     session.add(file)
     session.add_all(
-        FilePage(file_id=file.id, page_no=number, text=text, needs_image=False)
-        for number, text in enumerate(pages, start=1)
+        FilePage(file_id=file.id, page_no=number, text=page.text, needs_image=page.needs_image)
+        for number, page in enumerate(pages, start=1)
     )
     try:
         # Writing up to MAX_UPLOAD_MB with fsync; keep it off the event loop.
@@ -173,17 +174,58 @@ async def delete_pdfs(user_id: uuid.UUID, file_ids: Iterable[uuid.UUID]) -> None
 
 async def pages_for_lecture(
     session: AsyncSession, lecture_id: uuid.UUID
-) -> list[tuple[uuid.UUID, int, str, str]]:
-    """(file_id, page_no, text, original_name) for every page of the lecture's
-    files: files in upload order (then by id), each file's pages from page 1.
-    Always the same order."""
+) -> list[tuple[uuid.UUID, int, str, str, bool]]:
+    """(file_id, page_no, text, original_name, needs_image) for every page of
+    the lecture's files: files in upload order (then by id), each file's pages
+    from page 1. Always the same order."""
     statement = (
-        select(FilePage.file_id, FilePage.page_no, FilePage.text, File.original_name)
+        select(FilePage.file_id, FilePage.page_no, FilePage.text, File.original_name, FilePage.needs_image)
         .join(File, FilePage.file_id == File.id)
         .where(File.lecture_id == lecture_id)
         .order_by(File.uploaded_at, File.id, FilePage.page_no)
     )
     return [
-        (file_id, page_no, text, original_name)
-        for file_id, page_no, text, original_name in (await session.execute(statement)).all()
+        (file_id, page_no, text, original_name, bool(needs_image))
+        for file_id, page_no, text, original_name, needs_image in (await session.execute(statement)).all()
     ]
+
+
+def _render_page_images(
+    user_id: uuid.UUID, wanted: list[tuple[uuid.UUID, int]]
+) -> dict[tuple[uuid.UUID, int], bytes]:
+    by_file: dict[uuid.UUID, list[int]] = {}
+    for file_id, page_no in wanted:
+        by_file.setdefault(file_id, []).append(page_no)
+    images: dict[tuple[uuid.UUID, int], bytes] = {}
+    for file_id, page_nos in by_file.items():
+        # Each PDF is read and opened once; its bytes are let go after its pages.
+        try:
+            data = storage.read_pdf(user_id, file_id)
+        except OSError:
+            # Only the id: never the filename or content.
+            logger.warning("Stored PDF %s is missing; its pages are sent without an image", file_id)
+            continue
+        try:
+            rendered = render_pages_png(data, page_nos)
+        except Exception:  # PyMuPDF raises several kinds of errors for broken files.
+            rendered = {}
+        finally:
+            del data
+        if len(rendered) < len(page_nos):
+            logger.warning(
+                "Could not render %d page(s) of PDF %s; sent without an image", len(page_nos) - len(rendered), file_id
+            )
+        images.update(((file_id, page_no), image) for page_no, image in rendered.items())
+    return images
+
+
+async def page_images(
+    user_id: uuid.UUID, wanted: list[tuple[uuid.UUID, int]]
+) -> dict[tuple[uuid.UUID, int], bytes]:
+    """PNG pictures of the wanted (file_id, page_no) pages of her stored PDFs
+    (AR-6), rendered on demand and kept in memory only: never written to disk
+    or the database. A page whose PDF is missing (or cannot be rendered) is
+    left out with a WARNING, so the job goes on without its image."""
+    if not wanted:
+        return {}
+    return await asyncio.to_thread(_render_page_images, user_id, wanted)

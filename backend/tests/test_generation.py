@@ -27,8 +27,8 @@ FILE_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 
 
 def fixture_pages(file_id: uuid.UUID = FILE_ID) -> list[Page]:
-    texts = read_pages(FIXTURE.read_bytes())
-    return [Page(file_id, number, text) for number, text in enumerate(texts, start=1)]
+    pages = read_pages(FIXTURE.read_bytes())
+    return [Page(file_id, number, page.text) for number, page in enumerate(pages, start=1)]
 
 
 def options(existing: set[str] | None = None, requested: int = 20) -> GenerationOptions:
