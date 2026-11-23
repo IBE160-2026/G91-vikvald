@@ -21,8 +21,8 @@ SK-15. Allowed values in `vurdering` (case does not matter):
 - riktig: correct, and the source page is right.
 - faglig feil: a factual error (for a quiz question also: not exactly one
   correct option, or the marked answer is wrong).
-- feil side: correct, but the source page is wrong.
-- faglig feil og feil side: both.
+- feil kilde: correct, but the source (file or page) is wrong.
+- faglig feil og feil kilde: both.
 
 Only the app's API is used: no database connection, and no model is called.
 """
@@ -48,9 +48,9 @@ LONGEST_NO = "Riktig svar er lengst: nei"
 
 CORRECT = "riktig"
 FACTUAL_ERROR = "faglig feil"
-WRONG_PAGE = "feil side"
-BOTH = "faglig feil og feil side"
-ASSESSMENTS = {CORRECT, FACTUAL_ERROR, WRONG_PAGE, BOTH}
+WRONG_SOURCE = "feil kilde"
+BOTH = "faglig feil og feil kilde"
+ASSESSMENTS = {CORRECT, FACTUAL_ERROR, WRONG_SOURCE, BOTH}
 
 # The goals in the PRD.
 SK13_MAX_ERROR_SHARE = 0.05
@@ -167,7 +167,7 @@ def write_csv(rows: list[SampleRow], path: Path) -> None:
 class Summary:
     flashcards_assessed: int = 0
     flashcards_factual_errors: int = 0
-    flashcards_wrong_page: int = 0
+    flashcards_wrong_source: int = 0
     quiz_assessed: int = 0
     quiz_one_correct: int = 0
     quiz_total: int = 0
@@ -204,7 +204,7 @@ def summarise(path: Path) -> Summary:
             else:
                 result.flashcards_assessed += 1
                 result.flashcards_factual_errors += factual
-                result.flashcards_wrong_page += value in (WRONG_PAGE, BOTH)
+                result.flashcards_wrong_source += value in (WRONG_SOURCE, BOTH)
     return result
 
 
@@ -219,13 +219,13 @@ def _verdict(ok: bool, whole: int) -> str:
 def summary_lines(result: Summary) -> list[str]:
     cards = result.flashcards_assessed
     errors = result.flashcards_factual_errors
-    right_page = cards - result.flashcards_wrong_page
+    right_source = cards - result.flashcards_wrong_source
     quiz = result.quiz_assessed
     lines = [
         f"SK-13 faglige feil i flashcards: {_share(errors, cards)}, mål under 5 %: "
         f"{_verdict(cards > 0 and errors / cards < SK13_MAX_ERROR_SHARE, cards)}",
-        f"SK-14 flashcards med riktig side: {_share(right_page, cards)}, mål minst 95 %: "
-        f"{_verdict(cards > 0 and right_page / cards >= SK14_MIN_SOURCE_SHARE, cards)}",
+        f"SK-14 flashcards med riktig kilde: {_share(right_source, cards)}, mål minst 95 %: "
+        f"{_verdict(cards > 0 and right_source / cards >= SK14_MIN_SOURCE_SHARE, cards)}",
         f"SK-15 quizspørsmål med nøyaktig ett riktig alternativ: {_share(result.quiz_one_correct, quiz)}, mål alle: "
         f"{_verdict(quiz > 0 and result.quiz_one_correct == quiz, quiz)}",
         f"SK-15 riktig svar er lengst: {_share(result.quiz_correct_longest, result.quiz_total)}, mål høyst 35 %: "

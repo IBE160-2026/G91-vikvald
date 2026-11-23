@@ -137,7 +137,7 @@ def _filled(path: Path, rows: list[tuple[str, str]]) -> Path:
 def test_sk13_summary_computes_sk13_sk14_sk15(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     rows = [("Flashcard: A | Svar: B", "riktig")] * 17 + [
         ("Flashcard: C | Svar: D", "Faglig feil"),
-        ("Flashcard: E | Svar: F", "feil side"),
+        ("Flashcard: E | Svar: F", "feil kilde"),
         ("Flashcard: G | Svar: H", ""),
         ("Quiz: Q | A: a | B: b | C: c | D: d | Riktig: A | Riktig svar er lengst: ja", "riktig"),
         ("Quiz: Q | A: a | B: b | C: c | D: d | Riktig: A | Riktig svar er lengst: nei", "faglig feil"),
@@ -146,7 +146,7 @@ def test_sk13_summary_computes_sk13_sk14_sk15(tmp_path: Path, capsys: pytest.Cap
     ]
     path = _filled(tmp_path / "utfylt.csv", rows)
     result = summarise(path)
-    assert (result.flashcards_assessed, result.flashcards_factual_errors, result.flashcards_wrong_page) == (19, 1, 1)
+    assert (result.flashcards_assessed, result.flashcards_factual_errors, result.flashcards_wrong_source) == (19, 1, 1)
     assert (result.quiz_assessed, result.quiz_one_correct) == (2, 1)
     assert (result.quiz_total, result.quiz_correct_longest) == (4, 1)
     assert result.missing == 3
@@ -154,7 +154,7 @@ def test_sk13_summary_computes_sk13_sk14_sk15(tmp_path: Path, capsys: pytest.Cap
     assert script.main(["summary", str(path)]) == 0
     out = capsys.readouterr().out
     assert "SK-13 faglige feil i flashcards: 1 av 19 (5.3 %), mål under 5 %: ikke nådd" in out
-    assert "SK-14 flashcards med riktig side: 18 av 19 (94.7 %), mål minst 95 %: ikke nådd" in out
+    assert "SK-14 flashcards med riktig kilde: 18 av 19 (94.7 %), mål minst 95 %: ikke nådd" in out
     assert "SK-15 quizspørsmål med nøyaktig ett riktig alternativ: 1 av 2 (50.0 %), mål alle: ikke nådd" in out
     assert "SK-15 riktig svar er lengst: 1 av 4 (25.0 %), mål høyst 35 %: nådd" in out
     assert "3 rader mangler vurdering" in out
