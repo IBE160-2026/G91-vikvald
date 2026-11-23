@@ -74,11 +74,15 @@ test.describe("Forelesninger (story 2.2)", () => {
 
     // The front page's card says there are no lectures.
     await page.goto("/");
-    await expect(page.locator("main li")).toContainText("Ingen forelesninger ennå");
+    await expect(page.locator("main li:has(h2)")).toContainText("Ingen forelesninger ennå");
 
     await page.goto(`/emner/${subjectId}`);
-    await expect(page.getByRole("heading", { level: 2 })).toHaveText("Forelesninger etter dato");
-    await expect(page.getByText("Ingen forelesninger ennå.")).toBeVisible();
+    // The semester line (story 5.5) has its own h2 over the lectures.
+    await expect(page.locator("main").getByRole("heading", { level: 2 })).toHaveText([
+      "Semesterlinje",
+      "Forelesninger etter dato",
+    ]);
+    await expect(page.getByText("Ingen forelesninger ennå.", { exact: true })).toBeVisible();
     await expect(page.locator("main table")).toHaveCount(0);
     const nav = page.getByRole("navigation", { name: "Emner" });
     await expect(nav.getByRole("button", { name: "Markedsføring" })).toHaveAttribute("aria-expanded", "true");
@@ -123,7 +127,7 @@ test.describe("Forelesninger (story 2.2)", () => {
     await expectNoAxeViolations(page);
 
     await page.goto("/");
-    await expect(page.locator("main li")).toContainText("0 av 1 forelesning øvd");
+    await expect(page.locator("main li:has(h2)")).toContainText("0 av 1 forelesning øvd");
   });
 
   test("FR-15: tabellen og sidemenyen har API-rekkefølgen, ukenummer og hul prikk, og raden lenker til 04, uten axe-brudd", async ({
@@ -164,7 +168,7 @@ test.describe("Forelesninger (story 2.2)", () => {
     await expect(page.locator("main h1")).toHaveText("Uke 37: Merkevare");
 
     await page.goto("/");
-    await expect(page.locator("main li")).toContainText("0 av 3 forelesninger øvd");
+    await expect(page.locator("main li:has(h2)")).toContainText("0 av 3 forelesninger øvd");
   });
 
   test("UX-DR7: et emne åpnes og lukkes med pilknappen og bare tastatur, med aria-expanded og fokusring", async ({

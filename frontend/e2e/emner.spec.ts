@@ -125,7 +125,7 @@ test.describe("Emner (story 2.1)", () => {
     await expect(page.getByText("Eksamen fredag 04.12.2026")).toBeVisible();
     await expect(page).toHaveTitle("Markedsføring – Studiekamerat");
     await expect(page.getByRole("button", { name: "Ny forelesning" })).toBeEnabled();
-    await expect(page.getByText("Ingen forelesninger ennå.")).toBeVisible();
+    await expect(page.getByText("Ingen forelesninger ennå.", { exact: true })).toBeVisible();
 
     const nav = page.getByRole("navigation", { name: "Emner" });
     const current = nav.getByRole("link", { name: "Markedsføring" });
@@ -143,7 +143,8 @@ test.describe("Emner (story 2.1)", () => {
     await page.goto("/");
 
     // One subject card per subject (story 5.4), the exam date in the exam line over them.
-    const items = page.locator("main li");
+    // The cards are the `li` elements with a heading; the semester line's text list has none.
+    const items = page.locator("main li:has(h2)");
     await expect(items).toHaveCount(2);
     await expect(items.nth(0).getByRole("heading", { level: 2 })).toHaveText("Markedsføring");
     await expect(items.nth(0).getByRole("link", { name: "Åpne Markedsføring" })).toHaveAttribute("href", `/emner/${first}`);
@@ -153,11 +154,13 @@ test.describe("Emner (story 2.1)", () => {
       `/emner/${second}`,
     );
     await expect(items.locator('[aria-hidden="true"][data-color-index]')).toHaveCount(2);
-    const examLines = page.locator('main [role="listitem"]');
+    // The semester line over the cards (story 5.5): its text version, one item per subject.
+    const examLines = page.getByRole("region", { name: "Semesterlinje" }).getByRole("listitem");
+    await expect(examLines).toHaveCount(2);
     await expect(examLines.nth(0)).toContainText("Markedsføring");
-    await expect(examLines.nth(0)).toContainText(/Eksamen (var )?04\.12/);
+    await expect(examLines.nth(0)).toContainText(/Eksamen (var )?fredag 04\.12/);
     await expect(examLines.nth(1)).toContainText("Samfunnsøkonomi");
-    await expect(examLines.nth(1)).toContainText(/Eksamen (var )?11\.12/);
+    await expect(examLines.nth(1)).toContainText(/Eksamen (var )?fredag 11\.12/);
     await expect(page.locator("nav")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Nytt emne" })).toBeVisible();
     await expect(page.getByText(INTRO)).toHaveCount(0);

@@ -6,7 +6,7 @@ import { makePdf } from "./pdf";
 // Story 5.4: one subject card per subject on the front page (02), with the
 // counts, «Neste å øve på» / NESTE STEG and the progress (FR-58, SK-20,
 // UX-DR12). The browser's clock and time zone are set, as in
-// eksamenslinje.spec.ts, so the exam line over the cards never depends on when
+// semesterlinje.spec.ts, so the semester line over the cards never depends on when
 // the test runs.
 
 const PASSWORD = "hemmelig1";
@@ -118,7 +118,7 @@ async function fourSubjects(page: Page): Promise<Setup> {
 
 // The subject card (an `li` in main) with the subject's name as its heading.
 function card(page: Page, name: string): Locator {
-  return page.locator("main li").filter({ has: page.getByRole("heading", { level: 2, name, exact: true }) });
+  return page.locator("main li:has(h2)").filter({ has: page.getByRole("heading", { level: 2, name, exact: true }) });
 }
 
 test.describe("Emnekort med «Neste å øve på» (story 5.4)", () => {
@@ -130,10 +130,14 @@ test.describe("Emnekort med «Neste å øve på» (story 5.4)", () => {
     await page.clock.setSystemTime(TODAY);
     await page.goto("/");
 
-    await expect(page.locator("main li")).toHaveCount(4);
-    // The exam lines stand over the cards, and the cards carry no exam date (#244).
-    await expect(page.getByText("Eksamen 04.12, om 3 uker · 0 av 2 forelesninger øvd", { exact: true })).toBeVisible();
-    await expect(page.locator("main li").filter({ hasText: "Eksamen" })).toHaveCount(0);
+    await expect(page.locator("main li:has(h2)")).toHaveCount(4);
+    // The semester line stands over the cards, and the cards carry no exam date (#244).
+    await expect(
+      page
+        .getByRole("region", { name: "Semesterlinje" })
+        .getByText("Markedsføring: 0 av 2 forelesninger øvd. Eksamen fredag 04.12, om 3 uker.", { exact: true }),
+    ).toBeAttached();
+    await expect(page.locator("main li:has(h2)").filter({ hasText: "Eksamen" })).toHaveCount(0);
 
     const marketing = card(page, "Markedsføring");
     await expect(marketing.getByRole("link", { name: "Åpne Markedsføring" })).toHaveAttribute(
@@ -176,7 +180,7 @@ test.describe("Emnekort med «Neste å øve på» (story 5.4)", () => {
     await expect(statistics.locator('[data-slot="progress"]')).toHaveCount(0);
 
     // Three columns at 1280 px: the first three cards stand on one row.
-    const tops = await Promise.all([0, 1, 2, 3].map(async (i) => (await page.locator("main li").nth(i).boundingBox())!.y));
+    const tops = await Promise.all([0, 1, 2, 3].map(async (i) => (await page.locator("main li:has(h2)").nth(i).boundingBox())!.y));
     expect(tops[1]).toBe(tops[0]);
     expect(tops[2]).toBe(tops[0]);
     expect(tops[3]).toBeGreaterThan(tops[0]);
@@ -275,9 +279,9 @@ test.describe("Emnekort med «Neste å øve på» (story 5.4)", () => {
       await expectNoAxeViolations(page);
       if (width === 768) {
         // Two columns at 768 px (608 px of content).
-        const first = (await page.locator("main li").nth(0).boundingBox())!;
-        const second = (await page.locator("main li").nth(1).boundingBox())!;
-        const third = (await page.locator("main li").nth(2).boundingBox())!;
+        const first = (await page.locator("main li:has(h2)").nth(0).boundingBox())!;
+        const second = (await page.locator("main li:has(h2)").nth(1).boundingBox())!;
+        const third = (await page.locator("main li:has(h2)").nth(2).boundingBox())!;
         expect(second.y).toBe(first.y);
         expect(third.y).toBeGreaterThan(first.y);
       }

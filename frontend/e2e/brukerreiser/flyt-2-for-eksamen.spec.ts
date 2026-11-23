@@ -125,11 +125,21 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
   test("Steg 1 (åpner emnet) – UJ-2, FR-6: forsiden (02) viser Markedsføring med åtte forelesninger og eksamen, og hun åpner emnet", async () => {
     await page.goto("/");
     await expectOnHomePage(page);
-    // The subject card (story 5.4) and the exam line over the cards (story 5.3).
-    const item = page.locator("main li").filter({ hasText: "Markedsføring" });
+    // The subject card (story 5.4) and the semester line over the cards (story 5.5).
+    const item = page.locator("main li:has(h2)").filter({ hasText: "Markedsføring" });
     await expect(item).toContainText("av 8 forelesninger øvd");
-    const examLine = page.locator('main [role="listitem"]').filter({ hasText: "Markedsføring" });
-    await expect(examLine).toContainText(`Eksamen ${exam.shown.slice(0, 5)}, om 3 uker`);
+    const examLine = page
+      .getByRole("region", { name: "Semesterlinje" })
+      .getByRole("listitem")
+      .filter({ hasText: "Markedsføring" });
+    await expect(examLine).toContainText(
+      new RegExp(`Eksamen \\S+ ${exam.shown.slice(0, 5).replace(".", "\\.")}, om 3 uker\\.$`),
+    );
+    await expect(
+      page.getByRole("region", { name: "Semesterlinje" }).getByText(`Eksamen ${exam.shown.slice(0, 5)} · om 3 uker`, {
+        exact: true,
+      }),
+    ).toBeVisible();
     await expectNoAxeViolations(page);
 
     await item.getByRole("link", { name: "Åpne Markedsføring" }).click();
