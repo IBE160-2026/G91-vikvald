@@ -268,6 +268,13 @@ cd frontend
 E2E_REQUIRE_SEED=1 npx playwright test
 ```
 
+Kjerneflyten (`e2e/kjerneflyt.spec.ts`, NFR-15) kan også kjøres i nettleserne som er installert på maskinen. Velg dem med `E2E_BROWSERS` (`chrome`, `msedge` eller `webkit`, flere skilles med komma). Uten variabelen kjører bare Playwright sin egen Chromium:
+
+```bash
+cd frontend
+E2E_BROWSERS=chrome npx playwright test --project=chrome
+```
+
 Stopp appen etterpå, fra rota:
 
 ```bash
@@ -281,6 +288,8 @@ Hver test har krav-ID-en den dekker i navnet, for eksempel `test_nfr1_health_sva
 [`docs/testplan.md`](docs/testplan.md) viser hvilke tester som dekker hvert må ha-krav (FR-1–FR-41 og FR-56–FR-58), hvor suksesskriteriene SK-2–SK-22 kontrolleres, og hvilke krav som bare kan kontrolleres for hånd. En backend-test (`test_sk1_every_must_requirement_has_test_or_reason`) sjekker at hvert må ha-krav har en test med krav-ID-en i navnet eller en begrunnelse i testplanen.
 
 [`docs/testing/brukerreiser.md`](docs/testing/brukerreiser.md) viser de fire brukerreisene fra start til slutt og hvilken Playwright-test som dekker hvert steg.
+
+[`docs/kvalitet/README.md`](docs/kvalitet/README.md) viser hvordan kvaliteten med Gemini kontrolleres (SK-13–SK-17), med skriptet som lager stikkprøven.
 
 ### Automatisk ved hver pull request
 
