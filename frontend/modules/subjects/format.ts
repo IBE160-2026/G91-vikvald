@@ -2,7 +2,8 @@
 // weekday and month names, singular and plural. Written out by hand instead of
 // Intl, so the text is the same in every browser and in the tests.
 
-const WEEKDAYS = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
+import { WEEKDAYS, weekdayName } from "@/lib/dates";
+
 const MONTHS = [
   "januar",
   "februar",
@@ -60,7 +61,7 @@ export function isoWeek(iso: string): number {
 
 // "2026-12-04" -> "fredag 04.12.2026".
 export function formatWeekdayDate(iso: string): string {
-  return `${WEEKDAYS[fromIso(iso).getDay()]} ${formatDate(iso)}`;
+  return `${weekdayName(iso)} ${formatDate(iso)}`;
 }
 
 // The line under «Dine emner»: "Høstsemesteret 2026 · lørdag 21. november".

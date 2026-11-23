@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-23: Story 5.5 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `5-5-vis-semesterlinja-på-forsiden-emnesiden-og-forelesningssiden`. Hensikten til `bmad-build-auto` var «Story 5.5 fra `_bmad-output/planning-artifacts/epics.md`: Vis semesterlinja på forsiden, emnesiden og forelesningssiden». Kjøringen stoppet på lite diskplass, og en ny subagent gjorde ferdig testene, skjermbildene, sporet og PR-en.
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-5-5-vis-semesterlinja-paa-forsiden-emnesiden-og-forelesningssiden.md), PR-en for `story/5-5`, kanttilfellene #257–#263.
+
 ## 2026-11-22: Story 5.4 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `5-4-vis-emnekort-med-neste-å-øve-på-på-forsiden`. Hensikten til `bmad-build-auto` var «Story 5.4 fra `_bmad-output/planning-artifacts/epics.md`: Vis emnekort med «Neste å øve på» på forsiden».

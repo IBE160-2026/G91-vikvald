@@ -138,3 +138,5 @@
 - [ ] 2026-11-22 [story-5-4-emnekort](958-2026-11-22-23-47-13-story-5-4-emnekort.md) — vurder kanttilfellene fra story 5.4 (#247–#254), særlig hvor knappen står på kortet (#254) og tellingslinja uten 0 (#248)
 - [ ] 2026-11-22 [story-5-4-emnekort](958-2026-11-22-23-47-13-story-5-4-emnekort.md) — modellkort (epic 7) og fritekst (epic 8) må legges til i `PRACTICE_KINDS` i `frontend/modules/subjects/next-step.ts`, ellers telles og startes de ikke fra emnekortet
 - [ ] 2026-11-22 [story-5-4-emnekort](958-2026-11-22-23-47-13-story-5-4-emnekort.md) — `vilkar.spec.ts:68` feilet én gang i en full Playwright-kjøring rett etter ombygging, grønn alene og i neste fulle kjøring
+- [ ] 2026-11-23 [story-5-5-semesterlinja](957-2026-11-23-10-19-52-story-5-5-semesterlinja.md) — vurder kanttilfellene fra story 5.5 (#257–#263), særlig plasseringen på forelesningssiden (#258) og eksamensteksten (#260)
+- [ ] 2026-11-23 [story-5-5-semesterlinja](957-2026-11-23-10-19-52-story-5-5-semesterlinja.md) — `flyt-1-etter-forelesning.spec.ts:455` (steg 10) feilet én gang i en full Playwright-kjøring, grønn alene og i to fulle kjøringer etterpå

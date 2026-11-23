@@ -152,11 +152,14 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
   });
 
   test("Steg 2 (åpner emnet) – FR-6: forsiden (02) viser Markedsføring med eksamen, og hun åpner emnet", async () => {
-    // The subject card (story 5.4) and the exam line over the cards (story 5.3).
-    const item = page.locator("main li").filter({ hasText: "Markedsføring" });
+    // The subject card (story 5.4) and the semester line over the cards (story 5.5).
+    const item = page.locator("main li:has(h2)").filter({ hasText: "Markedsføring" });
     await expect(item).toContainText("Ingen forelesninger ennå");
-    const examLine = page.locator('main [role="listitem"]').filter({ hasText: "Markedsføring" });
-    await expect(examLine).toContainText(/Eksamen (var )?04\.12/);
+    const examLine = page
+      .getByRole("region", { name: "Semesterlinje" })
+      .getByRole("listitem")
+      .filter({ hasText: "Markedsføring" });
+    await expect(examLine).toContainText(/Eksamen (var )?fredag 04\.12/);
     await expectNoAxeViolations(page);
 
     await item.getByRole("link", { name: "Åpne Markedsføring" }).click();
@@ -166,7 +169,7 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
   });
 
   test("Steg 3 – FR-7, FR-15, UX-DR25: «Ny forelesning» på emnesiden (03) med dagens dato, til forelesningssiden (04)", async () => {
-    await expect(page.getByText("Ingen forelesninger ennå.")).toBeVisible();
+    await expect(page.getByText("Ingen forelesninger ennå.", { exact: true })).toBeVisible();
     await expectNoAxeViolations(page);
 
     await page.getByRole("button", { name: "Ny forelesning" }).click();

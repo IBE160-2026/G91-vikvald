@@ -17,9 +17,20 @@ const DOT_CLASSES = [
 
 // The background class for a subject's colour. Any number is mapped into 0-5.
 export function subjectColorClass(colorIndex: number): string {
+  return DOT_CLASSES[colorPosition(colorIndex)];
+}
+
+// The CSS colour for a subject, "var(--color-subject-1)" ... "-6", for the
+// semester line's SVG (story 5.5). The same mapping into 0-5 as the class.
+export function subjectColorVar(colorIndex: number): string {
+  return `var(--color-subject-${colorPosition(colorIndex) + 1})`;
+}
+
+// Any number mapped into 0-5 (NaN -> 0).
+function colorPosition(colorIndex: number): number {
   const count = DOT_CLASSES.length;
   const index = ((Math.trunc(colorIndex) % count) + count) % count;
-  return DOT_CLASSES[Number.isNaN(index) ? 0 : index];
+  return Number.isNaN(index) ? 0 : index;
 }
 
 function channel(value: number): number {

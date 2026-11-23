@@ -1,9 +1,10 @@
-// Time to the exam and the exam text line (story 5.3, FR-57, SK-22):
-// «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd». One rule, shared by the
-// front page, the subject page and later the subject cards (5.4) and the
-// semester line (5.5). Today is an argument, so the tests choose the day.
+// Time to the exam and the count of practised lectures (FR-57, SK-22), shared
+// by the subject cards (5.4) and the semester line (5.5): «Eksamen 04.12 · om 3
+// uker» on the line, and «Markedsføring: 4 av 8 forelesninger øvd. Eksamen
+// fredag 04.12, om 3 uker.» in its text version. One rule for weeks and days.
+// Today is an argument, so the tests choose the day.
 
-import { formatDayMonth } from "./dates";
+import { formatDayMonth, weekdayName } from "./dates";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -26,15 +27,22 @@ export function weeksUntilExam(examDate: string, today: Date): number {
 
 // The exam part: «Eksamen 04.12, om 3 uker» (seven days or more), «om 3 dager»
 // (2–6 days), «i morgen», «Eksamen i dag», or «Eksamen var 04.12» once passed.
-export function examCountdownText(examDate: string, today: Date): string {
+// The semester line (story 5.5) uses the same rule with other options:
+// `separator` between the date and the time left (« · » on the line, «, » by
+// default), and `weekday` to put the weekday before the date («Eksamen fredag
+// 04.12, om 3 uker», «Eksamen var fredag 04.12») for the screen reader text.
+export type ExamCountdownOptions = { separator?: string; weekday?: boolean };
+
+export function examCountdownText(examDate: string, today: Date, options: ExamCountdownOptions = {}): string {
+  const { separator = ", ", weekday = false } = options;
   const days = daysUntilExam(examDate, today);
-  const date = formatDayMonth(examDate);
+  const date = weekday ? `${weekdayName(examDate)} ${formatDayMonth(examDate)}` : formatDayMonth(examDate);
   if (days < 0) return `Eksamen var ${date}`;
   if (days === 0) return "Eksamen i dag";
-  if (days === 1) return `Eksamen ${date}, i morgen`;
-  if (days < 7) return `Eksamen ${date}, om ${days} dager`;
+  if (days === 1) return `Eksamen ${date}${separator}i morgen`;
+  if (days < 7) return `Eksamen ${date}${separator}om ${days} dager`;
   const weeks = weeksUntilExam(examDate, today);
-  return `Eksamen ${date}, om ${weeks} ${weeks === 1 ? "uke" : "uker"}`;
+  return `Eksamen ${date}${separator}om ${weeks} ${weeks === 1 ? "uke" : "uker"}`;
 }
 
 // The count part: «4 av 8 forelesninger øvd» («0 av 1 forelesning øvd» in the
@@ -46,15 +54,4 @@ export function practicedText(lectures: { practiced: boolean }[]): string {
   if (total === 0) return "Ingen forelesninger ennå";
   const practiced = lectures.filter((lecture) => lecture.practiced).length;
   return `${practiced} av ${total} ${total === 1 ? "forelesning" : "forelesninger"} øvd`;
-}
-
-// The whole line. Without the lectures (the overview is not loaded yet, or it
-// failed) only the exam part is shown, never a guessed number.
-export function examLine(
-  examDate: string,
-  today: Date,
-  lectures: { practiced: boolean }[] | undefined,
-): string {
-  const exam = examCountdownText(examDate, today);
-  return lectures ? `${exam} · ${practicedText(lectures)}` : exam;
 }

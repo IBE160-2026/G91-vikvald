@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { daysUntilExam, examCountdownText, examLine, practicedText, weeksUntilExam } from "./exam";
+import { daysUntilExam, examCountdownText, practicedText, weeksUntilExam } from "./exam";
 
 // Tuesday 10.11.2026 at noon, local time (vitest runs in Europe/Oslo), as in mockup 02.
 const TODAY = new Date(2026, 10, 10, 12);
@@ -19,9 +19,6 @@ describe("tid til eksamen", () => {
     expect(weeksUntilExam("2026-11-21", TODAY)).toBe(2);
   });
 
-  it("SK-22: uker til eksamen i skisse 02: «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd»", () => {
-    expect(examLine("2026-12-04", TODAY, lectures(4, 8))).toBe("Eksamen 04.12, om 3 uker · 4 av 8 forelesninger øvd");
-  });
 
   it("SK-22: uker til eksamen etter 34 og 21 dager", () => {
     expect(examCountdownText("2026-12-14", TODAY)).toBe("Eksamen 14.12, om 5 uker");
@@ -29,25 +26,20 @@ describe("tid til eksamen", () => {
   });
 
   it("FR-57: 7–10 dager står som «om 1 uke» i entall", () => {
-    expect(examLine("2026-11-17", TODAY, lectures(4, 8))).toBe("Eksamen 17.11, om 1 uke · 4 av 8 forelesninger øvd");
     expect(examCountdownText("2026-11-20", TODAY)).toBe("Eksamen 20.11, om 1 uke");
   });
 
   it("FR-57: under sju dager står dagene, og én dag er «i morgen»", () => {
-    expect(examLine("2026-11-13", TODAY, lectures(4, 8))).toBe("Eksamen 13.11, om 3 dager · 4 av 8 forelesninger øvd");
     expect(examCountdownText("2026-11-12", TODAY)).toBe("Eksamen 12.11, om 2 dager");
     expect(examCountdownText("2026-11-16", TODAY)).toBe("Eksamen 16.11, om 6 dager");
-    expect(examLine("2026-11-11", TODAY, lectures(4, 8))).toBe("Eksamen 11.11, i morgen · 4 av 8 forelesninger øvd");
   });
 
-  it("FR-57: eksamen i dag gir «Eksamen i dag · …»", () => {
-    expect(examLine("2026-11-10", TODAY, lectures(4, 8))).toBe("Eksamen i dag · 4 av 8 forelesninger øvd");
+  it("FR-57: eksamen i dag gir «Eksamen i dag»", () => {
     expect(examCountdownText("2026-11-10", new Date(2026, 10, 10, 0, 0))).toBe("Eksamen i dag");
     expect(examCountdownText("2026-11-10", new Date(2026, 10, 10, 23, 59))).toBe("Eksamen i dag");
   });
 
-  it("FR-57: passert eksamen gir «Eksamen var dd.mm · …»", () => {
-    expect(examLine("2026-11-09", TODAY, lectures(4, 8))).toBe("Eksamen var 09.11 · 4 av 8 forelesninger øvd");
+  it("FR-57: passert eksamen gir «Eksamen var dd.mm»", () => {
     expect(examCountdownText("2025-12-04", TODAY)).toBe("Eksamen var 04.12");
   });
 
@@ -74,14 +66,38 @@ describe("antall øvde forelesninger", () => {
   });
 
   it("SK-22: antall øvd med én forelesning står i entall: «0 av 1 forelesning øvd»", () => {
-    expect(examLine("2026-12-04", TODAY, lectures(0, 1))).toBe("Eksamen 04.12, om 3 uker · 0 av 1 forelesning øvd");
+    expect(practicedText(lectures(0, 1))).toBe("0 av 1 forelesning øvd");
   });
 
   it("SK-22: antall øvd uten forelesninger er «Ingen forelesninger ennå»", () => {
-    expect(examLine("2026-12-04", TODAY, [])).toBe("Eksamen 04.12, om 3 uker · Ingen forelesninger ennå");
+    expect(practicedText([])).toBe("Ingen forelesninger ennå");
   });
 
-  it("FR-57: uten oversikten (ikke lastet eller feilet) står bare eksamensdelen", () => {
-    expect(examLine("2026-12-04", TODAY, undefined)).toBe("Eksamen 04.12, om 3 uker");
+
+
+});
+
+describe("eksamensteksten på semesterlinja (story 5.5)", () => {
+  const DOT = { separator: " · " };
+  const SR = { weekday: true };
+
+  it("FR-57: semesterlinja skiller dato og tid igjen med «·»", () => {
+    expect(examCountdownText("2026-12-04", TODAY, DOT)).toBe("Eksamen 04.12 · om 3 uker");
+    expect(examCountdownText("2026-11-13", TODAY, DOT)).toBe("Eksamen 13.11 · om 3 dager");
+    expect(examCountdownText("2026-11-11", TODAY, DOT)).toBe("Eksamen 11.11 · i morgen");
+    expect(examCountdownText("2026-11-10", TODAY, DOT)).toBe("Eksamen i dag");
+    expect(examCountdownText("2026-11-09", TODAY, DOT)).toBe("Eksamen var 09.11");
+  });
+
+  it("UX-DR11: den tekstlige versjonen har ukedagen foran datoen", () => {
+    expect(examCountdownText("2026-12-04", TODAY, SR)).toBe("Eksamen fredag 04.12, om 3 uker");
+    expect(examCountdownText("2026-11-11", TODAY, SR)).toBe("Eksamen onsdag 11.11, i morgen");
+    expect(examCountdownText("2026-11-13", TODAY, SR)).toBe("Eksamen fredag 13.11, om 3 dager");
+    expect(examCountdownText("2026-11-10", TODAY, SR)).toBe("Eksamen i dag");
+    expect(examCountdownText("2026-12-04", new Date(2026, 11, 10, 12), SR)).toBe("Eksamen var fredag 04.12");
+  });
+
+  it("SK-22: uten valg er teksten som før, med komma", () => {
+    expect(examCountdownText("2026-12-04", TODAY, {})).toBe("Eksamen 04.12, om 3 uker");
   });
 });

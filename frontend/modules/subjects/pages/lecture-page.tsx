@@ -30,6 +30,7 @@ import {
   lectureQueryKey,
 } from "../api";
 import { LectureFormDialog, type LectureFormMode } from "../components/lecture-form-dialog";
+import { SemesterTimeline } from "../components/semester-timeline";
 import { SubjectSidebar } from "../components/subject-sidebar";
 import { fileCountLabel, formatWeekdayDate, pageCountLabel } from "../format";
 
@@ -51,7 +52,9 @@ const REPLACE_REJECTIONS = new Set([
 // per file (each with «Erstatt» and «Slett»), the upload-zone, and in demo mode the note «I
 // demomodus sendes ingenting ut.». Next to it the h2 «Lag og øv» with the
 // Flashcards create-row (stories 3.1 and 3.2), which gets the file and page
-// counts for its dialog «Lag flashcards». Someone else's or a missing lecture shows
+// counts for its dialog «Lag flashcards». Between the buttons and «Filer»
+// stands the semester line for the lecture's subject, with «Du er her» at this
+// lecture (story 5.5). Someone else's or a missing lecture shows
 // «Fant ikke siden».
 //
 // Deleting (FR-7, FR-14) goes through the shared delete confirmation. After a
@@ -149,7 +152,7 @@ export function LecturePage({ lectureId }: { lectureId: string }) {
     // deleted lecture's own keys are left alone, so this page does not show
     // «Fant ikke siden» before she has left it.
     void queryClient.invalidateQueries({ queryKey: SUBJECTS_QUERY_KEY });
-    // The overview too: the exam line counts its lectures (story 5.3).
+    // The overview too: the semester line shows its lectures (story 5.5).
     void queryClient.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
   }
 
@@ -188,6 +191,14 @@ export function LecturePage({ lectureId }: { lectureId: string }) {
                 <Trash2 {...iconProps} />
                 Slett forelesningen
               </Button>
+            </div>
+
+            <div className="mt-6">
+              <SemesterTimeline
+                variant="lecture"
+                subjectId={lecture.data.subject_id}
+                currentLectureId={lectureId}
+              />
             </div>
 
             {/* Mockup 04: «Filer» (up to 496 px) and «Lag og øv» (up to 512 px) side by

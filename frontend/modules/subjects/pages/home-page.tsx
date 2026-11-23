@@ -6,7 +6,6 @@ import { useRef, useState } from "react";
 
 import { iconProps } from "@/components/icon";
 import { Button } from "@/components/ui/button";
-import { examLine } from "@/lib/exam";
 import { useFocusHeadingOnArrival } from "@/lib/focus-heading";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { fetchFileCounts, fileCountsQueryKey } from "@/modules/files/api";
@@ -15,6 +14,7 @@ import { OVERVIEW_QUERY_KEY, fetchOverview } from "@/modules/practice/api";
 import type { Overview } from "@/modules/practice/types";
 
 import { SUBJECTS_QUERY_KEY, fetchSubjects } from "../api";
+import { SemesterTimeline } from "../components/semester-timeline";
 import { SubjectCard } from "../components/subject-card";
 import { SubjectFormDialog } from "../components/subject-form-dialog";
 import { semesterLabel } from "../format";
@@ -22,15 +22,15 @@ import type { Subject } from "../types";
 
 // The front page (mockup 02): no sidebar, 80 px margin on both sides. The h1
 // «Dine emner», the semester and today's date under it, and the outline button
-// «Nytt emne» on the right. Under the subtitle stands one exam line per subject
-// (story 5.3): the name and «Eksamen 04.12, om 3 uker · 4 av 8 forelesninger
-// øvd». Under the lines, one subject card per subject in a grid (story 5.4,
-// FR-58, UX-DR12). With no subjects there is one sentence about the app and the
-// primary button «Lag ditt første emne».
+// «Nytt emne» on the right. Under the subtitle stands the semester line with
+// every subject (story 5.5, in place of the exam lines from 5.3). Under it, one
+// subject card per subject in a grid (story 5.4, FR-58, UX-DR12). With no
+// subjects there is one sentence about the app and the primary button «Lag
+// ditt første emne».
 // After a subject is deleted she lands here, and the h1 gets focus (#75).
 export function HomePage() {
   const subjects = useQuery({ queryKey: SUBJECTS_QUERY_KEY, queryFn: fetchSubjects });
-  // The counts N and M (story 5.3) and «øvd» per lecture for the cards (5.4).
+  // «Øvd» per lecture for the cards (5.4); the semester line reads the same query.
   // Invalidated when a session is saved, so the page shows the new status
   // without a reload.
   const overview = useQuery({ queryKey: OVERVIEW_QUERY_KEY, queryFn: fetchOverview });
@@ -72,7 +72,11 @@ export function HomePage() {
         </p>
       ) : null}
 
-      {subjects.data && hasSubjects ? <ExamLines subjects={subjects.data} overview={overview.data} /> : null}
+      {subjects.data && hasSubjects ? (
+        <div className="mt-6">
+          <SemesterTimeline variant="all" subjectIds={subjects.data.map((subject) => subject.id)} />
+        </div>
+      ) : null}
 
       {subjects.data && hasSubjects ? (
         <SubjectCards
@@ -97,32 +101,9 @@ export function HomePage() {
   );
 }
 
-// One line per subject, in the list's order, where mockup 02 has the semester
-// line (5.5 replaces these lines with it). The exam date and name come from the
-// subject list, so a changed exam date shows at once; the counts come from the
-// overview. Until the overview is loaded, or when it fails, only the exam part
-// is shown. Today is read again every time the page is drawn.
-// A list for screen readers (role="list"), built from div elements so it is
-// not one more `li` in the page: `main li` is the subject cards.
-function ExamLines({ subjects, overview }: { subjects: Subject[]; overview: Overview | undefined }) {
-  const today = new Date();
-  return (
-    <div role="list" className="mt-6 flex flex-col gap-2">
-      {subjects.map((subject) => {
-        const lectures = overview?.subjects.find((item) => item.id === subject.id)?.lectures;
-        return (
-          <div role="listitem" key={subject.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="text-item-title text-ink">{subject.name}</span>
-            <span className="text-meta text-ink-muted">{examLine(subject.exam_date, today, lectures)}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 // The subject cards in a grid (DESIGN.md "Layout", mockup 02): a `ul` with one
-// `li` per card in the subject list's order, card-gap between them. Three
+// `li` per card (the only `li` elements in `main` besides the semester line's
+// hidden text list for screen readers) in the subject list's order, card-gap between them. Three
 // columns when the content is at least 768 px wide, two from 576 px, otherwise
 // one (a container query on the list's own width).
 function SubjectCards({

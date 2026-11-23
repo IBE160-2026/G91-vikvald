@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { headingFocusPending, resetHeadingFocus } from "@/lib/focus-heading";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import type { UploadedFile } from "@/modules/files/types";
+import { OVERVIEW_QUERY_KEY } from "@/modules/practice/api";
 import { JobWatcher } from "@/modules/generation/components/job-watcher";
 import type { Job } from "@/modules/generation/types";
 
@@ -71,6 +72,10 @@ let jobOutcome: { status: "done" | "failed"; created: number | null; error_code:
 };
 let holdJob = false;
 let startStatus = 202;
+// What GET /api/overview answers with: the lectures with these ids are practised
+// (story 5.5), or a status code to fail with.
+let practisedIds: string[] = [];
+let overviewStatus = 200;
 
 function job(changes: Partial<Job> = {}): Job {
   return {
@@ -112,6 +117,30 @@ function respond() {
       return jsonResponse(200, { id: "u1", email: "klara@eksempel.no", terms_accepted_at: termsAcceptedAt });
     }
     if (path === "/api/subjects") return jsonResponse(200, [MARKETING, ECONOMICS]);
+    if (path === "/api/overview") {
+      if (overviewStatus !== 200) return jsonResponse(overviewStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
+      const own = (subjectId: string) =>
+        lectures
+          .filter((lecture) => lecture.subject_id === subjectId)
+          .sort((x, y) => x.date.localeCompare(y.date))
+          .map((lecture) => ({
+            id: lecture.id,
+            name: lecture.name,
+            date: lecture.date,
+            practiced: practisedIds.includes(lecture.id),
+            last_practiced_at: practisedIds.includes(lecture.id) ? "2026-11-03T10:00:00Z" : null,
+          }));
+      return jsonResponse(200, {
+        subjects: [MARKETING, ECONOMICS].map((subject) => ({
+          id: subject.id,
+          name: subject.name,
+          color_index: subject.color_index,
+          exam_date: subject.exam_date,
+          lectures: own(subject.id),
+          last_session: null,
+        })),
+      });
+    }
     if (path === "/api/subjects/a/lectures") {
       const sorted = [...lectures].sort((x, y) => x.date.localeCompare(y.date) || x.created_at.localeCompare(y.created_at));
       return jsonResponse(200, sorted);
@@ -218,6 +247,7 @@ function renderPage(id = "l2") {
       </JobWatcher>
     </QueryClientProvider>,
   );
+  return client;
 }
 
 function lectureHrefs(nav: HTMLElement): (string | null)[] {
@@ -244,6 +274,8 @@ beforeEach(() => {
   holdJob = false;
   pathname = "/forelesninger/l2";
   startStatus = 202;
+  practisedIds = [];
+  overviewStatus = 200;
   push.mockReset();
   vi.stubGlobal("fetch", fetchMock);
   respond();
@@ -311,6 +343,12 @@ describe("forelesningssiden", () => {
     const nav = await screen.findByRole("navigation", { name: "Emner" });
     await within(nav).findByRole("link", { name: "Uke 38: Prising Ikke øvd ennå" });
     expect(lectureHrefs(nav)).toEqual(["/forelesninger/l1", "/forelesninger/l2"]);
+    // The semester line (story 5.5) starts in September before the change.
+    const timeline = await screen.findByRole("region", { name: "Semesterlinje" });
+    const station = () => timeline.querySelector('[data-station="l2"] circle:not([data-part])')?.getAttribute("cx");
+    await waitFor(() => expect(station()).toBeTruthy());
+    const before = station();
+    expect(within(timeline).queryByText("AUG")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Endre dato" }));
     const dialog = screen.getByRole("dialog", { name: "Endre dato" });
@@ -323,6 +361,9 @@ describe("forelesningssiden", () => {
     expect(await screen.findByText("Forelesning fredag 21.08.2026 · 0 filer · 0 sider")).toBeTruthy();
     await waitFor(() => expect(lectureHrefs(nav)).toEqual(["/forelesninger/l2", "/forelesninger/l1"]));
     expect(screen.queryByRole("dialog")).toBeNull();
+    // The overview is refetched: the line now starts in August and the station has moved.
+    expect(await within(timeline).findByText("AUG")).toBeTruthy();
+    expect(station()).not.toBe(before);
   });
 
   it("FR-7: «Nytt navn» viser dagens navn og oppdaterer h1 og sidemenyen", async () => {
@@ -1361,5 +1402,57 @@ describe("Quiz-raden (story 4.1)", () => {
     fireEvent.click(within(row).getByRole("button", { name: "Prøv igjen" }));
     expect(document.activeElement).toBe(row);
     await waitFor(() => expect(posts()).toEqual([{ kind: "quiz", params: { requested: 10, difficulty: "easy" } }]));
+  });
+});
+
+describe("Semesterlinja på forelesningssiden (story 5.5)", () => {
+  beforeEach(() => {
+    // Tuesday 10.11.2026 at noon, as in mockup 02.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 10, 10, 12));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function timeline(): HTMLElement {
+    return screen.getByRole("region", { name: "Semesterlinje" });
+  }
+
+  it("UX-DR11: linja for emnet står mellom knapperaden og «Filer», med «Du er her» ved denne forelesningen", async () => {
+    renderPage();
+    expect(
+      await screen.findByText("Markedsføring: 0 av 2 forelesninger øvd. Eksamen fredag 04.12, om 3 uker."),
+    ).toBeTruthy();
+    const buttons = screen.getByRole("button", { name: "Slett forelesningen" });
+    const files = screen.getByRole("heading", { level: 2, name: "Filer" });
+    expect(buttons.compareDocumentPosition(timeline()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(timeline().compareDocumentPosition(files) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const hidden = timeline().querySelector('[aria-hidden="true"]') as HTMLElement;
+    expect(within(hidden).getByText("Du er her")).toBeTruthy();
+    expect(hidden.querySelector('[data-station="l2"] [data-part="current"]')).toBeTruthy();
+    expect(hidden.querySelector('[data-station="l1"] [data-part="current"]')).toBeNull();
+    // Only the lecture's subject.
+    expect(within(timeline()).getAllByRole("listitem")).toHaveLength(1);
+    expect(within(hidden).queryByText("Samfunnsøkonomi")).toBeNull();
+  });
+
+  it("SK-22: ny status vises uten omlasting når oversikten ugyldiggjøres", async () => {
+    const client = renderPage();
+    expect(await screen.findByText(/^Markedsføring: 0 av 2 forelesninger øvd/)).toBeTruthy();
+    practisedIds = ["l2"];
+    await act(async () => {
+      await client.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
+    });
+    expect(await screen.findByText(/^Markedsføring: 1 av 2 forelesninger øvd/)).toBeTruthy();
+    expect(timeline().querySelector('[data-station="l2"]')?.getAttribute("data-practiced")).toBe("true");
+  });
+
+  it("FR-57: når oversikten feiler, står reserveteksten i linja", async () => {
+    overviewStatus = 500;
+    renderPage();
+    await screen.findByRole("heading", { level: 1, name: "Uke 38: Prising" });
+    expect((await within(timeline()).findByRole("alert")).textContent).toBe(FALLBACK_MESSAGE);
   });
 });

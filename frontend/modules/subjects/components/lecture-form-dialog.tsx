@@ -68,6 +68,8 @@ export function LectureFormDialog({ mode, open, onClose, subjectId, lecture }: P
     queryClient.setQueryData(lectureQueryKey(updated.id), updated);
     // A new date can move the lecture in the list; the backend decides the order.
     void queryClient.invalidateQueries({ queryKey: lecturesQueryKey(updated.subject_id) });
+    // The semester line (story 5.5) places the stations by the overview's dates.
+    void queryClient.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
     onClose();
   }
 
