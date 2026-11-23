@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://studiekamerat:studiekamerat@localhost:5432/studiekamerat"
     # Which model provider to use. "mock" and "mock-invalid" are demo mode.
     LLM_PROVIDER: Literal["mock", "mock-invalid", "vertex"] = "mock"
+    # Gemini on Vertex AI (LLM_PROVIDER=vertex). Not needed in demo mode, so they
+    # have no default here; generation/providers.py stops the startup when
+    # vertex is chosen and one of the first two is missing.
+    GOOGLE_CLOUD_PROJECT: str | None = None
+    VERTEX_MODEL: str | None = None
+    # How much the model thinks before answering. "low" is fast and cheap.
+    VERTEX_THINKING: Literal["minimal", "low", "medium", "high"] = "low"
     # Switches for the should-have features. Off means their routes answer 404 FEATURE_DISABLED.
     FEATURE_MNEMONICS: bool = True
     FEATURE_FREETEXT: bool = True
