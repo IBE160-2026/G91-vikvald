@@ -33,19 +33,27 @@ Bare port 3000 er åpen ut av Docker.
 
 ## Start appen
 
-Du trenger verken nøkler eller `.env`-fil. Kjør fra rota i repoet:
+Du trenger verken nøkler, kontoer eller `.env`-fil. Uten `.env` starter appen i demomodus, der en innebygd demomodell lager innholdet uten nett (se «Bruk Gemini (Vertex AI)» for ekte språkmodell). Kjør fra rota i repoet:
 
 ```bash
 docker compose up
 ```
 
-Har du hentet nye endringer i koden, bruker du `docker compose up --build`, slik at appen bygges på nytt.
+Første oppstart tar noen minutter, fordi Docker bygger appen. Har du hentet nye endringer i koden, bygger du appen på nytt:
+
+```bash
+docker compose up --build
+```
 
 Åpne så <http://localhost:3000>. Helsesjekken ligger på <http://localhost:3000/api/health> og svarer `{"status": "ok"}` når databasen kan nås.
 
 En adresse som ikke finnes, for eksempel <http://localhost:3000/finnes-ikke>, viser «Fant ikke siden» med lenken «Gå til forsiden».
 
-Backenden kjører databaseendringene (`alembic upgrade head`) før den starter. Stopp appen med `Ctrl+C`, eller med `docker compose down` hvis den kjører i bakgrunnen (`-d`).
+Backenden kjører databaseendringene (`alembic upgrade head`) før den starter. Stopp appen med `Ctrl+C`. Kjører den i bakgrunnen (startet med `-d`), stopper du den slik:
+
+```bash
+docker compose down
+```
 
 ### Testbruker og eksempelemne
 
@@ -60,11 +68,24 @@ Innholdet er laget av demomodellen. Demoinnholdet er enkelt og mekanisk: det vis
 
 Godt å vite:
 
-- **Bare på tom database.** Testbrukeren lages bare når `APP_ENV=local` og databasen ikke har noen kontoer. Har du startet appen før og laget kontoer, lages hun ikke. Vil du begynne på nytt, sletter `docker compose down -v` databasen og de opplastede filene (alt forsvinner), og neste `docker compose up` lager testbrukeren. En ny oppstart lager aldri en ekstra testbruker. Feiler fyllingen, slettes testbrukeren igjen, appen starter likevel, og neste oppstart prøver på nytt.
+- **Bare på tom database.** Testbrukeren lages bare når `APP_ENV=local` og databasen ikke har noen kontoer. Har du startet appen før og laget kontoer, lages hun ikke. Vil du begynne på nytt, sletter denne kommandoen databasen og de opplastede filene (alt forsvinner), og neste `docker compose up` lager testbrukeren:
+
+  ```bash
+  docker compose down -v
+  ```
+
+  En ny oppstart lager aldri en ekstra testbruker. Feiler fyllingen, slettes testbrukeren igjen, appen starter likevel, og neste oppstart prøver på nytt.
 - **Notatene er plassholdere.** De tre notatene i `backend/app/seed/notater/` er laget av KI og merket «PLASSHOLDER – skrives av Silje» øverst. De byttes ut med notater Silje skriver eller godkjenner selv (issue #13).
 - **Kilde og lisens.** Notatene bygger på OpenStax *Principles of Marketing*, som lastes ned gratis fra <https://openstax.org/details/books/principles-marketing>. Notatene krediterer boka nederst, sier at teksten er endret, og deles under CC BY-NC-SA 4.0, som boka (se `backend/app/seed/notater/LISENS.md`). Ingen PDF fra OpenStax ligger i repoet. Vil du prøve appen med et kapittel fra en OpenStax-bok, laster du ned PDF-en fra openstax.org selv, og krediterer OpenStax hvis du deler noe du har laget av den.
 - **Principles of Economics.** OpenStax *Principles of Economics 3e* ble brukt til å måle regelen for formelsider i story 6.3. Den lastes ned gratis fra <https://openstax.org/details/books/principles-economics-3e> og krediteres OpenStax slik bokas egen lisensside sier. Ingen PDF fra den ligger i repoet.
-- **Endre et notat.** PDF-ene lages fra kildeteksten (`*.md`) med `uv run python -m app.seed.build_notes` i `backend/`. En test sjekker at teksten i PDF-ene er den samme som i kildeteksten. Et notat som erstatter et av dem, må følge disse reglene, ellers lager demomodellen feil kort eller testene blir røde:
+- **Endre et notat.** PDF-ene lages fra kildeteksten (`*.md`) med denne kommandoen:
+
+  ```bash
+  cd backend
+  uv run python -m app.seed.build_notes
+  ```
+
+  En test sjekker at teksten i PDF-ene er den samme som i kildeteksten. Et notat som erstatter et av dem, må følge disse reglene, ellers lager demomodellen feil kort eller testene blir røde:
   - Første linje er «PLASSHOLDER – skrives av Silje» så lenge notatet er en plassholder. Når Siljes egen tekst erstatter det, fjernes linja, og testen `test_nfr3_note_is_marked_placeholder` oppdateres.
   - Minst fire definisjonssetninger med «er» (for eksempel «Prisen er summen kunden betaler.»), og «er» ingen andre steder i teksten.
   - Minst én punktliste med tre eller flere linjer som begynner med «• ».
@@ -72,7 +93,11 @@ Godt å vite:
   - Krediteringen (`# Kilde`) står nederst.
   - `EXPECTED_FRONTS` i `backend/tests/test_seed.py` og `CARDS`/`QUESTIONS` i `frontend/e2e/testbruker.spec.ts` oppdateres til de nye kortene.
 - **Datoene settes én gang**, når databasen fylles. Etter `docker compose down -v` og en ny oppstart får emnet nye datoer.
-- **Feil i fyllingen** står som linja `Seed failed: <feiltype>` i backendloggen (`docker compose logs backend`).
+- **Feil i fyllingen** står som linja `Seed failed: <feiltype>` i backendloggen. Den ser du slik:
+
+  ```bash
+  docker compose logs backend
+  ```
 
 ### Opprett en konto
 
@@ -197,13 +222,31 @@ Testene kaller aldri Vertex AI. De kjører alltid med `LLM_PROVIDER=mock`, og ek
 
 ## Testene
 
-| Hva | Kommando | Hvor |
-| --- | --- | --- |
-| Backend (pytest, SQLite i minnet) | `uv run pytest` | `backend/` |
-| Frontend (Vitest) | `npm run test` | `frontend/` |
-| Ende-til-ende (Playwright og axe) | `npx playwright test` | `frontend/`, mens appen kjører med `docker compose up --build` |
+Det finnes tre sett med tester. Kommandoene kjøres fra rota i repoet.
 
-Første gang Playwright kjøres, må nettleseren lastes ned:
+**Backend** (pytest, med SQLite i minnet, trenger ikke Docker):
+
+```bash
+cd backend
+uv sync
+uv run pytest
+```
+
+**Frontend** (Vitest, trenger ikke Docker):
+
+```bash
+cd frontend
+npm install
+npm run test
+```
+
+**Ende-til-ende** (Playwright i nettleseren, med axe for universell utforming). Testene trenger at appen kjører. Start den i bakgrunnen:
+
+```bash
+docker compose up --build -d
+```
+
+Første gang må nettleseren til Playwright lastes ned:
 
 ```bash
 cd frontend
@@ -211,7 +254,31 @@ npm install
 npx playwright install chromium
 ```
 
-Hver test har krav-ID-en den dekker i navnet, for eksempel `test_nfr1_health_svarer_ok`.
+Kjør så testene i `frontend/`:
+
+```bash
+npx playwright test
+```
+
+Testene av testbrukeren (`e2e/testbruker.spec.ts`) hopper over seg selv hvis databasen hadde kontoer fra før, siden testbrukeren da ikke lages. Vil du at de skal feile i stedet, slik at en ødelagt fylling ikke skjules:
+
+```bash
+E2E_REQUIRE_SEED=1 npx playwright test
+```
+
+Stopp appen etterpå:
+
+```bash
+docker compose down
+```
+
+Hver test har krav-ID-en den dekker i navnet, for eksempel `test_nfr1_health_svarer_ok` eller `FR-17: lager flashcards`.
+
+### Testplan og testdekning
+
+[`docs/testplan.md`](docs/testplan.md) viser hvilke tester som dekker hvert må ha-krav (FR-1–FR-41 og FR-56–FR-58), hvor suksesskriteriene SK-2–SK-22 kontrolleres, og hvilke krav som bare kan kontrolleres for hånd. En backend-test (`test_sk1_every_must_requirement_has_test_or_reason`) sjekker at hvert må ha-krav har en test med krav-ID-en i navnet eller en begrunnelse i testplanen.
+
+[`docs/testing/brukerreiser.md`](docs/testing/brukerreiser.md) viser de fire brukerreisene fra start til slutt og hvilken Playwright-test som dekker hvert steg.
 
 ### Automatisk ved hver pull request
 
@@ -247,3 +314,12 @@ Alle innstillingene har standardverdier, så `.env` er valgfri. Vil du endre noe
 - [UX: utseende (DESIGN.md)](_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/DESIGN.md) og [oppførsel (EXPERIENCE.md)](_bmad-output/planning-artifacts/ux-designs/ux-G91-vikvald-2026-11-10/EXPERIENCE.md)
 - [Epics og stories](_bmad-output/planning-artifacts/epics.md)
 - [KI-prosessen](docs/ki-prosess/)
+- [Testplanen](docs/testplan.md) og [brukerreisene](docs/testing/brukerreiser.md)
+
+## Lisens og kreditering
+
+Koden er lisensiert under **GNU Affero General Public License versjon 3 (AGPL-3.0)**, se [`LICENSE`](LICENSE). Grunnen er at backenden bruker [PyMuPDF](https://pymupdf.readthedocs.io/) til å lese PDF-er, og PyMuPDF er AGPL-3.0. Et offentlig repo som bruker PyMuPDF, må derfor dele koden sin under AGPL. Endrer du koden og lar andre bruke appen over nett, må du også tilby dem kildekoden til endringene.
+
+Eksempelnotatene i `backend/app/seed/notater/` er ikke under AGPL. De bygger på OpenStax *Principles of Marketing* og deles under **CC BY-NC-SA 4.0**, som boka (se [`backend/app/seed/notater/LISENS.md`](backend/app/seed/notater/LISENS.md)). Ingen PDF fra OpenStax ligger i repoet.
+
+Appen bygger på åpen kildekode, blant annet FastAPI, SQLAlchemy, PyMuPDF og pydantic-ai i backenden og Next.js og React i frontenden. Lisensene deres følger med pakkene (`backend/uv.lock` og `frontend/package-lock.json`).
