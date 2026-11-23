@@ -89,6 +89,9 @@ async function lectureWithContent(page: Page): Promise<{ subjectId: string; lect
 }
 
 test.describe("Universell utforming og skjermbredde på alle sider (story 6.6)", () => {
+  // Each test checks many states twice (1280 and 768 px) with axe, which takes
+  // over 30 s when the whole suite runs in parallel.
+  test.describe.configure({ timeout: 120_000 });
   test("NFR-13, NFR-14, SK-9: innloggingen og oppretting av konto, tomme og med feilmelding, og «Fant ikke siden» utlogget, i 1280 og 768 px", async ({
     page,
   }) => {
