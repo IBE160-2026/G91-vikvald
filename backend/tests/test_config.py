@@ -115,11 +115,50 @@ def test_ar11_ugyldig_provider_stopper_oppstart() -> None:
     assert "Traceback" not in output
 
 
-def test_nfr4_alle_innstillinger_staar_i_env_example() -> None:
-    text = ENV_EXAMPLE.read_text(encoding="utf-8")
-    names = set(re.findall(r"^([A-Z][A-Z0-9_]*)=", text, flags=re.MULTILINE))
-    missing = sorted(name for name in Settings.model_fields if name not in names)
+# Settings that are secret: .env.example must leave them empty.
+SECRET_SETTINGS = ("JWT_SECRET", "GOOGLE_CLOUD_PROJECT")
+
+# Imports the backend with every .env file switched off, so a developer's own
+# .env (in the repo root or in backend/) cannot hide a missing default.
+_IMPORT_WITHOUT_ENV_FILE = """
+from app.core import config
+config.Settings.model_config["env_file"] = None
+config.get_settings.cache_clear()
+import app.main
+settings = config.get_settings()
+assert settings.APP_ENV == "local", settings.APP_ENV
+assert settings.demo_mode, settings.LLM_PROVIDER
+print("ok")
+"""
+
+
+def test_nfr4_env_example_lists_all_settings() -> None:
+    lines = ENV_EXAMPLE.read_text(encoding="utf-8").splitlines()
+    values: dict[str, str] = {}
+    uncommented = []
+    for index, line in enumerate(lines):
+        if match := re.match(r"^([A-Z][A-Z0-9_]*)=(.*)$", line):
+            values[match.group(1)] = match.group(2)
+            if index == 0 or not lines[index - 1].startswith("#"):
+                uncommented.append(match.group(1))
+
+    missing = sorted(name for name in Settings.model_fields if name not in values)
     assert not missing, f"Missing in .env.example: {', '.join(missing)}"
+    assert not uncommented, f"No comment line right above in .env.example: {', '.join(uncommented)}"
+    filled = [name for name in SECRET_SETTINGS if values[name].strip()]
+    assert not filled, f"Secret settings must be empty in .env.example: {', '.join(filled)}"
+
+    # The app can be made from an empty environment with APP_ENV=local and no .env.
+    result = subprocess.run(
+        [sys.executable, "-c", _IMPORT_WITHOUT_ENV_FILE],
+        cwd=BACKEND_DIR,
+        env={"PATH": os.environ.get("PATH", ""), "APP_ENV": "local"},
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout.strip().endswith("ok")
 
 
 def _settings(monkeypatch: pytest.MonkeyPatch, app_env: str, jwt_secret: str | None) -> Settings:

@@ -49,7 +49,7 @@ async def test_fr20_kortene_har_kilde_og_kommer_i_fil_og_siderekkefolge(client: 
     assert cards[0]["back"] == "Alfa er et begrep i faget."
 
 
-async def test_fr20_bare_sporsmal_og_begrepskort_kommer_med(
+async def test_fr19_bare_sporsmal_og_begrepskort_kommer_med(
     client: AsyncClient, lecture: str, engine: AsyncEngine
 ) -> None:
     await _start(client, lecture)

@@ -1,1 +1,3 @@
 *.sh text eol=lf
+# Keep the licence byte for byte as published by GNU (a test checks its SHA-256).
+LICENSE -text
