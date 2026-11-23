@@ -1,5 +1,5 @@
-"""The instructions for the real model (story 6.2): one file per content type in
-generation/instructions/, pointed to from the registry and read by
+"""The instructions for the real model (story 6.2, model cards in story 7.1): one
+file per content type in generation/instructions/, pointed to from the registry and read by
 VertexGenerator (AR-3), with the rules from FR-2, FR-28, FR-31 and SK-17.
 
 These tests check what the files say. Whether Gemini follows them can only be
@@ -32,7 +32,7 @@ def _flat(kind: str) -> str:
 # --- The files (AR-3) ------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
 def test_ar3_instructions_file_is_in_instructions_folder(kind: str) -> None:
     path = get_content_type(kind).instructions_file
     assert path == INSTRUCTIONS_DIR / f"{kind}.md"
@@ -43,7 +43,7 @@ def test_ar3_old_prompts_folder_is_gone() -> None:
     assert not (GENERATION_DIR / "prompts").exists()
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
 def test_ar3_instructions_file_is_tracked_in_git(kind: str) -> None:
     path = get_content_type(kind).instructions_file
     try:
@@ -60,7 +60,7 @@ def test_ar3_instructions_file_is_tracked_in_git(kind: str) -> None:
     assert result.returncode == 0, result.stderr
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
 def test_ar3_instructions_ask_for_the_source_from_the_page_label(kind: str) -> None:
     text = _text(kind)
     assert "file_id: …, filnavn: …, page_no: …" in text
@@ -68,7 +68,7 @@ def test_ar3_instructions_ask_for_the_source_from_the_page_label(kind: str) -> N
     assert "`page_no` som PDF-ens eget sidetall fra 1" in text
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
 def test_ar3_instructions_only_use_the_pages(kind: str) -> None:
     assert "bruk bare stoff som står på sidene" in _flat(kind)
 
@@ -76,7 +76,7 @@ def test_ar3_instructions_only_use_the_pages(kind: str) -> None:
 # --- Language (FR-2) -------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
 def test_fr2_flashcard_instructions_require_norwegian_terms(kind: str) -> None:
     text = _flat(kind)
     assert "norsk bokmål, også når notatene er på engelsk" in text
@@ -155,13 +155,44 @@ def test_fr31_quiz_instructions_forbid_all_of_the_above() -> None:
     assert "ikke bruk «alle de ovenfor»" in text
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
 def test_sk17_instructions_skip_pages_without_content_and_allow_an_empty_list(kind: str) -> None:
     text = _flat(kind)
     assert "sider uten faglig innhold" in text
     assert "er en tom liste et riktig svar" in text
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
 def test_ar3_instructions_cite_the_main_page_when_several_pages_are_used(kind: str) -> None:
     assert "på flere sider, oppgi siden der hovedpoenget står" in _flat(kind)
+
+
+# --- Model cards (FR-42-FR-44, story 7.1) ------------------------------------------------
+
+
+def test_fr42_model_instructions_ask_for_one_card_per_model_with_forklar() -> None:
+    text = _flat("models")
+    assert "ett kort for hver modell eller liste" in text
+    assert "minst tre punkter" in text
+    assert "begynner med «forklar»" in text
+    assert "samme rekkefølge som i notatene" in text
+
+
+def test_fr43_model_instructions_describe_the_mnemonic() -> None:
+    text = _flat("models")
+    assert "forbokstaven i hvert punkt, med store bokstaver" in text
+    assert "«aida»" in text
+
+
+def test_fr44_model_instructions_leave_out_the_mnemonic_when_letters_are_the_same() -> None:
+    text = _flat("models")
+    assert "begynner alle punktene med samme bokstav" in text
+    assert "sett da `mnemonic` til `null`" in text
+
+
+def test_fr42_model_instructions_name_every_field_of_the_loose_model() -> None:
+    from app.modules.generation.model_cards import LooseModelCard
+
+    text = _text("models")
+    for field in LooseModelCard.model_fields:
+        assert f"`{field}`" in text, field
