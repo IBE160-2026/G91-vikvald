@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from app.core.config import get_settings  # noqa: E402
 from app.core.db import Base, get_session, get_sessionmaker, make_engine  # noqa: E402
 from app.main import app  # noqa: E402
+from app.modules.generation.providers import _vertex_generator  # noqa: E402
 from app.modules.content import models as _content_models  # noqa: E402, F401  (registers flashcards)
 from app.modules.files import models as _files_models  # noqa: E402, F401  (registers files)
 from app.modules.generation import models as _generation_models  # noqa: E402, F401  (registers jobs)
@@ -36,8 +37,10 @@ def fresh_settings() -> Iterator[None]:
     """Settings are cached. Clear the cache around every test, so a test that
     changes the environment with monkeypatch gets (and leaves) fresh settings."""
     get_settings.cache_clear()
+    _vertex_generator.cache_clear()
     yield
     get_settings.cache_clear()
+    _vertex_generator.cache_clear()
 
 
 @pytest.fixture(autouse=True)

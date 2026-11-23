@@ -22,7 +22,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.core.config import get_settings
 from app.main import app, lifespan
-from app.modules.generation import service
+from app.modules.generation import service, vertex
+from app.modules.generation.mock import InvalidMockGenerator, MockGenerator
 from app.modules.generation.port import GenerationOptions, Page
 from app.modules.generation.providers import (
     MissingProviderSettingError,
@@ -122,7 +123,14 @@ async def test_ar3_vertex_with_settings_starts_without_critical(
 
 @pytest.mark.parametrize(
     ("project", "model", "missing"),
-    [(None, MODEL, "GOOGLE_CLOUD_PROJECT"), (PROJECT, None, "VERTEX_MODEL"), (None, None, "GOOGLE_CLOUD_PROJECT")],
+    [
+        (None, MODEL, "GOOGLE_CLOUD_PROJECT"),
+        (PROJECT, None, "VERTEX_MODEL"),
+        (None, None, "GOOGLE_CLOUD_PROJECT"),
+        # Docker Compose passes an unset value on as "" (or it may be blank).
+        ("", MODEL, "GOOGLE_CLOUD_PROJECT"),
+        (PROJECT, "  ", "VERTEX_MODEL"),
+    ],
 )
 async def test_ar11_vertex_missing_setting_stops_startup(
     monkeypatch: pytest.MonkeyPatch,
@@ -146,8 +154,8 @@ def test_ar11_demo_mode_never_needs_vertex_settings(monkeypatch: pytest.MonkeyPa
     _vertex_env(monkeypatch, None, None)
     monkeypatch.setenv("LLM_PROVIDER", "mock")
     get_settings.cache_clear()
-    select_generator("mock")
-    select_generator("mock-invalid")
+    assert isinstance(select_generator("mock"), MockGenerator)
+    assert isinstance(select_generator("mock-invalid"), InvalidMockGenerator)
 
 
 async def test_nfr4_config_has_no_secrets(client: AsyncClient, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -174,6 +182,28 @@ def test_ar3_only_generation_imports_pydantic_ai() -> None:
 def test_nfr4_no_next_public_vertex_settings() -> None:
     for name in (".env.example", "docker-compose.yml"):
         assert "NEXT_PUBLIC_" not in (REPO_ROOT / name).read_text(encoding="utf-8"), name
+    # No frontend file names a Vertex setting at all, with or without the prefix.
+    frontend = REPO_ROOT / "frontend"
+    sources = [
+        path
+        for folder in ("app", "components", "lib", "modules")
+        for path in (frontend / folder).rglob("*")
+        if path.suffix in {".ts", ".tsx"}
+    ]
+    assert sources
+    for path in sources:
+        text = path.read_text(encoding="utf-8")
+        for name in ("GOOGLE_CLOUD_PROJECT", "VERTEX_MODEL", "VERTEX_THINKING"):
+            assert name not in text, (path, name)
+
+
+def test_nfr4_http_client_logs_never_show_vertex_urls() -> None:
+    # The URLs hold the project ID: the HTTP clients only log warnings and up,
+    # in code (vertex.py) and in Uvicorn's logging.json.
+    config = json.loads((BACKEND_DIR / "app" / "core" / "logging.json").read_text(encoding="utf-8"))
+    for name in ("httpx", "httpcore", "google_genai"):
+        assert logging.getLogger(name).level == logging.WARNING, name
+        assert config["loggers"][name]["level"] == "WARNING", name
 
 
 def test_nfr4_env_example_has_vertex_placeholders() -> None:
@@ -270,6 +300,7 @@ async def test_fr21_vertex_failure_gives_generation_failed_without_note_text_in_
     assert (job["status"], job["error_code"], job["created"]) == ("failed", "GENERATION_FAILED", None)
     assert await _cards(engine) == []
     assert job["id"] in caplog.text
+    assert "GENERATION_FAILED" in caplog.text
     assert "RuntimeError" in caplog.text
     assert "Merkevare" not in caplog.text
 
@@ -278,13 +309,33 @@ async def test_ar3_real_vertex_call_is_blocked_in_tests(
     client: AsyncClient, lecture: str, engine: AsyncEngine
 ) -> None:
     # The real GoogleModel: ALLOW_MODEL_REQUESTS = False stops it before any
-    # network call, and the job fails the normal way.
-    app.dependency_overrides[get_generator] = lambda: VertexGenerator(build_vertex_model(PROJECT, MODEL))
+    # credentials or network are touched ...
+    generator = VertexGenerator(build_vertex_model(PROJECT, MODEL))
+    with pytest.raises(RuntimeError, match="ALLOW_MODEL_REQUESTS"):
+        await generator.generate("flashcards", [Page(uuid.uuid4(), 1, "Merkevare er et navn.")], GenerationOptions(requested=1))
+    # ... and in a job it fails the normal way.
+    app.dependency_overrides[get_generator] = lambda: generator
     await _start(client, lecture)
     await _finish_jobs()
     [job] = await _latest(client, lecture)
     assert (job["status"], job["error_code"]) == ("failed", "GENERATION_FAILED")
     assert await _cards(engine) == []
+
+
+async def test_nfr4_vertex_thinking_reaches_the_model_call(monkeypatch: pytest.MonkeyPatch) -> None:
+    # FunctionModel drops settings it does not support (thinking), so the
+    # settings are checked where the agent is made for the call.
+    made: list[dict[str, Any]] = []
+    real_agent = vertex.Agent
+
+    def spy_agent(*args: Any, **kwargs: Any) -> Any:
+        made.append(kwargs)
+        return real_agent(*args, **kwargs)
+
+    monkeypatch.setattr(vertex, "Agent", spy_agent)
+    generator = VertexGenerator(FunctionModel(lambda messages, info: _answer([])), {"thinking": "high"})
+    assert await generator.generate("flashcards", [Page(uuid.uuid4(), 1, "x")], GenerationOptions(requested=1)) == []
+    assert [kwargs["model_settings"] for kwargs in made] == [{"thinking": "high"}]
 
 
 async def test_fr21_vertex_timeout_gives_generation_timeout(
