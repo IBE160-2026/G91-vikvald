@@ -37,8 +37,10 @@ export async function expectOnHomePage(page: Page) {
 // A PDF made by the test itself (e2e/pdf.ts), so no real notes are used.
 export type TestFile = { name: string; mimeType: string; buffer: Buffer };
 
-export function pdfFile(name: string, pages: string[]): TestFile {
-  return { name, mimeType: "application/pdf", buffer: makePdf({ pages }) };
+// Pages in formulaPages (from 1) also get a formula drawn as vector curves,
+// which the backend marks needs_image at upload (story 6.3, FR-40).
+export function pdfFile(name: string, pages: string[], formulaPages: number[] = []): TestFile {
+  return { name, mimeType: "application/pdf", buffer: makePdf({ pages, formulaPages }) };
 }
 
 // The start of a .docx file (a zip archive): not a PDF.
@@ -272,4 +274,21 @@ export function subjectCard(page: Page, name: string): Locator {
 // The lecture link in the sidebar, whose name ends with its status dot (story 5.1).
 export function sidebarLecture(page: Page, name: string): Locator {
   return page.getByRole("navigation", { name: "Emner" }).getByRole("link", { name: new RegExp(`^${name} (Øvd|Ikke øvd ennå)$`) });
+}
+
+// The formula flag (story 6.3, FR-41, UX-DR37), word for word.
+export const FORMULA_FLAG_TEXT = "Inneholder formel – sjekk mot kilden";
+
+// The formula flag inside `scope` (a card, an explanation or a missed-list row).
+export function formulaFlag(scope: Locator): Locator {
+  return scope.locator('[data-slot="formula-flag"]');
+}
+
+// The flag stands directly above the source, which names the file and page
+// Klara looks up in her PDF.
+export async function expectFormulaFlagAboveSource(scope: Locator, source: string) {
+  const flag = formulaFlag(scope);
+  await expect(flag).toHaveText(FORMULA_FLAG_TEXT);
+  const next = flag.locator('xpath=following-sibling::*[1][@data-slot="source-link"]');
+  await expect(next).toHaveText(source);
 }

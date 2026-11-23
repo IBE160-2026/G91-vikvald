@@ -10,9 +10,11 @@ import {
   createSubjectViaApi,
   dayFromToday,
   expectNoAxeViolations,
+  expectFormulaFlagAboveSource,
   expectOnHomePage,
   fileRows,
   flashcardCountViaApi,
+  formulaFlag,
   makeFlashcardsViaApi,
   makeQuizViaApi,
   pdfFile,
@@ -40,6 +42,11 @@ import {
 // «Four of eight lectures are practised» (step 1): Klara has practised the
 // four first lectures before, so one flashcard session for each of them is
 // saved through the API as well. The server decides «øvd» (story 5.1).
+// «Margin er forskjellen mellom pris og kostnad.» on page 5 of prising.pdf
+// also has a formula drawn as vector curves (Margin = pris - kostnad). The
+// backend marks that page needs_image at upload, so the card and the quiz
+// question from it carry «Inneholder formel – sjekk mot kilden» (story 6.3),
+// in demo mode too. That is the error path with the formula flag.
 // Only the steps that are built are tested; the rest (model cards and free
 // text) are listed as «ikke bygd ennå» in docs/testing/brukerreiser.md.
 // The steps share one browser context and run in order, like one visit by Klara.
@@ -82,6 +89,10 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     "Pris", "Rabatt", "Kampanje", "Margin", "Kanal", "Reklame", "Nettbutikk",
   ];
   const MERKEVARE_FRONTS = ["Merkevare", "Logo", "Slagord", "Image"];
+  const PRISING_FRONTS = ["Pris", "Rabatt", "Kampanje", "Margin"];
+  // The page with a formula (story 6.3): the card and question from it are flagged.
+  const FORMULA = { lecture: "Uke 38: Prising", file: "prising.pdf", page: 5, front: "Margin" } as const;
+  const FORMULA_SOURCE = `${FORMULA.file}, side ${FORMULA.page}`;
   // The lectures she practised before the flow starts (step 1: «fire av åtte»).
   const PRACTISED_BEFORE = LECTURES.slice(0, 4).map(([name]) => name);
   // The lectures she has made a quiz from.
@@ -116,7 +127,8 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     subjectId = await createSubjectViaApi(page, "Markedsføring", exam.iso);
     for (const [name, lectureDate, definitions] of LECTURES) {
       const lectureId = await createLectureViaApi(page, subjectId, name, lectureDate);
-      await uploadViaApi(page, lectureId, pdfFile(`${slugOf(name)}.pdf`, [name, ...definitions]));
+      const formulaPages = name === FORMULA.lecture ? [FORMULA.page] : [];
+      await uploadViaApi(page, lectureId, pdfFile(`${slugOf(name)}.pdf`, [name, ...definitions], formulaPages));
       await makeFlashcardsViaApi(page, lectureId, 10, definitions.length);
       if (QUIZ_LECTURES.includes(name)) await makeQuizViaApi(page, lectureId, 10, definitions.length);
       if (name === "Uke 37: Merkevare") merkevareId = lectureId;
@@ -231,6 +243,10 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
       await expect(page.locator('[data-slot="flashcard"] [data-slot="source-link"]')).toHaveText(
         new RegExp(`^${FILE_OF_FRONT.get(question)}, side [2-5]$`),
       );
+      // Only the card from the page with a formula carries the flag (story 6.3).
+      const card = page.locator('[data-slot="flashcard"]');
+      if (question === FORMULA.front) await expectFormulaFlagAboveSource(card, FORMULA_SOURCE);
+      else await expect(formulaFlag(card)).toHaveCount(0);
       if (i === 0) await expectNoAxeViolations(page);
       await page.keyboard.press("2");
     }
@@ -326,7 +342,14 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
       const question = await answerQuizQuestion(page, questions, number !== 3);
       if (number === 3) missed = question;
       seen.push(question.lecture.name);
-      await expect(page.locator('[data-slot="explanation-card"]')).toContainText(question.lecture.name);
+      const explanation = page.locator('[data-slot="explanation-card"]');
+      await expect(explanation).toContainText(question.lecture.name);
+      // The question from the page with a formula carries the flag (story 6.3).
+      if (question.source.file_name === FORMULA.file && question.source.page_no === FORMULA.page) {
+        await expectFormulaFlagAboveSource(explanation, FORMULA_SOURCE);
+      } else {
+        await expect(formulaFlag(explanation)).toHaveCount(0);
+      }
       await page.keyboard.press("Enter");
     }
     // Questions from both lectures.
@@ -444,5 +467,60 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     await expect(page).toHaveURL(`/forelesninger/${merkevareId}`);
     await expect(createSection(page).getByText("3 kort", { exact: true })).toBeVisible();
     expect(saves).toHaveLength(before + 1);
+  });
+
+  test("Feilvei (formelmerke) – FR-40, FR-41, UX-DR37: et kort er merket «Inneholder formel – sjekk mot kilden», og hun slår opp i PDF-en på siden som står i kilden", async () => {
+    await sidebarLecture(page, FORMULA.lecture).click();
+    await expect(page).toHaveURL(`/forelesninger/${lectureIds.get(FORMULA.lecture)}`);
+    await expect(page.locator("main h1")).toHaveText(FORMULA.lecture);
+    await createSection(page).getByRole("button", { name: "Øv nå" }).click();
+    await expect(page).toHaveURL(`/forelesninger/${lectureIds.get(FORMULA.lecture)}/flashcards`);
+    await expect(sessionPanel(page).getByText("/ 4")).toBeVisible();
+
+    // She knows every card but the one with the formula, which she checks against the source.
+    const card = page.locator('[data-slot="flashcard"]');
+    const seen: string[] = [];
+    for (let i = 0; i < PRISING_FRONTS.length; i += 1) {
+      const question = (await cardFront(page).textContent())!;
+      seen.push(question);
+      await page.keyboard.press(" ");
+      await expect(card.locator('[data-slot="source-link"]')).toHaveText(/^prising\.pdf, side [2-5]$/);
+      if (question === FORMULA.front) {
+        // The flag stands directly above the source, which names the page to look up.
+        await expectFormulaFlagAboveSource(card, FORMULA_SOURCE);
+        await expect(formulaFlag(card).getByText("Inneholder formel – sjekk mot kilden")).toBeVisible();
+        await expectNoAxeViolations(page);
+        await page.keyboard.press("1");
+      } else {
+        await expect(formulaFlag(card)).toHaveCount(0);
+        await page.keyboard.press("2");
+      }
+    }
+    expect([...seen].sort()).toEqual([...PRISING_FRONTS].sort());
+
+    // The card she did not know comes again, still with the flag.
+    await expect(cardFront(page)).toHaveText(FORMULA.front);
+    const saved = page.waitForResponse((response) => new URL(response.url()).pathname === SAVE_PATH);
+    await page.keyboard.press(" ");
+    await expectFormulaFlagAboveSource(card, FORMULA_SOURCE);
+    await page.keyboard.press("2");
+    expect((await saved).status()).toBe(204);
+
+    // The missed list (08) shows the flag above the source as well.
+    await expect(page.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 4 kortene" })).toBeFocused();
+    const missed = page.getByRole("region", { name: "Kortene du ikke kunne" }).getByRole("listitem");
+    await expect(missed).toHaveCount(1);
+    await expect(missed).toContainText(FORMULA.front);
+    await expectFormulaFlagAboveSource(missed, FORMULA_SOURCE);
+    await expectNoAxeViolations(page);
+
+    // Back on the lecture page (04), the file in the source is in the file list,
+    // with enough pages for page 5: that is the PDF she opens to check.
+    await page.getByRole("link", { name: "Tilbake til forelesningen" }).click();
+    await expect(page).toHaveURL(`/forelesninger/${lectureIds.get(FORMULA.lecture)}`);
+    await expect(fileRows(page)).toHaveCount(1);
+    await expect(fileRows(page).first()).toContainText(FORMULA.file);
+    await expect(fileRows(page).first()).toContainText("5 sider");
+    await expectNoAxeViolations(page);
   });
 });
