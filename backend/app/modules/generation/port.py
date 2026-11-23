@@ -9,6 +9,8 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
+from pydantic import BaseModel, field_validator
+
 
 @dataclass(frozen=True)
 class Page:
@@ -20,6 +22,12 @@ class Page:
     page_no: int
     text: str
     file_name: str = ""
+    # The page probably has something its text misses, such as a formula drawn
+    # as vector graphics (FR-40). Content from it is always flagged (FR-41).
+    needs_image: bool = False
+    # A PNG picture of the page, made by the pipeline for a needs_image page
+    # and kept in memory only. None for other pages, or when it could not be made.
+    image: bytes | None = field(default=None, repr=False)
 
 
 @dataclass(frozen=True)
@@ -32,6 +40,24 @@ class GenerationOptions:
     # The chosen difficulty ("easy", "medium" or "hard") for types that have
     # one (quiz); None for the others. The mock rules ignore it.
     difficulty: str | None = None
+
+
+class FormulaReport(BaseModel):
+    """The part every loose model shares: the model's own report that the page
+    text or image lacked something it needed, such as a formula (FR-41).
+
+    Missing means no report. Any value that is not true or false counts as
+    true (better one flag too many) and never discards the item. The mock
+    models never set it."""
+
+    formula_missing: bool | None = None
+
+    @field_validator("formula_missing", mode="before")
+    @classmethod
+    def _odd_value_means_missing(cls, value: Any) -> bool | None:
+        if value is None or value is True or value is False:
+            return value
+        return True
 
 
 class Generator(Protocol):

@@ -165,6 +165,7 @@ export function QuizQuestion({
           <ExplanationCard
             explanation={question.explanation}
             source={question.source}
+            formulaFlag={question.formula_flag}
             lectureName={question.lecture.name}
             colorIndex={colorIndex}
           />

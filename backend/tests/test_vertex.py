@@ -57,9 +57,19 @@ def _vertex_env(
 
 
 def _prompt_text(messages: list[ModelMessage]) -> str:
-    return "\n".join(
-        str(part.content) for message in messages for part in message.parts if hasattr(part, "content")
-    )
+    """The text of the request. A user message with page images is a list;
+    its images are skipped."""
+    texts: list[str] = []
+    for message in messages:
+        for part in message.parts:
+            if not hasattr(part, "content"):
+                continue
+            content = part.content
+            if isinstance(content, list):
+                texts.extend(item for item in content if isinstance(item, str))
+            else:
+                texts.append(str(content))
+    return "\n".join(texts)
 
 
 def _answer(items: list[Any]) -> ModelResponse:

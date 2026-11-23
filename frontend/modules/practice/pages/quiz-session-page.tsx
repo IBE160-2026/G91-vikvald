@@ -559,6 +559,7 @@ function QuizResult({
         number: cell.number,
         front: question.question,
         source: question.source,
+        formula_flag: question.formula_flag,
         chosen: chosen === undefined ? "" : question.options[chosen],
         correct: question.options[question.correct_index],
         explanation: question.explanation,

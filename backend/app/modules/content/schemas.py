@@ -28,6 +28,8 @@ class FlashcardOut(BaseModel):
     front: str
     # Always set for qa and concept cards.
     back: str
+    # Shown as «Inneholder formel – sjekk mot kilden» above the source (FR-41).
+    formula_flag: bool = False
     source: FlashcardSource
 
 
@@ -57,6 +59,8 @@ class QuizQuestionOut(BaseModel):
     # the app runs locally, and the page shows it only after confirmation.
     correct_index: int
     explanation: str
+    # As for FlashcardOut (FR-41).
+    formula_flag: bool = False
     source: FlashcardSource
     # The lecture the question was made from (shown in the explanation card).
     lecture: LectureRef

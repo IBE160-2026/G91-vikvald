@@ -40,5 +40,6 @@ class FilePage(Base):
     # The PDF's own page number, starting at 1 (never the printed page number).
     page_no: Mapped[int] = mapped_column(Integer, primary_key=True)
     text: Mapped[str] = mapped_column(Text)
-    # Always false for now; the rule for pages that need the image comes in epic 6.
+    # True when the page should also be sent to the model as an image (FR-40),
+    # set at upload by the rule in files/pdf.py (page_needs_image).
     needs_image: Mapped[bool] = mapped_column(Boolean, default=False)

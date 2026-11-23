@@ -7,12 +7,12 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.content.service import NewFlashcard, add_flashcards, flashcard_fronts
-from app.modules.generation.port import GenerationOptions, Page
-from app.modules.generation.registry import ContentType, register_content_type
+from app.modules.generation.port import FormulaReport, GenerationOptions, Page
+from app.modules.generation.registry import ContentType, ValidItem, register_content_type
 
 KIND = "flashcards"
 # The card types the pipeline may store for flashcards.
@@ -73,8 +73,9 @@ def mock_rule(pages: list[Page], options: GenerationOptions) -> list[dict[str, A
     return cards
 
 
-class LooseFlashcard(BaseModel):
-    """One card as a model may give it: every field may be missing."""
+class LooseFlashcard(FormulaReport):
+    """One card as a model may give it: every field may be missing
+    (formula_missing comes from FormulaReport)."""
 
     kind: str | None = None
     front: str | None = None
@@ -119,18 +120,19 @@ async def existing_keys(session: AsyncSession, lecture_id: uuid.UUID) -> frozens
     return frozenset(front.casefold() for front in await flashcard_fronts(session, lecture_id))
 
 
-async def save(session: AsyncSession, items: list[Any]) -> None:
+async def save(session: AsyncSession, items: list[ValidItem]) -> None:
     add_flashcards(
         session,
         [
             NewFlashcard(
-                file_id=card.file_id,
-                page_no=card.page_no,
-                kind=card.kind,
-                front=card.front.strip(),
-                back=card.back.strip(),
+                file_id=valid.item.file_id,
+                page_no=valid.item.page_no,
+                kind=valid.item.kind,
+                front=valid.item.front.strip(),
+                back=valid.item.back.strip(),
+                formula_flag=valid.formula_flag,
             )
-            for card in items
+            for valid in items
         ],
     )
 

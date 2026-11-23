@@ -6,6 +6,13 @@ import { MissedList } from "./missed-list";
 
 afterEach(cleanup);
 
+function expectFlagRightAboveSource(root: ParentNode) {
+  const flag = root.querySelector("[data-slot='formula-flag']");
+  expect(flag).not.toBeNull();
+  expect(flag!.textContent).toBe("Inneholder formel – sjekk mot kilden");
+  expect(flag!.nextElementSibling?.getAttribute("data-slot")).toBe("source-link");
+}
+
 describe("MissedList", () => {
   it("FR-26, UX-DR34: h3, antall og én rad per kort med nummer, spørsmål og kilde", () => {
     render(
@@ -103,5 +110,38 @@ describe("MissedList", () => {
     // Read as «Forelesning: …» (the label is visually hidden), not run together with the source.
     expect(lecture.querySelector(".sr-only")!.textContent).toBe("Forelesning: ");
     expect(rows[0].textContent).toContain("merkevare-notater.pdf, side 7Forelesning: Uke 37: Merkevare");
+  });
+
+  it("FR-41: et merket kort i feillista har formelmerket rett over kilden", () => {
+    const { container } = render(
+      <MissedList
+        items={[
+          { id: "a", number: 1, front: "Hva er elastisitet?", source: { file_name: "formler.pdf", page_no: 1 }, formula_flag: true },
+          { id: "b", number: 2, front: "Hva er tilbud?", source: { file_name: "formler.pdf", page_no: 2 }, formula_flag: false },
+        ]}
+      />,
+    );
+    const rows = container.querySelectorAll("li");
+    expectFlagRightAboveSource(rows[0]);
+    expect(rows[1].querySelector("[data-slot='formula-flag']")).toBeNull();
+  });
+
+  it("FR-41: et merket quizspørsmål i feillista har formelmerket rett over kilden, også med forelesning", () => {
+    const item = {
+      number: 1,
+      front: "Hva er elastisitet?",
+      source: { file_name: "formler.pdf", page_no: 1 },
+      chosen: "A",
+      correct: "B",
+      explanation: "Fordi.",
+      formula_flag: true,
+    };
+    const { container } = render(
+      <MissedList kind="quiz" items={[{ ...item, id: "a" }, { ...item, id: "b", lecture: "Uke 1" }]} />,
+    );
+    const rows = container.querySelectorAll("li");
+    expectFlagRightAboveSource(rows[0]);
+    expectFlagRightAboveSource(rows[1]);
+    expect(rows[1].querySelector("[data-slot='missed-lecture']")).not.toBeNull();
   });
 });

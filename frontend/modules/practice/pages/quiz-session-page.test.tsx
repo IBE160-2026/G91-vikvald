@@ -45,6 +45,7 @@ function question(id: string, term: string, correct: number, page = 1): QuizQues
     options,
     correct_index: correct,
     explanation: `${term} er et begrep i faget.`,
+    formula_flag: false,
     source: { file_id: "f1", file_name: "merkevare-notater.pdf", page_no: page },
     lecture: { id: "l1", name: "Uke 37: Merkevare" },
   };

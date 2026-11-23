@@ -32,6 +32,8 @@ class NewFlashcard:
     kind: str
     front: str
     back: str | None
+    # The source page needed an image or the model reported something missing (FR-41).
+    formula_flag: bool = False
 
 
 def add_flashcards(session: AsyncSession, cards: list[NewFlashcard]) -> None:
@@ -50,7 +52,7 @@ def add_flashcards(session: AsyncSession, cards: list[NewFlashcard]) -> None:
             kind=card.kind,
             front=card.front,
             back=card.back,
-            formula_flag=False,
+            formula_flag=card.formula_flag,
             created_at=saved_at,
             position=position,
         )
@@ -67,6 +69,8 @@ class NewQuizQuestion:
     options: tuple[str, ...]
     correct_index: int
     explanation: str
+    # As for NewFlashcard (FR-41).
+    formula_flag: bool = False
 
 
 def shuffle_options(question: str, options: tuple[str, ...], correct_index: int) -> tuple[list[str], int]:
@@ -100,7 +104,7 @@ def add_quiz_questions(session: AsyncSession, questions: list[NewQuizQuestion]) 
                 id=uuid.uuid4(),
                 file_id=item.file_id,
                 page_no=item.page_no,
-                formula_flag=False,
+                formula_flag=item.formula_flag,
                 question=item.question,
                 options=options,
                 correct_index=correct_index,
@@ -167,6 +171,7 @@ async def lecture_quiz_questions(session: AsyncSession, lecture_id: uuid.UUID) -
             options=list(item.options),
             correct_index=item.correct_index,
             explanation=item.explanation,
+            formula_flag=item.formula_flag,
             source=FlashcardSource(file_id=item.file_id, file_name=file_name, page_no=item.page_no),
             lecture=LectureRef(id=ref_id, name=ref_name),
         )
@@ -202,6 +207,7 @@ async def subject_quiz_questions(session: AsyncSession, subject_id: uuid.UUID) -
             options=list(item.options),
             correct_index=item.correct_index,
             explanation=item.explanation,
+            formula_flag=item.formula_flag,
             source=FlashcardSource(file_id=item.file_id, file_name=file_name, page_no=item.page_no),
             lecture=LectureRef(id=ref_id, name=ref_name),
         )
@@ -269,6 +275,7 @@ async def lecture_flashcards(session: AsyncSession, lecture_id: uuid.UUID) -> li
             kind=card.kind,
             front=card.front,
             back=card.back,
+            formula_flag=card.formula_flag,
             source=FlashcardSource(file_id=card.file_id, file_name=file_name, page_no=card.page_no),
         )
         for card, file_name in (await session.execute(statement)).all()
@@ -302,6 +309,7 @@ async def subject_flashcards(session: AsyncSession, subject_id: uuid.UUID) -> li
             kind=card.kind,
             front=card.front,
             back=card.back,
+            formula_flag=card.formula_flag,
             source=FlashcardSource(file_id=card.file_id, file_name=file_name, page_no=card.page_no),
             lecture=LectureRef(id=lecture_id, name=lecture_name),
         )
@@ -355,6 +363,7 @@ def _flashcard_out(card: Flashcard, file_name: str) -> FlashcardOut:
         kind=card.kind,
         front=card.front,
         back=card.back,
+        formula_flag=card.formula_flag,
         source=FlashcardSource(file_id=card.file_id, file_name=file_name, page_no=card.page_no),
     )
 

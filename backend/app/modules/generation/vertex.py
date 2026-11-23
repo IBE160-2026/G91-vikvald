@@ -16,7 +16,7 @@ from typing import Annotated, Any
 
 import pydantic_ai
 from pydantic import BaseModel, WithJsonSchema, create_model
-from pydantic_ai import Agent, NativeOutput
+from pydantic_ai import Agent, BinaryContent, NativeOutput
 from pydantic_ai.models import Model
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.providers.google_cloud import GoogleCloudProvider
@@ -84,12 +84,16 @@ def pages_within_limit(pages: list[Page]) -> list[Page]:
     return sent
 
 
-def user_message(pages: list[Page], options: GenerationOptions) -> str:
+def user_message(pages: list[Page], options: GenerationOptions) -> str | list[str | BinaryContent]:
     """The request: how many items at most, the keys that already exist, and
     the pages within the limit, each labelled with file_id, file name and
-    page_no, which the model is asked to cite."""
+    page_no, which the model is asked to cite.
+
+    A page with an image (FR-40) says so in its label, and its PNG comes right
+    after its text, so the message becomes a list: text, image, text, ...
+    Without any image it stays one plain string."""
     existing = sorted(options.existing_keys)
-    parts = [
+    lines = [
         f"Lag høyst {options.requested} elementer.",
         "Disse finnes fra før og skal ikke lages på nytt: "
         + (json.dumps(existing, ensure_ascii=False) if existing else "ingen"),
@@ -99,13 +103,23 @@ def user_message(pages: list[Page], options: GenerationOptions) -> str:
         "",
         "Sidene:",
     ]
+    parts: list[str | BinaryContent] = []
     for page in pages_within_limit(pages):
         # The file name is the student's own text: quoted as JSON, so a name with
         # commas or «page_no:» in it cannot be read as another label field.
         name = json.dumps(page.file_name, ensure_ascii=False)
-        parts.append(f"--- file_id: {page.file_id}, filnavn: {name}, page_no: {page.page_no} ---")
-        parts.append(page.text)
-    return "\n".join(parts)
+        note = ", sidebilde: følger etter teksten" if page.image is not None else ""
+        lines.append(f"--- file_id: {page.file_id}, filnavn: {name}, page_no: {page.page_no}{note} ---")
+        lines.append(page.text)
+        if page.image is not None:
+            parts.append("\n".join(lines))
+            parts.append(BinaryContent(data=page.image, media_type="image/png"))
+            lines = []
+    if not parts:
+        return "\n".join(lines)
+    if lines:
+        parts.append("\n".join(lines))
+    return parts
 
 
 def output_wrapper(kind: str) -> type[BaseModel]:

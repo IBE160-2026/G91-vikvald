@@ -543,12 +543,15 @@ def test_fr39_pdf_leseren_ser_paa_innholdet_ikke_navnet() -> None:
     with pytest.raises(AppError) as not_pdf:
         pdf_module.read_pages(b"hei" * 400 + b"%PDF-")
     assert not_pdf.value.code == ErrorCode.NOT_PDF
-    assert pdf_module.read_pages(make_pdf(["Side én", "Side to"])) == ["Side én\n", "Side to\n"]
+    assert pdf_module.read_pages(make_pdf(["Side én", "Side to"])) == [
+        pdf_module.PdfPage("Side én\n", needs_image=False),
+        pdf_module.PdfPage("Side to\n", needs_image=False),
+    ]
 
 
 def test_fr39_nul_tegn_fjernes_fra_sideteksten(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(pymupdf.Page, "get_text", lambda _self, *args, **kwargs: "a\x00b")
-    assert pdf_module.read_pages(make_pdf(["x"])) == ["ab"]
+    assert [page.text for page in pdf_module.read_pages(make_pdf(["x"]))] == ["ab"]
 
 
 def test_fr8_kontrolltegn_fjernes_fra_filnavnet() -> None:

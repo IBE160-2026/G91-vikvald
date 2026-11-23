@@ -14,7 +14,7 @@ from tests.test_subjects import NOT_FOUND
 __all__ = ["lecture", "no_jobs_left"]
 
 LECTURES = "/api/lectures"
-CARD_FIELDS = {"id", "kind", "front", "back", "source"}
+CARD_FIELDS = {"id", "kind", "front", "back", "formula_flag", "source"}
 
 
 async def _flashcards(client: AsyncClient, lecture_id: str) -> list[dict]:

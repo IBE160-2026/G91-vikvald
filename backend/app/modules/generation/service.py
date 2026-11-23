@@ -8,12 +8,17 @@ page) -> at most `requested` of them -> saved together with the finished job in
 one commit. If anything fails, nothing is stored and the job becomes failed.
 The model call has a time limit (GENERATION_TIMEOUT_SECONDS); when it runs
 out, the job becomes failed with GENERATION_TIMEOUT.
+
+Pages marked needs_image (FR-40) are sent to the port with a PNG picture,
+made from the stored PDF before the model call and kept in memory only. Every
+valid item gets formula_flag here, in one place for all content types (FR-41).
 """
 
 import asyncio
 import logging
 import uuid
 from collections.abc import Coroutine
+from dataclasses import replace
 from datetime import UTC, datetime
 from typing import Any
 
@@ -23,10 +28,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.errors import AppError, ErrorCode
 from app.modules.content.registry import register_delete_guard
-from app.modules.files.service import pages_for_lecture
+from app.modules.files.service import page_images, pages_for_lecture
 from app.modules.generation.models import JOB_DONE, JOB_FAILED, JOB_RUNNING, Job
 from app.modules.generation.port import GenerationOptions, Generator, Page
-from app.modules.generation.registry import get_content_type
+from app.modules.generation.registry import ValidItem, get_content_type
 from app.modules.subjects.models import Lecture, Subject
 
 logger = logging.getLogger(__name__)
@@ -38,6 +43,16 @@ JOB_TASKS: set[asyncio.Task[None]] = set()
 # The longest a model call may take (3 minutes). Read when the call is made, so
 # tests can lower it with monkeypatch.
 GENERATION_TIMEOUT_SECONDS: float = 180
+
+# The most page images sent in one request. A 150 dpi PNG of a text page is
+# about 100-400 kB, so 20 keep the request well inside the limits for inline
+# data. Pages past it are sent as text only, but their content is still flagged.
+MAX_PAGE_IMAGES = 20
+# The most page-image bytes in one request (15 MB). Photo-heavy pages can be
+# several MB each as PNG, and a request past Gemini's limit for inline data
+# would fail the whole job. Images are attached in page order while the total
+# stays within this; later pages are sent as text only, still flagged.
+MAX_PAGE_IMAGE_BYTES = 15 * 1024 * 1024
 
 
 class GenerationTimeoutError(Exception):
@@ -171,16 +186,21 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
         return
     content_type = get_content_type(job.kind)
     pages = [
-        Page(file_id, page_no, text, file_name)
-        for file_id, page_no, text, file_name in await pages_for_lecture(session, job.lecture_id)
+        Page(file_id, page_no, text, file_name, needs_image)
+        for file_id, page_no, text, file_name, needs_image in await pages_for_lecture(session, job.lecture_id)
     ]
+    owner_id = await session.scalar(
+        select(Subject.user_id).join(Lecture, Lecture.subject_id == Subject.id).where(Lecture.id == job.lecture_id)
+    )
     options = GenerationOptions(
         requested=job.requested,
         existing_keys=await content_type.existing_keys(session, job.lecture_id),
         difficulty=(job.params or {}).get("difficulty"),
     )
-    # End the read transaction before the (possibly slow) model call.
+    # End the read transaction before the (possibly slow) page images and model call.
     await session.commit()
+    if owner_id is not None:
+        pages = await _with_page_images(owner_id, pages)
 
     # Only the model call has the time limit.
     try:
@@ -191,6 +211,7 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
         raise GenerationTimeoutError from None
 
     order = {(page.file_id, page.page_no): position for position, page in enumerate(pages)}
+    needs_image = {(page.file_id, page.page_no): page.needs_image for page in pages}
     valid: list[Any] = []
     discarded = 0
     for item in items:
@@ -201,7 +222,10 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
             valid.append(checked)
     # Stable sort: items from the same page keep the order the model gave.
     valid.sort(key=lambda checked: order[(checked.file_id, checked.page_no)])
-    kept = valid[: job.requested]
+    kept = [
+        ValidItem(checked, formula_flag(needs_image[(checked.file_id, checked.page_no)], checked))
+        for checked in valid[: job.requested]
+    ]
 
     try:
         await content_type.save(session, kept)
@@ -218,6 +242,45 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
     except BaseException:
         await session.rollback()
         raise
+
+
+def formula_flag(page_needs_image: bool, item: Any) -> bool:
+    """FR-41, the one place for every content type and every model: the page
+    needed an image, or the model reported that something was missing."""
+    return page_needs_image or getattr(item, "formula_missing", None) is True
+
+
+async def _with_page_images(owner_id: uuid.UUID, pages: list[Page]) -> list[Page]:
+    """The pages with a PNG picture on the first MAX_PAGE_IMAGES needs_image
+    pages (in the pages' fixed order), while the images' total stays within
+    MAX_PAGE_IMAGE_BYTES. The rest keep needs_image without an image; how
+    many is logged as a count only, never text."""
+    wanted = [(page.file_id, page.page_no) for page in pages if page.needs_image]
+    if len(wanted) > MAX_PAGE_IMAGES:
+        logger.warning(
+            "Too many pages need an image: sending %d, left out %d", MAX_PAGE_IMAGES, len(wanted) - MAX_PAGE_IMAGES
+        )
+        wanted = wanted[:MAX_PAGE_IMAGES]
+    images = await page_images(owner_id, wanted)
+    budget = MAX_PAGE_IMAGE_BYTES
+    attached: dict[tuple[uuid.UUID, int], bytes] = {}
+    for key in wanted:
+        image = images.get(key)
+        if image is None:
+            continue
+        if len(image) > budget:
+            break
+        attached[key] = image
+        budget -= len(image)
+    if len(attached) < len(images):
+        logger.warning(
+            "Page images over the size limit: sending %d, left out %d", len(attached), len(images) - len(attached)
+        )
+    images = attached
+    return [
+        replace(page, image=images[(page.file_id, page.page_no)]) if (page.file_id, page.page_no) in images else page
+        for page in pages
+    ]
 
 
 async def _mark_failed(

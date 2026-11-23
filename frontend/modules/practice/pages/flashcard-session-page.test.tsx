@@ -42,6 +42,7 @@ function card(id: string, front: string, page = 1): Flashcard {
     kind: "concept",
     front,
     back: `${front} er et begrep i faget.`,
+    formula_flag: false,
     source: { file_id: "f1", file_name: "definisjoner.pdf", page_no: page },
   };
 }
