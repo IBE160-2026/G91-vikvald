@@ -90,7 +90,30 @@ Resultatkolonnen fylles ut i story 6.6 (den avsluttende kontrollen) og når rapp
 
 ## SK-11: ren kopi
 
-SK-11_RESULT
+Akseptkriteriet sier at Silje følger README ordrett. Kjøringen under er gjort av KI i den autonome kjøringen, som en første kontroll. **Silje skal gjenta den selv** og føre sin egen kjøring som en ny rad.
+
+| Dato | Commit | Hvem | Resultat |
+| --- | --- | --- | --- |
+| 2026-11-23 | `c394228` | KI (autonom kjøring) | Bestått, med avvikene under |
+
+**Slik ble det gjort.** Repoet ble klonet til en ny mappe (`git clone`), uten `.env`, uten `docker-compose.override.yml` og uten gcloud-innlogging. Maskinen hadde Docker Desktop (Docker 29.8, Compose v5.5), Node 22, Python 3.12 og uv 0.12 fra før. Deretter ble kommandoene i README kjørt:
+
+- `docker compose up --build`: appen startet. Helsesjekken svarte `{"status":"ok"}`, og `GET /api/config` svarte `"demo_mode": true`.
+- Testbrukeren (`test@studiekamerat.no` / `studiekamerat`) logget inn og hadde emnet «Markedsføring» med tre forelesninger.
+- `uv sync` og `uv run pytest` i `backend/`: 713 tester bestått.
+- `npm install` og `npm run test` i `frontend/`: 918 tester i 73 filer bestått.
+- `npx playwright install chromium` og `E2E_REQUIRE_SEED=1 npx playwright test` i `frontend/`: 179 tester bestått, også testene av testbrukeren, som logger inn i nettleseren.
+- `docker compose logs backend` viste loggen, og `uv run python -m app.seed.build_notes` laget PDF-ene på nytt uten endringer.
+- `docker compose down -v` ryddet bort alt.
+
+**Avvik fra README ordrett:**
+
+- Appen ble startet med et eget prosjektnavn (`docker compose -p sk-renkopi up --build -d`) og ryddet med `docker compose -p sk-renkopi down -v`, slik at databasen til den vanlige utgaven på samme maskin (volumet `pgdata`) ikke ble rørt. README bruker `docker compose up` uten `-p`.
+- Innloggingen som testbruker ble gjort av Playwright-testen og med et kall til API-et, ikke av et menneske i nettleseren.
+- `npx playwright test` ble kjørt med `E2E_REQUIRE_SEED=1`. Det er de samme testene, men testene av testbrukeren feiler i stedet for å hoppe over seg selv.
+- Maskinen var ikke ny: programmene var installert fra før, og Playwright-nettleseren kan ha vært lastet ned tidligere.
+
+**Rettet i README etter kjøringen:** ingenting. Kommandoene virket slik de står. Under arbeidet med storien fikk README kodeblokker for kommandoer som før bare sto i teksten eller i en tabell (issue #27).
 
 ## Resultater fra den avsluttende kontrollen (story 6.6)
 
