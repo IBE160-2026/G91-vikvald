@@ -155,11 +155,13 @@ async def run_job(
         async with sessionmaker() as session:
             await _generate_and_save(session, job_id, generator)
     except GenerationTimeoutError:
-        logger.error("Generation job %s timed out", job_id)
+        logger.error("Generation job %s failed: %s", job_id, ErrorCode.GENERATION_TIMEOUT.value)
         await _mark_failed(job_id, sessionmaker, ErrorCode.GENERATION_TIMEOUT)
     except Exception as exc:
         # Only ids and the kind of error: never page text or generated content.
-        logger.error("Generation job %s failed (%s)", job_id, type(exc).__name__)
+        logger.error(
+            "Generation job %s failed: %s (%s)", job_id, ErrorCode.GENERATION_FAILED.value, type(exc).__name__
+        )
         await _mark_failed(job_id, sessionmaker, ErrorCode.GENERATION_FAILED)
 
 

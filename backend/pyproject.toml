@@ -15,6 +15,7 @@ dependencies = [
     "bcrypt==5.0.0",
     "pymupdf==1.28.2",
     "python-multipart==0.0.34",
+    "pydantic-ai-slim[google]==2.68.0",
 ]
 
 [dependency-groups]

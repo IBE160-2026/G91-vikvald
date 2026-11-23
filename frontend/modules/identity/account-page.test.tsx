@@ -125,11 +125,11 @@ describe("AccountPage", () => {
     expect(document.querySelectorAll('[data-slot="account-card"]')).toHaveLength(3);
   });
 
-  it("FR-5: uten demomodus står ikke demomerket, og språkmodellen er «Google, i EU»", async () => {
+  it("FR-5: uten demomodus står ikke demomerket, og språkmodellen er «Gemini fra Google, behandlet i EU»", async () => {
     respond({ demo: false });
     renderPage();
     await heading();
-    expect(await screen.findByText("Google, i EU")).toBeTruthy();
+    expect(await screen.findByText("Gemini fra Google, behandlet i EU")).toBeTruthy();
     expect(screen.queryByText("Demomodus: innholdet lages av en testmodell")).toBeNull();
   });
 

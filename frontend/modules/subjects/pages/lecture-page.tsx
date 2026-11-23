@@ -225,7 +225,18 @@ export function LecturePage({ lectureId }: { lectureId: string }) {
                   ) : null}
                   {/* A new key per lecture, so the messages never follow her to another lecture. */}
                   <UploadZone key={lectureId} lectureId={lectureId} subjectId={lecture.data.subject_id} />
-                  {config.data?.demo_mode ? <NoteSurface>I demomodus sendes ingenting ut.</NoteSurface> : null}
+                  {/* Mockup 04: the privacy note. In demo mode nothing leaves the app; with
+                      Gemini the notes go to Google in the EU. Nothing until the config is known. */}
+                  {config.data ? (
+                    config.data.demo_mode ? (
+                      <NoteSurface>I demomodus sendes ingenting ut.</NoteSurface>
+                    ) : (
+                      <NoteSurface>
+                        <p className="text-ink">Notatene sendes til Googles språkmodell i EU.</p>
+                        <p>Ikke last opp personopplysninger, f.eks. navn på medstudenter.</p>
+                      </NoteSurface>
+                    )
+                  ) : null}
                 </div>
               </section>
 

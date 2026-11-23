@@ -10,12 +10,14 @@ from collections.abc import AsyncIterator, Iterator  # noqa: E402
 from pathlib import Path  # noqa: E402
 
 import pytest  # noqa: E402
+from pydantic_ai import models as pydantic_ai_models  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker  # noqa: E402
 
 from app.core.config import get_settings  # noqa: E402
 from app.core.db import Base, get_session, get_sessionmaker, make_engine  # noqa: E402
 from app.main import app  # noqa: E402
+from app.modules.generation.providers import _vertex_generator  # noqa: E402
 from app.modules.content import models as _content_models  # noqa: E402, F401  (registers flashcards)
 from app.modules.files import models as _files_models  # noqa: E402, F401  (registers files)
 from app.modules.generation import models as _generation_models  # noqa: E402, F401  (registers jobs)
@@ -25,14 +27,20 @@ from app.modules.subjects import models as _subjects_models  # noqa: E402, F401 
 
 TEST_DATABASE_URL = "sqlite+aiosqlite://"
 
+# A real model request (Vertex AI) raises an error in every test; VertexGenerator
+# is tested with pydantic-ai's FunctionModel and TestModel instead.
+pydantic_ai_models.ALLOW_MODEL_REQUESTS = False
+
 
 @pytest.fixture(autouse=True)
 def fresh_settings() -> Iterator[None]:
     """Settings are cached. Clear the cache around every test, so a test that
     changes the environment with monkeypatch gets (and leaves) fresh settings."""
     get_settings.cache_clear()
+    _vertex_generator.cache_clear()
     yield
     get_settings.cache_clear()
+    _vertex_generator.cache_clear()
 
 
 @pytest.fixture(autouse=True)

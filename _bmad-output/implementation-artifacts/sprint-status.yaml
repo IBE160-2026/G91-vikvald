@@ -80,8 +80,8 @@ development_status:
   5-5-vis-semesterlinja-på-forsiden-emnesiden-og-forelesningssiden: done
   epic-5-retrospective: optional
 
-  epic-6: backlog
-  6-1-koble-gemini-på-vertex-ai-inn-bak-språkmodellporten: backlog
+  epic-6: in-progress
+  6-1-koble-gemini-på-vertex-ai-inn-bak-språkmodellporten: done
   6-2-fastsett-instruksene-til-modellen-for-flashcards-og-quiz: backlog
   6-3-send-sider-med-formler-som-bilde-og-merk-innholdet-kan-kutte: backlog
   6-4-lag-testbruker-og-eksempelemne-med-eksempelnotater: backlog

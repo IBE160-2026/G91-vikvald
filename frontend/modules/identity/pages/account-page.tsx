@@ -124,7 +124,7 @@ export function AccountPage() {
                   : "Ikke godtatt ennå. Du får se dem før første opplasting."}
               </AccountRow>
               <AccountRow label="Språkmodell">
-                {demo ? "Testmodell i demomodus (ellers Google, i EU)" : "Google, i EU"}
+                {demo ? "Testmodell i demomodus (ellers Google, i EU)" : "Gemini fra Google, behandlet i EU"}
               </AccountRow>
             </AccountSection>
 
