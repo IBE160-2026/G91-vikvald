@@ -8,6 +8,7 @@ import {
   createLectureViaApi,
   createSection,
   createSubjectViaApi,
+  dayFromToday,
   expectNoAxeViolations,
   expectOnHomePage,
   fileRows,
@@ -18,8 +19,12 @@ import {
   quizQuestion,
   quizQuestionsViaApi,
   registerWithTermsViaApi,
+  semesterLineGraphic,
+  semesterLineItems,
   sessionPanel,
+  sidebarLecture,
   sidebarLectures,
+  subjectCard,
   uploadViaApi,
 } from "./felles";
 
@@ -32,9 +37,11 @@ import {
 // Prising», 14 in all. It makes one quiz question per definition, but nothing
 // from fewer than four, so the quiz has four questions from each of those two
 // lectures, eight in all.
-// Only the steps that are built are tested; the rest (status «øvd», model
-// cards and free text) are listed as «ikke bygd ennå» in
-// docs/testing/brukerreiser.md.
+// «Four of eight lectures are practised» (step 1): Klara has practised the
+// four first lectures before, so one flashcard session for each of them is
+// saved through the API as well. The server decides «øvd» (story 5.1).
+// Only the steps that are built are tested; the rest (model cards and free
+// text) are listed as «ikke bygd ennå» in docs/testing/brukerreiser.md.
 // The steps share one browser context and run in order, like one visit by Klara.
 test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
   test.describe.configure({ mode: "serial" });
@@ -75,6 +82,8 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     "Pris", "Rabatt", "Kampanje", "Margin", "Kanal", "Reklame", "Nettbutikk",
   ];
   const MERKEVARE_FRONTS = ["Merkevare", "Logo", "Slagord", "Image"];
+  // The lectures she practised before the flow starts (step 1: «fire av åtte»).
+  const PRACTISED_BEFORE = LECTURES.slice(0, 4).map(([name]) => name);
   // The lectures she has made a quiz from.
   const QUIZ_LECTURES = ["Uke 37: Merkevare", "Uke 38: Prising"];
   const slugOf = (name: string) => name.split(": ")[1].toLowerCase().replace(/\s+/g, "-");
@@ -84,9 +93,15 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
   );
   let context: BrowserContext;
   let page: Page;
-  let exam: { iso: string; shown: string };
+  // The exam is three weeks from today, so the flow is the same whenever it runs.
+  const exam = dayFromToday(21);
+  // «Øvd dd.mm»: the sessions are saved today.
+  const practisedToday = `Øvd ${dayFromToday(0).dayMonth}`;
+  const LINE_TEXT = (practised: number) =>
+    `Markedsføring: ${practised} av 8 forelesninger øvd. Eksamen ${exam.weekday} ${exam.dayMonth}, om 3 uker.`;
   let subjectId: string;
   let merkevareId: string;
+  const lectureIds = new Map<string, string>();
   // Every POST /api/practice-sessions the page sends.
   const saves: Request[] = [];
   // The subject's quiz questions with the answer key (step 3).
@@ -97,13 +112,6 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     testInfo.setTimeout(150_000);
     context = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
     page = await context.newPage();
-    // The exam is three weeks from today (local date, as the app shows it).
-    const date = new Date();
-    date.setDate(date.getDate() + 21);
-    const pad = (value: number) => String(value).padStart(2, "0");
-    const [y, m, d] = [date.getFullYear(), pad(date.getMonth() + 1), pad(date.getDate())];
-    exam = { iso: `${y}-${m}-${d}`, shown: `${d}.${m}.${y}` };
-
     await registerWithTermsViaApi(page);
     subjectId = await createSubjectViaApi(page, "Markedsføring", exam.iso);
     for (const [name, lectureDate, definitions] of LECTURES) {
@@ -112,6 +120,27 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
       await makeFlashcardsViaApi(page, lectureId, 10, definitions.length);
       if (QUIZ_LECTURES.includes(name)) await makeQuizViaApi(page, lectureId, 10, definitions.length);
       if (name === "Uke 37: Merkevare") merkevareId = lectureId;
+      lectureIds.set(name, lectureId);
+    }
+    // The sessions she had before: one flashcard session in each of the first four lectures.
+    for (const name of PRACTISED_BEFORE) {
+      const count = LECTURES.find(([lecture]) => lecture === name)![2].length;
+      const response = await page.request.post(SAVE_PATH, {
+        data: {
+          session_id: crypto.randomUUID(),
+          subject_id: subjectId,
+          lecture_id: lectureIds.get(name),
+          kind: "flashcards",
+          aborted: false,
+          shown: count,
+          answered: count,
+          correct: count,
+          partial: 0,
+          wrong: 0,
+          duration_seconds: 60,
+        },
+      });
+      expect(response.status()).toBe(204);
     }
     page.on("request", (request) => {
       if (request.method() === "POST" && new URL(request.url()).pathname === SAVE_PATH) saves.push(request);
@@ -122,48 +151,66 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     await context.close();
   });
 
-  test("Steg 1 (åpner emnet) – UJ-2, FR-6: forsiden (02) viser Markedsføring med åtte forelesninger og eksamen, og hun åpner emnet", async () => {
+  test("Steg 1 – UJ-2, FR-6, FR-57, FR-58, SK-20, SK-22, UX-DR11, UX-DR12: forsiden (02) viser at eksamen er om tre uker og at fire av åtte forelesninger er øvd, og hun trykker «Åpne» på Markedsføring", async () => {
     await page.goto("/");
     await expectOnHomePage(page);
-    // The subject card (story 5.4) and the semester line over the cards (story 5.5).
-    const item = page.locator("main li:has(h2)").filter({ hasText: "Markedsføring" });
-    await expect(item).toContainText("av 8 forelesninger øvd");
-    const examLine = page
-      .getByRole("region", { name: "Semesterlinje" })
-      .getByRole("listitem")
-      .filter({ hasText: "Markedsføring" });
-    await expect(examLine).toContainText(
-      new RegExp(`Eksamen \\S+ ${exam.shown.slice(0, 5).replace(".", "\\.")}, om 3 uker\\.$`),
+    // The semester line (story 5.5): the line is aria-hidden, so the screen-reader
+    // list carries the text, and the visible exam text stands in the graphic.
+    await expect(semesterLineItems(page)).toHaveText([LINE_TEXT(4)]);
+    const graphic = semesterLineGraphic(page);
+    await expect(graphic.getByText(`Eksamen ${exam.dayMonth} · om 3 uker`, { exact: true })).toBeVisible();
+    await expect(graphic.getByText("8 forelesninger", { exact: true })).toBeVisible();
+    await expect(graphic.locator("[data-station]")).toHaveCount(8);
+    await expect(graphic.locator('[data-station][data-practiced="true"]')).toHaveCount(4);
+    for (const name of PRACTISED_BEFORE) {
+      await expect(graphic.locator(`[data-station="${lectureIds.get(name)}"]`)).toHaveAttribute("data-practiced", "true");
+    }
+
+    // The subject card (story 5.4): the counts, «Neste å øve på» (the first
+    // lecture with cards that is not practised) and «4 av 8 forelesninger øvd».
+    const card = subjectCard(page, "Markedsføring");
+    await expect(card.getByText("14 kort · 8 quizspørsmål", { exact: true })).toBeVisible();
+    await expect(card.getByRole("heading", { level: 3, name: "Neste å øve på" })).toBeAttached();
+    await expect(card.getByText("Uke 38: Prising", { exact: true })).toBeVisible();
+    await expect(card.getByText("4 kort, ikke øvd ennå", { exact: true })).toBeVisible();
+    await expect(card.getByRole("link", { name: "Øv nå" })).toHaveAttribute(
+      "href",
+      `/forelesninger/${lectureIds.get("Uke 38: Prising")}/flashcards`,
     );
-    await expect(
-      page.getByRole("region", { name: "Semesterlinje" }).getByText(`Eksamen ${exam.shown.slice(0, 5)} · om 3 uker`, {
-        exact: true,
-      }),
-    ).toBeVisible();
+    await expect(card.getByText("4 av 8 forelesninger øvd", { exact: true })).toBeVisible();
+    await expect(card.locator('[data-slot="progress"] [data-practiced="true"]')).toHaveCount(4);
     await expectNoAxeViolations(page);
 
-    await item.getByRole("link", { name: "Åpne Markedsføring" }).click();
-    await expect(page).toHaveURL(/\/emner\/[0-9a-f-]{36}$/);
+    await card.getByRole("link", { name: "Åpne Markedsføring" }).click();
+    await expect(page).toHaveURL(`/emner/${subjectId}`);
     await expect(page.locator("main h1")).toHaveText("Markedsføring");
   });
 
-  test("Steg 2 (forelesningene med status) – FR-7, FR-15, UX-DR7, UX-DR13: emnesiden (03) viser forelesningene etter dato med filer og status", async () => {
+  test("Steg 2 (forelesningene med status) – FR-7, FR-15, FR-16, FR-56, UX-DR7, UX-DR11, UX-DR13: emnesiden (03) viser forelesningene etter dato med filer, kort, quiz og status «Øvd»", async () => {
     await expect(
-      page.getByText(new RegExp(`^8 forelesninger · 8 filer · eksamen \\S+ ${exam.shown.replace(/\./g, "\\.")}$`)),
+      page.getByText(`8 forelesninger · 8 filer · eksamen ${exam.weekday} ${exam.full}`, { exact: true }),
     ).toBeVisible();
+    await expect(semesterLineItems(page)).toHaveText([LINE_TEXT(4)]);
     const rows = page.locator("main tbody tr");
     await expect(rows).toHaveCount(8);
     await expect(rows.getByRole("link")).toHaveText(LECTURES.map(([name]) => name));
     for (let i = 0; i < LECTURES.length; i += 1) {
-      await expect(rows.nth(i).getByRole("cell").nth(2)).toHaveText("1");
-      // She has not practised yet, so Status is «Ikke øvd ennå».
-      await expect(rows.nth(i).getByRole("cell").nth(5)).toHaveText("Ikke øvd ennå");
+      const [name, , definitions] = LECTURES[i];
+      const cells = rows.nth(i).getByRole("cell");
+      await expect(cells.nth(2)).toHaveText("1");
+      // Kort and Quiz (story 5.2): «–» for none.
+      await expect(cells.nth(3)).toHaveText(String(definitions.length));
+      await expect(cells.nth(4)).toHaveText(QUIZ_LECTURES.includes(name) ? "4" : "–");
+      // Status (story 5.2): the four first are practised today, the rest not yet.
+      const practised = PRACTISED_BEFORE.includes(name);
+      await expect(cells.nth(5)).toHaveText(practised ? practisedToday : "Ikke øvd ennå");
+      await expect(sidebarLecture(page, name)).toHaveAccessibleName(`${name} ${practised ? "Øvd" : "Ikke øvd ennå"}`);
     }
     await expect(sidebarLectures(page)).toHaveCount(8);
     await expectNoAxeViolations(page);
   });
 
-  test("Steg 2 (øver på hele emnet) – FR-23, FR-24, FR-25, FR-56, UX-DR14, UX-DR34: i kortet «Øv på hele emnet» trykker hun «Øv på flashcards», og økten (07) blander kort fra alle forelesningene", async () => {
+  test("Steg 2 (øver på hele emnet) – FR-23, FR-24, FR-25, FR-56, UX-DR13, UX-DR14, UX-DR34: i kortet «Øv på hele emnet» trykker hun «Øv på flashcards», og økten (07) blander kort fra alle forelesningene", async () => {
     const practiceAll = page.getByRole("region", { name: "Øv på hele emnet" });
     await expect(practiceAll.getByText("14 kort fra 8 forelesninger")).toBeVisible();
     await practiceAll.getByRole("link", { name: "Øv på flashcards" }).click();
@@ -205,11 +252,21 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     await page.getByRole("link", { name: "Tilbake til emnet" }).click();
     await expect(page).toHaveURL(`/emner/${subjectId}`);
     await expect(page.locator("main h1")).toHaveText("Markedsføring");
+    // The session over the whole subject counts for every lecture with cards,
+    // so all eight are now practised, without a reload (story 5.1, 5.2, 5.5).
+    await expect(semesterLineItems(page)).toHaveText([LINE_TEXT(8)]);
+    for (let i = 0; i < LECTURES.length; i += 1) {
+      await expect(page.locator("main tbody tr").nth(i).getByRole("cell").nth(5)).toHaveText(practisedToday);
+    }
+    const lastSession = page.getByRole("region", { name: "Øv på hele emnet" });
+    await expect(lastSession.getByText("Flashcards · Hele emnet", { exact: true })).toBeVisible();
+    await expect(lastSession.getByText(`${dayFromToday(0).dayMonth} · Kunne 14 av 14`, { exact: true })).toBeVisible();
   });
 
   test("Steg 3 (starter quizen på hele emnet) – FR-32, FR-34, UX-DR14, UX-DR29: etterpå tar hun quiz på hele emnet («Start», 09), og kilden ved spørsmålet viser hvilken forelesning det kommer fra", async () => {
     const practiceAll = page.getByRole("region", { name: "Øv på hele emnet" });
-    await expect(practiceAll.getByRole("heading", { level: 3 })).toHaveText(["Flashcards", "Quiz"]);
+    // Flashcards and Quiz, and SISTE ØKT since she has practised (story 5.1).
+    await expect(practiceAll.getByRole("heading", { level: 3 })).toHaveText(["Flashcards", "Quiz", "Siste økt"]);
     await expect(practiceAll.getByText("8 spørsmål fra 2 forelesninger")).toBeVisible();
     await expectNoAxeViolations(page);
     questions = await quizQuestionsViaApi(page, "subjects", subjectId);
@@ -259,7 +316,7 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     await expectNoAxeViolations(page);
   });
 
-  test("Steg 3 (resten og resultatet) – FR-34, FR-36, FR-56, UX-DR29, UX-DR34: hver forklaring viser forelesningen spørsmålet kommer fra, og resultatet lagres for hele emnet", async () => {
+  test("Steg 3 (resten og resultatet) – FR-34, FR-36, FR-56, UX-DR14, UX-DR29, UX-DR34: hver forklaring viser forelesningen spørsmålet kommer fra, og resultatet lagres for hele emnet", async () => {
     const before = saves.length;
     // Question 3 wrong, the rest right.
     let missed: ApiQuestion | undefined;
@@ -294,7 +351,11 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
 
     await page.getByRole("link", { name: "Tilbake til emnet" }).click();
     await expect(page).toHaveURL(`/emner/${subjectId}`);
-    await expect(page.getByRole("region", { name: "Øv på hele emnet" }).getByText("7 spørsmål fra 2 forelesninger")).toBeVisible();
+    const practiceAll = page.getByRole("region", { name: "Øv på hele emnet" });
+    await expect(practiceAll.getByText("7 spørsmål fra 2 forelesninger")).toBeVisible();
+    // SISTE ØKT now shows the quiz (story 5.1).
+    await expect(practiceAll.getByText("Quiz · Hele emnet", { exact: true })).toBeVisible();
+    await expect(practiceAll.getByText(`${dayFromToday(0).dayMonth} · 7 av 8 riktige`, { exact: true })).toBeVisible();
   });
 
   test("Steg 4 (åpner forelesningen) – FR-7, UX-DR7: hun åpner «Uke 37: Merkevare» (04) med notatene", async () => {

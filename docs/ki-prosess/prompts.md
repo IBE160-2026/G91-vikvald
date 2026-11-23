@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-23: Brukerreisetestene utvidet etter epic 5
+
+Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 5 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).
+
+**Resultat:** flyt 1 har fått semesterlinja og emnekortet på forsiden (steg 2) og «Øvd» i sidemenyen. Flyt 2 har fått «fire av åtte øvd» og tiden til eksamen på forsiden (steg 1), status «Øvd» og tellinger i forelesningstabellen og SISTE ØKT (steg 2–3). Oversikten [brukerreiser.md](../testing/brukerreiser.md) viser status for hvert steg. Commit `9503d54`, `345c9dc`, `cfa5560`.
+
 ## 2026-11-23: Story 5.5 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `5-5-vis-semesterlinja-på-forsiden-emnesiden-og-forelesningssiden`. Hensikten til `bmad-build-auto` var «Story 5.5 fra `_bmad-output/planning-artifacts/epics.md`: Vis semesterlinja på forsiden, emnesiden og forelesningssiden». Kjøringen stoppet på lite diskplass, og en ny subagent gjorde ferdig testene, skjermbildene, sporet og PR-en.

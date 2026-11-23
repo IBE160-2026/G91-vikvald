@@ -232,3 +232,44 @@ export function cardFront(page: Page): Locator {
 
 // The path the session is saved to (FR-56).
 export const SAVE_PATH = "/api/practice-sessions";
+
+// A date `days` days from today (local date, as the app shows it): ISO for the
+// API, dd.mm.åååå for the date fields, dd.mm and the weekday for the semester
+// line (story 5.5). Relative to today, so the journeys keep working as time goes.
+export type DayInfo = { iso: string; full: string; dayMonth: string; weekday: string };
+
+const WEEKDAYS = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
+
+export function dayFromToday(days: number): DayInfo {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  const pad = (value: number) => String(value).padStart(2, "0");
+  const [y, m, d] = [date.getFullYear(), pad(date.getMonth() + 1), pad(date.getDate())];
+  return { iso: `${y}-${m}-${d}`, full: `${d}.${m}.${y}`, dayMonth: `${d}.${m}`, weekday: WEEKDAYS[date.getDay()] };
+}
+
+// The card «Semesterlinje» (02, 03, 04, story 5.5). The line itself is
+// aria-hidden; screen readers get one list item per subject (sr-only).
+export function semesterLine(page: Page): Locator {
+  return page.getByRole("region", { name: "Semesterlinje" });
+}
+
+// The screen-reader text of the line, one item per subject.
+export function semesterLineItems(page: Page): Locator {
+  return semesterLine(page).getByRole("listitem");
+}
+
+// The visible, aria-hidden graphic of the line.
+export function semesterLineGraphic(page: Page): Locator {
+  return semesterLine(page).locator('[aria-hidden="true"]');
+}
+
+// The subject card on the front page (02, story 5.4).
+export function subjectCard(page: Page, name: string): Locator {
+  return page.locator('[data-slot="subject-card"]').filter({ has: page.getByRole("heading", { level: 2, name }) });
+}
+
+// The lecture link in the sidebar, whose name ends with its status dot (story 5.1).
+export function sidebarLecture(page: Page, name: string): Locator {
+  return page.getByRole("navigation", { name: "Emner" }).getByRole("link", { name: new RegExp(`^${name} (Øvd|Ikke øvd ennå)$`) });
+}
