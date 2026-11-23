@@ -13,10 +13,17 @@ const EXTRA_BROWSERS: Record<string, Project> = {
   webkit: { name: "webkit", use: { ...devices["Desktop Safari"] } },
 };
 
-const wanted = (process.env.E2E_BROWSERS || "")
-  .split(",")
-  .map((name) => name.trim())
-  .filter((name) => name in EXTRA_BROWSERS);
+const named = new Set(
+  (process.env.E2E_BROWSERS || "")
+    .split(",")
+    .map((name) => name.trim().toLowerCase())
+    .filter((name) => name !== ""),
+);
+const unknown = [...named].filter((name) => !(name in EXTRA_BROWSERS));
+if (unknown.length > 0) {
+  console.warn(`E2E_BROWSERS: ukjent nettleser ${unknown.join(", ")} (kjente: ${Object.keys(EXTRA_BROWSERS).join(", ")})`);
+}
+const wanted = [...named].filter((name) => name in EXTRA_BROWSERS);
 
 export default defineConfig({
   testDir: "./e2e",
