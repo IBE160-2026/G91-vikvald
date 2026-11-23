@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-23: Story 6.2 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `6-2-fastsett-instruksene-til-modellen-for-flashcards-og-quiz`. Instruksene til modellen er en del av koden, i `backend/app/modules/generation/instructions/`.
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-6-2-fastsett-instruksene-til-modellen-for-flashcards-og-quiz.md), PR-en for `story/6-2`, kanttilfellene #273–#275 og det åpne punktet #276.
+
 ## 2026-11-23: Story 6.1 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `6-1-koble-gemini-på-vertex-ai-inn-bak-språkmodellporten`. Hensikten til `bmad-build-auto` var «Story 6.1 fra `_bmad-output/planning-artifacts/epics.md`: Koble Gemini på Vertex AI inn bak språkmodellporten».
