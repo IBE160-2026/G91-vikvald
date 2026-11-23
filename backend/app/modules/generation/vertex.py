@@ -6,11 +6,12 @@ asks for structured output (NativeOutput, Gemini's own responseSchema) with the
 type's *loose* schema. The pipeline in service.py then validates, discards and
 saves every item exactly as in demo mode.
 
-This is the only module in the app that imports pydantic_ai, so the rest of the
-app never depends on a model library.
+Only the generation module imports pydantic_ai (and of it, only this file), so
+the rest of the app never depends on a model library.
 """
 
 import json
+import logging
 from typing import Annotated, Any
 
 import pydantic_ai
@@ -32,6 +33,12 @@ VERTEX_LOCATION = "eu"
 
 # pydantic-ai may print a first-run banner to the terminal; the backend owns its output.
 pydantic_ai.BANNER_ENABLED = False
+
+# The HTTP clients log every request URL at INFO, and a Vertex URL holds the
+# project ID. Set here as well as in logging.json, so it also holds when the
+# backend runs without that file (e.g. `uvicorn --reload`).
+for _name in ("httpx", "httpcore", "google_genai"):
+    logging.getLogger(_name).setLevel(logging.WARNING)
 
 
 def build_vertex_model(project: str, model_name: str) -> GoogleModel:
@@ -56,8 +63,9 @@ def user_message(pages: list[Page], options: GenerationOptions) -> str:
     every page labelled with file_id and page_no."""
     existing = sorted(options.existing_keys)
     parts = [
-        f"Lag høyst {options.requested}.",
-        "Eksisterende: " + (json.dumps(existing, ensure_ascii=False) if existing else "ingen"),
+        f"Lag høyst {options.requested} elementer.",
+        "Disse finnes fra før og skal ikke lages på nytt: "
+        + (json.dumps(existing, ensure_ascii=False) if existing else "ingen"),
         "",
         "Sidene:",
     ]

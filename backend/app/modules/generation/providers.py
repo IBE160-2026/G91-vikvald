@@ -40,7 +40,8 @@ def select_generator(provider: str, settings: Settings | None = None) -> Generat
     if provider == "vertex":
         settings = settings or get_settings()
         for name in VERTEX_REQUIRED_SETTINGS:
-            if not getattr(settings, name):
+            # Docker Compose passes an unset value on as ""; blank counts as missing.
+            if not (getattr(settings, name) or "").strip():
                 raise MissingProviderSettingError(name)
         return _vertex_generator(
             settings.GOOGLE_CLOUD_PROJECT, settings.VERTEX_MODEL, settings.VERTEX_THINKING
