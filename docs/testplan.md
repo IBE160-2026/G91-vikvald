@@ -73,15 +73,15 @@ Resultatkolonnen fylles ut i story 6.6 (den avsluttende kontrollen) og når rapp
 | SK-6 | Redigere og slette kort, og bekreftelse før sletting (FR-5, FR-12, FR-14, FR-27) | Automatisk: testene for FR-5, FR-12, FR-14 og FR-27 | |
 | SK-7 | Word, for store filer og PDF uten tekst avvises med riktig beskjed (FR-9, FR-10, NFR-16) | Automatisk: testene for FR-9 og FR-10 (se radene over), og `test_nfr16_…` i `backend/tests/test_files.py` | |
 | SK-8 | Feiler genereringen, lagres ingenting halvferdig (FR-21) | Automatisk: testene for FR-21 og `test_sk8_…` i `backend/tests/test_jobs.py` | |
-| SK-9 | Universell utforming kontrolleres automatisk på alle sider (NFR-13) | Automatisk: axe i Playwright-testene, blant annet brukerreisene, og `frontend/e2e/universell-utforming.spec.ts` på alle sider og tilstander | Bestått 2026-11-23 (KI, autonom kjøring): ingen axe-brudd på noen side eller tilstand i 1280 og 768 px, heller ikke med eksempelemnet. Se «Resultater fra den avsluttende kontrollen» |
+| SK-9 | Universell utforming kontrolleres automatisk på alle sider (NFR-13) | Automatisk: axe i Playwright-testene, blant annet brukerreisene, og `frontend/e2e/universell-utforming.spec.ts` på alle sidene og tilstandene story 6.6 lister | Bestått 2026-11-23 (KI, autonom kjøring): ingen axe-brudd på sidene og tilstandene story 6.6 lister, i 1280 og 768 px, heller ikke med eksempelemnet. Jobbstatus, feilet generering og avviste opplastinger er sjekket med axe i brukerreisetestene (`e2e/brukerreiser/`). Se «Resultater fra den avsluttende kontrollen» |
 | SK-10 | Huskeregelen stemmer med forbokstavene (FR-44, FR-45) | Gjelder hvis huskeregler bygges (epic 7). Ikke bygd ennå | |
 | SK-11 | Appen starter etter README fra en ren kopi, uten nøkler eller kontoer (NFR-1, NFR-2) | Manuelt: se «SK-11: ren kopi» under | |
-| SK-12 | Hele kjerneflyten med bare tastatur (NFR-8, NFR-13) | Manuelt i story 6.6, av Silje | |
-| SK-13 | Under 5 % faglige feil i 50 flashcards fra Gemini | Manuelt i story 6.6, av Silje mot læreboka. Resultat som CSV i `docs/kvalitet/` | |
-| SK-14 | Minst 95 % av kortene viser til riktig side | Manuelt i story 6.6, samme stikkprøve som SK-13 | |
-| SK-15 | 20 quizspørsmål: ett riktig alternativ, det riktige er det lengste i høyst 35 % (FR-31) | Manuelt i story 6.6, av Silje | |
-| SK-16 | Formlene fra *Principles of Economics 3e* side 127–128 gjengis riktig (FR-40) | Manuelt i story 6.6, av Silje | |
-| SK-17 | Minst 80 % av overskriftene i notatene har minst ett kort | Manuelt i story 6.6. Instruksen ber om spredning over overskriftene (`backend/tests/test_instructions.py`) | |
+| SK-12 | Hele kjerneflyten med bare tastatur (NFR-8, NFR-13) | Manuelt i story 6.6, av Silje ([#295](https://github.com/IBE160-2026/G91-vikvald/issues/295)). Se «SK-12: bare tastatur» under | |
+| SK-13 | Under 5 % faglige feil i 50 flashcards fra Gemini | Manuelt i story 6.6, av Silje mot læreboka. Resultat som CSV i `docs/kvalitet/`, se [`docs/kvalitet/README.md`](kvalitet/README.md) ([#299](https://github.com/IBE160-2026/G91-vikvald/issues/299)) | |
+| SK-14 | Minst 95 % av kortene viser til riktig side | Manuelt i story 6.6, samme stikkprøve som SK-13, se [`docs/kvalitet/README.md`](kvalitet/README.md) ([#299](https://github.com/IBE160-2026/G91-vikvald/issues/299)) | |
+| SK-15 | 20 quizspørsmål: ett riktig alternativ, det riktige er det lengste i høyst 35 % (FR-31) | Manuelt i story 6.6, av Silje, se [`docs/kvalitet/README.md`](kvalitet/README.md) ([#299](https://github.com/IBE160-2026/G91-vikvald/issues/299)) | |
+| SK-16 | Formlene fra *Principles of Economics 3e* side 127–128 gjengis riktig (FR-40) | Manuelt i story 6.6, av Silje, se [`docs/kvalitet/README.md`](kvalitet/README.md) ([#300](https://github.com/IBE160-2026/G91-vikvald/issues/300)) | |
+| SK-17 | Minst 80 % av overskriftene i notatene har minst ett kort | Manuelt i story 6.6. Instruksen ber om spredning over overskriftene (`backend/tests/test_instructions.py`). Se [`docs/kvalitet/README.md`](kvalitet/README.md) ([#299](https://github.com/IBE160-2026/G91-vikvald/issues/299)) | |
 | SK-18 | Repetisjonsøkt med eget stoff og egenrefleksjon | Manuelt, av Silje, i rapporten | |
 | SK-19 | KI-bruken er dokumentert | `docs/ki-prosess/` og sesjonsloggene i `.logs/` | |
 | SK-20 | Resultatet av en økt lagres, også avbrutt, og «Neste å øve på» følger FR-58 (FR-56, FR-58) | Automatisk: testene for FR-56 og FR-58 og `test_sk20_…`/`SK-20` | |
@@ -121,7 +121,7 @@ Kontrollene som kan automatiseres, er kjørt av KI i den autonome kjøringen. Ko
 
 ### Universell utforming med axe (SK-9, NFR-13)
 
-`frontend/e2e/universell-utforming.spec.ts` går gjennom alle sidene og tilstandene og kjører axe på hver av dem i 1280 og 768 px:
+`frontend/e2e/universell-utforming.spec.ts` går gjennom alle sidene og tilstandene story 6.6 lister, og kjører axe på hver av dem i 1280 og 768 px:
 
 - innloggingen og oppretting av konto, tomme og med feilmelding
 - forsiden uten og med emner, og dialogen «Nytt emne»
@@ -134,23 +134,25 @@ Kontrollene som kan automatiseres, er kjørt av KI i den autonome kjøringen. Ko
 - bør ha-sidene (modellkort, fritekst og sammendrag) når bryteren er på i `GET /api/config`. Testen leter etter inngangen i appen. Så lenge epic 7–9 ikke er bygd, finner den ingen og fører «ikke bygd ennå» på testen
 - forelesningssiden, flashcardøkten og quizøkten med eksempelemnet til testbrukeren, uten å lagre en økt
 
+Tilstander som ikke står i lista, for eksempel jobbstatus mens innhold lages, feilet generering og avviste opplastinger, er sjekket med axe i brukerreisetestene (`e2e/brukerreiser/`).
+
 | Dato | Commit | Hvem | Kommando | Resultat |
 | --- | --- | --- | --- | --- |
-| 2026-11-23 | `5dc98d8` | KI (autonom kjøring) | `E2E_REQUIRE_SEED=1 npx playwright test` mot `docker compose -p sk-seedtest up --build` | Bestått: 189 tester, ingen axe-brudd, også de 9 testene i `universell-utforming.spec.ts`. Ingen feil i appen måtte rettes |
+| 2026-11-23 | TBD-commit | KI (autonom kjøring) | `E2E_REQUIRE_SEED=1 npx playwright test` mot `docker compose -p sk-seedtest up --build` | Bestått: 189 tester, ingen axe-brudd, også de 9 testene i `universell-utforming.spec.ts`. Ingen feil i appen måtte rettes |
 
 ### Skjermbredde 768 px (NFR-14)
 
-Den samme testen sjekker hver side og tilstand i 768 px: siden er ikke bredere enn vinduet (`scrollWidth <= innerWidth`), sidene med sidemeny har knappen «Meny» og ingen synlig navigasjon «Emner», og i øktene ligger øktpanelet bak «Meny».
+Den samme testen sjekker de samme sidene og tilstandene i 768 px: siden er ikke bredere enn vinduet (`scrollWidth <= innerWidth`), sidene med sidemeny har knappen «Meny» og ingen synlig navigasjon «Emner», og i øktene ligger øktpanelet bak «Meny».
 
 | Dato | Commit | Hvem | Resultat |
 | --- | --- | --- | --- |
-| 2026-11-23 | `5dc98d8` | KI (autonom kjøring) | Bestått: ingen vannrett rulling på noen side eller tilstand i 768 px, sidemenyen og øktpanelet bak «Meny» |
+| 2026-11-23 | TBD-commit | KI (autonom kjøring) | Bestått: ingen vannrett rulling på sidene og tilstandene i lista over i 768 px, sidemenyen og øktpanelet bak «Meny» |
 
 ### NFR-14: tekst forstørret til 200 %
 
 Kontrolleres for hånd av Silje ([#296](https://github.com/IBE160-2026/G91-vikvald/issues/296)).
 
-**Framgangsmåte.** Start appen med `docker compose up` og åpne http://localhost:3000 i Chrome med vinduet på full bredde. Sett tekststørrelsen til 200 % (Innstillinger → Utseende → Skriftstørrelse, eller Cmd/Ctrl og + til zoomen viser 200 %). Gå gjennom kjerneflyten: logg inn → nytt emne og forelesning → last opp PDF og godta vilkår → lag og øv på flashcards → lag og ta quiz → logg ut. Noter hver side som får vannrett rulling, eller der tekst eller knapper blir borte eller overlapper.
+**Framgangsmåte.** Start appen med `docker compose up` og åpne http://localhost:3000 i Chrome. Gjør vinduet 1280 px bredt. Zoom siden til 200 % med Cmd/Ctrl og + til Chrome viser 200 % (WCAG 1.4.4 godtar zoom av hele siden som måte å forstørre teksten på). Gå gjennom kjerneflyten: logg inn → nytt emne og forelesning → last opp PDF og godta vilkår → lag og øv på flashcards → lag og ta quiz → logg ut. Sjekk på hver side om den får vannrett rulling, og om tekst eller knapper blir skjult eller overlapper. Noter det du finner.
 
 | Dato | Nettleser og versjon | Hvem | Resultat | Funn (issue) |
 | --- | --- | --- | --- | --- |
@@ -160,11 +162,13 @@ Kontrolleres for hånd av Silje ([#296](https://github.com/IBE160-2026/G91-vikva
 
 `frontend/e2e/kjerneflyt.spec.ts` går gjennom kjerneflyten i nettleseren og fører navnet og versjonen på nettleseren på testen. Den kjøres i en installert nettleser med `E2E_BROWSERS`, for eksempel `E2E_BROWSERS=chrome npx playwright test --project=chrome` i `frontend/`. Edge fantes ikke på maskinen, og Safari skal kontrolleres i selve Safari, ikke i WebKit-motoren til Playwright. Begge er Siljes ([#297](https://github.com/IBE160-2026/G91-vikvald/issues/297) og [#298](https://github.com/IBE160-2026/G91-vikvald/issues/298)). Safari kan kuttes (kuttrekkefølge punkt 3 i PRD-en).
 
-| Nettleser | Versjon | Dato | Hvem | Hvordan | Resultat |
-| --- | --- | --- | --- | --- | --- |
-| Chrome | 158.0.8127.37 | 2026-11-23 | KI (autonom kjøring) | `E2E_BROWSERS=chrome npx playwright test --project=chrome` | Bestått |
-| Edge | | | | | |
-| Safari | | | | | |
+**Framgangsmåte for Edge og Safari.** Start appen med `docker compose up` og åpne http://localhost:3000 i nyeste Edge eller Safari. Gå gjennom kjerneflyten for hånd: logg inn → nytt emne og forelesning → last opp PDF og godta vilkår → lag og øv på flashcards → lag og ta quiz → logg ut. Er Edge installert, kan du i stedet kjøre `E2E_BROWSERS=msedge npx playwright test --project=msedge` i `frontend/`. Finn versjonsnummeret i «Om»-menyen (Edge: Innstillinger → Om Microsoft Edge; Safari: Safari → Om Safari), og før versjon, dato, commit og funn i tabellen.
+
+| Nettleser | Versjon | Dato | Commit | Hvem | Hvordan | Resultat |
+| --- | --- | --- | --- | --- | --- | --- |
+| Chrome | 158.0.8127.37 | 2026-11-23 | TBD-commit | KI (autonom kjøring) | `E2E_BROWSERS=chrome npx playwright test --project=chrome` | Bestått |
+| Edge | | | | | | |
+| Safari | | | | | | |
 
 ### SK-12: bare tastatur
 
