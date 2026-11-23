@@ -1,0 +1,286 @@
+"""The quality spot check of the real model (story 6.6: SK-13, SK-14, SK-15).
+
+Two commands, run from backend/ against the running app (port 3000):
+
+    uv run python -m scripts.export_quality_sample export --email <e-post> --subject <emne> \
+        --flashcards 50 --quiz 20 --out stikkprove.csv
+    uv run python -m scripts.export_quality_sample summary stikkprove.csv
+
+`export` logs in through the app's own API (the password comes from the
+SK_PASSWORD environment variable or a prompt, never from the command line),
+finds the subject by name, and writes one CSV with the columns
+innhold,kilde,vurdering,kommentar (UTF-8 with BOM, so Excel shows æ, ø and å).
+`vurdering` and `kommentar` are always empty: the student fills them in by
+hand against the textbook. When there is more content than asked for, a random
+sample is drawn with a fixed seed (--seed, default 1), so the same command gives
+the same sample; the rows are sorted by lecture, file and page.
+
+`summary` reads a filled-in copy and computes the numbers for SK-13, SK-14 and
+SK-15. Allowed values in `vurdering` (case does not matter):
+
+- riktig: correct, and the source page is right.
+- faglig feil: a factual error (for a quiz question also: not exactly one
+  correct option, or the marked answer is wrong).
+- feil side: correct, but the source page is wrong.
+- faglig feil og feil side: both.
+
+Only the app's API is used: no database connection, and no model is called.
+"""
+
+import argparse
+import asyncio
+import csv
+import getpass
+import os
+import random
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+import httpx
+
+COLUMNS = ["innhold", "kilde", "vurdering", "kommentar"]
+DEFAULT_BASE_URL = "http://localhost:3000"
+FORMULA_MARK = "[Formelmerke]"
+LONGEST_YES = "Riktig svar er lengst: ja"
+LONGEST_NO = "Riktig svar er lengst: nei"
+
+CORRECT = "riktig"
+FACTUAL_ERROR = "faglig feil"
+WRONG_PAGE = "feil side"
+BOTH = "faglig feil og feil side"
+ASSESSMENTS = {CORRECT, FACTUAL_ERROR, WRONG_PAGE, BOTH}
+
+# The goals in the PRD.
+SK13_MAX_ERROR_SHARE = 0.05
+SK14_MIN_SOURCE_SHARE = 0.95
+SK15_MAX_LONGEST_SHARE = 0.35
+
+
+class ExportError(Exception):
+    """Stops the command with a message and exit code 1. Nothing is written."""
+
+
+@dataclass(frozen=True)
+class SampleRow:
+    content: str
+    source: str
+    # For sorting: the lecture's place in date order, the file name and the page.
+    sort_key: tuple[int, str, int]
+
+    def as_csv(self) -> dict[str, str]:
+        return {"innhold": self.content, "kilde": self.source, "vurdering": "", "kommentar": ""}
+
+
+def _source(item: dict[str, Any]) -> str:
+    return f"{item['source']['file_name']}, side {item['source']['page_no']}"
+
+
+def _with_flag(text: str, item: dict[str, Any]) -> str:
+    return f"{text} {FORMULA_MARK}" if item.get("formula_flag") else text
+
+
+def correct_is_longest(options: list[str], correct_index: int) -> bool:
+    """A mechanical length comparison. A tie with another option counts as longest."""
+    lengths = [len(option.strip()) for option in options]
+    return lengths[correct_index] >= max(lengths)
+
+
+def flashcard_text(card: dict[str, Any]) -> str:
+    return _with_flag(f"Flashcard: {card['front']} | Svar: {card['back']}", card)
+
+
+def quiz_text(question: dict[str, Any]) -> str:
+    options = question["options"]
+    letters = "ABCD"
+    parts = [f"Quiz: {question['question']}"]
+    parts += [f"{letters[index]}: {option}" for index, option in enumerate(options)]
+    parts.append(f"Riktig: {letters[question['correct_index']]}")
+    parts.append(LONGEST_YES if correct_is_longest(options, question["correct_index"]) else LONGEST_NO)
+    return _with_flag(" | ".join(parts), question)
+
+
+def draw(rows: list[SampleRow], wanted: int, seed: int) -> list[SampleRow]:
+    """A random sample with a fixed seed when there are more rows than wanted, sorted."""
+    chosen = random.Random(seed).sample(rows, wanted) if len(rows) > wanted else list(rows)
+    return sorted(chosen, key=lambda row: row.sort_key)
+
+
+async def _get(client: httpx.AsyncClient, path: str) -> Any:
+    response = await client.get(path)
+    if response.status_code != 200:
+        raise ExportError(f"{path} svarte {response.status_code}")
+    return response.json()
+
+
+async def collect(
+    client: httpx.AsyncClient,
+    email: str,
+    password: str,
+    subject_name: str,
+    flashcards: int,
+    quiz: int,
+    seed: int = 1,
+) -> tuple[list[SampleRow], list[str]]:
+    """The sample rows and the notes to print. Raises ExportError when nothing can be written."""
+    login = await client.post("/api/identity/login", json={"email": email, "password": password})
+    if login.status_code != 200:
+        raise ExportError("Innloggingen feilet. Sjekk e-posten og passordet.")
+
+    subjects = await _get(client, "/api/subjects")
+    subject = next((item for item in subjects if item["name"] == subject_name), None)
+    if subject is None:
+        names = ", ".join(sorted(item["name"] for item in subjects)) or "ingen"
+        raise ExportError(f"Fant ikke emnet «{subject_name}». Emnene som finnes: {names}")
+
+    lectures = await _get(client, f"/api/subjects/{subject['id']}/lectures")
+    order = {lecture["id"]: index for index, lecture in enumerate(sorted(lectures, key=lambda x: (x["date"], x["name"])))}
+
+    def key(item: dict[str, Any]) -> tuple[int, str, int]:
+        return (order.get(item["lecture"]["id"], len(order)), item["source"]["file_name"], item["source"]["page_no"])
+
+    cards = await _get(client, f"/api/subjects/{subject['id']}/flashcards")
+    questions = await _get(client, f"/api/subjects/{subject['id']}/quiz-questions")
+    card_rows = [SampleRow(flashcard_text(card), _source(card), key(card)) for card in cards]
+    quiz_rows = [SampleRow(quiz_text(question), _source(question), key(question)) for question in questions]
+
+    notes = []
+    if len(card_rows) < flashcards:
+        notes.append(f"Fant {len(card_rows)} flashcards, ba om {flashcards}")
+    if len(quiz_rows) < quiz:
+        notes.append(f"Fant {len(quiz_rows)} quizspørsmål, ba om {quiz}")
+    return draw(card_rows, flashcards, seed) + draw(quiz_rows, quiz, seed), notes
+
+
+def write_csv(rows: list[SampleRow], path: Path) -> None:
+    with path.open("w", encoding="utf-8-sig", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=COLUMNS)
+        writer.writeheader()
+        writer.writerows(row.as_csv() for row in rows)
+
+
+# --- summary ------------------------------------------------------------------
+
+
+@dataclass
+class Summary:
+    flashcards_assessed: int = 0
+    flashcards_factual_errors: int = 0
+    flashcards_wrong_page: int = 0
+    quiz_assessed: int = 0
+    quiz_one_correct: int = 0
+    quiz_total: int = 0
+    quiz_correct_longest: int = 0
+    missing: int = 0
+
+
+def summarise(path: Path) -> Summary:
+    """The numbers for SK-13, SK-14 and SK-15. Raises ExportError on an unknown assessment."""
+    result = Summary()
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        if reader.fieldnames is None or list(reader.fieldnames) != COLUMNS:
+            raise ExportError(f"Kolonnene skal være {','.join(COLUMNS)}")
+        for line, row in enumerate(reader, start=2):
+            content = row["innhold"] or ""
+            is_quiz = content.startswith("Quiz:")
+            if is_quiz:
+                result.quiz_total += 1
+                result.quiz_correct_longest += LONGEST_YES in content
+            value = (row["vurdering"] or "").strip().lower()
+            if not value:
+                result.missing += 1
+                continue
+            if value not in ASSESSMENTS:
+                raise ExportError(
+                    f"Ukjent vurdering «{row['vurdering']}» på rad {line}: {content}. "
+                    f"Gyldige verdier: {', '.join(sorted(ASSESSMENTS))}"
+                )
+            factual = value in (FACTUAL_ERROR, BOTH)
+            if is_quiz:
+                result.quiz_assessed += 1
+                result.quiz_one_correct += not factual
+            else:
+                result.flashcards_assessed += 1
+                result.flashcards_factual_errors += factual
+                result.flashcards_wrong_page += value in (WRONG_PAGE, BOTH)
+    return result
+
+
+def _share(part: int, whole: int) -> str:
+    return f"{part} av {whole} ({100 * part / whole:.1f} %)" if whole else "ingen rader"
+
+
+def _verdict(ok: bool, whole: int) -> str:
+    return ("nådd" if ok else "ikke nådd") if whole else "–"
+
+
+def summary_lines(result: Summary) -> list[str]:
+    cards = result.flashcards_assessed
+    errors = result.flashcards_factual_errors
+    right_page = cards - result.flashcards_wrong_page
+    quiz = result.quiz_assessed
+    lines = [
+        f"SK-13 faglige feil i flashcards: {_share(errors, cards)}, mål under 5 %: "
+        f"{_verdict(cards > 0 and errors / cards < SK13_MAX_ERROR_SHARE, cards)}",
+        f"SK-14 flashcards med riktig side: {_share(right_page, cards)}, mål minst 95 %: "
+        f"{_verdict(cards > 0 and right_page / cards >= SK14_MIN_SOURCE_SHARE, cards)}",
+        f"SK-15 quizspørsmål med nøyaktig ett riktig alternativ: {_share(result.quiz_one_correct, quiz)}, mål alle: "
+        f"{_verdict(quiz > 0 and result.quiz_one_correct == quiz, quiz)}",
+        f"SK-15 riktig svar er lengst: {_share(result.quiz_correct_longest, result.quiz_total)}, mål høyst 35 %: "
+        f"{_verdict(result.quiz_total > 0 and result.quiz_correct_longest / result.quiz_total <= SK15_MAX_LONGEST_SHARE, result.quiz_total)}",
+    ]
+    if result.missing:
+        lines.append(f"{result.missing} rader mangler vurdering")
+    return lines
+
+
+# --- command line ---------------------------------------------------------------
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="export_quality_sample", description=__doc__.split("\n\n")[0])
+    commands = parser.add_subparsers(dest="command", required=True)
+    export = commands.add_parser("export", help="Lag CSV-en for stikkprøven fra appen")
+    export.add_argument("--email", required=True, help="E-posten du logger inn i appen med")
+    export.add_argument("--subject", required=True, help="Navnet på emnet, nøyaktig som i appen")
+    export.add_argument("--flashcards", type=int, default=50, help="Antall flashcards (standard 50)")
+    export.add_argument("--quiz", type=int, default=20, help="Antall quizspørsmål (standard 20)")
+    export.add_argument("--seed", type=int, default=1, help="Frøet til det tilfeldige utvalget (standard 1)")
+    export.add_argument("--out", type=Path, default=Path("stikkprove.csv"), help="Fila som skrives")
+    export.add_argument("--base-url", default=DEFAULT_BASE_URL, help=f"Appens adresse (standard {DEFAULT_BASE_URL})")
+    summary = commands.add_parser("summary", help="Regn ut SK-13, SK-14 og SK-15 fra en utfylt CSV")
+    summary.add_argument("file", type=Path)
+    return parser
+
+
+async def _export(args: argparse.Namespace) -> None:
+    password = os.environ.get("SK_PASSWORD") or getpass.getpass("Passord: ")
+    async with httpx.AsyncClient(base_url=args.base_url, timeout=30) as client:
+        rows, notes = await collect(client, args.email, password, args.subject, args.flashcards, args.quiz, args.seed)
+    for note in notes:
+        print(note)
+    write_csv(rows, args.out)
+    print(f"Skrev {len(rows)} rader til {args.out}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parser().parse_args(argv)
+    try:
+        if args.command == "export":
+            asyncio.run(_export(args))
+        else:
+            for line in summary_lines(summarise(args.file)):
+                print(line)
+    except ExportError as error:
+        print(error, file=sys.stderr)
+        return 1
+    except httpx.HTTPError as error:
+        print(f"Fikk ikke kontakt med appen på {args.base_url}: {type(error).__name__}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
