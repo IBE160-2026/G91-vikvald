@@ -2,7 +2,7 @@
 title: 'Story 6.4: Lag testbruker og eksempelemne med eksempelnotater'
 type: 'feature'
 created: '2026-11-23'
-status: 'in-progress'
+status: 'done'
 baseline_revision: '547d327003eee3b49b995e4930c935af97ac1463'
 review_loop_iteration: 0
 followup_review_recommended: false
@@ -10,7 +10,21 @@ context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-6-context.md'
   - '{project-root}/_bmad-output/implementation-artifacts/autonom-kjoring.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Notatene er KI-laget plassholdere; akseptkriteriet «Silje har lest dem faglig» er ikke oppfylt.
+    evidence: |-
+      Instruksen for den autonome kjøringen (punkt 5) sier at story 6.4 bygges med merkede plassholdernotater og at issue #13 står åpent. Silje skriver eller godkjenner de endelige notatene selv.
+    location: >-
+      backend/app/seed/notater/
+    severity: medium
+  - summary: >-
+      Krediteringen av OpenStax nevner ikke forfatterne av Principles of Marketing.
+    evidence: |-
+      KI-en navngir ikke forfattere den ikke kan sjekke. Silje bør legge dem til fra bokas egen side når hun skriver notatene (#13).
+    location: >-
+      backend/app/seed/notater/LISENS.md
+    severity: low
 ---
 
 <intent-contract>
@@ -101,6 +115,41 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-23 — Review pass
+- verdicts: 31 findings — high 0, medium 3, low 19, false 3, maybe-false 0 (6 av de lave er avvist som sjeldne; 2 er utsatt)
+- findings:
+  - `[medium]` `[patch]` (verification) `python -m app.seed` var aldri prøvd mot en database: testen av `main()` ville bestått selv om seed ikke ble kalt — ny test `test_ar14_seed_main_seeds_the_database` kjører `main()` mot testdatabasen og logger inn som testbrukeren; testen av avslutningskoden sjekker nå at seed ble kalt.
+  - `[low]` `[patch]` (verification, annet) Testen av `main()` rørte appens ekte motor og global logging — samme fikstur bruker nå en stand-in-motor og slår av `basicConfig`.
+  - `[medium]` `[defer]` (intent) Notatene er KI-laget og ikke lest faglig av Silje — bestemt av instruksen (punkt 5); ført som utsatt, i PR-en og på #13.
+  - `[false]` `[reject]` (intent) `docs/ki-prosess/` er ikke oppdatert — skrives etter byggeløpet i samme økt, før PR.
+  - `[medium]` `[patch]` (intent) README nevnte ikke *Principles of Economics 3e* — nytt punkt med nedlastingslenke og kreditering, uten å gjette lisensen.
+  - `[low]` `[reject]` (intent) NFR-2a-setningen i README er ikke ordrett — NFR-2a har ingen slik setning; meningen fra akseptkriteriet er gjengitt.
+  - `[low]` `[patch]` (intent) Playwright-testen hopper over seg selv i stedet for å feile — med `E2E_REQUIRE_SEED=1` feiler den nå når testbrukeren mangler; uten hopper den over (kanttilfelle-issue).
+  - `[low]` `[reject]` (intent) Modellkort testes ikke — ikke bygd ennå (epic 7); registertesten med ekstra type viser at de kommer med.
+  - `[low]` `[reject]` (intent) Kontoslettingen ble flyttet, ikke bare gjenbrukt — nødvendig for å kalle den fra seed uten ruten; atferden er uendret og dekket av `test_account_delete.py`.
+  - `[low]` `[patch]` (intent) Regex-en i AR-9-testen slapp gjennom alle navn som begynner med `PracticeSession` — tillater nå bare `PracticeSessionIn`.
+  - `[low]` `[reject]` (edge) Feiler oppryddingen, blir en halv testbruker stående — krever at både jobbmerkingen og slettingen feiler (databasen nede); da vises «Seed clean-up failed» i loggen, og `down -v` står i README.
+  - `[low]` `[patch]` (edge) Avbrudd (BaseException) hopper over oppryddingen — `main()` fanger nå bare `Exception` og `SystemExit`, så Ctrl+C stopper oppstarten i stedet for å starte appen med halv seed.
+  - `[false]` `[reject]` (edge) To oppstarter samtidig gir falsk «Seed failed» — backenden kjører i én prosess, og `start.sh` kjører seed én gang.
+  - `[low]` `[patch]` (edge) `plain_text` og `build_pdf` stripper linjer ulikt — `plain_text` stripper nå også.
+  - `[low]` `[reject]` (edge) For lang tekst gir PyMuPDF-feil i stedet for `NoteTooLongError` — bare for utviklere, og feilen er like synlig.
+  - `[low]` `[patch]` (edge) AR-9-regex — samme som intent-funnet.
+  - `[low]` `[patch]` (edge) `main()`-testen endrer global logging og motor — samme som verifiseringsfunnet.
+  - `[low]` `[reject]` (edge, påstand) README lover nytt forsøk også når oppryddingen feiler — samme sjeldne tilfelle som over.
+  - `[low]` `[reject]` (blind) Halv testbruker ved feilet opprydding — samme som edge-funnet.
+  - `[low]` `[patch]` (blind) Ctrl+C under seed stopper ikke containeren — samme rettelse som edge-funnet.
+  - `[low]` `[patch]` (blind) LISENS.md sa både «skrevet om» og «ingen tekst fra boka», og manglet vanlig OpenStax-ordlyd — nå «Ingen PDF fra boka» og «Tilgjengelig gratis på …»; forfatterne er utsatt til Silje.
+  - `[medium]` `[patch]` (blind) Reglene for notatene som skal erstatte plassholderne, sto ingen steder — README («Endre et notat») lister reglene og testene som må oppdateres.
+  - `[low]` `[reject]` (blind) Byte-sjekken av PDF-ene feiler ved ny PyMuPDF — versjonen er låst i `uv.lock`, og feilen sier at PDF-ene må bygges på nytt.
+  - `[low]` `[reject]` (blind) `feature`-feltet brukes ikke av noen innebygd type — det er for epic 7–9, slik akseptkriteriet krever.
+  - `[low]` `[patch]` (blind) Playwright-testen skjuler en ødelagt seed — samme som intent-funnet.
+  - `[low]` `[patch]` (blind) Datoene blir gamle i en database som ble fylt for lenge siden — README sier nå at datoene settes én gang og at `down -v` gir nye.
+  - `[low]` `[reject]` (blind) Samme konstanter står flere steder — testene skal feile når teksten endres; README sier hvilke.
+  - `[low]` `[patch]` (blind) README sa ikke hvordan en feilet seed ses — `Seed failed: <feiltype>` i `docker compose logs backend`.
+  - `[false]` `[reject]` (blind) Kontoslettingen havner i feil modul — `files` eide allerede kontoslettingen (ruten lå der), og modulkommentaren sier at `files` kan kalle `identity`.
+  - `[low]` `[patch]` (blind) AR-9-testen er svakere — samme som intent-funnet.
+  - `[low]` `[patch]` (blind) Testnavnet `…_with_vertex` var misvisende — nå `test_ar14_seed_uses_mock_model_even_with_vertex`.
+
 ## Design Notes
 
 **Plassholdere, ikke Siljes notater.** Akseptkriteriet «Silje har lest dem faglig» er ikke oppfylt i denne storien. Det står i PR-en, i `docs/ki-prosess/` og som kommentar på #13.
@@ -113,3 +162,36 @@ deferred: []
 - `cd backend && uv run pytest` -- alle grønne.
 - `cd frontend && npm run test` -- alle grønne.
 - `docker compose -p sk-seedtest up --build -d && cd frontend && npx playwright test` -- alle grønne, også `testbruker.spec.ts`.
+
+## Auto Run Result
+
+Status: done
+
+**Hva som er bygd:** `python -m app.seed` kjører mellom Alembic og Uvicorn og lager, bare på tom lokal database, testbrukeren `test@studiekamerat.no`, emnet «Markedsføring» med tre forelesninger og ett PDF-notat hver, flashcards og quiz fra mock-modellen (ventet ferdig, alle jobber `done`) og to økter på første forelesning. Feiler noe, slettes testbrukeren med den vanlige kontoslettingen, og appen starter likevel. Notatene er KI-laget og tydelig merket «PLASSHOLDER – skrives av Silje» (#13 står åpent).
+
+**Filer:**
+- `backend/app/seed/service.py` -- `seed_if_empty` og opprydding ved feil.
+- `backend/app/seed/__main__.py`, `__init__.py` -- kjører seed fra `start.sh`, avslutter alltid med 0 (men ikke ved Ctrl+C).
+- `backend/app/seed/build_notes.py` -- lager PDF-ene fra kildeteksten med PyMuPDF TextWriter.
+- `backend/app/seed/notater/` -- tre plassholdernotater (`.md` + `.pdf`) og `LISENS.md`.
+- `backend/start.sh` -- Alembic → seed → Uvicorn.
+- `backend/app/modules/generation/registry.py` -- `ContentType.feature`, `enabled_content_types`, `unregister_content_type`.
+- `backend/app/modules/files/service.py`, `router.py` -- kontoslettingen som tjeneste (`delete_account`), ruten uendret utad.
+- `backend/app/modules/identity/service.py` -- `any_user_exists`.
+- `backend/tests/test_seed.py` -- testene med krav-ID; `backend/tests/test_overview.py` -- AR-9-testen tillater bare `PracticeSessionIn`.
+- `frontend/e2e/testbruker.spec.ts` -- innlogging som testbrukeren, emnet og flashcardøkt med axe.
+- `README.md` -- avsnittet «Testbruker og eksempelemne».
+
+**Gjennomgang:** 31 funn. 17 rettet (3 middels, 14 lave), 2 utsatt (Siljes faglige lesing og forfatterne i krediteringen), 12 avvist med begrunnelse i triageloggen over.
+
+**Ny gjennomgang anbefales:** nei. Tre middels funn ble rettet, men alle rettelsene er verifisert av hele testpakken etterpå, og ingen konkret uverifisert risiko gjenstår (patchet: high 0, medium 3, low 14).
+
+**Verifisering:**
+- `uv run pytest` i `backend/`: 706 passed.
+- `npm run test` i `frontend/`: 918 passed (73 filer).
+- `E2E_REQUIRE_SEED=1 npx playwright test` mot `docker compose -p sk-seedtest up --build -d` (tom database, seed kjørt): 179 passed, også `testbruker.spec.ts`. Backend-loggen viste «Seed done».
+
+**Gjenværende risiko:**
+- Notatene er ikke lest faglig av Silje, og krediteringen mangler forfatternavn (utsatt, #13).
+- Mot et eldre `pgdata`-volum med kontoer lages ingen testbruker, og Playwright-testen hopper da over seg selv (kanttilfelle).
+
