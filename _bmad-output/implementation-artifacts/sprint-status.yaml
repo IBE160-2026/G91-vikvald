@@ -82,7 +82,7 @@ development_status:
 
   epic-6: in-progress
   6-1-koble-gemini-på-vertex-ai-inn-bak-språkmodellporten: done
-  6-2-fastsett-instruksene-til-modellen-for-flashcards-og-quiz: backlog
+  6-2-fastsett-instruksene-til-modellen-for-flashcards-og-quiz: done
   6-3-send-sider-med-formler-som-bilde-og-merk-innholdet-kan-kutte: backlog
   6-4-lag-testbruker-og-eksempelemne-med-eksempelnotater: backlog
   6-5-fullfør-readme-legg-til-lisens-og-vis-testdekningen: backlog
