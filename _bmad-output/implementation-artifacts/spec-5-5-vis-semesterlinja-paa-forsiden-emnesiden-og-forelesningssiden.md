@@ -3,7 +3,7 @@ title: 'Story 5.5: Vis semesterlinja på forsiden, emnesiden og forelesningsside
 type: 'feature'
 created: '2026-11-23'
 baseline_revision: 'e84c28a1af39c32f93fea888bb6c5f0fdb08b8df'
-status: 'blocked'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -157,11 +157,10 @@ Hver emnerad tegner sine egne gridlinjer og sin del av i dag-nåla i full høyde
 
 ## Auto Run Result
 
-Status: blocked
-Blocking condition: free disk space fell under 5 GB (4.7 GB) after the second `docker compose up --build`; the run stopped by the disk rule before screenshots, KI trail, PR and merge.
+Status: done
 
-**Done:** spec, implementation, review (39 findings: 10 patched, all low; the rest rejected with reasons in the triage log). After the review, «Du er her» was moved into the subject's own row (its pin was cut off by the left text at 768 px) and the left column widened from 176 to 200 px (the exam text wrapped at 1280 px), both found in the screenshots.
+**Done:** spec, implementation, review (39 findings: 10 patched, all low; the rest rejected with reasons in the triage log). After the review, «Du er her» was moved into the subject's own row (its pin was cut off by the left text at 768 px) and the left column widened from 176 to 200 px (the exam text wrapped at 1280 px), both found in the screenshots. The first run stopped on low disk space before the screenshots; a second run finished the story. Its screenshots showed that the card lacked the divider under the heading row that mockups 02 and 03 have; added in `6dc0314`.
 
-**Verification:** `npm run test` 910 passed, `npx tsc --noEmit` clean, `uv run pytest` 567 passed, `npx playwright test` 176 passed — all before the two layout fixes. After them: `npx vitest run modules/subjects` 245 passed and `tsc` clean; Playwright and the screenshots have not been run on the final code.
+**Verification (final code):** `uv run pytest` 567 passed, `npm run test` 910 passed, `npx tsc --noEmit` clean, `npx playwright test` 176 passed against `docker compose up --build` (one run before the divider had one failure in `flyt-1` step 10 that passed alone and in two later full runs). Screenshots in `docs/skjermbilder/story-5-5/` (02, 03, 04 at 1280 and 768 px).
 
-**Left:** Playwright on the final code, screenshots in `docs/skjermbilder/story-5-5/`, sprint status (5-5 and epic-5 `done`), `docs/ki-prosess/`, session log, `kanttilfelle` issues, PR and merge.
+**Deviations from the mockups not fixed:** listed in the PR: the exam text stands in the left column, not beside the exam square (02); 04 has the line as a card under the button row, not as a strip above the heading; station labels on 03 are thinned; no «Uke/Dato» row labels on 03.
