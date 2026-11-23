@@ -147,3 +147,7 @@
 - [ ] 2026-11-23 [story-6-2-instruksene](954-2026-11-23-12-16-43-story-6-2-instruksene.md) — prøv instruksene med Gemini på åpent lisensierte sider og før rettelser i `korrigeringer.md` (#276)
 - [ ] 2026-11-23 [story-6-2-instruksene](954-2026-11-23-12-16-43-story-6-2-instruksene.md) — testplanen i story 6.5 skal si at FR-2 og FR-31 for ekte modell bare kan måles manuelt (SK-13, SK-15)
 - [ ] 2026-11-23 [story-6-2-instruksene](954-2026-11-23-12-16-43-story-6-2-instruksene.md) — vurder kanttilfellene fra story 6.2 (#273–#275), særlig at studenten ikke får beskjed når sider utelates (#273)
+- [ ] 2026-11-23 [story-6-3-formelsider](953-2026-11-23-13-02-25-story-6-3-formelsider.md) — last opp Principles of Economics side 127–128 i appen og noter resultatet i #9 (#278)
+- [ ] 2026-11-23 [story-6-3-formelsider](953-2026-11-23-13-02-25-story-6-3-formelsider.md) — vurder kanttilfellene fra story 6.3 (#279–#283), særlig om regelen merker for mange lysbilder (#279)
+- [ ] 2026-11-23 [story-6-3-formelsider](953-2026-11-23-13-02-25-story-6-3-formelsider.md) — Gemini med sidebilder er ikke prøvd; formler fra bilde måles i story 6.6 (SK-16)
+- [ ] 2026-11-23 [story-6-3-formelsider](953-2026-11-23-13-02-25-story-6-3-formelsider.md) — kilden står venstrestilt under formelmerket i feillistene; vurder ved gjennomgangen av epic 6
