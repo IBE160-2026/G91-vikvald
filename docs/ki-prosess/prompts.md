@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-23: Brukerreisetestene utvidet etter epic 6
+
+Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 6 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).
+
+**Resultat:** flyt 2 har fått feilveien «Inneholder formel – sjekk mot kilden» (formelmerket fra story 6.3), og steg 2 og 3 sjekker at bare innhold fra formelsiden er merket. Oversikten [brukerreiser.md](../testing/brukerreiser.md) viser status for hvert steg. Commit `4a6ba32`, `75a0149`, `7e013ef`.
+
 ## 2026-11-23: Story 6.6 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `6-6-gjør-den-avsluttende-kontrollen-av-universell-utforming-skje`.

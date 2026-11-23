@@ -140,7 +140,7 @@
 - [ ] 2026-11-22 [story-5-4-emnekort](958-2026-11-22-23-47-13-story-5-4-emnekort.md) — `vilkar.spec.ts:68` feilet én gang i en full Playwright-kjøring rett etter ombygging, grønn alene og i neste fulle kjøring
 - [ ] 2026-11-23 [story-5-5-semesterlinja](957-2026-11-23-10-19-52-story-5-5-semesterlinja.md) — vurder kanttilfellene fra story 5.5 (#257–#263), særlig plasseringen på forelesningssiden (#258) og eksamensteksten (#260)
 - [ ] 2026-11-23 [story-5-5-semesterlinja](957-2026-11-23-10-19-52-story-5-5-semesterlinja.md) — `flyt-1-etter-forelesning.spec.ts:455` (steg 10) feilet én gang i en full Playwright-kjøring, grønn alene og i to fulle kjøringer etterpå
-- [ ] 2026-11-23 [brukerreiser-etter-epic-5](956-2026-11-23-10-47-26-brukerreiser-etter-epic-5.md) — flyttestene utvides med sammendrag (epic 9), modellkort (epic 7), fritekst (epic 8) og formelmerket (story 6.3) når de er bygd
+- [x] 2026-11-23 [brukerreiser-etter-epic-5](956-2026-11-23-10-47-26-brukerreiser-etter-epic-5.md) — flyttestene utvides med sammendrag (epic 9), modellkort (epic 7), fritekst (epic 8) og formelmerket (story 6.3) når de er bygd (formelmerket testet, resten videreført; løst 2026-11-23)
 - [ ] 2026-11-23 [story-6-1-gemini-vertex](955-2026-11-23-11-29-34-story-6-1-gemini-vertex.md) — Vertex er ikke prøvd mot et ekte Google Cloud-prosjekt (modell i EU, løst skjema, tenkenivå, cache-kommandoene i README)
 - [ ] 2026-11-23 [story-6-1-gemini-vertex](955-2026-11-23-11-29-34-story-6-1-gemini-vertex.md) — vurder kanttilfellene fra story 6.1 (#267–#271), særlig at manglende gcloud-innlogging ikke stopper oppstarten (#269)
 - [x] 2026-11-23 [story-6-1-gemini-vertex](955-2026-11-23-11-29-34-story-6-1-gemini-vertex.md) — grense for hvor mye tekst som sendes til Gemini vurderes i story 6.2/6.3 (#271) (løst 2026-11-23 i story 6.2, grense 400 000 tegn, #273)
@@ -164,3 +164,4 @@
 - [ ] 2026-11-23 [story-6-6-avsluttende-kontroll](950-2026-11-23-20-41-07-story-6-6-avsluttende-kontroll.md) — velg modell ut fra stikkprøven og sett den i .env.example (#4)
 - [ ] 2026-11-23 [story-6-6-avsluttende-kontroll](950-2026-11-23-20-41-07-story-6-6-avsluttende-kontroll.md) — bør ha-testen må kreve at inngangen finnes når epic 7–9 bygges (#301)
 - [ ] 2026-11-23 [story-6-6-avsluttende-kontroll](950-2026-11-23-20-41-07-story-6-6-avsluttende-kontroll.md) — vurder kanttilfellene fra story 6.6 (#301–#308), særlig vurderingsverdiene og SK-14 (#305)
+- [ ] 2026-11-23 [brukerreiser-etter-epic-6](949-2026-11-23-21-12-47-brukerreiser-etter-epic-6.md) — flyttestene utvides med modellkort (epic 7), fritekst (epic 8) og sammendrag (epic 9) når de er bygd

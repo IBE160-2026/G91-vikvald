@@ -8,7 +8,7 @@ Kjør dem slik, i `frontend/`, mens appen kjører:
 npx playwright test e2e/brukerreiser
 ```
 
-**Sist oppdatert:** etter epic 5 (status «Øvd» i sidemenyen, forelesningstabellen og SISTE ØKT, kolonnene Kort og Quiz, tiden til eksamen, emnekortene med «Neste å øve på» og «Åpne» på forsiden, og semesterlinja). Før det: epic 4 (quiz), epic 3 (flashcards) og epic 2 (emner, forelesninger, filer og kontosiden). Flyt 4 er testet fra start til slutt. Flyt 3 er testet fra start til slutt, bortsett fra modellkort (epic 7) i tellingene (#131). I flyt 1 er alt testet unntatt sammendraget (epic 9). I flyt 2 er steg 1–3 testet fra start til slutt. Modellkort, fritekst, sammendrag og formelmerket er ikke bygd ennå.
+**Sist oppdatert:** etter epic 6 (formelmerket «Inneholder formel – sjekk mot kilden» fra story 6.3, som nå er testet som feilvei i flyt 2). Før det: epic 5 (status «Øvd», forelesningstabellen, SISTE ØKT, tiden til eksamen, emnekortene og semesterlinja), epic 4 (quiz), epic 3 (flashcards) og epic 2 (emner, forelesninger, filer og kontosiden). Flyt 4 er testet fra start til slutt. Flyt 3 er testet fra start til slutt, bortsett fra modellkort (epic 7) i tellingene (#131). I flyt 1 er alt testet unntatt sammendraget (epic 9). I flyt 2 er steg 1–3 og alle feilveiene testet. Modellkort, fritekst og sammendrag er ikke bygd ennå.
 
 **Slik leses tabellene**
 
@@ -19,7 +19,7 @@ npx playwright test e2e/brukerreiser
 - **Forutsetning** er noe flyten tar for gitt før første steg, for eksempel at Klara har en konto. I flyt 1 lages forutsetningene i nettleseren. I flyt 2, 3 og 4 lages de gjennom API-et før testen starter (konto, godtatte vilkår, emner, forelesninger og PDF-er), siden flytene starter midt i semesteret og ikke har noe eget innloggingssteg.
 - **Datoene** regnes ut fra dagens dato når testen kjøres: eksamen er alltid tre uker fram, så semesterlinja sier «om 3 uker» uansett når testene kjøres. Bare forelesningsdatoene i flyt 2 (fredagene i uke 34–41) er faste, siden de ligger i fortida.
 - **Semesterlinja** er skjult for skjermleser (`aria-hidden`). Testene sjekker derfor teksten skjermleseren får (lista med én linje per emne, for eksempel «Markedsføring: 4 av 8 forelesninger øvd. Eksamen fredag 04.12, om 3 uker.») og det som synes (eksamensteksten, «I dag», antall stasjoner og hvilke som er fylt), ikke detaljer i SVG-tegningen.
-- **PDF-ene** lager testen selv med [`e2e/pdf.ts`](../../frontend/e2e/pdf.ts). Ingen ekte notater brukes. Demomodellen lager ett flashcard og ett quizspørsmål per definisjonssetning («X er …»), så PDF-ene har korte definisjoner, høyst tre per side. Quiz krever minst fire definisjoner i forelesningen. Med færre lager demomodellen ingen spørsmål.
+- **PDF-ene** lager testen selv med [`e2e/pdf.ts`](../../frontend/e2e/pdf.ts). Ingen ekte notater brukes. En side kan også få en «formel» tegnet som vektorkurver (uten tekst), som story 6.3 lagde for [`formelmerke.spec.ts`](../../frontend/e2e/formelmerke.spec.ts). Backenden merker slike sider ved opplasting, og det som lages fra dem, får formelmerket, også i demomodus. Demomodellen lager ett flashcard og ett quizspørsmål per definisjonssetning («X er …»), så PDF-ene har korte definisjoner, høyst tre per side. Quiz krever minst fire definisjoner i forelesningen. Med færre lager demomodellen ingen spørsmål.
 - **Flashcards og quiz** lages i nettleseren i flyt 1, slik Klara gjør det. I flyt 2 og 3 lages de gjennom API-et før testen starter, som en del av forutsetningen.
 
 Stegene i hver testfil kjøres i rekkefølge i samme nettleser, som ett besøk av Klara. Feiler ett steg, hoppes resten over.
@@ -85,10 +85,12 @@ Fil: [`flyt-2-for-eksamen.spec.ts`](../../frontend/e2e/brukerreiser/flyt-2-for-e
 | Feilvei: rediger et feil kort | FR-27, UX-DR27 | «Feilvei (rediger) – FR-27, UX-DR27: et kort er faglig feil, hun sjekker kilden og retter svaret med «Rediger» i bunnfeltet» | testet |
 | Feilvei: slett et feil kort | FR-27, UX-DR22 | «Feilvei (slett) – FR-27, UX-DR22: hun sletter et feil kort med «Slett», bekrefter, og kortet er borte» | testet |
 | Feilvei: slett et feil quizspørsmål (spørsmål kan ikke redigeres, FR-37) | FR-37, UX-DR22, UX-DR29 | «Feilvei (slett quizspørsmål) – FR-37, UX-DR22, UX-DR29: et spørsmål er faglig feil, hun sjekker kilden og sletter det med «Slett» i bunnfeltet, og svaret hun ga, står» | testet |
-| Feilvei: «Inneholder formel – sjekk mot kilden» | FR-41, UX-DR37 | – (story 6.3) | ikke bygd ennå |
+| Feilvei: et kort er merket «Inneholder formel – sjekk mot kilden», og hun slår opp i PDF-en på siden som står i kilden | FR-40, FR-41, UX-DR37 | «Feilvei (formelmerke) – FR-40, FR-41, UX-DR37: et kort er merket «Inneholder formel – sjekk mot kilden», og hun slår opp i PDF-en på siden som står i kilden» | testet |
 | Feilvei: avslutter halvveis med Esc, resultatet vises og lagres | FR-56, UX-DR33 | «Feilvei (Esc) – FR-56, UX-DR33: hun avslutter økten halvveis med Esc, og resultatet for det hun har gjort, vises og lagres» | testet |
 
 Steg 3 og feilveien for quizspørsmål kjøres i samme quiz på hele emnet: hun svarer på det første spørsmålet, ser kilden, sletter spørsmålet, og tar resten av quizen. Svaret hun ga før slettingen, står (E22), så quizen har fortsatt 8 spørsmål, og resultatet blir «7 av 8 riktige». Flyten sier «Slett» eller «Rediger», men FR-37 sier at spørsmål ikke kan redigeres, så bare «Slett» testes.
+
+**Formelmerket:** Side 5 i `prising.pdf` («Margin er forskjellen mellom pris og kostnad.») har også en formel tegnet som vektorkurver. Kortet og quizspørsmålet om margin får derfor merket. Feilveien kjøres sist: hun åpner «Uke 38: Prising» fra sidemenyen og øver på flashcards. Kortet om margin har merket rett over kilden «prising.pdf, side 5». Hun trykker «Kunne ikke», og kortet kommer igjen med merket. Feillista i resultatet (08) viser også merket over kilden. Tilbake på forelesningssiden (04) står `prising.pdf` med 5 sider i fillista, som er PDF-en hun slår opp i. Kilden er ren tekst i MVP-en, ikke en lenke, så testen kan ikke åpne PDF-en. Den sjekker at kilden og fillista gir henne fil og side. I tillegg sjekker steg 2 at bare kortet om margin har merket i økten for hele emnet, og steg 3 at bare spørsmålet om margin har det i forklaringen (har hun slettet nettopp det spørsmålet i feilveien for quizspørsmål, finnes det ikke lenger, og da sjekkes bare at de andre er umerket).
 
 Steg 4 og feilveiene for kort og Esc kjøres i samme flashcard-økt i «Uke 37: Merkevare»: hun øver, retter ett kort, sletter ett, markerer ett og trykker Esc. Feilveiene for kort står i flyten uten et bestemt steg. De passer best i denne økten, der steg 4 også skal vise modellkortet når epic 7 er bygd.
 
@@ -167,3 +169,13 @@ Disse delene av epic 5 er ikke steg i noen av de fire flytene, og testes derfor 
 - NESTE STEG «Lag flashcards» og «Øv nå» på en forelesning med bare quiz ([`emnekort.spec.ts`](../../frontend/e2e/emnekort.spec.ts)), «Last opp PDF» og «sist øvd dd.mm» når alt er øvd (enhetstestene i [`next-step.test.ts`](../../frontend/modules/subjects/next-step.test.ts)), og feilmeldingen i emnekortet ([`home-page.test.tsx`](../../frontend/modules/subjects/home-page.test.tsx))
 - SISTE ØKT for en avbrutt økt, og en quiz på hele emnet som ikke teller for forelesninger uten quiz ([`ovd.spec.ts`](../../frontend/e2e/ovd.spec.ts))
 - tellingene og statusen i forelesningstabellen på 768 px ([`forelesningstabell.spec.ts`](../../frontend/e2e/forelesningstabell.spec.ts))
+
+## Det epic 6 har bygd som ingen flyt viser
+
+Av epic 6 er det bare formelmerket (story 6.3) som er et steg i en flyt (feilveien i flyt 2). Resten testes andre steder:
+
+- Gemini bak porten (story 6.1) og instruksene til modellen (story 6.2) brukes ikke i demomodus, og testene kaller aldri Gemini. De testes i backend-testene med en falsk modell.
+- Formelmerket på quizspørsmål i feillista, og at tekstsider ikke får merket ([`formelmerke.spec.ts`](../../frontend/e2e/formelmerke.spec.ts)). Regelen for hvilke sider som merkes, testes i backend-testene.
+- Testbrukeren og eksempelemnet (story 6.4) ([`testbruker.spec.ts`](../../frontend/e2e/testbruker.spec.ts)). Flytene lager sin egen konto, slik at de går mot en database som allerede har kontoer. Testene av testbrukeren hopper over seg selv når databasen ikke var tom da appen startet, siden testbrukeren bare lages i en tom database.
+- README, lisens og testplanen (story 6.5) er dokumenter, ikke steg i appen.
+- axe på alle sider i 1280 og 768 px (story 6.6) ([`universell-utforming.spec.ts`](../../frontend/e2e/universell-utforming.spec.ts)). Flyttestene kjører i tillegg axe på hver side de besøker, som før.
