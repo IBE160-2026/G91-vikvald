@@ -8,6 +8,7 @@ import {
   answerQuizQuestion,
   cardFront,
   createSection,
+  dayFromToday,
   dropFiles,
   expectNoAxeViolations,
   expectOnHomePage,
@@ -17,15 +18,19 @@ import {
   pdfFile,
   quizQuestionsViaApi,
   quizRow,
+  semesterLineGraphic,
+  semesterLineItems,
   sessionPanel,
+  sidebarLecture,
   sidebarLectures,
+  subjectCard,
   today,
   uniqueEmail,
 } from "./felles";
 
 // Flow 1 in EXPERIENCE.md («Brukerreiser (Key Flows)»), UJ-1 in the PRD.
-// Only the steps that are built are tested; the rest (the semester line and
-// the summary) are listed as «ikke bygd ennå» in docs/testing/brukerreiser.md.
+// Only the steps that are built are tested; the rest (the summary, epic 9)
+// is listed as «ikke bygd ennå» in docs/testing/brukerreiser.md.
 // The notes have four definition sentences on three pages, so the mock model
 // makes four flashcards and four quiz questions, fewer than «Vanlig» (up to
 // 20). The mock model makes no quiz from fewer than four definitions.
@@ -52,6 +57,8 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
   let context: BrowserContext;
   let page: Page;
   let todayFull: string;
+  // The exam is three weeks from today, so the line says «om 3 uker» whenever the test runs.
+  const exam = dayFromToday(21);
   let lectureId: string;
   // The question on the card she marked «Kunne ikke» in step 7.
   let missedFront: string;
@@ -140,7 +147,7 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await expect(dialog.getByLabel("Navn")).toBeFocused();
     await expectNoAxeViolations(page);
     await dialog.getByLabel("Navn").fill("Markedsføring");
-    await dialog.getByLabel("Eksamensdato").fill("04.12.2026");
+    await dialog.getByLabel("Eksamensdato").fill(exam.full);
     await dialog.getByRole("button", { name: "Opprett emne" }).click();
     await expect(page).toHaveURL(/\/emner\/[0-9a-f-]{36}$/);
     await expect(page.locator("main h1")).toHaveText("Markedsføring");
@@ -151,21 +158,31 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await expectOnHomePage(page);
   });
 
-  test("Steg 2 (åpner emnet) – FR-6: forsiden (02) viser Markedsføring med eksamen, og hun åpner emnet", async () => {
-    // The subject card (story 5.4) and the semester line over the cards (story 5.5).
-    const item = page.locator("main li:has(h2)").filter({ hasText: "Markedsføring" });
-    await expect(item).toContainText("Ingen forelesninger ennå");
-    const examLine = page
-      .getByRole("region", { name: "Semesterlinje" })
-      .getByRole("listitem")
-      .filter({ hasText: "Markedsføring" });
-    await expect(examLine).toContainText(/Eksamen (var )?fredag 04\.12/);
+  test("Steg 2 (semesterlinja og «Åpne») – FR-6, FR-57, FR-58, SK-22, UX-DR11, UX-DR12: forsiden (02) viser semesterlinja med tiden til eksamen og emnekortet, og hun trykker «Åpne» på Markedsføring", async () => {
+    // The semester line (story 5.5). Markedsføring has no lectures yet (they
+    // come in step 3), so the line has no stations, only the dashed time to
+    // the exam (E6). Screen readers get the text in the sr-only list.
+    await expect(semesterLineItems(page)).toHaveText([
+      `Markedsføring: Ingen forelesninger ennå. Eksamen ${exam.weekday} ${exam.dayMonth}, om 3 uker.`,
+    ]);
+    const graphic = semesterLineGraphic(page);
+    await expect(graphic.getByText(`Eksamen ${exam.dayMonth} · om 3 uker`, { exact: true })).toBeVisible();
+    await expect(graphic.getByText("Ingen forelesninger ennå", { exact: true })).toBeVisible();
+    await expect(graphic.getByText(`I dag ${(await today(page)).dayMonth}`, { exact: true })).toBeVisible();
+    await expect(graphic.locator('[data-part="exam"]')).toHaveCount(1);
+    await expect(graphic.locator("[data-station]")).toHaveCount(0);
+
+    // The subject card (story 5.4): no lectures yet, so NESTE STEG is «Ny forelesning».
+    const card = subjectCard(page, "Markedsføring");
+    await expect(card.getByRole("heading", { level: 3, name: "Neste steg" })).toBeAttached();
+    await expect(card.getByText("Ingen forelesninger ennå", { exact: true })).toBeVisible();
+    await expect(card.getByRole("link", { name: "Ny forelesning" })).toBeVisible();
     await expectNoAxeViolations(page);
 
-    await item.getByRole("link", { name: "Åpne Markedsføring" }).click();
+    await card.getByRole("link", { name: "Åpne Markedsføring" }).click();
     await expect(page).toHaveURL(/\/emner\/[0-9a-f-]{36}$/);
     await expect(page.locator("main h1")).toHaveText("Markedsføring");
-    await expect(page.getByText("Eksamen fredag 04.12.2026")).toBeVisible();
+    await expect(page.getByText(`Eksamen ${exam.weekday} ${exam.full}`)).toBeVisible();
   });
 
   test("Steg 3 – FR-7, FR-15, UX-DR25: «Ny forelesning» på emnesiden (03) med dagens dato, til forelesningssiden (04)", async () => {
@@ -244,6 +261,8 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await expect(page).toHaveURL(/\/forelesninger\/[0-9a-f-]{36}$/);
     await expect(page.locator("main h1")).toHaveText("Uke 37: Merkevare");
     await expect(nav.getByRole("link", { name: "Uke 37: Merkevare" })).toHaveAttribute("aria-current", "page");
+    // She has not practised yet: the status dot in the sidebar says so (story 5.1).
+    await expect(sidebarLecture(page, "Uke 37: Merkevare")).toHaveAccessibleName("Uke 37: Merkevare Ikke øvd ennå");
     // The file from step 4 is still there.
     await expect(fileRows(page)).toHaveCount(1);
     await expect(lectureLine("1 fil", "3 sider")).toBeVisible();
@@ -393,7 +412,7 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await expectNoAxeViolations(page);
   });
 
-  test("Steg 8 – FR-26, FR-56, UX-DR34, UX-DR35: økten er ferdig (08) med «Kunne» og «Kunne ikke», lista med kilde, og hun går tilbake til forelesningen", async () => {
+  test("Steg 8 – FR-26, FR-56, UX-DR7, UX-DR34, UX-DR35: økten er ferdig (08) med «Kunne» og «Kunne ikke», lista med kilde, og hun går tilbake til forelesningen", async () => {
     const saved = page.waitForResponse((response) => new URL(response.url()).pathname === SAVE_PATH);
     await page.keyboard.press(" ");
     await page.keyboard.press("2");
@@ -416,6 +435,9 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await expect(page).toHaveURL(`/forelesninger/${lectureId}`);
     await expect(page.locator("main h1")).toHaveText("Uke 37: Merkevare");
     await expect(createSection(page).getByText("4 kort", { exact: true })).toBeVisible();
+    // The session is saved, so the server now counts the lecture as practised,
+    // and the sidebar shows it without a reload (story 5.1).
+    await expect(sidebarLecture(page, "Uke 37: Merkevare")).toHaveAccessibleName("Uke 37: Merkevare Øvd");
     await expectNoAxeViolations(page);
   });
 
