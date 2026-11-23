@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { SUBJECT_COLORS, contrastRatio, subjectColorClass } from "./subject-colors";
+import { SUBJECT_COLORS, contrastRatio, subjectColorClass, subjectColorVar } from "./subject-colors";
 
 const globalsCss = readFileSync(fileURLToPath(new URL("../app/globals.css", import.meta.url)), "utf8");
 const PAPER = "#F8F7F3";
@@ -50,5 +50,18 @@ describe("emnefargene", () => {
     [-1, "bg-subject-6"],
   ])("UX-DR3: color_index %s gir klassen %s", (index, expected) => {
     expect(subjectColorClass(index)).toBe(expected);
+  });
+});
+
+describe("emnefargen som CSS-variabel (story 5.5)", () => {
+  it("UX-DR11: subjectColorVar gir var(--color-subject-N) med samme 0–5-normalisering som klassen", () => {
+    expect(subjectColorVar(0)).toBe("var(--color-subject-1)");
+    expect(subjectColorVar(5)).toBe("var(--color-subject-6)");
+    expect(subjectColorVar(6)).toBe("var(--color-subject-1)");
+    expect(subjectColorVar(-1)).toBe("var(--color-subject-6)");
+    expect(subjectColorVar(Number.NaN)).toBe("var(--color-subject-1)");
+    for (const index of [0, 3, 7, -2]) {
+      expect(subjectColorVar(index).replace("var(--color-", "bg-").replace(")", "")).toBe(subjectColorClass(index));
+    }
   });
 });

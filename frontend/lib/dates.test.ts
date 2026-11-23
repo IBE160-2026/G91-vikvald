@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDayMonth } from "./dates";
+import { formatDayMonth, weekdayName } from "./dates";
 import { formatDayMonth as fromSubjects } from "@/modules/subjects/format";
 
 describe("formatDayMonth", () => {
@@ -19,5 +19,13 @@ describe("formatDayMonth", () => {
 
   it("emnemodulen bruker den samme funksjonen", () => {
     expect(fromSubjects).toBe(formatDayMonth);
+  });
+});
+
+describe("weekdayName", () => {
+  it("UX-DR11: ukedagen til en dato, uten tidssoneforskyvning", () => {
+    expect(weekdayName("2026-12-04")).toBe("fredag");
+    expect(weekdayName("2026-11-10")).toBe("tirsdag");
+    expect(weekdayName("2027-01-03")).toBe("søndag");
   });
 });

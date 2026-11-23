@@ -20,3 +20,13 @@ export function formatDayMonth(iso: string): string {
   }
   return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}`;
 }
+
+// The Norwegian weekday names, Sunday first (as Date.getDay()). Shared by the
+// subject pages («fredag 04.12.2026») and the semester line («Eksamen fredag 04.12»).
+export const WEEKDAYS = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"] as const;
+
+// "2026-12-04" -> "fredag" (the calendar date, no time zone shift).
+export function weekdayName(iso: string): string {
+  const [year, month, day] = iso.split("-").map(Number);
+  return WEEKDAYS[new Date(year, month - 1, day).getDay()];
+}
