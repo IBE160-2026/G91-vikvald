@@ -2,7 +2,7 @@
 title: 'Story 6.5: Fullfør README, legg til lisens og vis testdekningen'
 type: 'chore'
 created: '2026-11-23'
-status: 'in-progress'
+status: 'done'
 baseline_revision: '47d722381a1c9ced8060d9d98c2a4578a16ea00b'
 review_loop_iteration: 0
 followup_review_recommended: false
@@ -10,7 +10,21 @@ context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-6-context.md'
   - '{project-root}/_bmad-output/implementation-artifacts/autonom-kjoring.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      SK-11 er kjørt av KI, ikke av Silje som akseptkriteriet sier.
+    evidence: |-
+      Kjøringen brukte eget Compose-prosjektnavn, innlogging med Playwright og en maskin med programmene installert fra før. Silje må følge README ordrett selv og føre en ny rad i testplanen (issue #290).
+    location: >-
+      docs/testplan.md (SK-11: ren kopi)
+    severity: medium
+  - summary: >-
+      Lisensvarianten (AGPL-3.0-only eller -or-later) er ikke valgt, og appen har ingen lenke til kildekoden (AGPL §13).
+    evidence: |-
+      Storien og #25 sier bare «AGPL-3.0». Varianten avgjør merknaden i kildefilene og et eventuelt license-felt i package.json og pyproject.toml. §13 gjelder først når andre bruker en endret utgave over nett. Begge er Siljes valg (kanttilfelle-issue).
+    location: >-
+      LICENSE, README.md (Lisens og kreditering)
+    severity: low
 ---
 
 <intent-contract>
@@ -87,6 +101,46 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-23 — Review pass
+- verdicts: 36 findings — high 0, medium 4, low 24, false 7, maybe-false 0 (1 utsatt i tillegg til medium-funnet om SK-11)
+- findings:
+  - `[medium]` `[defer]` (intent) SK-11 er gjort av KI med avvik, ikke av Silje ordrett — krever Silje; ført som utsatt, i testplanen og som issue #290.
+  - `[low]` `[reject]` (intent) SK-1-testen måler navn, ikke innhold — valgt i spesifikasjonen og sagt rett ut i testplanen.
+  - `[false]` `[reject]` (intent) Omdøpingene flytter bare målet — testene var feilmerket mot PRD-en: `test_fr19_nye_kort_legges_til_de_gamle` er FR-22 («nye kort legges til»), begrepskort-testen er FR-19.
+  - `[low]` `[reject]` (intent) README-testen sjekker bare noen av punktene — akseptkriteriet krever ingen test av README; innholdet er lest mot sjekklista.
+  - `[low]` `[reject]` (intent) Miljøtesten starter ikke serveren — akseptkriteriet sier at appen kan *lages*; importen kjører `create_app()`.
+  - `[false]` `[reject]` (intent) README ble ikke rettet etter SK-11 — kjøringen fant ingenting å rette.
+  - `[medium]` `[patch]` (verification) Kolonnen «Automatiske tester» kontrolleres ikke mot testnavnene — ny `test_sk1_testplan_files_match_test_names`; den fant to manglende filer (FR-1, FR-21), som er lagt til.
+  - `[low]` `[patch]` (verification) `it.each`-titler telles ikke — ny regex for tabelltester, dekket i testen med falske data.
+  - `[low]` `[reject]` (verification) Tester som hopper over seg selv telles — ingen slik test har FR-ID i dag; dekket av «måler navn»-forbeholdet.
+  - `[low]` `[patch]` (edge) `regex.test("FR-…")` kunne telles som test — regexen krever nå at navnet ikke står etter punktum eller bokstav; dekket i testen med falske data. Utkommenterte tester avvist som sjeldne.
+  - `[low]` `[patch]` (edge) `it.each` — samme som verifiseringsfunnet.
+  - `[low]` `[reject]` (edge) Playwright-filer med andre endelser — ingen finnes, og prosjektet bruker bare `*.spec.ts`.
+  - `[low]` `[reject]` (edge) pytest-filer som `*_test.py` — ingen finnes; konvensjonen er `test_*.py`.
+  - `[low]` `[patch]` (edge) Tankestrek (—) eller «N/A» regnes som begrunnelse — lagt til i `NO_REASON`, sammenlignet uten store bokstaver.
+  - `[low]` `[reject]` (edge) Escapet `|` i en celle forskyver kolonnene — sjeldent; testplanen har ingen.
+  - `[medium]` `[patch]` (edge) Kolonnen kan drive fra testene — samme som verifiseringsfunnet.
+  - `[low]` `[reject]` (edge) KeyError hvis en hemmelig innstilling fjernes — testen feiler fortsatt tydelig på linja; sjeldent.
+  - `[low]` `[reject]` (edge) Samme nøkkel to ganger i `.env.example` — sjeldent, og fila leses av mennesker.
+  - `[low]` `[reject]` (edge) Utkommentert tildeling regnes som forklaring — sjeldent; fila har ingen.
+  - `[medium]` `[patch]` (edge) `cd frontend` feiler når blokkene kjøres etter hverandre — README sier nå at hver blokk starter i rota, og Playwright-blokkene har egen `cd frontend`.
+  - `[medium]` `[defer]` (edge, påstand) Ordrett README er ikke vist — samme som intent-funnet om SK-11.
+  - `[false]` `[reject]` (blind) KI-sporet er ikke oppdatert — skrives etter byggeløpet i samme økt, før PR.
+  - `[low]` `[reject]` (blind) Ingen `license`-felt i pakkebeskrivelsene — henger på valget only/or-later, som er Siljes (kanttilfelle).
+  - `[low]` `[defer]` (blind) Only eller or-later er ikke valgt — Siljes valg; utsatt og kanttilfelle-issue.
+  - `[low]` `[defer]` (blind) AGPL §13: appen lenker ikke til kildekoden — gjelder først ved drift for andre; utsatt sammen med lisensvarianten.
+  - `[medium]` `[patch]` (blind) Lisensbegrunnelsen knyttet plikten til at repoet er offentlig — README sier nå at deling eller bruk over nett utløser AGPL.
+  - `[low]` `[patch]` (blind) Låsefilene inneholder ikke lisenstekstene — README sier nå at lisensen følger med hver pakke ved installasjon.
+  - `[medium]` `[patch]` (blind) Testplankolonnen kan bli utdatert — samme som verifiseringsfunnet.
+  - `[low]` `[patch]` (blind) SK-7 viste til backend-tester for FR-9/FR-10 som ikke finnes — raden viser nå til radene for FR-9/FR-10 og `test_nfr16_…`.
+  - `[low]` `[patch]` (blind) SK-3 nevnte FR-38 uten forklaring — raden sier nå at FR-38 forkaster innhold med sidetall som ikke finnes.
+  - `[low]` `[patch]` (blind) SK-11-oppfølgingen hadde ikke issue — issue #290 laget og lenket fra testplanen.
+  - `[low]` `[patch]` (blind) Regexen har hull (`it.each`) — samme som verifiseringsfunnet; titler over flere linjer avvist som sjeldne.
+  - `[low]` `[reject]` (blind) `GOOGLE_CLOUD_PROJECT` er ikke hemmelig — `.env.example` sier «Never commit the real value»; å kreve den tom er det trygge valget.
+  - `[low]` `[reject]` (blind) Kommentarkravet er svakt, og testnavnet er engelsk — navnet er gitt av akseptkriteriet; kommentarene er lest.
+  - `[low]` `[patch]` (blind) Arbeidsmappa i testkommandoene — samme som edge-funnet om `cd frontend`.
+  - `[false]` `[reject]` (blind) Usporede filer og spesifikasjonen utenfor diffen — `frontend/e2e-skjermbilder/` skal ikke røres etter instruksen; spesifikasjonen committes med storien.
+
 ## Design Notes
 
 **Lisensvarianten.** GNU skiller mellom «AGPL-3.0-only» og «AGPL-3.0-or-later» i merknaden i kildefilene, ikke i selve lisensteksten. Storien og #25 sier bare «AGPL-3.0». Kjøringen legger inn lisensteksten og skriver «AGPL-3.0» i README, men velger ikke variant. Det føres som kanttilfelle.
@@ -100,3 +154,33 @@ deferred: []
 - `cd frontend && npm run test` -- alle grønne.
 - `docker compose up --build -d && cd frontend && npx playwright test` -- alle grønne.
 - SK-11: `git clone` til scratchpad, `docker compose -p sk-renkopi up --build -d`, logg inn som testbrukeren, kjør testkommandoene i README, `docker compose -p sk-renkopi down -v`.
+
+## Auto Run Result
+
+Status: done
+
+**Hva som er bygd:** `LICENSE` med den offisielle AGPL-3.0-teksten fra gnu.org, uendret og låst med en SHA-256-test. `docs/testplan.md` med én rad per må ha-krav (FR-1–FR-41, FR-56–FR-58), én rad per SK-2–SK-22 med plass til resultatene fra 6.6, og SK-11-kjøringen. `backend/tests/test_testplan.py` håndhever SK-1 og at tabellen stemmer med testnavnene. README har lisens og kreditering, lenker til testplanen og brukerreisene, og kodeblokker for alle kommandoer (#27).
+
+**Filer:**
+- `LICENSE` -- AGPL-3.0 fra gnu.org, uendret.
+- `.gitattributes` -- `LICENSE -text`, så Git ikke endrer linjeskift i lisensen.
+- `.env.example` -- egen kommentarlinje over hver funksjonsbryter.
+- `README.md` -- lisens og kreditering, testplan, kodeblokker, demomodus uten `.env`.
+- `docs/testplan.md` -- testplanen.
+- `backend/tests/test_testplan.py` -- SK-1, lisensen (AR-19) og README (NFR-1).
+- `backend/tests/test_config.py` -- `test_nfr4_env_example_lists_all_settings`.
+- `backend/tests/test_jobs.py`, `test_flashcards.py`, `frontend/modules/subjects/lecture-page.test.tsx` -- feilmerkede krav-ID-er rettet.
+
+**Gjennomgang:** 36 funn. 15 rader rettet (4 middels, 11 lave, ulike rotårsaker slått sammen: 9 rettelser), 4 rader utsatt (SK-11 av Silje, lisensvarianten og §13), 17 avvist med begrunnelse i triageloggen.
+
+**Ny gjennomgang anbefales:** nei. Fire middels rader ble rettet (testplankolonnen, `cd` i README, lisensbegrunnelsen), og testplanrettelsen er verifisert av den nye testen. README-rettelsene er tekst og lest etter endringen. Ingen konkret uverifisert risiko gjenstår (patchet: high 0, medium 4, low 11).
+
+**Verifisering:**
+- `uv run pytest` i `backend/`: 714 passed.
+- `npm run test` i `frontend/`: 918 passed (73 filer).
+- `npx playwright test` mot `docker compose up --build -d`: 178 passed, 1 skipped (testbrukertesten hopper over seg selv mot det eldre `pgdata`-volumet, som i 6.4).
+- SK-11 i ren klone (`-p sk-renkopi`): pytest 713, Vitest 918, `E2E_REQUIRE_SEED=1 npx playwright test` 179 passed; ryddet med `down -v`.
+
+**Gjenværende risiko:**
+- SK-11 er ikke gjort av Silje (#290).
+- Lisensvarianten og AGPL §13 er ikke avgjort (kanttilfelle).
