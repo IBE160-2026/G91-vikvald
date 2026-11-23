@@ -59,6 +59,8 @@ export function SubjectFormDialog({ mode, open, onClose, subject }: Props) {
     queryClient.setQueryData<Subject[]>(SUBJECTS_QUERY_KEY, (list) =>
       list?.map((item) => (item.id === updated.id ? updated : item)),
     );
+    // The semester line (story 5.5) takes the name and exam date from the overview.
+    void queryClient.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
     onClose();
   }
 

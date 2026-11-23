@@ -939,8 +939,8 @@ describe("emnesiden", () => {
     });
   });
 
-  describe("Eksamenslinja (story 5.3)", () => {
-    const LINE = "Eksamen 04.12, om 3 uker · 0 av 2 forelesninger øvd";
+  describe("Semesterlinja (story 5.5)", () => {
+    const SR = "Markedsføring: 0 av 2 forelesninger øvd. Eksamen fredag 04.12, om 3 uker.";
 
     beforeEach(() => {
       // Tuesday 10.11.2026 at noon, as in mockup 02: 24 days to 04.12.
@@ -951,6 +951,10 @@ describe("emnesiden", () => {
     afterEach(() => {
       vi.useRealTimers();
     });
+
+    function timeline(): HTMLElement {
+      return screen.getByRole("region", { name: "Semesterlinje" });
+    }
 
     function practisedOverview(practicedIds: string[]): Overview {
       return {
@@ -973,64 +977,83 @@ describe("emnesiden", () => {
       };
     }
 
-    it("SK-22: teksten står som eget avsnitt rett under linja under overskriften, som er uendret", async () => {
+    it("FR-57: linja står mellom knapperaden og «Forelesninger», med bare emnet, ukenummer og dato, og tekstlinja fra 5.3 er borte", async () => {
       renderPage();
-      const subtitle = await screen.findByText("2 forelesninger · 2 filer · eksamen fredag 04.12.2026");
-      const line = await screen.findByText(LINE);
-      expect(line.tagName).toBe("P");
-      expect(subtitle.nextElementSibling).toBe(line);
-      expect(line.className).toContain("text-meta");
-      expect(line.className).toContain("text-ink-muted");
-      expect(line.closest("[aria-hidden]")).toBeNull();
-      expect(line.closest("[aria-live]")).toBeNull();
+      expect(await screen.findByText(SR)).toBeTruthy();
+      const subtitle = screen.getByText("2 forelesninger · 2 filer · eksamen fredag 04.12.2026");
+      // The line under the heading from 5.3 is gone; the subtitle is the last line there.
+      expect(subtitle.nextElementSibling).toBeNull();
+      expect(screen.queryByText(/^Eksamen 04\.12, om/)).toBeNull();
+      const buttons = screen.getByRole("button", { name: "Slett emnet" });
+      const heading = screen.getByRole("heading", { level: 2, name: /Forelesninger/ });
+      expect(buttons.compareDocumentPosition(timeline()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(timeline().compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(within(timeline()).getAllByRole("listitem")).toHaveLength(1);
+      const hidden = timeline().querySelector('[aria-hidden="true"]') as HTMLElement;
+      expect(within(hidden).getByText("Eksamen 04.12 · om 3 uker")).toBeTruthy();
+      expect(within(hidden).getByText("37")).toBeTruthy();
+      expect(within(hidden).getByText("11.09")).toBeTruthy();
+      expect(within(hidden).queryByText(ECONOMICS.name)).toBeNull();
     });
 
-    it("SK-22: antall øvd teller de øvde forelesningene fra oversikten, og nytt antall vises uten omlasting", async () => {
+    it("SK-22: antall øvd og fylte stasjoner kommer fra oversikten, og ny status vises uten omlasting", async () => {
       overview = practisedOverview([]);
       const client = renderPage();
-      expect(await screen.findByText(LINE)).toBeTruthy();
+      expect(await screen.findByText(SR)).toBeTruthy();
       overview = practisedOverview(["l2"]);
       await act(async () => {
         await client.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
       });
-      expect(await screen.findByText("Eksamen 04.12, om 3 uker · 1 av 2 forelesninger øvd")).toBeTruthy();
+      expect(
+        await screen.findByText("Markedsføring: 1 av 2 forelesninger øvd. Eksamen fredag 04.12, om 3 uker."),
+      ).toBeTruthy();
+      expect(timeline().querySelector('[data-station="l2"]')?.getAttribute("data-practiced")).toBe("true");
+      expect(timeline().querySelector('[data-station="l1"]')?.getAttribute("data-practiced")).toBe("false");
     });
 
-    it("FR-57: uten forelesninger står «Ingen forelesninger ennå»", async () => {
+    it("E6: uten forelesninger står «Ingen forelesninger ennå» og ingen stasjoner", async () => {
       respond([]);
       renderPage();
-      expect(await screen.findByText("Eksamen 04.12, om 3 uker · Ingen forelesninger ennå")).toBeTruthy();
+      expect(
+        await screen.findByText("Markedsføring: Ingen forelesninger ennå. Eksamen fredag 04.12, om 3 uker."),
+      ).toBeTruthy();
+      expect(timeline().querySelectorAll("[data-station]")).toHaveLength(0);
     });
 
-    it("FR-57: før oversikten er lastet står bare eksamensdelen", async () => {
+    it("FR-57: før oversikten er lastet står bare kortets overskrift", async () => {
       const fake = fetchMock.getMockImplementation()!;
       fetchMock.mockImplementation(async (url, init) =>
         String(url) === "/api/overview" ? new Promise<Response>(() => {}) : fake(url, init),
       );
       renderPage();
-      expect(await screen.findByText("Eksamen 04.12, om 3 uker")).toBeTruthy();
+      await screen.findByRole("heading", { level: 1, name: MARKETING.name });
+      expect(within(timeline()).getByRole("heading", { level: 2, name: "Semesterlinje" })).toBeTruthy();
+      expect(within(timeline()).queryByRole("listitem")).toBeNull();
+      expect(within(timeline()).queryByText(/Eksamen/)).toBeNull();
     });
 
-    it("FR-57: når oversikten feiler, står bare eksamensdelen uten egen feilmelding", async () => {
+    it("FR-57: når oversikten feiler, står reserveteksten i linja uten tall", async () => {
       const fake = fetchMock.getMockImplementation()!;
       fetchMock.mockImplementation(async (url, init) =>
         String(url) === "/api/overview" ? jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } }) : fake(url, init),
       );
       const client = renderPage();
       await waitFor(() => expect(client.getQueryState(OVERVIEW_QUERY_KEY)?.status).toBe("error"));
-      expect(await screen.findByText("Eksamen 04.12, om 3 uker")).toBeTruthy();
+      const alert = await within(timeline()).findByRole("alert");
+      expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
       expect(screen.queryByText(/forelesninger øvd/)).toBeNull();
-      expect(screen.queryByRole("alert")).toBeNull();
     });
 
-    it("FR-57: ny eksamensdato vises med en gang i teksten", async () => {
+    it("FR-57: ny eksamensdato vises med en gang i linja", async () => {
       renderPage();
-      expect(await screen.findByText(LINE)).toBeTruthy();
+      expect(await screen.findByText(SR)).toBeTruthy();
       fireEvent.click(screen.getByRole("button", { name: "Endre eksamensdato" }));
       const date = within(screen.getByRole("dialog", { name: "Endre eksamensdato" })).getByLabelText("Eksamensdato");
       fireEvent.change(date, { target: { value: "14.12.2026" } });
       fireEvent.keyDown(date, { key: "Enter" });
-      expect(await screen.findByText("Eksamen 14.12, om 5 uker · 0 av 2 forelesninger øvd")).toBeTruthy();
+      expect(
+        await screen.findByText("Markedsføring: 0 av 2 forelesninger øvd. Eksamen mandag 14.12, om 5 uker."),
+      ).toBeTruthy();
     });
   });
 });

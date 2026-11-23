@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { focusHeadingAfterNavigation, headingFocusPending, resetHeadingFocus } from "@/lib/focus-heading";
+import { FALLBACK_MESSAGE } from "@/lib/messages";
 
 import { OVERVIEW_QUERY_KEY } from "@/modules/practice/api";
 import type { SubjectFileCounts } from "@/modules/files/types";
@@ -84,15 +85,15 @@ function respond(
   });
 }
 
-// The subject cards (the last list on the page, under the exam lines).
+// The subject cards (the last list on the page, under the semester line).
 function subjectList(): HTMLElement {
   const lists = screen.getAllByRole("list");
   return lists[lists.length - 1];
 }
 
-// The exam lines over the subject list (story 5.3).
-function examLines(): HTMLElement {
-  return screen.getAllByRole("list")[0];
+// The semester line over the subject cards (story 5.5).
+function timeline(): HTMLElement {
+  return screen.getByRole("region", { name: "Semesterlinje" });
 }
 
 function renderPage() {
@@ -303,76 +304,83 @@ describe("forsiden «Dine emner»", () => {
     expect(document.activeElement).not.toBe(screen.getByRole("heading", { level: 1 }));
   });
 
-  describe("eksamenslinja (story 5.3)", () => {
+  describe("semesterlinja (story 5.5)", () => {
     const TWO = [
       subject({ id: "a", name: "Markedsføring", lecture_count: 8 }),
       subject({ id: "b", name: "Samfunnsøkonomi", color_index: 1, exam_date: "2026-12-11", lecture_count: 1 }),
     ];
 
-    it("SK-22: én linje per emne med navnet og «Eksamen dd.mm, om N uker · N av M forelesninger øvd», over emnelista", async () => {
+    it("FR-57: semesterlinja står mellom undertittelen og emnekortene, med én rad per emne i listens rekkefølge, og tekstlinjene fra 5.3 er borte", async () => {
       respond(TWO, undefined, overviewFor(TWO, { a: [4, 8], b: [0, 1] }));
       renderPage();
-      expect(await screen.findByText("Eksamen 04.12, om 2 uker · 4 av 8 forelesninger øvd")).toBeTruthy();
-      const lines = within(examLines()).getAllByRole("listitem");
-      expect(lines).toHaveLength(2);
-      expect(within(lines[0]).getByText("Markedsføring").className).toContain("text-item-title");
-      const text = within(lines[0]).getByText("Eksamen 04.12, om 2 uker · 4 av 8 forelesninger øvd");
-      expect(text.className).toContain("text-meta");
-      expect(text.className).toContain("text-ink-muted");
-      expect(text.closest("[aria-hidden]")).toBeNull();
-      expect(text.closest("[aria-live]")).toBeNull();
-      expect(within(lines[1]).getByText("Samfunnsøkonomi")).toBeTruthy();
-      expect(within(lines[1]).getByText("Eksamen 11.12, om 3 uker · 0 av 1 forelesning øvd")).toBeTruthy();
-      // The lines stand before the subject cards (#244: no exam date in the cards).
-      expect(examLines().compareDocumentPosition(subjectList()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      await screen.findByRole("region", { name: "Semesterlinje" });
+      const sr = await within(timeline()).findAllByRole("listitem");
+      expect(sr.map((item) => item.textContent)).toEqual([
+        "Markedsføring: 4 av 8 forelesninger øvd. Eksamen fredag 04.12, om 2 uker.",
+        "Samfunnsøkonomi: 0 av 1 forelesning øvd. Eksamen fredag 11.12, om 3 uker.",
+      ]);
+      const hidden = timeline().querySelector('[aria-hidden="true"]') as HTMLElement;
+      expect(within(hidden).getByText("Eksamen 04.12 · om 2 uker")).toBeTruthy();
+      expect(within(hidden).getByText("8 forelesninger")).toBeTruthy();
+      expect(within(hidden).getByText("Eksamen 11.12 · om 3 uker")).toBeTruthy();
+      // The exam text lines from 5.3 are gone.
+      expect(screen.queryByText(/^Eksamen \d\d\.\d\d, om/)).toBeNull();
+      expect(screen.queryByText(/ · \d+ av \d+ forelesninger? øvd$/)).toBeNull();
+      // Under the subtitle, before the subject cards (#244: no exam date in the cards).
+      const subtitle = screen.getByText("Høstsemesteret 2026 · lørdag 21. november");
+      expect(subtitle.compareDocumentPosition(timeline()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(timeline().compareDocumentPosition(subjectList()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       expect(within(subjectList()).getAllByRole("listitem")).toHaveLength(2);
       expect(within(subjectList()).queryByText(/Eksamen/)).toBeNull();
     });
 
-    it("SK-22: når oversikten ugyldiggjøres, viser linja nytt antall uten omlasting", async () => {
+    it("SK-22: når oversikten ugyldiggjøres, viser linja nytt antall og fylt stasjon uten omlasting", async () => {
       const list = [subject({ id: "a", lecture_count: 8 })];
       let overview = overviewFor(list, { a: [0, 8] });
       respond(list, undefined, () => jsonResponse(200, overview));
       const client = renderPage();
-      expect(await screen.findByText("Eksamen 04.12, om 2 uker · 0 av 8 forelesninger øvd")).toBeTruthy();
+      expect(await screen.findByText("Markedsføring: 0 av 8 forelesninger øvd. Eksamen fredag 04.12, om 2 uker.")).toBeTruthy();
+      expect(timeline().querySelector('[data-station="a-l0"]')?.getAttribute("data-practiced")).toBe("false");
       overview = overviewFor(list, { a: [1, 8] });
       await act(async () => {
         await client.invalidateQueries({ queryKey: OVERVIEW_QUERY_KEY });
       });
-      expect(await screen.findByText("Eksamen 04.12, om 2 uker · 1 av 8 forelesninger øvd")).toBeTruthy();
+      expect(await screen.findByText("Markedsføring: 1 av 8 forelesninger øvd. Eksamen fredag 04.12, om 2 uker.")).toBeTruthy();
+      expect(timeline().querySelector('[data-station="a-l0"]')?.getAttribute("data-practiced")).toBe("true");
     });
 
-    it("FR-57: et emne uten forelesninger viser «Ingen forelesninger ennå»", async () => {
+    it("E6: et emne uten forelesninger viser «Ingen forelesninger ennå» i linja", async () => {
       respond([subject({ id: "a" })]);
       renderPage();
-      expect(await screen.findByText("Eksamen 04.12, om 2 uker · Ingen forelesninger ennå")).toBeTruthy();
+      await screen.findByRole("region", { name: "Semesterlinje" });
+      expect(
+        await within(timeline()).findByText("Markedsføring: Ingen forelesninger ennå. Eksamen fredag 04.12, om 2 uker."),
+      ).toBeTruthy();
     });
 
-    it("FR-57: før oversikten er lastet står bare eksamensdelen", async () => {
+    it("FR-57: før oversikten er lastet står bare kortets overskrift", async () => {
       respond(TWO, undefined, () => new Promise<Response>(() => {}));
       renderPage();
-      const lines = await waitFor(() => within(examLines()).getAllByRole("listitem"));
-      expect(within(lines[0]).getByText("Eksamen 04.12, om 2 uker")).toBeTruthy();
-      expect(within(lines[1]).getByText("Eksamen 11.12, om 3 uker")).toBeTruthy();
+      await screen.findByRole("link", { name: "Åpne Markedsføring" });
+      expect(within(timeline()).getByRole("heading", { level: 2, name: "Semesterlinje" })).toBeTruthy();
+      expect(within(timeline()).queryByRole("listitem")).toBeNull();
+      expect(within(timeline()).queryByText(/Eksamen/)).toBeNull();
     });
 
-    it("FR-57: når oversikten feiler, står bare eksamensdelen, uten feilmelding i linja", async () => {
+    it("FR-57: når oversikten feiler, står reserveteksten i linja, uten tall", async () => {
       respond(TWO, undefined, () => jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } }));
       renderPage();
-      await waitFor(() =>
-        expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/overview")).toBe(true),
-      );
-      const lines = await waitFor(() => within(examLines()).getAllByRole("listitem"));
-      await waitFor(() => expect(within(lines[0]).getByText("Eksamen 04.12, om 2 uker")).toBeTruthy());
-      // The fallback text stands in each card (story 5.4), never in the lines.
-      expect(within(examLines()).queryByRole("alert")).toBeNull();
+      await screen.findByRole("region", { name: "Semesterlinje" });
+      const alert = await within(timeline()).findByRole("alert");
+      expect(alert.textContent).toBe(FALLBACK_MESSAGE);
       expect(screen.queryByText(/forelesninger øvd/)).toBeNull();
     });
 
-    it("FR-57: uten emner er det ingen linjer", async () => {
+    it("FR-57: uten emner er det ingen linje", async () => {
       respond([]);
       renderPage();
       await screen.findByRole("button", { name: "Lag ditt første emne" });
+      expect(screen.queryByRole("region", { name: "Semesterlinje" })).toBeNull();
       expect(screen.queryByRole("list")).toBeNull();
       expect(screen.queryByText(/Eksamen/)).toBeNull();
     });
@@ -538,7 +546,8 @@ describe("forsiden «Dine emner»", () => {
     it("FR-58: når oversikten feiler, står reserveteksten i kortet", async () => {
       respond(ONE, undefined, () => jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } }));
       renderPage();
-      const alert = await screen.findByRole("alert");
+      // The semester line over the cards shows its own fallback text (story 5.5).
+      const alert = await waitFor(() => within(subjectList()).getByRole("alert"));
       expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
       expect(within(card()).queryByRole("link", { name: "Øv nå" })).toBeNull();
     });
