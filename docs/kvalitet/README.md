@@ -4,6 +4,8 @@ Denne mappa viser hvor godt innholdet fra den ekte språkmodellen er: faglige fe
 
 **Kontrollen gjøres av Silje, ikke av KI.** Hvert kort og hvert spørsmål vurderes mot læreboka. Tabellene under er tomme til kontrollen er gjort. Arbeidet følges i [#299](https://github.com/IBE160-2026/G91-vikvald/issues/299) (stikkprøven), [#300](https://github.com/IBE160-2026/G91-vikvald/issues/300) (formlene) og [#4](https://github.com/IBE160-2026/G91-vikvald/issues/4) (modellvalget).
 
+**Kreditering.** Innholdet i stikkprøven er laget av Gemini fra eksempelnotatene i appen (delt under CC BY-NC-SA 4.0, se README) og fra lærebøker fra OpenStax (*Principles of Marketing* og *Principles of Economics 3e*, lisensiert CC BY 4.0 av OpenStax/Rice University, se lisensen på bokas side). Bøkene legges ikke i repoet.
+
 Demomodellen er ikke med her. Den lager enkelt, mekanisk innhold som bare viser at appen virker (se README).
 
 ## Framgangsmåte
@@ -29,7 +31,9 @@ SK_PASSWORD='<passordet ditt>' uv run python -m scripts.export_quality_sample ex
   --out ../docs/kvalitet/stikkprove-markedsforing.csv
 ```
 
-Uten `SK_PASSWORD` spør skriptet etter passordet. Er det flere kort enn du ber om, trekkes et tilfeldig utvalg med fast frø (`--seed`, standard 1), så samme kommando gir samme utvalg. Er det færre, tas alt med, og skriptet skriver for eksempel «Fant 15 flashcards, ba om 50». Feil passord eller et emne som ikke finnes, stopper skriptet uten å skrive noen fil.
+Uten `SK_PASSWORD` spør skriptet etter passordet. Er det flere kort enn du ber om, trekkes et tilfeldig utvalg med fast frø (`--seed`, standard 1), så samme kommando gir samme utvalg. Er det færre, tas alt med, og skriptet skriver for eksempel «Fant 15 flashcards, ba om 50». Feil passord, et emne som ikke finnes, eller to emner med samme navn stopper skriptet uten å skrive noen fil.
+
+**Skriptet skriver aldri over en fil.** Finnes fila i `--out` fra før, stopper det før det logger inn. Eksporter derfor én gang, og fyll ut vurderingene i den fila. Vil du lage stikkprøven på nytt, velg et annet navn eller slett den gamle fila først.
 
 Når vurderingen er fylt ut:
 
@@ -38,11 +42,13 @@ cd backend
 uv run python -m scripts.export_quality_sample summary ../docs/kvalitet/stikkprove-markedsforing.csv
 ```
 
-`summary` skriver tallene for SK-13, SK-14 og SK-15, om grensen er nådd, og hvor mange rader som mangler vurdering. En vurdering skriptet ikke kjenner, stopper utregningen med raden det gjelder.
+`summary` skriver tallene for SK-13, SK-14 og SK-15, om grensen er nådd, og hvor mange rader som mangler vurdering. En vurdering skriptet ikke kjenner, eller en rad som verken begynner med «Flashcard:» eller «Quiz:», stopper utregningen med raden det gjelder. Så lenge noen rader mangler vurdering, står det «ufullstendig» i stedet for «nådd» eller «ikke nådd».
+
+SK-13, SK-14 og andelen quizspørsmål med nøyaktig ett riktig alternativ regnes bare ut fra radene som er vurdert. Andelen der riktig svar er det lengste, regnes ut fra alle quizradene, fordi den er en mekanisk sammenligning som ikke trenger vurdering.
 
 ## Slik fylles vurderingen ut
 
-CSV-en har kolonnene `innhold`, `kilde`, `vurdering` og `kommentar`. Den åpnes i Excel eller Numbers.
+CSV-en har kolonnene `innhold`, `kilde`, `vurdering` og `kommentar`, skilt med komma. Åpne den i Excel med **Data → Fra tekst/CSV**, velg filopprinnelse **UTF-8** og skilletegn **komma**. Dobbeltklikker du på fila i Excel med norske innstillinger, kan alt havne i én kolonne. Numbers åpner den direkte. Excel med norske innstillinger lagrer CSV med semikolon (`;`). Det går fint: `summary` leser både komma og semikolon.
 
 - **innhold** begynner med «Flashcard:» eller «Quiz:». En quizrad har alternativene A–D, hvilket som er riktig, og «Riktig svar er lengst: ja» eller «nei». Lengden er sammenlignet mekanisk i antall tegn, og likt regnes som ja. «[Formelmerke]» betyr at innholdet har merket «Inneholder formel – sjekk mot kilden».
 - **kilde** er fila og siden innholdet viser til, for eksempel «markedsmiksen.pdf, side 2».
@@ -71,6 +77,8 @@ Modellen velges ut fra stikkprøven ([#4](https://github.com/IBE160-2026/G91-vik
 ### Stikkprøven (SK-13, SK-14, SK-15)
 
 CSV-fil: *(lenke når den er lagt inn)*
+
+Fant skriptet færre enn 50 flashcards eller 20 quizspørsmål, skriv hvor mange stikkprøven faktisk har (for eksempel «38 av 50 flashcards»), og regn andelene ut fra det.
 
 | Krav | Mål | Resultat | Nådd? | Hva ble gjort hvis ikke |
 | --- | --- | --- | --- | --- |
