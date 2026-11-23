@@ -2,6 +2,14 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-23: Story 6.4 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `6-4-lag-testbruker-og-eksempelemne-med-eksempelnotater`.
+
+**KI-laget innhold som skal erstattes:** de tre eksempelnotatene i `backend/app/seed/notater/` (markedsmiksen, segmentering, AIDA) er skrevet av KI som plassholdere og merket «PLASSHOLDER – skrives av Silje». De er ikke Siljes egne notater og er ikke lest faglig. Silje skriver eller godkjenner de endelige notatene (#13).
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-6-4-lag-testbruker-og-eksempelemne-med-eksempelnotater.md), PR-en for `story/6-4` og kanttilfellene #285–#288.
+
 ## 2026-11-23: Story 6.3 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `6-3-send-sider-med-formler-som-bilde-og-merk-innholdet-kan-kutte`.
