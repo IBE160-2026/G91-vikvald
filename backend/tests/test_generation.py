@@ -8,17 +8,18 @@ from pathlib import Path
 
 import pytest
 
+from app.core.config import get_settings
 from app.main import app, lifespan
 from app.modules.files.pdf import read_pages
 from app.modules.generation import flashcards
 from app.modules.generation.mock import InvalidMockGenerator, MockGenerator
 from app.modules.generation.port import GenerationOptions, Page
 from app.modules.generation.providers import (
-    UNSUPPORTED_MESSAGE,
-    UnsupportedProviderError,
+    MissingProviderSettingError,
     get_generator,
     select_generator,
 )
+from app.modules.generation.vertex import VertexGenerator
 from app.modules.generation.registry import ContentType, get_content_type, register_content_type
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "definisjoner.pdf"
@@ -186,24 +187,33 @@ def test_ar5_samme_type_to_ganger_er_en_feil() -> None:
         register_content_type(ContentType(**{**get_content_type("flashcards").__dict__}))
 
 
+def _vertex_env(monkeypatch: pytest.MonkeyPatch, project: str | None, model: str | None) -> None:
+    monkeypatch.setenv("LLM_PROVIDER", "vertex")
+    for name, value in (("GOOGLE_CLOUD_PROJECT", project), ("VERTEX_MODEL", model)):
+        if value is None:
+            monkeypatch.delenv(name, raising=False)
+        else:
+            monkeypatch.setenv(name, value)
+    get_settings.cache_clear()
+
+
 def test_ar3_leverandoren_velges_fra_llm_provider(monkeypatch: pytest.MonkeyPatch) -> None:
     assert isinstance(select_generator("mock"), MockGenerator)
     assert isinstance(select_generator("mock-invalid"), InvalidMockGenerator)
-    with pytest.raises(UnsupportedProviderError):
-        select_generator("vertex")
     monkeypatch.setenv("LLM_PROVIDER", "mock-invalid")
     assert isinstance(get_generator(), InvalidMockGenerator)
+    _vertex_env(monkeypatch, "test-project", "gemini-test")
+    assert isinstance(get_generator(), VertexGenerator)
 
 
-async def test_ar3_vertex_stopper_oppstarten_med_critical_logg(
+async def test_ar3_vertex_uten_prosjekt_stopper_oppstarten_med_critical_logg(
     monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
-    monkeypatch.setenv("LLM_PROVIDER", "vertex")
-    with caplog.at_level(logging.CRITICAL), pytest.raises(UnsupportedProviderError):
+    _vertex_env(monkeypatch, None, "gemini-test")
+    with caplog.at_level(logging.CRITICAL), pytest.raises(MissingProviderSettingError):
         async with lifespan(app):
             pass
-    critical = [record for record in caplog.records if record.levelno == logging.CRITICAL]
-    assert [record.getMessage() for record in critical] == [UNSUPPORTED_MESSAGE]
-    assert UNSUPPORTED_MESSAGE == (
-        "LLM_PROVIDER=vertex is not supported yet (Vertex AI arrives in epic 6). Use mock or mock-invalid."
-    )
+    critical = [record.getMessage() for record in caplog.records if record.levelno == logging.CRITICAL]
+    assert len(critical) == 1
+    assert critical[0].startswith("LLM_PROVIDER=vertex needs GOOGLE_CLOUD_PROJECT")
+    assert "gemini-test" not in critical[0]

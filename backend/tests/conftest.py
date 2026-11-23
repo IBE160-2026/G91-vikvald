@@ -10,6 +10,7 @@ from collections.abc import AsyncIterator, Iterator  # noqa: E402
 from pathlib import Path  # noqa: E402
 
 import pytest  # noqa: E402
+from pydantic_ai import models as pydantic_ai_models  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker  # noqa: E402
 
@@ -24,6 +25,10 @@ from app.modules.practice import models as _practice_models  # noqa: E402, F401 
 from app.modules.subjects import models as _subjects_models  # noqa: E402, F401  (registers subjects)
 
 TEST_DATABASE_URL = "sqlite+aiosqlite://"
+
+# A real model request (Vertex AI) raises an error in every test; VertexGenerator
+# is tested with pydantic-ai's FunctionModel and TestModel instead.
+pydantic_ai_models.ALLOW_MODEL_REQUESTS = False
 
 
 @pytest.fixture(autouse=True)
