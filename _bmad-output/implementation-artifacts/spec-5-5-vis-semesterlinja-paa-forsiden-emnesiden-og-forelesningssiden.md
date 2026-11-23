@@ -3,7 +3,7 @@ title: 'Story 5.5: Vis semesterlinja på forsiden, emnesiden og forelesningsside
 type: 'feature'
 created: '2026-11-23'
 baseline_revision: 'e84c28a1af39c32f93fea888bb6c5f0fdb08b8df'
-status: 'in-progress'
+status: 'blocked'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -99,6 +99,49 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-23 — Review pass
+- verdicts: 39 findings — high 0, medium 0, low 31, false 8, maybe-false 0
+- findings:
+  - `[low]` `[patch]` (verification-gap) «Endre dato» on 04 never checked the line — FR-15 test in `lecture-page.test.tsx` now asserts «AUG» appears and the station's `cx` moves after saving.
+  - `[low]` `[reject]` (intent) station labels on 03 are thinned instead of all shown as in mockup 03 — with weekly lectures and a ~500 px track the labels would overlap; thinning keeps them readable (spec rule, recorded as an edge case for Silje).
+  - `[low]` `[reject]` (intent) on 03 the line sits under the button row, not where the 5.3 text line was — the AC only says the text line is replaced; mockup 03 has no button row; placing it above the table matches the mockup's order (recorded as an edge case).
+  - `[low]` `[reject]` (intent) left text stands above the line under 720 px — needed so there is no horizontal scroll at 768 px; recorded as an edge case.
+  - `[low]` `[patch]` (intent) 200 % text not exercised — new e2e test at 640 px (200 % zoom of 1280) on 02, 03, 04: no horizontal scroll, «I dag» and exam visible.
+  - `[low]` `[patch]` (intent) «I dag»/exam visibility only at 1280/768 — covered by the same 640 px test.
+  - `[low]` `[patch]` (intent) Tab check on 03/04 weaker than on 02 — now asserts the exact next focused element and the `:focus` count on 04.
+  - `[false]` `[reject]` (intent) test names not snake_case — frontend tests in this repo carry the ID as a «FR-57: …» prefix (stories 5.1–5.4); AR-17 asks for the ID in the name, which they have.
+  - `[low]` `[patch]` (intent) «Eksamen i dag»/«Eksamen var» not rendered in a component test — two component tests added in `semester-timeline.test.tsx`.
+  - `[false]` `[reject]` (intent) tests check structure, not pixels — the visual check is the screenshots in `docs/skjermbilder/story-5-5/`, compared with the mockups.
+  - `[false]` `[reject]` (intent) selector and dialog-invalidation side effects — the sr-only list adds `li` to `main`, so `main li:has(h2)` finds exactly the cards as before; the dialog invalidation is required for the line to show edited dates.
+  - `[low]` `[reject]` (blind) 02 loses all exam information when the overview fails — only on a server error; the cards show the same fallback since 5.4, and a parallel text fallback adds a second rendering path (recorded as an edge case).
+  - `[low]` `[reject]` (blind) repeated alerts on 02 when the overview fails — same per-card fallback pattern accepted in 5.4; only on server failure.
+  - `[low]` `[patch]` (blind) `examLine` dead code — deleted with its tests; `practicedText` tests keep the singular and «Ingen forelesninger ennå» coverage.
+  - `[low]` `[reject]` (blind) lecture dated after the exam draws the dashed part backwards — a lecture after the exam is not a real use case; the fix adds branches.
+  - `[low]` `[patch]` (blind) `expectTodayAndExamVisible` could pass vacuously — now asserts the marker count first.
+  - `[low]` `[patch]` (blind) weak Tab tests — same fix as the intent row above.
+  - `[low]` `[patch]` (blind) 200 % text untested — same fix as the intent row above.
+  - `[low]` `[reject]` (blind) the hidden-label e2e assertion depends on layout pixels — it pins the thinning rule on purpose; a layout change that alters it should be looked at.
+  - `[low]` `[reject]` (blind) thinning keeps early labels, hides later ones — either direction hides some; left-to-right is predictable (recorded with the thinning edge case).
+  - `[low]` `[reject]` (blind) labels jump after the first draw — one frame before ResizeObserver reports; not worth a layout-effect path.
+  - `[low]` `[reject]` (blind) today fixed at render time — same as 5.3; the page re-renders on every query refetch.
+  - `[low]` `[reject]` (blind) on 02 the card disappears until the overview includes a new subject — creating a subject invalidates the overview; lasts one refetch.
+  - `[low]` `[reject]` (blind) e2e setup copied between specs — existing pattern in the suite; refactor is outside this story.
+  - `[false]` `[reject]` (blind) KI trail missing — written later in the same run, before the PR.
+  - `[low]` `[patch]` (blind) broken comments in `home-page.tsx` and `lecture-page.tsx` — reflowed and corrected.
+  - `[low]` `[reject]` (edge) a failed refetch keeps old data silently — standard react-query behaviour, as in 5.4.
+  - `[low]` `[reject]` (edge) lecture after the exam — same as the blind row.
+  - `[low]` `[reject]` (edge) outlier dates years away squeeze the track — month labels shorten to one letter; a typo in a date is visible and fixable by the student.
+  - `[low]` `[reject]` (edge) «Du er her» missing with a stale overview — the overview is refetched on mount and invalidated when a lecture is created.
+  - `[false]` `[reject]` (edge) `weekdayName` on malformed date — `exam_date` is a validated `date` in the API.
+  - `[low]` `[patch]` (edge) `examLine` dead — same fix as the blind row.
+  - `[low]` `[reject]` (edge) a new exam date waits for the overview refetch — the subject dialog now invalidates the overview, tested in `subject-page.test.tsx`.
+  - `[false]` `[reject]` (edge) lecture page loading state untested — the loading state is the component's and is tested in `semester-timeline.test.tsx`.
+  - `[low]` `[reject]` (intent) R3–R7 readings where the diff took reading (b) — recorded above per item; no further divergence.
+  - `[false]` `[reject]` (intent) «I dag» pills could collide on long spans — «Du er her» has its own row; only one «I dag» pill exists.
+  - `[low]` `[reject]` (blind) `main ul:not(.sr-only)` ties tests to a class — the class is the a11y contract being tested.
+  - `[false]` `[reject]` (blind) spec triage log empty while in-review — filled now, at triage.
+  - `[low]` `[reject]` (edge) lecture-page loading state — duplicate of the row above.
+
 ## Design Notes
 
 SVG med prosent-x (for eksempel `<circle cx="37.5%" cy="28" r="6"/>`, `<line x1="10%" x2="62%" …/>`, `<rect x="80%" y="28" transform="translate(-7 -7)"/>`) skalerer med bredden uten å strekke streker og tekst, så linja trenger ingen måling for å tegnes riktig. Bare utynningen av etiketter trenger bredden i piksler. Pillene er HTML (`absolute`, `left: x%`, `-translate-x-1/2`, `whitespace-nowrap`).
@@ -111,3 +154,14 @@ Hver emnerad tegner sine egne gridlinjer og sin del av i dag-nåla i full høyde
 - `cd frontend && npm run test && npx tsc --noEmit` -- expected: alt grønt
 - `cd backend && uv run pytest` -- expected: alt grønt (ingen endring)
 - `cd frontend && npx playwright test` mot `docker compose up --build` -- expected: alt grønt (kjøres av orkestreringen etter gjennomgangen, ikke av implementasjonen)
+
+## Auto Run Result
+
+Status: blocked
+Blocking condition: free disk space fell under 5 GB (4.7 GB) after the second `docker compose up --build`; the run stopped by the disk rule before screenshots, KI trail, PR and merge.
+
+**Done:** spec, implementation, review (39 findings: 10 patched, all low; the rest rejected with reasons in the triage log). After the review, «Du er her» was moved into the subject's own row (its pin was cut off by the left text at 768 px) and the left column widened from 176 to 200 px (the exam text wrapped at 1280 px), both found in the screenshots.
+
+**Verification:** `npm run test` 910 passed, `npx tsc --noEmit` clean, `uv run pytest` 567 passed, `npx playwright test` 176 passed — all before the two layout fixes. After them: `npx vitest run modules/subjects` 245 passed and `tsc` clean; Playwright and the screenshots have not been run on the final code.
+
+**Left:** Playwright on the final code, screenshots in `docs/skjermbilder/story-5-5/`, sprint status (5-5 and epic-5 `done`), `docs/ki-prosess/`, session log, `kanttilfelle` issues, PR and merge.
