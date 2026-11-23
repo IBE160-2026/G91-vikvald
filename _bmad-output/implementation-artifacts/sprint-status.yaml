@@ -80,13 +80,13 @@ development_status:
   5-5-vis-semesterlinja-på-forsiden-emnesiden-og-forelesningssiden: done
   epic-5-retrospective: optional
 
-  epic-6: in-progress
+  epic-6: done
   6-1-koble-gemini-på-vertex-ai-inn-bak-språkmodellporten: done
   6-2-fastsett-instruksene-til-modellen-for-flashcards-og-quiz: done
   6-3-send-sider-med-formler-som-bilde-og-merk-innholdet-kan-kutte: done
   6-4-lag-testbruker-og-eksempelemne-med-eksempelnotater: done
   6-5-fullfør-readme-legg-til-lisens-og-vis-testdekningen: done
-  6-6-gjør-den-avsluttende-kontrollen-av-universell-utforming-skje: backlog
+  6-6-gjør-den-avsluttende-kontrollen-av-universell-utforming-skje: done
   epic-6-retrospective: optional
 
   epic-7: backlog
