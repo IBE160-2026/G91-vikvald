@@ -138,7 +138,7 @@ Tilstander som ikke står i lista, for eksempel jobbstatus mens innhold lages, f
 
 | Dato | Commit | Hvem | Kommando | Resultat |
 | --- | --- | --- | --- | --- |
-| 2026-11-23 | TBD-commit | KI (autonom kjøring) | `E2E_REQUIRE_SEED=1 npx playwright test` mot `docker compose -p sk-seedtest up --build` | Bestått: 189 tester, ingen axe-brudd, også de 9 testene i `universell-utforming.spec.ts`. Ingen feil i appen måtte rettes |
+| 2026-11-23 | `c51bfa2` | KI (autonom kjøring) | `E2E_REQUIRE_SEED=1 npx playwright test` mot `docker compose -p sk-seedtest up --build` | Bestått: 189 tester, ingen axe-brudd, også de 9 testene i `universell-utforming.spec.ts`. Ingen feil i appen måtte rettes |
 
 ### Skjermbredde 768 px (NFR-14)
 
@@ -146,7 +146,7 @@ Den samme testen sjekker de samme sidene og tilstandene i 768 px: siden er ikke 
 
 | Dato | Commit | Hvem | Resultat |
 | --- | --- | --- | --- |
-| 2026-11-23 | TBD-commit | KI (autonom kjøring) | Bestått: ingen vannrett rulling på sidene og tilstandene i lista over i 768 px, sidemenyen og øktpanelet bak «Meny» |
+| 2026-11-23 | `c51bfa2` | KI (autonom kjøring) | Bestått: ingen vannrett rulling på sidene og tilstandene i lista over i 768 px, sidemenyen og øktpanelet bak «Meny» |
 
 ### NFR-14: tekst forstørret til 200 %
 
@@ -166,7 +166,7 @@ Kontrolleres for hånd av Silje ([#296](https://github.com/IBE160-2026/G91-vikva
 
 | Nettleser | Versjon | Dato | Commit | Hvem | Hvordan | Resultat |
 | --- | --- | --- | --- | --- | --- | --- |
-| Chrome | 158.0.8127.37 | 2026-11-23 | TBD-commit | KI (autonom kjøring) | `E2E_BROWSERS=chrome npx playwright test --project=chrome` | Bestått |
+| Chrome | 158.0.8127.37 | 2026-11-23 | `c51bfa2` | KI (autonom kjøring) | `E2E_BROWSERS=chrome npx playwright test --project=chrome` | Bestått |
 | Edge | | | | | | |
 | Safari | | | | | | |
 
