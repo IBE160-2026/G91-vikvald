@@ -144,8 +144,9 @@ function TimelineBody({ subjects, props }: { subjects: OverviewSubject[]; props:
         </div>
 
         {/* A container query on the rows' own width (not on the floated heading's
-            neighbour, which must stay a plain block so the legend flows beside it). */}
-        <div className="@container clear-both mt-3">
+            neighbour, which must stay a plain block so the legend flows beside it).
+            The divider under the heading row runs edge to edge, as in mockups 02 and 03. */}
+        <div className="@container clear-both -mx-4 mt-3 border-t border-divider px-4 pt-3">
           {/* The month overlines. */}
           <TrackRow>
             <div ref={trackRef} className="relative h-[24px]">
