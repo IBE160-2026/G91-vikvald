@@ -31,8 +31,10 @@ import argparse
 import asyncio
 import csv
 import getpass
+import io
 import os
 import random
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -45,6 +47,8 @@ DEFAULT_BASE_URL = "http://localhost:3000"
 FORMULA_MARK = "[Formelmerke]"
 LONGEST_YES = "Riktig svar er lengst: ja"
 LONGEST_NO = "Riktig svar er lengst: nei"
+# «Riktig svar er lengst: ja» only at the end of a quiz row, optionally followed by the formula mark.
+_LONGEST_YES_AT_END = re.compile(re.escape(LONGEST_YES) + r"(?: " + re.escape(FORMULA_MARK) + r")?\s*$")
 
 CORRECT = "riktig"
 FACTUAL_ERROR = "faglig feil"
@@ -129,10 +133,13 @@ async def collect(
         raise ExportError("Innloggingen feilet. Sjekk e-posten og passordet.")
 
     subjects = await _get(client, "/api/subjects")
-    subject = next((item for item in subjects if item["name"] == subject_name), None)
-    if subject is None:
+    matches = [item for item in subjects if item["name"] == subject_name]
+    if not matches:
         names = ", ".join(sorted(item["name"] for item in subjects)) or "ingen"
         raise ExportError(f"Fant ikke emnet «{subject_name}». Emnene som finnes: {names}")
+    if len(matches) > 1:
+        raise ExportError(f"Det finnes {len(matches)} emner som heter «{subject_name}». Gi dem ulike navn i appen.")
+    subject = matches[0]
 
     lectures = await _get(client, f"/api/subjects/{subject['id']}/lectures")
     order = {lecture["id"]: index for index, lecture in enumerate(sorted(lectures, key=lambda x: (x["date"], x["name"])))}
@@ -153,8 +160,15 @@ async def collect(
     return draw(card_rows, flashcards, seed) + draw(quiz_rows, quiz, seed), notes
 
 
+def refuse_existing(path: Path) -> None:
+    """A filled-in sample must never be overwritten by a new export."""
+    if path.exists():
+        raise ExportError(f"{path} finnes fra før. Velg et annet navn med --out, eller slett fila først.")
+
+
 def write_csv(rows: list[SampleRow], path: Path) -> None:
-    with path.open("w", encoding="utf-8-sig", newline="") as handle:
+    refuse_existing(path)
+    with path.open("x", encoding="utf-8-sig", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=COLUMNS)
         writer.writeheader()
         writer.writerows(row.as_csv() for row in rows)
@@ -176,18 +190,26 @@ class Summary:
 
 
 def summarise(path: Path) -> Summary:
-    """The numbers for SK-13, SK-14 and SK-15. Raises ExportError on an unknown assessment."""
+    """The numbers for SK-13, SK-14 and SK-15. Raises ExportError on an unknown assessment or row.
+
+    Excel with Norwegian settings saves CSV with «;», so the delimiter is read
+    from the header line."""
     result = Summary()
-    with path.open(encoding="utf-8-sig", newline="") as handle:
-        reader = csv.DictReader(handle)
+    text = path.read_text(encoding="utf-8-sig")
+    header = text.split("\n", 1)[0]
+    delimiter = ";" if header.count(";") > header.count(",") else ","
+    with io.StringIO(text, newline="") as handle:
+        reader = csv.DictReader(handle, delimiter=delimiter)
         if reader.fieldnames is None or list(reader.fieldnames) != COLUMNS:
             raise ExportError(f"Kolonnene skal være {','.join(COLUMNS)}")
         for line, row in enumerate(reader, start=2):
             content = row["innhold"] or ""
             is_quiz = content.startswith("Quiz:")
+            if not is_quiz and not content.startswith("Flashcard:"):
+                raise ExportError(f"Rad {line} begynner verken med «Flashcard:» eller «Quiz:»: {content}")
             if is_quiz:
                 result.quiz_total += 1
-                result.quiz_correct_longest += LONGEST_YES in content
+                result.quiz_correct_longest += bool(_LONGEST_YES_AT_END.search(content))
             value = (row["vurdering"] or "").strip().lower()
             if not value:
                 result.missing += 1
@@ -212,8 +234,12 @@ def _share(part: int, whole: int) -> str:
     return f"{part} av {whole} ({100 * part / whole:.1f} %)" if whole else "ingen rader"
 
 
-def _verdict(ok: bool, whole: int) -> str:
-    return ("nådd" if ok else "ikke nådd") if whole else "–"
+def _verdict(ok: bool, whole: int, incomplete: bool = False) -> str:
+    if not whole:
+        return "–"
+    if incomplete:
+        return "ufullstendig"
+    return "nådd" if ok else "ikke nådd"
 
 
 def summary_lines(result: Summary) -> list[str]:
@@ -221,13 +247,15 @@ def summary_lines(result: Summary) -> list[str]:
     errors = result.flashcards_factual_errors
     right_source = cards - result.flashcards_wrong_source
     quiz = result.quiz_assessed
+    # While rows lack an assessment, the assessment-based goals cannot be decided.
+    incomplete = result.missing > 0
     lines = [
         f"SK-13 faglige feil i flashcards: {_share(errors, cards)}, mål under 5 %: "
-        f"{_verdict(cards > 0 and errors / cards < SK13_MAX_ERROR_SHARE, cards)}",
+        f"{_verdict(cards > 0 and errors / cards < SK13_MAX_ERROR_SHARE, cards, incomplete)}",
         f"SK-14 flashcards med riktig kilde: {_share(right_source, cards)}, mål minst 95 %: "
-        f"{_verdict(cards > 0 and right_source / cards >= SK14_MIN_SOURCE_SHARE, cards)}",
+        f"{_verdict(cards > 0 and right_source / cards >= SK14_MIN_SOURCE_SHARE, cards, incomplete)}",
         f"SK-15 quizspørsmål med nøyaktig ett riktig alternativ: {_share(result.quiz_one_correct, quiz)}, mål alle: "
-        f"{_verdict(quiz > 0 and result.quiz_one_correct == quiz, quiz)}",
+        f"{_verdict(quiz > 0 and result.quiz_one_correct == quiz, quiz, incomplete)}",
         f"SK-15 riktig svar er lengst: {_share(result.quiz_correct_longest, result.quiz_total)}, mål høyst 35 %: "
         f"{_verdict(result.quiz_total > 0 and result.quiz_correct_longest / result.quiz_total <= SK15_MAX_LONGEST_SHARE, result.quiz_total)}",
     ]
@@ -239,14 +267,24 @@ def summary_lines(result: Summary) -> list[str]:
 # --- command line ---------------------------------------------------------------
 
 
+def _count(value: str) -> int:
+    try:
+        number = int(value)
+    except ValueError:
+        number = -1
+    if number < 0:
+        raise argparse.ArgumentTypeError(f"«{value}» er ikke et heltall fra og med 0")
+    return number
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="export_quality_sample", description=__doc__.split("\n\n")[0])
     commands = parser.add_subparsers(dest="command", required=True)
     export = commands.add_parser("export", help="Lag CSV-en for stikkprøven fra appen")
     export.add_argument("--email", required=True, help="E-posten du logger inn i appen med")
     export.add_argument("--subject", required=True, help="Navnet på emnet, nøyaktig som i appen")
-    export.add_argument("--flashcards", type=int, default=50, help="Antall flashcards (standard 50)")
-    export.add_argument("--quiz", type=int, default=20, help="Antall quizspørsmål (standard 20)")
+    export.add_argument("--flashcards", type=_count, default=50, help="Antall flashcards (standard 50)")
+    export.add_argument("--quiz", type=_count, default=20, help="Antall quizspørsmål (standard 20)")
     export.add_argument("--seed", type=int, default=1, help="Frøet til det tilfeldige utvalget (standard 1)")
     export.add_argument("--out", type=Path, default=Path("stikkprove.csv"), help="Fila som skrives")
     export.add_argument("--base-url", default=DEFAULT_BASE_URL, help=f"Appens adresse (standard {DEFAULT_BASE_URL})")
@@ -256,6 +294,7 @@ def _parser() -> argparse.ArgumentParser:
 
 
 async def _export(args: argparse.Namespace) -> None:
+    refuse_existing(args.out)
     password = os.environ.get("SK_PASSWORD") or getpass.getpass("Passord: ")
     async with httpx.AsyncClient(base_url=args.base_url, timeout=30) as client:
         rows, notes = await collect(client, args.email, password, args.subject, args.flashcards, args.quiz, args.seed)
@@ -275,6 +314,9 @@ def main(argv: list[str] | None = None) -> int:
                 print(line)
     except ExportError as error:
         print(error, file=sys.stderr)
+        return 1
+    except (OSError, UnicodeDecodeError) as error:
+        print(f"Kunne ikke lese eller skrive fila: {error}", file=sys.stderr)
         return 1
     except httpx.HTTPError as error:
         print(f"Fikk ikke kontakt med appen på {args.base_url}: {type(error).__name__}", file=sys.stderr)
