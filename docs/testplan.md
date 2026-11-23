@@ -73,7 +73,7 @@ Resultatkolonnen fylles ut i story 6.6 (den avsluttende kontrollen) og når rapp
 | SK-6 | Redigere og slette kort, og bekreftelse før sletting (FR-5, FR-12, FR-14, FR-27) | Automatisk: testene for FR-5, FR-12, FR-14 og FR-27 | |
 | SK-7 | Word, for store filer og PDF uten tekst avvises med riktig beskjed (FR-9, FR-10, NFR-16) | Automatisk: testene for FR-9 og FR-10 (se radene over), og `test_nfr16_…` i `backend/tests/test_files.py` | |
 | SK-8 | Feiler genereringen, lagres ingenting halvferdig (FR-21) | Automatisk: testene for FR-21 og `test_sk8_…` i `backend/tests/test_jobs.py` | |
-| SK-9 | Universell utforming kontrolleres automatisk på alle sider (NFR-13) | Automatisk: axe i Playwright-testene, blant annet brukerreisene. Story 6.6 utvider til alle sider og tilstander | |
+| SK-9 | Universell utforming kontrolleres automatisk på alle sider (NFR-13) | Automatisk: axe i Playwright-testene, blant annet brukerreisene, og `frontend/e2e/universell-utforming.spec.ts` på alle sider og tilstander | Bestått 2026-11-23 (KI, autonom kjøring): ingen axe-brudd på noen side eller tilstand i 1280 og 768 px, heller ikke med eksempelemnet. Se «Resultater fra den avsluttende kontrollen» |
 | SK-10 | Huskeregelen stemmer med forbokstavene (FR-44, FR-45) | Gjelder hvis huskeregler bygges (epic 7). Ikke bygd ennå | |
 | SK-11 | Appen starter etter README fra en ren kopi, uten nøkler eller kontoer (NFR-1, NFR-2) | Manuelt: se «SK-11: ren kopi» under | |
 | SK-12 | Hele kjerneflyten med bare tastatur (NFR-8, NFR-13) | Manuelt i story 6.6, av Silje | |
@@ -117,4 +117,66 @@ Akseptkriteriet sier at Silje følger README ordrett. Kjøringen under er gjort 
 
 ## Resultater fra den avsluttende kontrollen (story 6.6)
 
-Fylles ut i story 6.6: axe på alle sider (SK-9, NFR-13), 768 px og 200 % tekst (NFR-14), nettlesere (NFR-15), tastatur (SK-12) og kvalitet med Gemini (SK-13–SK-17).
+Kontrollene som kan automatiseres, er kjørt av KI i den autonome kjøringen. Kontrollene som er Siljes, har en tom tabell og en framgangsmåte her, og et GitHub-issue hver. Kvaliteten med Gemini (SK-13–SK-17) står i [`docs/kvalitet/README.md`](kvalitet/README.md).
+
+### Universell utforming med axe (SK-9, NFR-13)
+
+`frontend/e2e/universell-utforming.spec.ts` går gjennom alle sidene og tilstandene og kjører axe på hver av dem i 1280 og 768 px:
+
+- innloggingen og oppretting av konto, tomme og med feilmelding
+- forsiden uten og med emner, og dialogen «Nytt emne»
+- emnesiden og dialogen «Ny forelesning»
+- forelesningssiden uten og med filer, vilkårsdialogen, dialogene «Lag flashcards» og «Lag quiz», og slettebekreftelsen for en fil
+- flashcardøkten (forside og snudd kort), hurtigtastdialogen og flashcardresultatet
+- quizøkten før og etter svar, og quizresultatet
+- kontosiden med slettebekreftelsen for kontoen
+- «Fant ikke siden», innlogget og utlogget
+- bør ha-sidene (modellkort, fritekst og sammendrag) når bryteren er på i `GET /api/config`. Testen leter etter inngangen i appen. Så lenge epic 7–9 ikke er bygd, finner den ingen og fører «ikke bygd ennå» på testen
+- forelesningssiden, flashcardøkten og quizøkten med eksempelemnet til testbrukeren, uten å lagre en økt
+
+| Dato | Commit | Hvem | Kommando | Resultat |
+| --- | --- | --- | --- | --- |
+| 2026-11-23 | `5dc98d8` | KI (autonom kjøring) | `E2E_REQUIRE_SEED=1 npx playwright test` mot `docker compose -p sk-seedtest up --build` | Bestått: 189 tester, ingen axe-brudd, også de 9 testene i `universell-utforming.spec.ts`. Ingen feil i appen måtte rettes |
+
+### Skjermbredde 768 px (NFR-14)
+
+Den samme testen sjekker hver side og tilstand i 768 px: siden er ikke bredere enn vinduet (`scrollWidth <= innerWidth`), sidene med sidemeny har knappen «Meny» og ingen synlig navigasjon «Emner», og i øktene ligger øktpanelet bak «Meny».
+
+| Dato | Commit | Hvem | Resultat |
+| --- | --- | --- | --- |
+| 2026-11-23 | `5dc98d8` | KI (autonom kjøring) | Bestått: ingen vannrett rulling på noen side eller tilstand i 768 px, sidemenyen og øktpanelet bak «Meny» |
+
+### NFR-14: tekst forstørret til 200 %
+
+Kontrolleres for hånd av Silje ([#296](https://github.com/IBE160-2026/G91-vikvald/issues/296)).
+
+**Framgangsmåte.** Start appen med `docker compose up` og åpne http://localhost:3000 i Chrome med vinduet på full bredde. Sett tekststørrelsen til 200 % (Innstillinger → Utseende → Skriftstørrelse, eller Cmd/Ctrl og + til zoomen viser 200 %). Gå gjennom kjerneflyten: logg inn → nytt emne og forelesning → last opp PDF og godta vilkår → lag og øv på flashcards → lag og ta quiz → logg ut. Noter hver side som får vannrett rulling, eller der tekst eller knapper blir borte eller overlapper.
+
+| Dato | Nettleser og versjon | Hvem | Resultat | Funn (issue) |
+| --- | --- | --- | --- | --- |
+| | | | | |
+
+### NFR-15: nettlesere
+
+`frontend/e2e/kjerneflyt.spec.ts` går gjennom kjerneflyten i nettleseren og fører navnet og versjonen på nettleseren på testen. Den kjøres i en installert nettleser med `E2E_BROWSERS`, for eksempel `E2E_BROWSERS=chrome npx playwright test --project=chrome` i `frontend/`. Edge fantes ikke på maskinen, og Safari skal kontrolleres i selve Safari, ikke i WebKit-motoren til Playwright. Begge er Siljes ([#297](https://github.com/IBE160-2026/G91-vikvald/issues/297) og [#298](https://github.com/IBE160-2026/G91-vikvald/issues/298)). Safari kan kuttes (kuttrekkefølge punkt 3 i PRD-en).
+
+| Nettleser | Versjon | Dato | Hvem | Hvordan | Resultat |
+| --- | --- | --- | --- | --- | --- |
+| Chrome | 158.0.8127.37 | 2026-11-23 | KI (autonom kjøring) | `E2E_BROWSERS=chrome npx playwright test --project=chrome` | Bestått |
+| Edge | | | | | |
+| Safari | | | | | |
+
+### SK-12: bare tastatur
+
+Kontrolleres for hånd av Silje ([#295](https://github.com/IBE160-2026/G91-vikvald/issues/295)).
+
+**Framgangsmåte.** Start appen med `docker compose up` og åpne http://localhost:3000. Legg bort musa. Gå gjennom kjerneflyten med Tab, Shift+Tab, Enter, Mellomrom, piltastene, Esc og hurtigtastene i øktene (se «?»): logg inn → nytt emne og forelesning → last opp PDF med «Velg PDF» og godta vilkår → lag og øv på flashcards → lag og ta quiz → logg ut. Sjekk ved hvert steg at fokusringen synes, og at fokus går dit EXPERIENCE.md sier (for eksempel til første felt i en dialog, og tilbake til knappen som åpnet den). Feil rettes eller føres som GitHub-issue og i `issues.md`.
+
+| Dato | Nettleser og versjon | Hvem | Steg | Resultat | Funn (issue) |
+| --- | --- | --- | --- | --- | --- |
+| | | | Logg inn | | |
+| | | | Nytt emne og forelesning | | |
+| | | | Last opp PDF og godta vilkår | | |
+| | | | Lag og øv på flashcards | | |
+| | | | Lag og ta quiz | | |
+| | | | Logg ut | | |
