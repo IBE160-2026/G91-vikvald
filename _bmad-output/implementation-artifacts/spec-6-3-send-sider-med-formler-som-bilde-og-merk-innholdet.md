@@ -2,14 +2,29 @@
 title: 'Story 6.3: Send sider med formler som bilde og merk innholdet'
 type: 'feature'
 created: '2026-11-23'
-status: 'ready-for-dev'
+status: 'done'
+baseline_revision: 'cef8beac61eecefb00ab62f6e268e75d5605963c'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-6-context.md'
   - '{project-root}/_bmad-output/implementation-artifacts/spec-6-2-fastsett-instruksene-til-modellen-for-flashcards-og-quiz.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Silje har ikke lastet opp Principles of Economics 3e side 127–128 i appen selv.
+    evidence: |-
+      Akseptkriteriet sier at Silje laster opp fila lokalt og noterer resultatet i issue #9. Regelen er målt direkte med PyMuPDF på hele boka (263 og 155 sammensatte tegninger mot 0 på tekstsider), men hele boka har 995 sider og må deles opp under grensen på 50 sider før opplasting.
+    location: >-
+      issue #9
+    severity: low
+  - summary: >-
+      Ingenting er prøvd mot ekte Gemini med sidebilder.
+    evidence: |-
+      Testene bruker FunctionModel og sjekker forespørselen. Om Gemini leser formlene riktig fra bildet (SK-16), måles i stikkprøvene i story 6.6.
+    location: >-
+      backend/app/modules/generation/vertex.py
+    severity: low
 ---
 
 <intent-contract>
@@ -96,6 +111,42 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-23 — Review pass
+- verdicts: 32 findings — high 0, medium 3, low 25, false 4, maybe-false 0
+- findings:
+  - `[low]` `[reject]` (blind) Bildebudsjettet brukes på sider som tegngrensen senere kutter — krever over 400 000 tegn sidetekst før en bildeside; å flytte grensen inn i løpet gir ny kobling mellom service og vertex for et sjeldent tilfelle.
+  - `[low]` `[reject]` (blind) Bakgrunnsbilde over hele lysbildet merker alle sider — i tråd med «heller en side for mye» i storien; ført som kanttilfelle-issue så Silje kan stramme inn regelen.
+  - `[low]` `[reject]` (blind) Regelen er bare målt på én lærebok; avrundede rammer teller som sammensatte — samme rot og samme kanttilfelle-issue; ingen ekte lysbildenotater å måle på uten personopplysninger.
+  - `[low]` `[reject]` (blind) Filer lastet opp før endringen får aldri `needs_image` — appen er ikke tatt i bruk ennå; en ny opplasting retter det.
+  - `[low]` `[patch]` (blind) PDF-en åpnes på nytt for hver side og alle PDF-er holdes i minnet — hver PDF åpnes nå én gang, alle ønskede sider tegnes fra den, og bytene slippes etterpå.
+  - `[low]` `[reject]` (blind) Bildetegningen har ingen tidsgrense — 20 sider tar sekunder; med pikseltaket under er en patologisk side begrenset.
+  - `[low]` `[reject]` (blind) Strengen «false» regnes som `true` — skjemaet sier boolean, og Gemini følger `responseSchema`; et merke for mye er den trygge feilen.
+  - `[false]` `[reject]` (blind) Merketeksten sier «formel» også for figurer — teksten og regelen er ordrett fra akseptkriteriet (UX-DR37, FR-41).
+  - `[low]` `[patch]` (blind) Manglende testtilfeller — lagt til: `(True, True)`, tegnefeil, emnenivå-endepunktene og at `output_wrapper` har `formula_missing`. `owner_id is None` avvist: skjer bare når forelesningen er slettet midt i jobben, og da lagres ingenting uansett.
+  - `[low]` `[patch]` (blind) Fargesjekken i `formula-flag.test.tsx` treffer «centered» — regex matcher nå hele klasser. Testen av konstantene beholdes som dokumentasjon.
+  - `[false]` `[reject]` (blind) KI-sporet mangler i diffen — skrives etter byggeløpet i samme økt.
+  - `[low]` `[reject]` (blind) Merket står igjen etter at studenten redigerer kortet — kildesiden har fortsatt formelen; ført som kanttilfelle-issue.
+  - `[medium]` `[patch]` (edge) `page_needs_image` kunne gjøre en lesbar PDF til PDF_UNREADABLE — regelen har nå egen try, og en feil gir `needs_image = true`.
+  - `[low]` `[reject]` (edge) Avrundede rammer og kulepunkter — samme som blind-funnet om lysbilder.
+  - `[low]` `[reject]` (edge) Bakgrunnsbilde på hver side — samme som blind-funnet.
+  - `[medium]` `[patch]` (edge) Svær sideflate gir et enormt bilde i minnet — lengste side er nå høyst 2000 piksler.
+  - `[medium]` `[patch]` (edge) Ingen grense for samlet bildestørrelse — `MAX_PAGE_IMAGE_BYTES` (15 MB); sider etter grensen sendes uten bilde, men merkes.
+  - `[low]` `[reject]` (edge) Bildetegningen ligger utenfor tidsgrensen — samme som blind-funnet.
+  - `[low]` `[reject]` (edge) Bilder lages for sider tegngrensen kutter — samme som blind-funnet.
+  - `[low]` `[reject]` (edge) Gamle opplastinger får ikke regelen — samme som blind-funnet.
+  - `[low]` `[reject]` (edge, påstand) «Enkle streker og rammer teller ikke», men avrundede rammer teller — en avrundet ramme har kurver og er ikke «enkel» i regelens forstand; samme kanttilfelle-issue.
+  - `[low]` `[patch]` (edge, påstand) 100–400 kB gjelder bare tekstsider — dekket av byte-taket over; kommentaren nevner nå bildesider.
+  - `[low]` `[defer]` (intent) Ekte Gemini med bilder er ikke prøvd — ingen test kaller modellen; måles i story 6.6 (SK-16).
+  - `[low]` `[defer]` (intent) OpenStax-sjekken er gjort med PyMuPDF, ikke ved Siljes opplasting — ført som utsatt og åpent punkt.
+  - `[false]` `[reject]` (intent) Merket vises ikke på forsiden av kortet — akseptkriteriet plasserer det rett over kildelenken, som bare vises når kortet er snudd og etter bekreftet svar.
+  - `[low]` `[reject]` (intent) Ingen registertest for at alle typer arver `FormulaReport` — epic 7–9 legger til typene; `needs_image`-delen gjelder uansett.
+  - `[low]` `[reject]` (intent) Tastatur og skjermleser bare delvis testet — merket er ren tekst uten interaksjon; eksisterende tastaturtester dekker øktene, og axe kjører på sidene med merket.
+  - `[low]` `[patch]` (intent) Emnenivå-øving er ikke testet med merket — samme som verifiseringsfunnet; test lagt til.
+  - `[false]` `[reject]` (intent) Bilder kan havne andre steder på disk — `page_images` skriver ingenting; bare `storage.read_pdf` brukes.
+  - `[low]` `[reject]` (intent) Tak og reservevalg går utover storien — begrunnet med «heller en side for mye», testet og ført i `beslutninger.md`.
+  - `[low]` `[patch]` (verification) Emnenivå-endepunktene har ingen test av verdien til `formula_flag` — test lagt til for flashcards og quiz.
+  - `[low]` `[patch]` (verification) Grenen der tegningen av en side feiler, er ikke testet — test lagt til.
+
 ## Design Notes
 
 **Tersklene (målt 2026-11-23 på *Principles of Economics 3e*, 995 sider, utenfor repoet):** Hver side har fem enkle rammer i layouten, og tabeller har mange enkle linjer, så «antall tegninger» alene skiller dårlig. Formelsidene 127 og 128 har 263 og 155 sammensatte tegninger (glyfer tegnet som kurver), mens vanlige tekstsider (121, 124, 126) har 0. Terskelen 3 fanger også en liten formel med noen få tegn. Bilder: 0,5 % av en A4-side er omtrent 70 × 35 pt, så en liten logo slipper unna, men et lite formelbilde i linja kan bli tatt med. Heller en side for mye.
@@ -112,3 +163,26 @@ flag = page.needs_image or getattr(item, "formula_missing", None) is True
 - `cd backend && uv run pytest` -- expected: alle grønne, ingen nettverkskall.
 - `cd frontend && npm run test` -- expected: alle grønne.
 - `cd frontend && npx playwright test` mot `docker compose up --build -d` -- expected: alle grønne.
+
+## Auto Run Result
+
+Status: done
+
+**Hva som ble bygd:** `files` setter `file_pages.needs_image` ved opplasting etter regelen i `files/pdf.py` (minst 3 sammensatte vektortegninger, eller et bilde over 0,5 % av siden; kan ikke regelen lese siden, blir den `true`). Genereringsløpet lager PNG-bilder av slike sider fra den lagrede PDF-en (høyst 20 bilder, høyst 15 MB, lengste side høyst 2000 piksler), bare i minnet, og sender dem med teksten til porten. `VertexGenerator` legger bildet rett etter sidens tekst. Skjemaene har `formula_missing` (felles `FormulaReport`), instruksene forklarer det, og `formula_flag` regnes ut ett sted i løpet for alle innholdstyper. Frontenden viser `formula-flag` («Inneholder formel – sjekk mot kilden») rett over kilden i kortet, i forklaringen og i begge feillistene.
+
+**Filer:**
+- `backend/app/modules/files/pdf.py`, `service.py`, `models.py` -- regelen, `PdfPage`, `render_pages_png`, `page_images`.
+- `backend/app/modules/generation/port.py`, `registry.py`, `service.py` -- `Page.needs_image`/`image`, `FormulaReport`, `ValidItem`, bilder og flagget.
+- `backend/app/modules/generation/flashcards.py`, `quiz.py`, `vertex.py`, `instructions/*.md` -- skjema, lagring, bilder i forespørselen, instruks.
+- `backend/app/modules/content/service.py`, `schemas.py`, `models.py` -- lagre og vise `formula_flag`.
+- `backend/tests/test_formula.py`, `fixtures/formula_pdf.py` (nye) og tilpassede tester.
+- `frontend/components/formula-flag.tsx` (ny), `modules/practice/*` -- merket og flagget i typene.
+- `frontend/e2e/formelmerke.spec.ts` (ny), `e2e/pdf.ts` -- ende-til-ende med axe.
+
+**Gjennomgang:** 32 funn. 11 rader rettet (3 middels, 8 lave), 2 utsatt, 19 avvist (4 som feil). Rettingene ble gjort av implementasjonsagenten.
+
+**Oppfølgingsgjennomgang:** `false`. Rettet: høy 0, middels 3, lav 8. Ingen høye; de tre middels rettingene er små, avgrensede og testet.
+
+**Verifisering:** `uv run pytest` 678 grønne, `ruff check` rent. `npm run test` 918 grønne, `tsc --noEmit` rent. `npx playwright test` mot `docker compose up --build -d`: 178 grønne.
+
+**Gjenværende risiko:** Regelen er målt på én lærebok, ikke på lysbilder; avrundede rammer og bakgrunnsbilder kan merke for mange sider (kanttilfelle-issue). Ingenting er prøvd mot ekte Gemini med bilder (SK-16, story 6.6), og Siljes egen opplasting av side 127–128 gjenstår.
