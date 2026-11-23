@@ -123,7 +123,7 @@ test.describe("Konto (story 2.7)", () => {
     await registerNewUser(page);
     await openAccountPage(page);
     const main = page.locator("main");
-    await expect(main.getByText("Google, i EU", { exact: true })).toBeVisible();
+    await expect(main.getByText("Gemini fra Google, behandlet i EU", { exact: true })).toBeVisible();
     await expect(main.getByText("Demomodus: innholdet lages av en testmodell")).toHaveCount(0);
     // An empty account has no «Du har nå …» line.
     await expect(main.getByText(/Du har nå/)).toHaveCount(0);

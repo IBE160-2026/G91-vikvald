@@ -546,13 +546,18 @@ describe("forelesningssiden", () => {
     expect(zone.compareDocumentPosition(surface) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("UX-DR20: utenfor demomodus vises ingen merknad ennå", async () => {
+  it("NFR-5: med Gemini står personvernmerknaden fra skisse 04 under opplastingsfeltet", async () => {
     demoMode = false;
     renderPage();
-    await screen.findByText("Dra og slipp PDF-filer hit");
-    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/config")).toBe(true));
+    const first = await screen.findByText("Notatene sendes til Googles språkmodell i EU.");
+    const surface = first.closest('[data-slot="note-surface"]')!;
+    expect(surface.className).toContain("bg-surface-note");
+    expect(
+      within(surface as HTMLElement).getByText("Ikke last opp personopplysninger, f.eks. navn på medstudenter."),
+    ).toBeTruthy();
     expect(screen.queryByText("I demomodus sendes ingenting ut.")).toBeNull();
-    expect(document.querySelector('[data-slot="note-surface"]')).toBeNull();
+    const zone = document.querySelector('[data-slot="upload-zone"]')!;
+    expect(zone.compareDocumentPosition(surface) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("FR-8: filer sluppet på feltet lastes opp på samme måte", async () => {
