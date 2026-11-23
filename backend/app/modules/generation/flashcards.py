@@ -17,7 +17,7 @@ from app.modules.generation.registry import ContentType, register_content_type
 KIND = "flashcards"
 # The card types the pipeline may store for flashcards.
 CARD_KINDS = ("qa", "concept")
-PROMPT_FILE = Path(__file__).resolve().parent / "prompts" / "flashcards.txt"
+INSTRUCTIONS_FILE = Path(__file__).resolve().parent / "instructions" / "flashcards.md"
 
 # The verb that makes a definition sentence: «X er …» / «X is …» (lower case, a word of its own).
 DEFINITION_VERBS = ("er", "is")
@@ -143,7 +143,7 @@ register_content_type(
         validate_item=validate_item,
         existing_keys=existing_keys,
         save=save,
-        prompt_file=PROMPT_FILE,
+        instructions_file=INSTRUCTIONS_FILE,
         break_item=break_item,
     )
 )

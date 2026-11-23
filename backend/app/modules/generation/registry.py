@@ -2,8 +2,9 @@
 
 A content type registers its kind, its mock rule, its loose model, its
 validation, how existing content is found and how valid items are saved
-(through the content module), and its prompt file. The pipeline only knows this
-registry, so a new type (quiz, model cards, ...) needs no change to the pipeline.
+(through the content module), and its instructions file for the real model.
+The pipeline only knows this registry, so a new type (quiz, model cards, ...)
+needs no change to the pipeline.
 A type that has a difficulty (quiz) says so with uses_difficulty.
 """
 
@@ -41,8 +42,9 @@ class ContentType:
     validate_item: ValidateItem
     existing_keys: ExistingKeys
     save: Save
-    # The instructions for a real model (epic 6). The mock models never read it.
-    prompt_file: Path
+    # The instructions for the real model (instructions/<kind>.md), read by
+    # VertexGenerator. The mock models never read it.
+    instructions_file: Path
     break_item: BreakItem
     # Whether a job takes params.difficulty (quiz). For the other types a
     # difficulty in the request is a validation error.

@@ -12,11 +12,14 @@ from typing import Any, Protocol
 
 @dataclass(frozen=True)
 class Page:
-    """One PDF page from the lecture's files. page_no is the PDF's own number from 1."""
+    """One PDF page from the lecture's files. page_no is the PDF's own number
+    from 1. file_name is the uploaded file's name, shown to the real model in the
+    page label; it comes last with a default so Page(file_id, page_no, text) works."""
 
     file_id: uuid.UUID
     page_no: int
     text: str
+    file_name: str = ""
 
 
 @dataclass(frozen=True)

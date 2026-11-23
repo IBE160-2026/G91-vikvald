@@ -1,8 +1,8 @@
 """The real language model (AR-3, NFR-5): Gemini on Vertex AI in the EU.
 
 VertexGenerator answers through the same port as the mock models. It sends the
-content type's instructions (prompt_file) and the lecture's pages to Gemini and
-asks for structured output (NativeOutput, Gemini's own responseSchema) with the
+content type's instructions (instructions_file) and the lecture's pages to
+Gemini and asks for structured output (NativeOutput, Gemini's own responseSchema) with the
 type's *loose* schema. The pipeline in service.py then validates, discards and
 saves every item exactly as in demo mode.
 
@@ -31,6 +31,13 @@ from app.modules.generation.registry import get_content_type
 # purpose, never read from the environment, and never "global".
 VERTEX_LOCATION = "eu"
 
+# The most page text sent in one request (issue #271): 400 000 characters is
+# about 100 000 tokens, more than eight full 50-page PDFs of notes. Well inside
+# Gemini's context window, and keeps a run inside the 3-minute time limit.
+MAX_REQUEST_PAGE_CHARS = 400_000
+
+logger = logging.getLogger(__name__)
+
 # pydantic-ai may print a first-run banner to the terminal; the backend owns its output.
 pydantic_ai.BANNER_ENABLED = False
 
@@ -49,28 +56,54 @@ def build_vertex_model(project: str, model_name: str) -> GoogleModel:
 
 
 def instructions_for(kind: str, options: GenerationOptions) -> str:
-    """The content type's instructions. «{difficulty}» becomes the chosen
-    difficulty's description (e.g. «Vanskelig: bruke stoffet på et eksempel»).
-    Story 6.2 settles the final instructions."""
-    text = get_content_type(kind).prompt_file.read_text(encoding="utf-8")
+    """The content type's instructions file (instructions/<kind>.md), the one
+    place where «{difficulty}» becomes the chosen difficulty's description
+    (e.g. «Vanskelig: bruke stoffet på et eksempel»). Without a difficulty the
+    placeholder is left as it is (the app always sets one for quiz)."""
+    text = get_content_type(kind).instructions_file.read_text(encoding="utf-8")
     if options.difficulty is not None:
         text = text.replace("{difficulty}", DIFFICULTIES[options.difficulty])
     return text
 
 
+def pages_within_limit(pages: list[Page]) -> list[Page]:
+    """The pages to send, in their fixed order, until the page text would pass
+    MAX_REQUEST_PAGE_CHARS. Whole pages only, never half a page, and always at
+    least the first page. Left-out pages are logged as counts only, never text."""
+    budget = MAX_REQUEST_PAGE_CHARS
+    sent: list[Page] = []
+    for page in pages:
+        if sent and len(page.text) > budget:
+            break
+        sent.append(page)
+        budget -= len(page.text)
+    if len(sent) < len(pages):
+        logger.warning(
+            "Request page text over the limit: sent %d pages, left out %d", len(sent), len(pages) - len(sent)
+        )
+    return sent
+
+
 def user_message(pages: list[Page], options: GenerationOptions) -> str:
     """The request: how many items at most, the keys that already exist, and
-    every page labelled with file_id and page_no."""
+    the pages within the limit, each labelled with file_id, file name and
+    page_no, which the model is asked to cite."""
     existing = sorted(options.existing_keys)
     parts = [
         f"Lag høyst {options.requested} elementer.",
         "Disse finnes fra før og skal ikke lages på nytt: "
         + (json.dumps(existing, ensure_ascii=False) if existing else "ingen"),
         "",
+        "Hver side begynner med et sidemerke. Oppgi kilden til hvert element med "
+        "file_id og page_no nøyaktig som i sidemerket til siden det bygger på.",
+        "",
         "Sidene:",
     ]
-    for page in pages:
-        parts.append(f"--- file_id: {page.file_id}, page_no: {page.page_no} ---")
+    for page in pages_within_limit(pages):
+        # The file name is the student's own text: quoted as JSON, so a name with
+        # commas or «page_no:» in it cannot be read as another label field.
+        name = json.dumps(page.file_name, ensure_ascii=False)
+        parts.append(f"--- file_id: {page.file_id}, filnavn: {name}, page_no: {page.page_no} ---")
         parts.append(page.text)
     return "\n".join(parts)
 

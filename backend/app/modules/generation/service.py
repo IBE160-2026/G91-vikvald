@@ -170,7 +170,10 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
     if job is None or job.status != JOB_RUNNING:
         return
     content_type = get_content_type(job.kind)
-    pages = [Page(file_id, page_no, text) for file_id, page_no, text in await pages_for_lecture(session, job.lecture_id)]
+    pages = [
+        Page(file_id, page_no, text, file_name)
+        for file_id, page_no, text, file_name in await pages_for_lecture(session, job.lecture_id)
+    ]
     options = GenerationOptions(
         requested=job.requested,
         existing_keys=await content_type.existing_keys(session, job.lecture_id),

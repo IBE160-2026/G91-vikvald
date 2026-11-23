@@ -1,6 +1,6 @@
 """Quiz questions as a content type (story 4.1): the mock rule (NFR-2a), the
-invalid mock (SK-4), validate_item, the shuffle when saved, the prompt with the
-difficulty (FR-31), the job over HTTP with scope and difficulty (FR-28, FR-29,
+invalid mock (SK-4), validate_item, the shuffle when saved, the instructions
+with the difficulty (FR-31), the job over HTTP with scope and difficulty (FR-28, FR-29,
 FR-30, FR-33, FR-38), the counts and delete preview (AR-7, FR-12), the delete
 guard, the cascade and the migration (AR-13)."""
 
@@ -28,6 +28,7 @@ from app.modules.generation.mock import InvalidMockGenerator, MockGenerator
 from app.modules.generation.port import GenerationOptions, Page
 from app.modules.generation.providers import get_generator
 from app.modules.generation.registry import get_content_type
+from app.modules.generation.vertex import instructions_for
 from tests.test_files import _log_in_new_user, _new_lecture, _upload
 from tests.test_generation import FILE_ID, fixture_pages
 from tests.test_jobs import (
@@ -235,7 +236,7 @@ async def test_fr30_riktig_svar_staar_ikke_paa_samme_plass_i_alle(
         assert len(question.options) == 4
 
 
-# --- The prompt (FR-31) ------------------------------------------------------
+# --- The instructions (FR-31) ---------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -247,7 +248,7 @@ async def test_fr30_riktig_svar_staar_ikke_paa_samme_plass_i_alle(
     ],
 )
 def test_fr31_instruksen_har_beskrivelsen_av_valgt_vanskelighetsgrad(difficulty: str, description: str) -> None:
-    prompt = quiz.build_prompt(difficulty)
+    prompt = instructions_for("quiz", GenerationOptions(requested=10, difficulty=difficulty))
     assert description in prompt
     assert "{difficulty}" not in prompt
     others = set(quiz.DIFFICULTIES.values()) - {description}
@@ -259,8 +260,8 @@ def test_fr29_vanskelighetsgradene_i_instruksen_og_api_et_er_de_samme() -> None:
 
 
 def test_fr31_instruksen_har_reglene() -> None:
-    prompt = get_content_type("quiz").prompt_file.read_text(encoding="utf-8")
-    for rule in ("bare stoff", "bokmål", "(brand)", "fire svaralternativer", "nøyaktig ett", "forklaring", "PDF-siden", "like lange", "høyst"):
+    prompt = get_content_type("quiz").instructions_file.read_text(encoding="utf-8")
+    for rule in ("bare stoff", "bokmål", "(brand)", "fire svaralternativer", "nøyaktig ett", "forklaring", "page_no", "like lange", "høyst"):
         assert rule in prompt, rule
 
 

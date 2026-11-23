@@ -8,7 +8,7 @@ from app.modules.generation.registry import get_content_type
 
 
 class MockGenerator:
-    """Runs the content type's mock rule. Never reads the prompt file."""
+    """Runs the content type's mock rule. Never reads the instructions file."""
 
     async def generate(
         self, kind: str, pages: list[Page], options: GenerationOptions
