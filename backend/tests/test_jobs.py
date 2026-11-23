@@ -254,7 +254,7 @@ async def test_fr17_dyp_etter_rask_lager_bare_de_nye(client: AsyncClient, engine
     assert await _card_count(client, lecture_id) == 12
 
 
-async def test_fr19_lag_flere_med_samme_fil_lagrer_ingenting(
+async def test_fr22_lag_flere_med_samme_fil_lagrer_ingenting(
     client: AsyncClient, lecture: str, engine: AsyncEngine
 ) -> None:
     await _start(client, lecture)
@@ -268,7 +268,7 @@ async def test_fr19_lag_flere_med_samme_fil_lagrer_ingenting(
     assert [card.id for card in await _cards(engine)] == before
 
 
-async def test_fr19_nye_kort_legges_til_de_gamle(
+async def test_fr22_nye_kort_legges_til_de_gamle(
     client: AsyncClient, lecture: str, engine: AsyncEngine
 ) -> None:
     await _start(client, lecture)

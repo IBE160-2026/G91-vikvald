@@ -1160,7 +1160,7 @@ describe("Lag og øv (story 3.1 og 3.2)", () => {
     expect(rowStatus().textContent).toBe("");
   });
 
-  it("FR-19, UX-DR44: ingen nye kort gir «Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.» synlig og opplest", async () => {
+  it("FR-18, FR-22, UX-DR44: ingen nye kort gir «Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.» synlig og opplest", async () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     cardCount = 24;
     jobOutcome = { status: "done", created: 0, error_code: null };
