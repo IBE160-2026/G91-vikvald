@@ -141,3 +141,6 @@
 - [ ] 2026-11-23 [story-5-5-semesterlinja](957-2026-11-23-10-19-52-story-5-5-semesterlinja.md) — vurder kanttilfellene fra story 5.5 (#257–#263), særlig plasseringen på forelesningssiden (#258) og eksamensteksten (#260)
 - [ ] 2026-11-23 [story-5-5-semesterlinja](957-2026-11-23-10-19-52-story-5-5-semesterlinja.md) — `flyt-1-etter-forelesning.spec.ts:455` (steg 10) feilet én gang i en full Playwright-kjøring, grønn alene og i to fulle kjøringer etterpå
 - [ ] 2026-11-23 [brukerreiser-etter-epic-5](956-2026-11-23-10-47-26-brukerreiser-etter-epic-5.md) — flyttestene utvides med sammendrag (epic 9), modellkort (epic 7), fritekst (epic 8) og formelmerket (story 6.3) når de er bygd
+- [ ] 2026-11-23 [story-6-1-gemini-vertex](955-2026-11-23-11-29-34-story-6-1-gemini-vertex.md) — Vertex er ikke prøvd mot et ekte Google Cloud-prosjekt (modell i EU, løst skjema, tenkenivå, cache-kommandoene i README)
+- [ ] 2026-11-23 [story-6-1-gemini-vertex](955-2026-11-23-11-29-34-story-6-1-gemini-vertex.md) — vurder kanttilfellene fra story 6.1 (#267–#271), særlig at manglende gcloud-innlogging ikke stopper oppstarten (#269)
+- [ ] 2026-11-23 [story-6-1-gemini-vertex](955-2026-11-23-11-29-34-story-6-1-gemini-vertex.md) — grense for hvor mye tekst som sendes til Gemini vurderes i story 6.2/6.3 (#271)
