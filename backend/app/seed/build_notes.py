@@ -1,0 +1,100 @@
+"""Makes the sample notes' PDFs (app/seed/notater/*.pdf) from their source
+text (*.md next to them), so the PDF never says anything the source does not.
+
+The source is plain text with one Markdown feature: a line starting with "# "
+is a heading. Every other non-empty line is a paragraph of its own (bullet
+lines start with "• "). The PDF has the same text without the "# ".
+
+Run from backend/ after changing a note:  uv run python -m app.seed.build_notes
+"""
+
+from pathlib import Path
+
+import pymupdf
+
+NOTES_DIR = Path(__file__).resolve().parent / "notater"
+HEADING = "# "
+# The first line of every note while the notes are placeholders (issue #13),
+# printed in bold.
+PLACEHOLDER_MARK = "PLASSHOLDER – skrives av Silje"
+# A4 with 72 pt (2.5 cm) margins.
+PAGE = pymupdf.paper_rect("a4")
+MARGIN = 72
+BODY_SIZE = 11
+HEADING_SIZE = 15
+# Space above a heading and below every paragraph, in points.
+HEADING_GAP = 14
+PARAGRAPH_GAP = 5
+
+
+class NoteTooLongError(ValueError):
+    """The note does not fit on one page. The notes are meant to be short."""
+
+
+def note_sources() -> list[Path]:
+    """The notes' source files, sorted by name."""
+    return sorted(NOTES_DIR.glob("*.md"))
+
+
+def is_note(path: Path) -> bool:
+    # LISENS.md is the licence for the notes, not a note.
+    return path.name != "LISENS.md"
+
+
+def plain_text(source: str) -> str:
+    """The text the PDF must contain: the source without the heading marks."""
+    return "\n".join(line.strip().removeprefix(HEADING) for line in source.splitlines())
+
+
+def build_pdf(source: str) -> bytes:
+    """The PDF (one A4 page) for one note's source text. The same text always
+    gives the same bytes.
+
+    Written with PyMuPDF's TextWriter and the built-in Helvetica, which has
+    «•», «–» and «æøå» and, unlike HTML layout, never joins letters such as
+    «fi» into one ligature sign, so the text read back is the source text."""
+    regular, bold = pymupdf.Font("helv"), pymupdf.Font("hebo")
+    document = pymupdf.open()
+    page = document.new_page(width=PAGE.width, height=PAGE.height)
+    writer = pymupdf.TextWriter(page.rect)
+    top = MARGIN
+    for line in source.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        heading = line.startswith(HEADING)
+        if heading and top > MARGIN:
+            top += HEADING_GAP
+        box = pymupdf.Rect(MARGIN, top, PAGE.width - MARGIN, PAGE.height - MARGIN)
+        left_over = writer.fill_textbox(
+            box,
+            line.removeprefix(HEADING),
+            font=bold if heading or line == PLACEHOLDER_MARK else regular,
+            fontsize=HEADING_SIZE if heading else BODY_SIZE,
+        )
+        if left_over:
+            raise NoteTooLongError("The note does not fit on one page")
+        # last_point is the baseline of the last line written; leave room for descenders.
+        top = writer.last_point.y + PARAGRAPH_GAP
+    writer.write_text(page)
+    # No dates or tool names, so a rebuild without changes gives the same file.
+    document.subset_fonts()
+    document.set_metadata({})
+    data = document.tobytes(garbage=4, deflate=True, no_new_id=True)
+    document.close()
+    return data
+
+
+def build_all() -> list[Path]:
+    """Write <name>.pdf next to every note's <name>.md. Returns the PDFs written."""
+    written: list[Path] = []
+    for source in filter(is_note, note_sources()):
+        target = source.with_suffix(".pdf")
+        target.write_bytes(build_pdf(source.read_text(encoding="utf-8")))
+        written.append(target)
+    return written
+
+
+if __name__ == "__main__":
+    for path in build_all():
+        print(f"Wrote {path.relative_to(NOTES_DIR.parent.parent.parent)}")

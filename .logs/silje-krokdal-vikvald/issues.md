@@ -151,3 +151,6 @@
 - [ ] 2026-11-23 [story-6-3-formelsider](953-2026-11-23-13-02-25-story-6-3-formelsider.md) — vurder kanttilfellene fra story 6.3 (#279–#283), særlig om regelen merker for mange lysbilder (#279)
 - [ ] 2026-11-23 [story-6-3-formelsider](953-2026-11-23-13-02-25-story-6-3-formelsider.md) — Gemini med sidebilder er ikke prøvd; formler fra bilde måles i story 6.6 (SK-16)
 - [ ] 2026-11-23 [story-6-3-formelsider](953-2026-11-23-13-02-25-story-6-3-formelsider.md) — kilden står venstrestilt under formelmerket i feillistene; vurder ved gjennomgangen av epic 6
+- [ ] 2026-11-23 [story-6-4-testbruker](952-2026-11-23-15-47-07-story-6-4-testbruker.md) — skriv eller godkjenn de endelige eksempelnotatene og fjern plassholdermerket; «Silje har lest dem faglig» er ikke oppfylt (#13)
+- [ ] 2026-11-23 [story-6-4-testbruker](952-2026-11-23-15-47-07-story-6-4-testbruker.md) — legg forfatterne av Principles of Marketing inn i krediteringen sammen med de endelige notatene (#13)
+- [ ] 2026-11-23 [story-6-4-testbruker](952-2026-11-23-15-47-07-story-6-4-testbruker.md) — vurder kanttilfellene fra story 6.4 (#285–#288), særlig at testbrukeren mangler i en database med kontoer fra før (#285)

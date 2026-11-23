@@ -4,6 +4,7 @@ Most tests insert rows with fixed times straight into the tables, so the
 borders (content made exactly at T, one second after) can be tested exactly.
 """
 
+import re
 import uuid
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
@@ -408,6 +409,11 @@ async def test_ar16_first_content_times_for_quiz_og_ukjent_type(client: AsyncCli
 # The module boundary (AR-9).
 
 
+# The model and the table. The request body PracticeSessionIn is the practice
+# module's public input to save_session, which the seed (story 6.4) uses too.
+_PRACTICE_TABLE = re.compile(r"\bPracticeSession(?!In\b)\w*|practice_sessions")
+
+
 def test_ar9_bare_practice_nevner_practice_sessions() -> None:
     app_dir = Path(__file__).resolve().parent.parent / "app"
     practice_dir = app_dir / "modules" / "practice"
@@ -415,6 +421,6 @@ def test_ar9_bare_practice_nevner_practice_sessions() -> None:
         str(path.relative_to(app_dir))
         for path in app_dir.rglob("*.py")
         if practice_dir not in path.parents
-        and ("PracticeSession" in (text := path.read_text(encoding="utf-8")) or "practice_sessions" in text)
+        and _PRACTICE_TABLE.search(path.read_text(encoding="utf-8"))
     ]
     assert offenders == []

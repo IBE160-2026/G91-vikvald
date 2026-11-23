@@ -1,5 +1,6 @@
 """Business logic for files: store an accepted PDF, list files, count them,
-look one up for its owner, and delete files."""
+look one up for its owner, delete files, and delete a whole account (which
+must know her files)."""
 
 import asyncio
 import logging
@@ -11,9 +12,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import storage
 from app.core.errors import AppError, ErrorCode
+from app.modules.content.registry import check_delete_allowed
 from app.modules.files.pdf import PdfPage, render_pages_png
 from app.modules.files.models import ORIGINAL_NAME_MAX_LENGTH, File, FilePage
+from app.modules.identity.service import delete_user
 from app.modules.subjects.models import Lecture, Subject
+from app.modules.subjects.service import lecture_ids_for_subjects, subject_ids_for_user
 
 logger = logging.getLogger(__name__)
 
@@ -170,6 +174,23 @@ async def delete_pdfs(user_id: uuid.UUID, file_ids: Iterable[uuid.UUID]) -> None
             await asyncio.to_thread(storage.delete_pdf, user_id, file_id)
         except OSError:
             logger.exception("Could not remove PDF %s after it was deleted", file_id)
+
+
+async def delete_account(session: AsyncSession, user_id: uuid.UUID) -> None:
+    """Delete the account (FR-5): one DELETE of the user row, everything under
+    it goes with ON DELETE CASCADE. AppError(JOB_ALREADY_RUNNING) if one of her
+    lectures has a running job. Her folder on the disk is removed only after
+    the commit (AR-8); a disk error is logged with her id only. Used by
+    DELETE /api/identity/me and by the seed's clean-up."""
+    lectures = await lecture_ids_for_subjects(session, await subject_ids_for_user(session, user_id))
+    await check_delete_allowed(session, tuple(lectures))
+    await delete_user(session, user_id)
+    await session.commit()
+    try:
+        await asyncio.to_thread(storage.delete_user_dir, user_id)
+    except OSError:
+        # The id only, never the e-mail, file names or content.
+        logger.exception("Could not remove the upload folder of deleted user %s", user_id)
 
 
 async def pages_for_lecture(

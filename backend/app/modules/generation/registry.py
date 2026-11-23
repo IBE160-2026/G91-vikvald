@@ -5,7 +5,8 @@ validation, how existing content is found and how valid items are saved
 (through the content module), and its instructions file for the real model.
 The pipeline only knows this registry, so a new type (quiz, model cards, ...)
 needs no change to the pipeline.
-A type that has a difficulty (quiz) says so with uses_difficulty.
+A type that has a difficulty (quiz) says so with uses_difficulty, and a type
+behind a feature switch (FEATURE_*) says so with feature.
 """
 
 import uuid
@@ -17,6 +18,8 @@ from typing import Any
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import Settings, get_settings
+from app.core.features import Feature
 from app.modules.generation.port import GenerationOptions, Page
 
 # The mock model's rule: pages and options in, a loose list out (no model call).
@@ -60,6 +63,9 @@ class ContentType:
     # Whether a job takes params.difficulty (quiz). For the other types a
     # difficulty in the request is a validation error.
     uses_difficulty: bool = False
+    # The feature switch the type belongs to (e.g. "summary" for FEATURE_SUMMARY),
+    # or None for the must-have types (flashcards, quiz), which are always on.
+    feature: Feature | None = None
 
 
 _types: dict[str, ContentType] = {}
@@ -70,6 +76,23 @@ def register_content_type(content_type: ContentType) -> None:
     if content_type.kind in _types:
         raise ValueError(f"Content type already registered: {content_type.kind}")
     _types[content_type.kind] = content_type
+
+
+def unregister_content_type(kind: str) -> None:
+    """Remove a type (used by tests that register a type of their own)."""
+    _types.pop(kind, None)
+
+
+def enabled_content_types(settings: Settings | None = None) -> list[ContentType]:
+    """Every registered type in registration order, without the types whose
+    feature switch is off. The seed makes content of exactly these (AR-14)."""
+    _ensure_builtin_types()
+    settings = settings or get_settings()
+    return [
+        content_type
+        for content_type in _types.values()
+        if content_type.feature is None or getattr(settings, f"FEATURE_{content_type.feature.upper()}")
+    ]
 
 
 def get_content_type(kind: str) -> ContentType:

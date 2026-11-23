@@ -118,3 +118,8 @@ async def delete_user(session: AsyncSession, user_id: uuid.UUID) -> None:
     everything under them go with ON DELETE CASCADE. The caller commits and
     removes her folder on the disk afterwards."""
     await session.execute(delete(User).where(User.id == user_id))
+
+
+async def any_user_exists(session: AsyncSession) -> bool:
+    """Whether at least one account exists (the seed runs only when none does)."""
+    return await session.scalar(select(User.id).limit(1)) is not None

@@ -47,9 +47,36 @@ En adresse som ikke finnes, for eksempel <http://localhost:3000/finnes-ikke>, vi
 
 Backenden kjører databaseendringene (`alembic upgrade head`) før den starter. Stopp appen med `Ctrl+C`, eller med `docker compose down` hvis den kjører i bakgrunnen (`-d`).
 
+### Testbruker og eksempelemne
+
+Første gang appen starter med tom database, lager backenden en ferdig testbruker. Logg inn på <http://localhost:3000/logg-inn> med:
+
+- E-post: `test@studiekamerat.no`
+- Passord: `studiekamerat`
+
+Testbrukeren har godtatt vilkårene og har emnet «Markedsføring» med eksamen tre uker etter den dagen databasen ble fylt. Emnet har tre forelesninger fra de siste ukene (Markedsmiksen, Segmentering og målgrupper, AIDA-modellen), med ett kort PDF-notat hver, ferdige flashcards og quiz, og to lagrede økter på den første forelesningen. Oversikten viser derfor både øvde og ikke øvde forelesninger, og du kan øve med en gang.
+
+Innholdet er laget av demomodellen. Demoinnholdet er enkelt og mekanisk: det viser at funksjonene virker, ikke hvor godt en ekte språkmodell er.
+
+Godt å vite:
+
+- **Bare på tom database.** Testbrukeren lages bare når `APP_ENV=local` og databasen ikke har noen kontoer. Har du startet appen før og laget kontoer, lages hun ikke. Vil du begynne på nytt, sletter `docker compose down -v` databasen og de opplastede filene (alt forsvinner), og neste `docker compose up` lager testbrukeren. En ny oppstart lager aldri en ekstra testbruker. Feiler fyllingen, slettes testbrukeren igjen, appen starter likevel, og neste oppstart prøver på nytt.
+- **Notatene er plassholdere.** De tre notatene i `backend/app/seed/notater/` er laget av KI og merket «PLASSHOLDER – skrives av Silje» øverst. De byttes ut med notater Silje skriver eller godkjenner selv (issue #13).
+- **Kilde og lisens.** Notatene bygger på OpenStax *Principles of Marketing*, som lastes ned gratis fra <https://openstax.org/details/books/principles-marketing>. Notatene krediterer boka nederst, sier at teksten er endret, og deles under CC BY-NC-SA 4.0, som boka (se `backend/app/seed/notater/LISENS.md`). Ingen PDF fra OpenStax ligger i repoet. Vil du prøve appen med et kapittel fra en OpenStax-bok, laster du ned PDF-en fra openstax.org selv, og krediterer OpenStax hvis du deler noe du har laget av den.
+- **Principles of Economics.** OpenStax *Principles of Economics 3e* ble brukt til å måle regelen for formelsider i story 6.3. Den lastes ned gratis fra <https://openstax.org/details/books/principles-economics-3e> og krediteres OpenStax slik bokas egen lisensside sier. Ingen PDF fra den ligger i repoet.
+- **Endre et notat.** PDF-ene lages fra kildeteksten (`*.md`) med `uv run python -m app.seed.build_notes` i `backend/`. En test sjekker at teksten i PDF-ene er den samme som i kildeteksten. Et notat som erstatter et av dem, må følge disse reglene, ellers lager demomodellen feil kort eller testene blir røde:
+  - Første linje er «PLASSHOLDER – skrives av Silje» så lenge notatet er en plassholder. Når Siljes egen tekst erstatter det, fjernes linja, og testen `test_nfr3_note_is_marked_placeholder` oppdateres.
+  - Minst fire definisjonssetninger med «er» (for eksempel «Prisen er summen kunden betaler.»), og «er» ingen andre steder i teksten.
+  - Minst én punktliste med tre eller flere linjer som begynner med «• ».
+  - Notatet får plass på én side.
+  - Krediteringen (`# Kilde`) står nederst.
+  - `EXPECTED_FRONTS` i `backend/tests/test_seed.py` og `CARDS`/`QUESTIONS` i `frontend/e2e/testbruker.spec.ts` oppdateres til de nye kortene.
+- **Datoene settes én gang**, når databasen fylles. Etter `docker compose down -v` og en ny oppstart får emnet nye datoer.
+- **Feil i fyllingen** står som linja `Seed failed: <feiltype>` i backendloggen (`docker compose logs backend`).
+
 ### Opprett en konto
 
-Åpne <http://localhost:3000/registrer>, skriv inn en e-postadresse og et passord på minst 8 tegn, og trykk «Opprett konto». Du blir logget inn med en gang og kommer til forsiden. E-postadressen sjekkes ikke, så du kan bruke en oppdiktet adresse som `klara@eksempel.no`. Passordet lagres bare som en bcrypt-hash. En ferdig testbruker kommer i en senere versjon.
+Åpne <http://localhost:3000/registrer>, skriv inn en e-postadresse og et passord på minst 8 tegn, og trykk «Opprett konto». Du blir logget inn med en gang og kommer til forsiden. E-postadressen sjekkes ikke, så du kan bruke en oppdiktet adresse som `klara@eksempel.no`. Passordet lagres bare som en bcrypt-hash. Vil du ikke lage konto selv, kan du bruke testbrukeren (se «Testbruker og eksempelemne» under).
 
 ### Logg inn
 

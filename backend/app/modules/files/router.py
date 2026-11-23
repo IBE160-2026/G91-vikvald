@@ -10,7 +10,6 @@ remove the PDFs), so those routes live here too.
 """
 
 import asyncio
-import logging
 import math
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
@@ -21,7 +20,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import UploadFile
 from starlette.formparsers import MultiPartException, MultiPartParser
 
-from app.core import storage
 from app.core.config import get_settings
 from app.core.db import get_session
 from app.core.errors import AppError, ErrorCode
@@ -44,6 +42,7 @@ from app.modules.files.schemas import (
 )
 from app.modules.files.service import (
     clean_original_name,
+    delete_account,
     delete_file,
     delete_pdfs,
     file_counts,
@@ -55,7 +54,6 @@ from app.modules.files.service import (
 )
 from app.modules.identity.dependencies import current_user
 from app.modules.identity.models import User
-from app.modules.identity.service import delete_user
 from app.modules.subjects.service import (
     delete_lecture,
     delete_subject,
@@ -73,7 +71,6 @@ subjects_router = APIRouter(prefix="/api/subjects")
 # The account routes count subjects and files, which identity cannot reach.
 account_router = APIRouter(prefix="/api/identity")
 
-logger = logging.getLogger(__name__)
 
 CurrentUser = Annotated[User, Depends(current_user)]
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -361,21 +358,10 @@ async def account_delete_preview(user: CurrentUser, session: Session) -> Account
 
 
 @account_router.delete("/me", status_code=204)
-async def delete_account(user: CurrentUser, session: Session) -> Response:
-    """Delete the account (FR-5): one DELETE of the user row, everything under
-    it goes with ON DELETE CASCADE. Her folder on the disk is removed only after
-    the commit (AR-8); a disk error is logged with her id and the answer is
-    still 204. The session cookie is removed."""
-    owner_id = user.id
-    lectures = await lecture_ids_for_subjects(session, await subject_ids_for_user(session, owner_id))
-    await check_delete_allowed(session, tuple(lectures))
-    await delete_user(session, owner_id)
-    await session.commit()
-    try:
-        await asyncio.to_thread(storage.delete_user_dir, owner_id)
-    except OSError:
-        # The id only, never the e-mail, file names or content.
-        logger.exception("Could not remove the upload folder of deleted user %s", owner_id)
+async def delete_account_route(user: CurrentUser, session: Session) -> Response:
+    """Delete the account (FR-5) through files.service.delete_account, then
+    remove the session cookie."""
+    await delete_account(session, user.id)
     response = Response(status_code=204)
     clear_session_cookie(response)
     return response

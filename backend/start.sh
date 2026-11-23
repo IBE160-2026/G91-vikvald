@@ -1,9 +1,14 @@
 #!/bin/sh
-# Backend start sequence: database migrations first, then exactly one Uvicorn process.
+# Backend start sequence (AR-14): database migrations, then the seed (only on an
+# empty local database), then exactly one Uvicorn process.
 set -e
 
 echo "Running database migrations (alembic upgrade head)"
 alembic upgrade head
+
+echo "Seeding the test user and sample subject if the database is empty (python -m app.seed)"
+# Never stops the start: the seed logs its own errors and tries again next time.
+python -m app.seed || echo "Seed did not finish; starting anyway"
 
 echo "Starting Uvicorn (one process)"
 # Keep idle connections open longer than the Next.js proxy does. Node's agent
