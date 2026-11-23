@@ -53,6 +53,11 @@ async function expectNoHorizontalScroll(page: Page) {
 // dialog stays open while the width changes.
 async function checkBothWidths(page: Page, layout: Layout, sessionPanel?: string) {
   await page.setViewportSize(WIDE);
+  // At 1280 px the session panel stands beside the session. An open dialog
+  // hides it from the accessibility tree, so it is only checked without one.
+  if (layout === "session" && sessionPanel && (await page.getByRole("dialog").count()) === 0) {
+    await expect(page.getByRole("region", { name: sessionPanel })).toBeVisible();
+  }
   await expectNoHorizontalScroll(page);
   await expectNoAxeViolations(page);
 
@@ -300,6 +305,7 @@ test.describe("Universell utforming og skjermbredde på alle sider (story 6.6)",
       },
     ];
     for (const { flag, name, entry } of entries) {
+      expect(flag in config, `${flag} mangler i GET /api/config`).toBe(true);
       if (!config[flag]) {
         testInfo.annotations.push({ type: name, description: `skrudd av (${flag}: false)` });
         continue;
@@ -326,10 +332,11 @@ test.describe("Universell utforming med eksempelemnet (story 6.6)", () => {
   const EMAIL = "test@studiekamerat.no";
   const SEED_PASSWORD = "studiekamerat";
 
-  let saves: string[];
+  let saves: string[] = [];
   let lectureId: string;
 
   test.beforeEach(async ({ page }) => {
+    saves = [];
     const login = await page.request.post("/api/identity/login", { data: { email: EMAIL, password: SEED_PASSWORD } });
     if (process.env.E2E_REQUIRE_SEED) {
       expect(login.status(), "E2E_REQUIRE_SEED er satt, men testbrukeren kan ikke logge inn").toBe(200);
@@ -339,7 +346,6 @@ test.describe("Universell utforming med eksempelemnet (story 6.6)", () => {
       "Testbrukeren finnes ikke: seed kjører bare på tom database. Start et nytt Compose-prosjekt, f.eks. `docker compose -p sk-seedtest up --build`.",
     );
     // Any save of a session is stopped and counted, so the seed data stay as they are.
-    saves = [];
     await page.route("**/api/practice-sessions", async (route) => {
       if (route.request().method() === "POST") {
         saves.push(route.request().url());
@@ -355,7 +361,9 @@ test.describe("Universell utforming med eksempelemnet (story 6.6)", () => {
       id: string;
       name: string;
     }[];
-    lectureId = lectures.find((item) => item.name === "Markedsmiksen")!.id;
+    const lecture = lectures.find((item) => item.name === "Markedsmiksen");
+    expect(lecture, "Fant ikke forelesningen Markedsmiksen").toBeDefined();
+    lectureId = lecture!.id;
   });
 
   test.afterEach(() => {
