@@ -491,6 +491,7 @@ function ResultView({
       number: cell.number,
       front: session.cards[cell.id].front,
       source: session.cards[cell.id].source,
+      formula_flag: session.cards[cell.id].formula_flag,
     }));
 
   return (

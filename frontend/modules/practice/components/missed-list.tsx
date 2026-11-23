@@ -1,5 +1,6 @@
 import { useId } from "react";
 
+import { FormulaFlag } from "@/components/formula-flag";
 import { SourceLink, type Source } from "@/components/source-link";
 
 export type MissedItem = {
@@ -9,6 +10,8 @@ export type MissedItem = {
   // The question (the card's front, or the quiz question).
   front: string;
   source: Source;
+  // Shows formula-flag above the source (FR-41).
+  formula_flag?: boolean;
 };
 
 // A wrong quiz answer: the question, what she chose, the correct answer and
@@ -61,7 +64,10 @@ function FlashcardMissedList({ items }: { items: readonly MissedItem[] }) {
               <span className="sr-only">:</span>
             </span>
             <p className="min-w-0 flex-1 text-body-sm font-medium break-words text-ink">{item.front}</p>
-            <SourceLink source={item.source} className="ml-10 sm:ml-0" />
+            <div className="ml-10 flex min-w-0 flex-col gap-2 sm:ml-0">
+              <FormulaFlag flagged={item.formula_flag} />
+              <SourceLink source={item.source} />
+            </div>
           </li>
         ))}
       </ul>
@@ -83,15 +89,18 @@ function QuizMissedList({ items }: { items: readonly MissedQuizItem[] }) {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 pt-[4px]">
                 <p className="min-w-0 flex-1 text-item-title break-words text-ink">{item.front}</p>
-                {item.lecture === undefined ? (
+                {item.lecture === undefined && !item.formula_flag ? (
                   <SourceLink source={item.source} />
                 ) : (
                   <div className="flex min-w-0 flex-col gap-1">
+                    <FormulaFlag flagged={item.formula_flag} className="mb-1" />
                     <SourceLink source={item.source} />
-                    <p data-slot="missed-lecture" className="text-caption break-words text-ink-muted">
-                      <span className="sr-only">Forelesning: </span>
-                      {item.lecture}
-                    </p>
+                    {item.lecture === undefined ? null : (
+                      <p data-slot="missed-lecture" className="text-caption break-words text-ink-muted">
+                        <span className="sr-only">Forelesning: </span>
+                        {item.lecture}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

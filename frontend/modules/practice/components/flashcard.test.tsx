@@ -13,6 +13,7 @@ const CARD: FlashcardData = {
   kind: "qa",
   front: "Hva er <b>merkevare</b>?",
   back: "Et navn som skiller et produkt fra andre.",
+  formula_flag: false,
   source: { file_id: "f1", file_name: "merkevare-notater.pdf", page_no: 4 },
 };
 
@@ -21,6 +22,13 @@ function Harness({ card = CARD, onMark = vi.fn<(mark: Mark) => void>(), showHint
   return (
     <Flashcard card={card} flipped={flipped} onFlip={() => setFlipped(true)} onMark={onMark} showHints={showHints} />
   );
+}
+
+function expectFlagRightAboveSource(root: ParentNode) {
+  const flag = root.querySelector("[data-slot='formula-flag']");
+  expect(flag).not.toBeNull();
+  expect(flag!.textContent).toBe("Inneholder formel – sjekk mot kilden");
+  expect(flag!.nextElementSibling?.getAttribute("data-slot")).toBe("source-link");
 }
 
 describe("Flashcard", () => {
@@ -120,5 +128,18 @@ describe("Flashcard", () => {
     render(<Flashcard card={CARD} flipped={false} onFlip={vi.fn()} onMark={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />);
     expect(screen.queryByRole("button", { name: "Rediger" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Slett" })).toBeNull();
+  });
+
+  it("FR-41: et merket kort viser formelmerket rett over kilden når det er snudd", () => {
+    const { container } = render(<Harness card={{ ...CARD, formula_flag: true }} />);
+    expect(container.querySelector("[data-slot='formula-flag']")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Snu kortet" }));
+    expectFlagRightAboveSource(container);
+  });
+
+  it("FR-41: et kort uten merke viser ikke formelmerket", () => {
+    const { container } = render(<Harness />);
+    fireEvent.click(screen.getByRole("button", { name: "Snu kortet" }));
+    expect(container.querySelector("[data-slot='formula-flag']")).toBeNull();
   });
 });

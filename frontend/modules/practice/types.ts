@@ -14,6 +14,9 @@ export type Flashcard = {
   kind: "qa" | "concept";
   front: string;
   back: string;
+  // Made from a page with a formula, or the model reported something missing
+  // (FR-41): shown as formula-flag above the source.
+  formula_flag: boolean;
   source: FlashcardSource;
 };
 
@@ -37,6 +40,8 @@ export type QuizQuestion = {
   // The correct option's place in `options` (0–3).
   correct_index: number;
   explanation: string;
+  // As for Flashcard (FR-41).
+  formula_flag: boolean;
   source: FlashcardSource;
   lecture: { id: string; name: string };
 };

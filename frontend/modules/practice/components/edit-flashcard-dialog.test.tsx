@@ -14,6 +14,7 @@ const CARD: Flashcard = {
   kind: "qa",
   front: "Hva er en merkevare?",
   back: "Et navn som skiller et produkt fra andre.",
+  formula_flag: false,
   source: { file_id: "f1", file_name: "merkevare-notater.pdf", page_no: 4 },
 };
 

@@ -4,6 +4,7 @@ import { Check, Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { iconProps } from "@/components/icon";
+import { FormulaFlag } from "@/components/formula-flag";
 import { SourceLink } from "@/components/source-link";
 import { Button } from "@/components/ui/button";
 
@@ -105,6 +106,7 @@ export function Flashcard({
               data-slot="flashcard-footer"
               className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-divider px-7 py-4"
             >
+              <FormulaFlag flagged={card.formula_flag} className="basis-full" />
               <SourceLink source={card.source} />
               {onEdit || onDelete ? (
                 <div className="flex flex-wrap gap-1">

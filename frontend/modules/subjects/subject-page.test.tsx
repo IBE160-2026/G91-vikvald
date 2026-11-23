@@ -63,6 +63,7 @@ function quizQuestion(id: string, lectureId: string): QuizQuestion {
     options: ["a", "b", "c", "d"],
     correct_index: 0,
     explanation: `${id} er a.`,
+    formula_flag: false,
     source: { file_id: "f1", file_name: "notater.pdf", page_no: 1 },
     lecture: { id: lectureId, name: lectureId },
   };
@@ -74,6 +75,7 @@ function flashcard(id: string, lectureId: string): SubjectFlashcard {
     kind: "concept",
     front: id,
     back: `${id} er et begrep i faget.`,
+    formula_flag: false,
     source: { file_id: "f1", file_name: "notater.pdf", page_no: 1 },
     lecture: { id: lectureId, name: lectureId },
   };

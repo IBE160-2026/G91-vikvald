@@ -14,6 +14,7 @@ const QUESTION: QuizQuestionData = {
   options: ["En pris", "Et navn eller symbol", "En kanal", "Et segment"],
   correct_index: 1,
   explanation: "Merkevare er et navn eller symbol.",
+  formula_flag: false,
   source: { file_id: "f1", file_name: "merkevare-notater.pdf", page_no: 7 },
   lecture: { id: "l1", name: "Uke 37: Merkevare" },
 };

@@ -27,4 +27,18 @@ describe("ExplanationCard", () => {
     expect(lecture.parentElement!.querySelector("[data-color-index='1']")).toBeTruthy();
     expect(card.querySelector(".border-t.border-divider")).toBeTruthy();
   });
+
+  it("FR-41: formelmerket står rett over kilden når spørsmålet er merket, ellers ikke", () => {
+    const props = {
+      explanation: "Elastisitet er en brøk.",
+      source: { file_name: "formler.pdf", page_no: 1 },
+      lectureName: "Uke 1",
+    };
+    const { container, rerender } = render(<ExplanationCard {...props} formulaFlag />);
+    const flag = container.querySelector("[data-slot='formula-flag']")!;
+    expect(flag.textContent).toBe("Inneholder formel – sjekk mot kilden");
+    expect(flag.nextElementSibling?.getAttribute("data-slot")).toBe("source-link");
+    rerender(<ExplanationCard {...props} formulaFlag={false} />);
+    expect(container.querySelector("[data-slot='formula-flag']")).toBeNull();
+  });
 });
