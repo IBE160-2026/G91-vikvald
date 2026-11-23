@@ -14,7 +14,7 @@ from tests.test_subjects import NOT_FOUND
 __all__ = ["no_jobs_left"]
 
 SUBJECTS = "/api/subjects"
-QUESTION_FIELDS = {"id", "question", "options", "correct_index", "explanation", "source", "lecture"}
+QUESTION_FIELDS = {"id", "question", "options", "correct_index", "explanation", "formula_flag", "source", "lecture"}
 
 
 async def _subject_quiz_questions(client: AsyncClient, subject_id: str) -> list[dict]:

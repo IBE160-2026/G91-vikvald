@@ -7,13 +7,13 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, StrictInt, StrictStr, ValidationError
+from pydantic import StrictInt, StrictStr, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.content.service import NewQuizQuestion, add_quiz_questions, quiz_question_texts
 from app.modules.generation.flashcards import definition_term, normalise, sentences
-from app.modules.generation.port import GenerationOptions, Page
-from app.modules.generation.registry import ContentType, register_content_type
+from app.modules.generation.port import FormulaReport, GenerationOptions, Page
+from app.modules.generation.registry import ContentType, ValidItem, register_content_type
 
 KIND = "quiz"
 INSTRUCTIONS_FILE = Path(__file__).resolve().parent / "instructions" / "quiz.md"
@@ -74,8 +74,9 @@ def mock_rule(pages: list[Page], options: GenerationOptions) -> list[dict[str, A
     return questions
 
 
-class LooseQuizQuestion(BaseModel):
-    """One question as a model may give it: every field may be missing."""
+class LooseQuizQuestion(FormulaReport):
+    """One question as a model may give it: every field may be missing
+    (formula_missing comes from FormulaReport)."""
 
     question: StrictStr | None = None
     options: list[StrictStr] | None = None
@@ -130,19 +131,20 @@ async def existing_keys(session: AsyncSession, lecture_id: uuid.UUID) -> frozens
     return frozenset(text.casefold() for text in await quiz_question_texts(session, lecture_id))
 
 
-async def save(session: AsyncSession, items: list[Any]) -> None:
+async def save(session: AsyncSession, items: list[ValidItem]) -> None:
     add_quiz_questions(
         session,
         [
             NewQuizQuestion(
-                file_id=item.file_id,
-                page_no=item.page_no,
-                question=item.question.strip(),
-                options=tuple(option.strip() for option in item.options),
-                correct_index=item.correct_index,
-                explanation=item.explanation.strip(),
+                file_id=valid.item.file_id,
+                page_no=valid.item.page_no,
+                question=valid.item.question.strip(),
+                options=tuple(option.strip() for option in valid.item.options),
+                correct_index=valid.item.correct_index,
+                explanation=valid.item.explanation.strip(),
+                formula_flag=valid.formula_flag,
             )
-            for item in items
+            for valid in items
         ],
     )
 

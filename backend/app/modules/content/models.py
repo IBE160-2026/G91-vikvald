@@ -33,7 +33,8 @@ class Flashcard(Base):
     back: Mapped[str | None] = mapped_column(Text, nullable=True)
     # The PDF's own page number, starting at 1.
     page_no: Mapped[int] = mapped_column(Integer)
-    # Always false for now; the formula rule comes in epic 6.
+    # True when the source page needed an image or the model reported that
+    # something was missing (FR-41); set by the generation pipeline.
     formula_flag: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utc_now)
     # The order the row was made in within the batch it was saved with. A batch
@@ -54,7 +55,8 @@ class QuizQuestion(Base):
     )
     # The PDF's own page number, starting at 1.
     page_no: Mapped[int] = mapped_column(Integer)
-    # Always false for now; the formula rule comes in epic 6.
+    # True when the source page needed an image or the model reported that
+    # something was missing (FR-41); set by the generation pipeline.
     formula_flag: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     question: Mapped[str] = mapped_column(Text)
     # The four options, in the order shown as A-D (shuffled once when saved).

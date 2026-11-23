@@ -26,8 +26,19 @@ MockRule = Callable[[list[Page], GenerationOptions], list[dict[str, Any]]]
 ValidateItem = Callable[[Any, list[Page]], BaseModel | None]
 # The keys of what the lecture already has (compared in lower case).
 ExistingKeys = Callable[[AsyncSession, uuid.UUID], Awaitable[frozenset[str]]]
+
+
+@dataclass(frozen=True)
+class ValidItem:
+    """A valid item and its formula flag, worked out once by the pipeline for
+    every content type (FR-41)."""
+
+    item: Any
+    formula_flag: bool
+
+
 # Adds the valid items to the session; the pipeline commits.
-Save = Callable[[AsyncSession, list[Any]], Awaitable[None]]
+Save = Callable[[AsyncSession, list[ValidItem]], Awaitable[None]]
 # How LLM_PROVIDER=mock-invalid breaks item number `index` of the mock list
 # (SK-4): index % 4 == 0 stays valid, the others are broken so validate_item
 # throws them away.
