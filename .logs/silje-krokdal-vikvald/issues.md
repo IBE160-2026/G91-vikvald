@@ -143,4 +143,7 @@
 - [ ] 2026-11-23 [brukerreiser-etter-epic-5](956-2026-11-23-10-47-26-brukerreiser-etter-epic-5.md) — flyttestene utvides med sammendrag (epic 9), modellkort (epic 7), fritekst (epic 8) og formelmerket (story 6.3) når de er bygd
 - [ ] 2026-11-23 [story-6-1-gemini-vertex](955-2026-11-23-11-29-34-story-6-1-gemini-vertex.md) — Vertex er ikke prøvd mot et ekte Google Cloud-prosjekt (modell i EU, løst skjema, tenkenivå, cache-kommandoene i README)
 - [ ] 2026-11-23 [story-6-1-gemini-vertex](955-2026-11-23-11-29-34-story-6-1-gemini-vertex.md) — vurder kanttilfellene fra story 6.1 (#267–#271), særlig at manglende gcloud-innlogging ikke stopper oppstarten (#269)
-- [ ] 2026-11-23 [story-6-1-gemini-vertex](955-2026-11-23-11-29-34-story-6-1-gemini-vertex.md) — grense for hvor mye tekst som sendes til Gemini vurderes i story 6.2/6.3 (#271)
+- [x] 2026-11-23 [story-6-1-gemini-vertex](955-2026-11-23-11-29-34-story-6-1-gemini-vertex.md) — grense for hvor mye tekst som sendes til Gemini vurderes i story 6.2/6.3 (#271) (løst 2026-11-23 i story 6.2, grense 400 000 tegn, #273)
+- [ ] 2026-11-23 [story-6-2-instruksene](954-2026-11-23-12-16-43-story-6-2-instruksene.md) — prøv instruksene med Gemini på åpent lisensierte sider og før rettelser i `korrigeringer.md` (#276)
+- [ ] 2026-11-23 [story-6-2-instruksene](954-2026-11-23-12-16-43-story-6-2-instruksene.md) — testplanen i story 6.5 skal si at FR-2 og FR-31 for ekte modell bare kan måles manuelt (SK-13, SK-15)
+- [ ] 2026-11-23 [story-6-2-instruksene](954-2026-11-23-12-16-43-story-6-2-instruksene.md) — vurder kanttilfellene fra story 6.2 (#273–#275), særlig at studenten ikke får beskjed når sider utelates (#273)
