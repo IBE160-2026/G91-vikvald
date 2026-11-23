@@ -98,6 +98,72 @@ I utviklingsmodus kjører databasen i Docker, mens backend og frontend kjører d
 
    Åpne <http://localhost:3000>.
 
+## Bruk Gemini (Vertex AI)
+
+Appen kjører i demomodus som standard og trenger da verken nøkkel, konto eller nett. Vil du ha innhold fra en ekte språkmodell, kan backenden bruke Gemini på Google Vertex AI. Notatene behandles da i EU: backenden bruker alltid EU-endepunktet `aiplatform.eu.rep.googleapis.com`, og det kan ikke endres i innstillingene. Prosjekt-ID og modellnavn blir på serveren og sendes aldri til nettleseren.
+
+Du trenger et Google Cloud-prosjekt med fakturering og [Google Cloud CLI](https://cloud.google.com/sdk/docs/install) (`gcloud`).
+
+1. Logg inn og slå på Vertex AI i prosjektet. Bytt `DITT-PROSJEKT` med prosjekt-ID-en din:
+
+   ```bash
+   gcloud auth login
+   gcloud services enable aiplatform.googleapis.com --project DITT-PROSJEKT
+   gcloud auth application-default login
+   gcloud auth application-default set-quota-project DITT-PROSJEKT
+   ```
+
+   Den tredje kommandoen lagrer innloggingen (Application Default Credentials) i `~/.config/gcloud`. Backenden bruker den i stedet for en nøkkelfil.
+
+2. Slå av mellomlagring (caching) hos Google for prosjektet, så notatene ikke lagres hos Google mellom kallene:
+
+   ```bash
+   curl -X PATCH \
+     -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+     -H "Content-Type: application/json" \
+     https://aiplatform.googleapis.com/v1/projects/DITT-PROSJEKT/cacheConfig \
+     -d '{"name": "projects/DITT-PROSJEKT/cacheConfig", "disableCache": true}'
+   ```
+
+   Sjekk at den er av. Svaret skal inneholde `"disableCache": true`:
+
+   ```bash
+   curl -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+     https://aiplatform.googleapis.com/v1/projects/DITT-PROSJEKT/cacheConfig
+   ```
+
+3. Lag `.env` i rotmappa (kopier `.env.example`) og sett:
+
+   ```bash
+   LLM_PROVIDER=vertex
+   GOOGLE_CLOUD_PROJECT=DITT-PROSJEKT
+   VERTEX_MODEL=gemini-3.5-flash
+   VERTEX_THINKING=low
+   ```
+
+   Mangler `GOOGLE_CLOUD_PROJECT` eller `VERTEX_MODEL`, stopper backenden ved oppstart med en `CRITICAL`-logglinje som nevner innstillingen. `.env` ligger aldri i Git.
+
+4. Lag `docker-compose.override.yml` i rotmappa, så backenden får lese innloggingen din (bare lese, `:ro`). Docker Compose leser fila automatisk, og den ligger i `.gitignore`, så den havner aldri i Git:
+
+   ```yaml
+   services:
+     backend:
+       volumes:
+         - ~/.config/gcloud:/home/app/.config/gcloud:ro
+   ```
+
+5. Start appen på nytt:
+
+   ```bash
+   docker compose up --build
+   ```
+
+   Demomerket er borte, og kontosiden viser «Gemini fra Google, behandlet i EU». Feiler kallet til Gemini (for eksempel fordi innloggingen mangler), blir jobben merket som feilet, og appen viser «Prøv igjen». Backend-loggen viser da bare jobb-ID-en og typen feil, aldri notattekst eller svar fra modellen.
+
+Tilbake til demomodus: sett `LLM_PROVIDER=mock` (eller fjern linja) og start appen på nytt.
+
+Testene kaller aldri Vertex AI. De kjører alltid med `LLM_PROVIDER=mock`, og ekte kall til modellen er sperret i `backend/tests/conftest.py`.
+
 ## Testene
 
 | Hva | Kommando | Hvor |
@@ -131,7 +197,10 @@ Alle innstillingene har standardverdier, så `.env` er valgfri. Vil du endre noe
 | `APP_ENV` | `local` | Miljøet appen kjører i. `local` er demo- og utviklingsmodus på egen maskin. |
 | `DATABASE_URL` | `postgresql+asyncpg://studiekamerat:studiekamerat@localhost:5432/studiekamerat` | Databasen backenden bruker i utviklingsmodus. I Docker Compose kobler backenden seg til tjenesten `db`. |
 | `POSTGRES_PASSWORD` | `studiekamerat` | Passordet til den lokale Postgres-databasen i Docker. Bare for lokal bruk. Postgres setter passordet bare første gang databasen lages. Endrer du det senere, må du endre det både her og i `DATABASE_URL`, og kjøre `docker compose down -v` (det sletter den lokale databasen). |
-| `LLM_PROVIDER` | `mock` | Hvilken språkmodell appen bruker. `mock` og `mock-invalid` er demomodus med ferdige svar, uten nøkkel og uten nett. `mock` lager ett flashcard per definisjonssetning i notatene («X er …» eller «X is …»): ordene før «er»/«is» på forsiden og hele setningen på baksiden. `mock-invalid` lager de samme kortene, men ødelegger tre av fire med vilje. De ugyldige kortene forkastes og telles i jobben (`discarded`), og Flashcards-raden sier at det ble laget færre kort enn valgt. Demoinnholdet er enkelt og mekanisk: det viser at funksjonene virker, ikke hvor godt en ekte språkmodell er. `vertex` (Google Vertex AI) støttes ikke ennå (kommer i epic 6) og stopper backenden ved oppstart med en `CRITICAL`-logglinje. En annen verdi stopper også backenden ved oppstart, med en logglinje som nevner `LLM_PROVIDER`. |
+| `LLM_PROVIDER` | `mock` | Hvilken språkmodell appen bruker. `mock` og `mock-invalid` er demomodus med ferdige svar, uten nøkkel og uten nett. `mock` lager ett flashcard per definisjonssetning i notatene («X er …» eller «X is …»): ordene før «er»/«is» på forsiden og hele setningen på baksiden. `mock-invalid` lager de samme kortene, men ødelegger tre av fire med vilje. De ugyldige kortene forkastes og telles i jobben (`discarded`), og Flashcards-raden sier at det ble laget færre kort enn valgt. Demoinnholdet er enkelt og mekanisk: det viser at funksjonene virker, ikke hvor godt en ekte språkmodell er. `vertex` er Gemini på Google Vertex AI, behandlet i EU, og krever `GOOGLE_CLOUD_PROJECT` og `VERTEX_MODEL` (se «Bruk Gemini (Vertex AI)»). En annen verdi stopper også backenden ved oppstart, med en logglinje som nevner `LLM_PROVIDER`. |
+| `GOOGLE_CLOUD_PROJECT` | tom | Bare med `LLM_PROVIDER=vertex`, og da påkrevd. ID-en til Google Cloud-prosjektet ditt. Mangler den, stopper backenden ved oppstart med en logglinje som nevner `GOOGLE_CLOUD_PROJECT`. Sendes aldri til nettleseren. |
+| `VERTEX_MODEL` | tom (`gemini-3.5-flash` i `.env.example`) | Bare med `LLM_PROVIDER=vertex`, og da påkrevd. Hvilken Gemini-modell som brukes. Verdien i `.env.example` er foreløpig, til kvalitetstesten har avgjort valget. |
+| `VERTEX_THINKING` | `low` | Bare med `LLM_PROVIDER=vertex`. Hvor mye modellen tenker før den svarer: `minimal`, `low`, `medium` eller `high`. Mer tenking er tregere og dyrere. |
 | `FEATURE_MNEMONICS` | `true` | Slår huskeregler av (`false`) eller på (`true`). Når den er av, svarer API-et `404` med koden `FEATURE_DISABLED`. |
 | `FEATURE_FREETEXT` | `true` | Slår spørsmål med fritekstsvar av eller på, på samme måte. |
 | `FEATURE_SUMMARY` | `true` | Slår sammendrag av eller på, på samme måte. |

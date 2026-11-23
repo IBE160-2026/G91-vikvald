@@ -23,6 +23,12 @@ services:
       APP_ENV: ${APP_ENV:-local}
       DATABASE_URL: postgresql+asyncpg://studiekamerat:${POSTGRES_PASSWORD:-studiekamerat}@db:5432/studiekamerat
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      # Only used with LLM_PROVIDER=vertex (see README, «Bruk Gemini (Vertex AI)»).
+      # Empty means not set. The sign-in (~/.config/gcloud) is mounted by your own
+      # docker-compose.override.yml, which stays outside Git.
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-}
+      VERTEX_MODEL: ${VERTEX_MODEL:-}
+      VERTEX_THINKING: ${VERTEX_THINKING:-low}
       FEATURE_MNEMONICS: ${FEATURE_MNEMONICS:-true}
       FEATURE_FREETEXT: ${FEATURE_FREETEXT:-true}
       FEATURE_SUMMARY: ${FEATURE_SUMMARY:-true}
