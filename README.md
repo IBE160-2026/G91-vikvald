@@ -125,6 +125,8 @@ Du trenger et Google Cloud-prosjekt med fakturering og [Google Cloud CLI](https:
      -d '{"name": "projects/DITT-PROSJEKT/cacheConfig", "disableCache": true}'
    ```
 
+   Dette er en innstilling for hele prosjektet, og den går til Googles felles adresse for prosjektinnstillinger (`aiplatform.googleapis.com`). Ingen notater sendes med. Backendens kall til modellen går alltid til EU-endepunktet.
+
    Sjekk at den er av. Svaret skal inneholde `"disableCache": true`:
 
    ```bash
@@ -151,6 +153,8 @@ Du trenger et Google Cloud-prosjekt med fakturering og [Google Cloud CLI](https:
        volumes:
          - ~/.config/gcloud:/home/app/.config/gcloud:ro
    ```
+
+   Har du allerede en `docker-compose.override.yml` fra utviklingsmodus, legger du `backend`-delen til i den samme fila. Backenden i Docker kjører som brukeren `app` (uid 1000). På Linux må den brukeren kunne lese `~/.config/gcloud/application_default_credentials.json`. På macOS med Docker Desktop går det av seg selv. Kjører du backenden rett på maskinen (utviklingsmodus), trengs ikke dette steget: den finner innloggingen i `~/.config/gcloud` selv.
 
 5. Start appen på nytt:
 
