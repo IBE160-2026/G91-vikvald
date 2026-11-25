@@ -2,7 +2,7 @@
 
 import { GenerationRow, type GenerationRowProps } from "./generation-row";
 
-// The Fritekstspørsmål row in «Lag og øv» (story 8.1, FR-48, FR-49): «12
+// The Fritekstspørsmål row in «Lag og øv» (story 8.1, FR-48): «12
 // spørsmål» or «Ingen ennå», «Lag fritekstspørsmål» and «Lag flere», which
 // open the dialog «Lag fritekstspørsmål» with type (Kortsvar/Langsvar) and
 // scope (5/10/15). There is no «Øv nå» until the session is built in story

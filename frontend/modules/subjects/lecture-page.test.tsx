@@ -1629,7 +1629,7 @@ describe("Fritekstspørsmål (story 8.1)", () => {
     expect(screen.queryByRole("button", { name: "Lag fritekstspørsmål" })).toBeNull();
   });
 
-  it("FR-49, UX-DR24: dialogen med bare tastatur: «Kortsvar» og «Vanlig» valgt, Esc lukker uten jobb og fokus går tilbake", async () => {
+  it("FR-48, UX-DR24: dialogen med bare tastatur: «Kortsvar» og «Vanlig» valgt, Esc lukker uten jobb og fokus går tilbake", async () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     renderPage();
     const { button, dialog } = await openFreetextDialog();
@@ -1642,7 +1642,7 @@ describe("Fritekstspørsmål (story 8.1)", () => {
     expect(posts()).toEqual([]);
   });
 
-  it("FR-48, FR-49, UX-DR19: Langsvar og Rask sender question_kind og 5, de andre radene venter, så kommer spørsmålene", async () => {
+  it("FR-48, UX-DR19: Langsvar og Rask sender question_kind og 5, de andre radene venter, så kommer spørsmålene", async () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     jobOutcome = { status: "done", created: 5, error_code: null };
     holdJob = true;

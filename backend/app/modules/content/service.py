@@ -1,6 +1,7 @@
 """Business logic for stored content: save generated flashcards, model cards,
-quiz questions and free-text questions, count them, list flashcards with their source, and let the student
-edit or delete a flashcard and delete a quiz question."""
+quiz questions and free-text questions, count them, list flashcards and quiz
+questions with their source, and let the student edit or delete a flashcard
+and delete a quiz question."""
 
 import hashlib
 import uuid

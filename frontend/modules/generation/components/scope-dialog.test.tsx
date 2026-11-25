@@ -151,7 +151,7 @@ describe("ScopeDialog for quiz", () => {
 });
 
 describe("ScopeDialog for fritekst", () => {
-  it("FR-48, FR-49: «Lag fritekstspørsmål» har Type før Omfang, 5/10/15 og ingen vanskelighetsgrad, med «Kortsvar» og «Vanlig» valgt", () => {
+  it("FR-48: «Lag fritekstspørsmål» har Type før Omfang, 5/10/15 og ingen vanskelighetsgrad, med «Kortsvar» og «Vanlig» valgt", () => {
     renderDialog(vi.fn(), vi.fn(), true, "freetext", 7);
     const dialog = screen.getByRole("dialog", { name: "Lag fritekstspørsmål" });
     expect(within(dialog).getByText("Nye spørsmål legges til de 7 du har fra før.")).toBeTruthy();
@@ -184,7 +184,7 @@ describe("ScopeDialog for fritekst", () => {
     expect(onStart).toHaveBeenCalledWith({ requested: 10, question_kind: "short" });
   });
 
-  it("FR-49: piltastene flytter bare innen gruppen, og Langsvar og Rask sender question_kind long og 5", async () => {
+  it("FR-48: piltastene flytter bare innen gruppen, og Langsvar og Rask sender question_kind long og 5", async () => {
     const { onStart } = renderDialog(vi.fn(), vi.fn(), true, "freetext");
     const dialog = screen.getByRole("dialog", { name: "Lag fritekstspørsmål" });
     const short = within(dialog).getByRole("radio", { name: "Kortsvar" });
@@ -200,7 +200,7 @@ describe("ScopeDialog for fritekst", () => {
     expect(onStart).toHaveBeenCalledWith({ requested: 5, question_kind: "long" });
   });
 
-  it("FR-49: «Kortsvar» og «Vanlig» er valgt igjen neste gang dialogen åpnes", async () => {
+  it("FR-48: «Kortsvar» og «Vanlig» er valgt igjen neste gang dialogen åpnes", async () => {
     const onStart = vi.fn();
     const { reopen } = renderDialog(onStart, vi.fn(), true, "freetext");
     fireEvent.click(screen.getByRole("radio", { name: "Langsvar" }));

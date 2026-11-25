@@ -98,7 +98,7 @@ def test_fr48_kjent_sporsmal_hoppes_over_uten_hensyn_til_store_og_smaa() -> None
 
 
 @pytest.mark.parametrize("question_kind", ["short", "long"])
-def test_fr49_mock_er_lik_for_kortsvar_og_langsvar(question_kind: str) -> None:
+def test_fr48_mock_er_lik_for_kortsvar_og_langsvar(question_kind: str) -> None:
     chosen = GenerationOptions(requested=10, question_kind=question_kind)
     assert freetext.mock_rule([page(PAGE_TEXT)], chosen) == mock([page(PAGE_TEXT)])
 
@@ -139,7 +139,7 @@ PAGES = [page(PAGE_TEXT)]
         {},
     ],
 )
-def test_fr48_validate_item_forkaster_ugyldige(item: object) -> None:
+def test_fr49_validate_item_forkaster_ugyldige(item: object) -> None:
     assert freetext.validate_item(item, PAGES) is None
 
 
@@ -195,7 +195,7 @@ def test_ar3_loose_skjema_for_fritekst_har_feltene_uten_kind() -> None:
 
 
 @pytest.mark.parametrize("question_kind", ["short", "long"])
-def test_fr49_instruksen_far_valgt_sporsmalstype(question_kind: str) -> None:
+def test_fr48_instruksen_far_valgt_sporsmalstype(question_kind: str) -> None:
     text = instructions_for("freetext", GenerationOptions(requested=10, question_kind=question_kind))
     assert f"Valgt spørsmålstype: {freetext.QUESTION_KINDS[question_kind]}." in text
     assert "{question_kind}" not in text
@@ -252,7 +252,7 @@ async def _counts(client: AsyncClient, lecture_id: str) -> dict[str, int]:
     return response.json()
 
 
-async def test_fr48_jobben_gir_202_og_lagrer_kortsvar(client: AsyncClient, lecture: str, engine: AsyncEngine) -> None:
+async def test_fr48_fr49_jobben_gir_202_og_lagrer_kortsvar_med_modellsvar_og_kilde(client: AsyncClient, lecture: str, engine: AsyncEngine) -> None:
     response = await _start(client, lecture)
     assert response.status_code == 202
     body = response.json()
@@ -287,7 +287,7 @@ async def test_fr48_jobben_gir_202_og_lagrer_kortsvar(client: AsyncClient, lectu
     }
 
 
-async def test_fr49_langsvar_rask_gir_requested_5_og_lagres_som_long(
+async def test_fr48_langsvar_rask_gir_requested_5_og_lagres_som_long(
     client: AsyncClient, lecture: str, engine: AsyncEngine
 ) -> None:
     response = await _start(client, lecture, {"kind": "freetext", "params": {"requested": 5, "question_kind": "long"}})
@@ -312,11 +312,52 @@ async def test_fr48_uten_params_gir_vanlig_og_kortsvar(client: AsyncClient, lect
     response = await _start(client, lecture, {"kind": "freetext"})
     assert response.status_code == 202
     assert (response.json()["requested"], response.json()["params"]) == (10, {"requested": 10, "question_kind": "short"})
-    # Only requested: the question type is still filled in.
     await _finish_jobs()
 
 
-async def test_fr49_typen_som_lagres_er_den_studenten_valgte(
+async def test_fr48_bare_requested_gir_kortsvar(client: AsyncClient, lecture: str) -> None:
+    response = await _start(client, lecture, {"kind": "freetext", "params": {"requested": 5}})
+    assert response.status_code == 202
+    await _finish_jobs()
+    [job] = await _latest(client, lecture)
+    assert (job["requested"], job["params"]["question_kind"]) == (5, "short")
+
+
+async def test_fr22_fr48_nye_sporsmal_legges_til_de_gamle(
+    client: AsyncClient, lecture: str, engine: AsyncEngine
+) -> None:
+    body = {"kind": "freetext", "params": {"requested": 5, "question_kind": "short"}}
+    await _start(client, lecture, body)
+    await _finish_jobs()
+    first = [question.id for question in await _questions(engine)]
+    assert len(first) == 5
+    await _start(client, lecture, body)
+    await _finish_jobs()
+    [job] = await _latest(client, lecture)
+    assert (job["status"], job["created"]) == ("done", 2)
+    questions = await _questions(engine)
+    assert len(questions) == 7
+    assert [question.id for question in questions[:5]] == first
+    assert (await _counts(client, lecture))["freetext_questions"] == 7
+
+
+async def test_fr48_kjente_sporsmal_og_tellingen_gjelder_bare_egen_forelesning(
+    client: AsyncClient, lecture: str
+) -> None:
+    await _start(client, lecture)
+    await _finish_jobs()
+    other = await _new_lecture(client)
+    data = pdf_with_pages([PAGE_TEXT, definitions(["Segment", "Målgruppe", "Posisjon", "Kanal", "Budskap"])])
+    assert (await _upload(client, other, data, "fritekst.pdf")).status_code == 201
+    await _start(client, other, {"kind": "freetext", "params": {"requested": 5, "question_kind": "short"}})
+    await _finish_jobs()
+    [job] = await _latest(client, other)
+    assert (job["status"], job["created"]) == ("done", 5)
+    assert (await _counts(client, other))["freetext_questions"] == 5
+    assert (await _counts(client, lecture))["freetext_questions"] == 7
+
+
+async def test_fr48_typen_som_lagres_er_den_studenten_valgte(
     client: AsyncClient, lecture: str, engine: AsyncEngine
 ) -> None:
     class Model:
@@ -398,7 +439,7 @@ async def test_sk4_mock_invalid_forkaster_fritekstsporsmal(
         {"kind": "quiz", "params": {"requested": 15}},
     ],
 )
-async def test_ar12_fr49_ugyldige_parametre_gir_422(client: AsyncClient, lecture: str, body: dict[str, Any]) -> None:
+async def test_ar12_fr48_ugyldige_parametre_gir_422(client: AsyncClient, lecture: str, body: dict[str, Any]) -> None:
     response = await _start(client, lecture, body)
     assert response.status_code == 422
     assert _code(response) == "VALIDATION_ERROR"

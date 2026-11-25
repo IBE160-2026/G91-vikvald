@@ -89,7 +89,7 @@ type Props = {
 };
 
 // The dialogs «Lag flashcards», «Lag quiz» and «Lag fritekstspørsmål» (FR-17,
-// FR-29, FR-48, FR-49, UX-DR24, mockup 06): the shared dialog, 720 px wide. The lecture with its files and pages,
+// FR-29, FR-48, UX-DR24, mockup 06): the shared dialog, 720 px wide. The lecture with its files and pages,
 // «Nye kort legges til de 24 du har fra før.» (quiz: «Nye spørsmål …») when
 // there is content, «Omfang» with three choice cards (Rask/Vanlig/Dyp,
 // «Vanlig» chosen when it opens), for quiz «Vanskelighetsgrad» with three
