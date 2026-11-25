@@ -201,6 +201,6 @@ deferred:
 
 **followup_review_recommended:** false. Ingen rettede funn var `high`, og de to medium-funnene hadde samme rot og er dekket av nye tester.
 
-**Verifisering:** `uv run pytest` 806 grønne før rettelsene, berørte filer 178 grønne etter; `uv run ruff check .` rent; `npm run test` 928 grønne før rettelsene, berørte filer 469 grønne etter; `npx tsc --noEmit` rent. Hele pakken og Playwright kjøres i story-løpet.
+**Verifisering:** `uv run pytest` 806 grønne før rettelsene, berørte filer 178 grønne etter; `uv run ruff check .` rent; `npm run test` 928 grønne før rettelsene, berørte filer 469 grønne etter; `npx tsc --noEmit` rent. Etter rettelsene: `uv run pytest` 810 grønne, `npm run test` 931 grønne, `npx playwright test` mot `docker compose up --build -d` 189 grønne (4 hoppet over uten testbruker), og med `E2E_REQUIRE_SEED=1` mot `sk-seedtest` er testbruker- og axe-testene grønne etter at testbrukertesten fikk de tre modellkortene.
 
 **Gjenstående risiko:** modellkort kan ikke øves før story 7.2, så Flashcards-raden teller kort som ennå ikke vises i økten. «Øv nå» er ikke aktiv når det bare finnes modellkort.
