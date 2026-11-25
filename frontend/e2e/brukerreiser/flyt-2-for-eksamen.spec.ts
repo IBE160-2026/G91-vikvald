@@ -16,6 +16,7 @@ import {
   flashcardCountViaApi,
   formulaFlag,
   makeFlashcardsViaApi,
+  makeModelCardsViaApi,
   makeQuizViaApi,
   pdfFile,
   quizQuestion,
@@ -47,8 +48,13 @@ import {
 // backend marks that page needs_image at upload, so the card and the quiz
 // question from it carry «Inneholder formel – sjekk mot kilden» (story 6.3),
 // in demo mode too. That is the error path with the formula flag.
-// Only the steps that are built are tested; the rest (model cards and free
-// text) are listed as «ikke bygd ennå» in docs/testing/brukerreiser.md.
+// Step 4 has a model card (epic 7): merkevare.pdf has the list «AIDA-modellen»
+// on page 6, and the mock model makes one model card from it, «Forklar
+// AIDA-modellen.» with the points Attention, Interest, Desire, Action and the
+// mnemonic AIDA. Model cards are practised as flashcards (FR-56), so the
+// subject has 15 cards, and the session over the whole subject has it too.
+// Only the steps that are built are tested; the rest (free text) are listed as
+// «ikke bygd ennå» in docs/testing/brukerreiser.md.
 // The steps share one browser context and run in order, like one visit by Klara.
 test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
   test.describe.configure({ mode: "serial" });
@@ -88,6 +94,26 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     "Behov", "Motiv", "Segment", "Merkevare", "Logo", "Slagord", "Image",
     "Pris", "Rabatt", "Kampanje", "Margin", "Kanal", "Reklame", "Nettbutikk",
   ];
+  // The model card from the list on page 6 of merkevare.pdf (story 7.1, 7.2).
+  const MODEL = {
+    lecture: "Uke 37: Merkevare",
+    heading: "AIDA-modellen",
+    points: ["Attention", "Interest", "Desire", "Action"],
+    front: "Forklar AIDA-modellen.",
+    mnemonic: "AIDA",
+    source: "merkevare.pdf, side 6",
+  } as const;
+  // The points as a screen reader gets them: the letter boxes are aria-hidden,
+  // so each point is read once («Attention», not «A Attention»).
+  const MODEL_POINTS_SNAPSHOT = `
+    - list:
+      - listitem: Attention
+      - listitem: Interest
+      - listitem: Desire
+      - listitem: Action
+  `;
+  const MODEL_PAGE = [MODEL.heading, ...MODEL.points.map((point) => `- ${point}`)].join("\n");
+  const ALL_CARDS = [...ALL_FRONTS, MODEL.front];
   const MERKEVARE_FRONTS = ["Merkevare", "Logo", "Slagord", "Image"];
   const PRISING_FRONTS = ["Pris", "Rabatt", "Kampanje", "Margin"];
   // The page with a formula (story 6.3): the card and question from it are flagged.
@@ -99,9 +125,10 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
   const QUIZ_LECTURES = ["Uke 37: Merkevare", "Uke 38: Prising"];
   const slugOf = (name: string) => name.split(": ")[1].toLowerCase().replace(/\s+/g, "-");
   // The PDF each card comes from: the term before «er» -> the lecture's file.
-  const FILE_OF_FRONT = new Map(
-    LECTURES.flatMap(([name, , definitions]) => definitions.map((d) => [d.split(" er ")[0], `${slugOf(name)}.pdf`] as const)),
-  );
+  const FILE_OF_FRONT = new Map([
+    ...LECTURES.flatMap(([name, , definitions]) => definitions.map((d) => [d.split(" er ")[0], `${slugOf(name)}.pdf`] as const)),
+    [MODEL.front, "merkevare.pdf"] as const,
+  ]);
   let context: BrowserContext;
   let page: Page;
   // The exam is three weeks from today, so the flow is the same whenever it runs.
@@ -128,9 +155,12 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     for (const [name, lectureDate, definitions] of LECTURES) {
       const lectureId = await createLectureViaApi(page, subjectId, name, lectureDate);
       const formulaPages = name === FORMULA.lecture ? [FORMULA.page] : [];
-      await uploadViaApi(page, lectureId, pdfFile(`${slugOf(name)}.pdf`, [name, ...definitions], formulaPages));
+      // The list for the model card is the last page of merkevare.pdf (page 6).
+      const pages = name === MODEL.lecture ? [name, ...definitions, MODEL_PAGE] : [name, ...definitions];
+      await uploadViaApi(page, lectureId, pdfFile(`${slugOf(name)}.pdf`, pages, formulaPages));
       await makeFlashcardsViaApi(page, lectureId, 10, definitions.length);
       if (QUIZ_LECTURES.includes(name)) await makeQuizViaApi(page, lectureId, 10, definitions.length);
+      if (name === MODEL.lecture) await makeModelCardsViaApi(page, lectureId, 1);
       if (name === "Uke 37: Merkevare") merkevareId = lectureId;
       lectureIds.set(name, lectureId);
     }
@@ -181,7 +211,7 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     // The subject card (story 5.4): the counts, «Neste å øve på» (the first
     // lecture with cards that is not practised) and «4 av 8 forelesninger øvd».
     const card = subjectCard(page, "Markedsføring");
-    await expect(card.getByText("14 kort · 8 quizspørsmål", { exact: true })).toBeVisible();
+    await expect(card.getByText("15 kort · 8 quizspørsmål", { exact: true })).toBeVisible();
     await expect(card.getByRole("heading", { level: 3, name: "Neste å øve på" })).toBeAttached();
     await expect(card.getByText("Uke 38: Prising", { exact: true })).toBeVisible();
     await expect(card.getByText("4 kort, ikke øvd ennå", { exact: true })).toBeVisible();
@@ -211,7 +241,8 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
       const cells = rows.nth(i).getByRole("cell");
       await expect(cells.nth(2)).toHaveText("1");
       // Kort and Quiz (story 5.2): «–» for none.
-      await expect(cells.nth(3)).toHaveText(String(definitions.length));
+      // Kort counts the model card in «Uke 37: Merkevare» (story 7.1).
+      await expect(cells.nth(3)).toHaveText(String(definitions.length + (name === MODEL.lecture ? 1 : 0)));
       await expect(cells.nth(4)).toHaveText(QUIZ_LECTURES.includes(name) ? "4" : "–");
       // Status (story 5.2): the four first are practised today, the rest not yet.
       const practised = PRACTISED_BEFORE.includes(name);
@@ -224,25 +255,29 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
 
   test("Steg 2 (øver på hele emnet) – FR-23, FR-24, FR-25, FR-56, UX-DR13, UX-DR14, UX-DR34: i kortet «Øv på hele emnet» trykker hun «Øv på flashcards», og økten (07) blander kort fra alle forelesningene", async () => {
     const practiceAll = page.getByRole("region", { name: "Øv på hele emnet" });
-    await expect(practiceAll.getByText("14 kort fra 8 forelesninger")).toBeVisible();
+    await expect(practiceAll.getByText("15 kort fra 8 forelesninger")).toBeVisible();
     await practiceAll.getByRole("link", { name: "Øv på flashcards" }).click();
 
     await expect(page).toHaveURL(`/emner/${subjectId}/flashcards`);
     await expect(page).toHaveTitle("Flashcards – Markedsføring – Studiekamerat");
     await expect(sessionPanel(page).getByText("Markedsføring · hele emnet")).toBeVisible();
-    await expect(sessionPanel(page).getByText("/ 14")).toBeVisible();
+    await expect(sessionPanel(page).getByText("/ 15")).toBeVisible();
     await expectNoAxeViolations(page);
 
     const seen: string[] = [];
     const saved = page.waitForResponse((response) => new URL(response.url()).pathname === SAVE_PATH);
-    for (let i = 0; i < ALL_FRONTS.length; i += 1) {
+    for (let i = 0; i < ALL_CARDS.length; i += 1) {
       const question = (await cardFront(page).textContent())!;
       seen.push(question);
       await page.keyboard.press(" ");
       // The source names the file from the card's own lecture.
       await expect(page.locator('[data-slot="flashcard"] [data-slot="source-link"]')).toHaveText(
-        new RegExp(`^${FILE_OF_FRONT.get(question)}, side [2-5]$`),
+        question === MODEL.front ? MODEL.source : new RegExp(`^${FILE_OF_FRONT.get(question)}, side [2-5]$`),
       );
+      // The model card shows its points (story 7.2) among the other cards.
+      if (question === MODEL.front) {
+        await expect(page.locator('[data-slot="model-card-back"] ol')).toMatchAriaSnapshot(MODEL_POINTS_SNAPSHOT);
+      }
       // Only the card from the page with a formula carries the flag (story 6.3).
       const card = page.locator('[data-slot="flashcard"]');
       if (question === FORMULA.front) await expectFormulaFlagAboveSource(card, FORMULA_SOURCE);
@@ -251,17 +286,17 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
       await page.keyboard.press("2");
     }
     expect((await saved).status()).toBe(204);
-    // Every card from all eight lectures, once each.
-    expect([...seen].sort()).toEqual([...ALL_FRONTS].sort());
+    // Every card from all eight lectures, once each, the model card too.
+    expect([...seen].sort()).toEqual([...ALL_CARDS].sort());
 
-    await expect(page.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 14 kortene" })).toBeFocused();
+    await expect(page.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 15 kortene" })).toBeFocused();
     expect(saves.at(-1)!.postDataJSON()).toMatchObject({
       subject_id: subjectId,
       lecture_id: null,
       kind: "flashcards",
       aborted: false,
-      answered: 14,
-      correct: 14,
+      answered: 15,
+      correct: 15,
     });
     await expectNoAxeViolations(page);
 
@@ -276,7 +311,7 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     }
     const lastSession = page.getByRole("region", { name: "Øv på hele emnet" });
     await expect(lastSession.getByText("Flashcards · Hele emnet", { exact: true })).toBeVisible();
-    await expect(lastSession.getByText(`${dayFromToday(0).dayMonth} · Kunne 14 av 14`, { exact: true })).toBeVisible();
+    await expect(lastSession.getByText(`${dayFromToday(0).dayMonth} · Kunne 15 av 15`, { exact: true })).toBeVisible();
   });
 
   test("Steg 3 (starter quizen på hele emnet) – FR-32, FR-34, UX-DR14, UX-DR29: etterpå tar hun quiz på hele emnet («Start», 09), og kilden ved spørsmålet viser hvilken forelesning det kommer fra", async () => {
@@ -385,18 +420,30 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     await page.getByRole("navigation", { name: "Emner" }).getByRole("link", { name: "Uke 37: Merkevare" }).click();
     await expect(page).toHaveURL(/\/forelesninger\/[0-9a-f-]{36}$/);
     await expect(page.locator("main h1")).toHaveText("Uke 37: Merkevare");
-    await expect(page.getByText("Forelesning fredag 11.09.2026 · 1 fil · 5 sider")).toBeVisible();
+    await expect(page.getByText("Forelesning fredag 11.09.2026 · 1 fil · 6 sider")).toBeVisible();
     await expect(fileRows(page)).toHaveCount(1);
     await expect(fileRows(page).first()).toContainText("merkevare.pdf");
-    await expect(createSection(page).getByText("4 kort", { exact: true })).toBeVisible();
+    // The Flashcards row counts the model card with the four flashcards (story 7.1).
+    await expect(createSection(page).getByText("5 kort", { exact: true })).toBeVisible();
     await expectNoAxeViolations(page);
   });
 
   test("Steg 4 (øver på flashcards) – FR-23, FR-24, UX-DR9, UX-DR27: hun øver på flashcards fra forelesningen (07)", async () => {
+    // The session shuffles with Math.random (FR-23). For the flow it is held at
+    // 0.5 while the session starts, which gives the order Merkevare, Image,
+    // Logo, the model card, Slagord: the error paths for cards land on a plain
+    // card, and the model card comes in the middle of the session, as in the flow.
+    await page.evaluate(() => {
+      const original = Math.random;
+      Math.random = () => 0.5;
+      setTimeout(() => {
+        Math.random = original;
+      }, 5_000);
+    });
     await createSection(page).getByRole("button", { name: "Øv nå" }).click();
     await expect(page).toHaveURL(`/forelesninger/${merkevareId}/flashcards`);
     await expect(sessionPanel(page).getByText("Uke 37: Merkevare")).toBeVisible();
-    await expect(sessionPanel(page).getByText("/ 4")).toBeVisible();
+    await expect(sessionPanel(page).getByText("/ 5")).toBeVisible();
     expect(MERKEVARE_FRONTS).toContain(await cardFront(page).textContent());
     await page.keyboard.press(" ");
     await expect(page.getByText("SVAR", { exact: true })).toBeVisible();
@@ -434,21 +481,95 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     await dialog.getByRole("button", { name: "Slett kortet" }).click();
     await expect(dialog).toBeHidden();
 
-    await expect(sessionPanel(page).getByText("/ 3")).toBeVisible();
+    await expect(sessionPanel(page).getByText("/ 4")).toBeVisible();
     await expect(cardFront(page)).not.toHaveText(question);
     expect(await flashcardCountViaApi(page, merkevareId)).toBe(3);
     await expectNoAxeViolations(page);
   });
 
+  test("Steg 4 (modellkortet) – FR-42, FR-43, FR-56, UX-DR28, NFR-8: midt i økten kommer modellkortet (11), hun snur «Forklar AIDA-modellen» og ser punktene og huskeregelen AIDA", async () => {
+    // She knows the flashcards before it.
+    let before = 0;
+    while ((await cardFront(page).textContent()) !== MODEL.front) {
+      expect(MERKEVARE_FRONTS).toContain(await cardFront(page).textContent());
+      await page.keyboard.press(" ");
+      await expect(page.locator('[data-slot="flashcard"] [data-slot="source-link"]')).toHaveText(/^merkevare\.pdf, side [2-5]$/);
+      await page.keyboard.press("2");
+      before += 1;
+      expect(before).toBeLessThan(3);
+    }
+    // In the middle of the session: after at least one card, and with one left.
+    expect(before).toBeGreaterThan(0);
+    await expect(page.getByText(`Kunne ${before} · Kunne ikke 0`)).toBeVisible();
+
+    const card = page.locator('[data-slot="flashcard"]');
+    await expect(cardFront(page)).toHaveText(MODEL.front);
+    // The back is hidden until she flips the card.
+    await expect(card.locator('[data-slot="model-card-back"]')).toHaveCount(0);
+    await expectNoAxeViolations(page);
+    await page.keyboard.press(" ");
+
+    // The points as an ordered list; the letter boxes are hidden from screen readers.
+    const back = card.locator('[data-slot="model-card-back"]');
+    await expect(back.locator("ol > li")).toHaveCount(4);
+    await expect(back.locator("ol")).toMatchAriaSnapshot(MODEL_POINTS_SNAPSHOT);
+    await expect(back.locator('[data-slot="letter-box"]')).toHaveText(["A", "I", "D", "A"]);
+    await expect(card.locator('[data-slot="note-surface"]')).toHaveText(`Huskeregel: ${MODEL.mnemonic}`);
+    await expect(card.locator('[data-slot="source-link"]')).toHaveText(MODEL.source);
+    await expect(formulaFlag(card)).toHaveCount(0);
+    // The bottom bar: «Endre huskeregel» before «Rediger» and «Slett».
+    await expect(card.getByRole("button", { name: "Endre huskeregel" })).toBeVisible();
+    await expect(card.getByRole("button", { name: "Rediger" })).toBeVisible();
+    await expect(card.getByRole("button", { name: "Slett", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Kunne", exact: true })).toBeFocused();
+    await expectNoAxeViolations(page);
+  });
+
+  test("Steg 4 (Endre huskeregel) – FR-46, UX-DR21, UX-DR28: hun vil heller ha sin egen regel, trykker «Endre huskeregel» og lagrer den", async () => {
+    const card = page.locator('[data-slot="flashcard"]');
+    const change = card.getByRole("button", { name: "Endre huskeregel" });
+    await change.click();
+    const dialog = page.getByRole("dialog", { name: "Endre huskeregel" });
+    const field = dialog.getByLabel("Huskeregel");
+    await expect(field).toBeFocused();
+    await expect(field).toHaveValue(MODEL.mnemonic);
+    await expectNoAxeViolations(page);
+
+    // Her own rule. It is only checked for an empty field, never against the
+    // first letters (AR-4).
+    const own = "Alle Ivrige Deltakere Applauderer";
+    await field.fill(own);
+    await dialog.getByRole("button", { name: "Lagre" }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(change).toBeFocused();
+    await expect(card.locator('[data-slot="note-surface"]')).toHaveText(`Huskeregel: ${own}`);
+    // The points stay, and the card is still not marked.
+    await expect(card.locator('[data-slot="model-card-back"] ol')).toMatchAriaSnapshot(MODEL_POINTS_SNAPSHOT);
+    await expect(page.getByRole("button", { name: "Kunne", exact: true })).toBeEnabled();
+    await expect(page.getByText(/Kunne \d+ · Kunne ikke 0/)).toBeVisible();
+
+    const cards = (await (await page.request.get(`/api/lectures/${merkevareId}/flashcards`)).json()) as {
+      kind: string;
+      front: string;
+      points: string[] | null;
+      mnemonic: string | null;
+    }[];
+    const model = cards.find((item) => item.kind === "model")!;
+    expect(model).toMatchObject({ front: MODEL.front, points: [...MODEL.points], mnemonic: own });
+    await expectNoAxeViolations(page);
+  });
+
   test("Feilvei (Esc) – FR-56, UX-DR33: hun avslutter økten halvveis med Esc, og resultatet for det hun har gjort, vises og lagres", async () => {
     const before = saves.length;
-    await page.keyboard.press(" ");
+    // She did not know the model card: «Kunne ikke», like any other card.
     await page.keyboard.press("1");
+    await expect(cardFront(page)).not.toHaveText(MODEL.front);
     const saved = page.waitForResponse((response) => new URL(response.url()).pathname === SAVE_PATH);
     await page.keyboard.press("Escape");
     expect((await saved).status()).toBe(204);
 
-    await expect(page.getByRole("heading", { level: 2, name: "Avbrutt etter 1 av 3" })).toBeFocused();
+    // Two flashcards and the model card are marked, of the four left after the delete.
+    await expect(page.getByRole("heading", { level: 2, name: "Avbrutt etter 3 av 4" })).toBeFocused();
     await expect(page).toHaveURL(`/forelesninger/${merkevareId}/flashcards`);
     expect(saves).toHaveLength(before + 1);
     expect(saves.at(-1)!.postDataJSON()).toMatchObject({
@@ -456,8 +577,8 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
       lecture_id: merkevareId,
       kind: "flashcards",
       aborted: true,
-      answered: 1,
-      correct: 0,
+      answered: 3,
+      correct: 2,
       wrong: 1,
     });
     await expectNoAxeViolations(page);
@@ -465,7 +586,7 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     // Esc again takes her back to the lecture, and nothing more is sent.
     await page.keyboard.press("Escape");
     await expect(page).toHaveURL(`/forelesninger/${merkevareId}`);
-    await expect(createSection(page).getByText("3 kort", { exact: true })).toBeVisible();
+    await expect(createSection(page).getByText("4 kort", { exact: true })).toBeVisible();
     expect(saves).toHaveLength(before + 1);
   });
 

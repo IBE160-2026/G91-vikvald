@@ -8,7 +8,7 @@ Kjør dem slik, i `frontend/`, mens appen kjører:
 npx playwright test e2e/brukerreiser
 ```
 
-**Sist oppdatert:** story 7.1 (modellkort i tellingene i flyt 3, #131). Før det: etter epic 6 (formelmerket «Inneholder formel – sjekk mot kilden» fra story 6.3, som nå er testet som feilvei i flyt 2). Før det: epic 5 (status «Øvd», forelesningstabellen, SISTE ØKT, tiden til eksamen, emnekortene og semesterlinja), epic 4 (quiz), epic 3 (flashcards) og epic 2 (emner, forelesninger, filer og kontosiden). Flyt 4 er testet fra start til slutt. Flyt 3 er testet fra start til slutt, også modellkortene i tellingene (story 7.1, #131). I flyt 1 er alt testet unntatt sammendraget (epic 9). I flyt 2 er steg 1–3 og alle feilveiene testet. Øving av modellkort (story 7.2), fritekst og sammendrag er ikke bygd ennå.
+**Sist oppdatert:** etter epic 7 (modellkortet midt i flashcard-økten og «Endre huskeregel» i steg 4 i flyt 2, fra story 7.2). Før det: story 7.1 (modellkort i tellingene i flyt 3, #131). Før det: etter epic 6 (formelmerket «Inneholder formel – sjekk mot kilden» fra story 6.3, som nå er testet som feilvei i flyt 2). Før det: epic 5 (status «Øvd», forelesningstabellen, SISTE ØKT, tiden til eksamen, emnekortene og semesterlinja), epic 4 (quiz), epic 3 (flashcards) og epic 2 (emner, forelesninger, filer og kontosiden). Flyt 4 er testet fra start til slutt. Flyt 3 er testet fra start til slutt, også modellkortene i tellingene (story 7.1, #131). I flyt 1 er alt testet unntatt sammendraget (epic 9). I flyt 2 er steg 1–4 og alle feilveiene testet. Fritekst (epic 8, steg 5–7 i flyt 2) og sammendrag (epic 9) er ikke bygd ennå.
 
 **Slik leses tabellene**
 
@@ -67,7 +67,7 @@ De to andre avvisningene ved opplasting (fil over størrelsesgrensen og PDF som 
 
 ## Flyt 2 – UJ-2: Klara før eksamen
 
-Fil: [`flyt-2-for-eksamen.spec.ts`](../../frontend/e2e/brukerreiser/flyt-2-for-eksamen.spec.ts), `describe`: «UJ-2 / flyt 2: Klara før eksamen». Forutsetningen («Tre uker før eksamen har Klara lastet opp notater fra alle forelesningene i Markedsføring») lages gjennom API-et: emnet med eksamen om tre uker, åtte forelesninger med én PDF hver, flashcards fra hver av dem (ett per forelesning, fire i «Uke 37: Merkevare» og «Uke 38: Prising», 14 i alt) og quiz fra de to forelesningene med fire definisjoner (fire spørsmål hver, åtte i alt). For at «fire av åtte forelesninger er øvd» skal stemme, lagres også én flashcard-økt i hver av de fire første forelesningene (uke 34–37) gjennom API-et, som om Klara har øvd på dem tidligere. Det er serveren som avgjør «øvd» (story 5.1). Eksamen er tre uker fram fra dagens dato.
+Fil: [`flyt-2-for-eksamen.spec.ts`](../../frontend/e2e/brukerreiser/flyt-2-for-eksamen.spec.ts), `describe`: «UJ-2 / flyt 2: Klara før eksamen». Forutsetningen («Tre uker før eksamen har Klara lastet opp notater fra alle forelesningene i Markedsføring») lages gjennom API-et: emnet med eksamen om tre uker, åtte forelesninger med én PDF hver, flashcards fra hver av dem (ett per forelesning, fire i «Uke 37: Merkevare» og «Uke 38: Prising», 14 i alt), ett modellkort i «Uke 37: Merkevare» (se under) og quiz fra de to forelesningene med fire definisjoner (fire spørsmål hver, åtte i alt). For at «fire av åtte forelesninger er øvd» skal stemme, lagres også én flashcard-økt i hver av de fire første forelesningene (uke 34–37) gjennom API-et, som om Klara har øvd på dem tidligere. Det er serveren som avgjør «øvd» (story 5.1). Eksamen er tre uker fram fra dagens dato.
 
 | Steg | Krav-ID-er | Test | Status |
 |---|---|---|---|
@@ -78,7 +78,8 @@ Fil: [`flyt-2-for-eksamen.spec.ts`](../../frontend/e2e/brukerreiser/flyt-2-for-e
 | 3. Resten av quizen, forelesningen ved hvert spørsmål, og resultatet for hele emnet, som SISTE ØKT viser | FR-34, FR-36, FR-56, UX-DR14, UX-DR29, UX-DR34 | «Steg 3 (resten og resultatet) – FR-34, FR-36, FR-56, UX-DR14, UX-DR29, UX-DR34: hver forklaring viser forelesningen spørsmålet kommer fra, og resultatet lagres for hele emnet» | testet |
 | 4. Hun åpner «Uke 37: Merkevare» (04) | FR-7, UX-DR7 | «Steg 4 (åpner forelesningen) – FR-7, UX-DR7: hun åpner «Uke 37: Merkevare» (04) med notatene» | testet |
 | 4. Hun øver på flashcards fra forelesningen (07) | FR-23, FR-24, UX-DR9, UX-DR27 | «Steg 4 (øver på flashcards) – FR-23, FR-24, UX-DR9, UX-DR27: hun øver på flashcards fra forelesningen (07)» | testet |
-| 4. Modellkort i flashcard-økten (11), «Endre huskeregel» | FR-42, FR-43, FR-46, UX-DR28 | – (epic 7) | ikke bygd ennå |
+| 4. Midt i økten kommer modellkortet (11). Hun snur «Forklar AIDA-modellen» og ser punktene og huskeregelen AIDA | FR-42, FR-43, FR-56, UX-DR28, NFR-8 | «Steg 4 (modellkortet) – FR-42, FR-43, FR-56, UX-DR28, NFR-8: midt i økten kommer modellkortet (11), hun snur «Forklar AIDA-modellen» og ser punktene og huskeregelen AIDA» | testet |
+| 4. Hun vil heller ha sin egen regel og trykker «Endre huskeregel» | FR-46, UX-DR21, UX-DR28 | «Steg 4 (Endre huskeregel) – FR-46, UX-DR21, UX-DR28: hun vil heller ha sin egen regel, trykker «Endre huskeregel» og lagrer den» | testet |
 | 5. Fritekstspørsmål for hele emnet (12), «Vis modellsvar» | FR-48, FR-50, UX-DR30 | – (epic 8) | ikke bygd ennå |
 | 6. Modellsvar med kilde, `2` for «Delvis riktig», ◐ i rutenettet | FR-49, FR-51, NFR-8, UX-DR8, UX-DR9 | – (epic 8) | ikke bygd ennå |
 | 7. Resultat med riktig, delvis riktig og feil | FR-51, FR-56, UX-DR34 | – (epic 8) | ikke bygd ennå |
@@ -92,7 +93,13 @@ Steg 3 og feilveien for quizspørsmål kjøres i samme quiz på hele emnet: hun 
 
 **Formelmerket:** Side 5 i `prising.pdf` («Margin er forskjellen mellom pris og kostnad.») har også en formel tegnet som vektorkurver. Kortet og quizspørsmålet om margin får derfor merket. Feilveien kjøres sist: hun åpner «Uke 38: Prising» fra sidemenyen og øver på flashcards. Kortet om margin har merket rett over kilden «prising.pdf, side 5». Hun trykker «Kunne ikke», og kortet kommer igjen med merket. Feillista i resultatet (08) viser også merket over kilden. Tilbake på forelesningssiden (04) står `prising.pdf` med 5 sider i fillista, som er PDF-en hun slår opp i. Kilden er ren tekst i MVP-en, ikke en lenke, så testen kan ikke åpne PDF-en. Den sjekker at kilden og fillista gir henne fil og side. I tillegg sjekker steg 2 at bare kortet om margin har merket i økten for hele emnet, og steg 3 at bare spørsmålet om margin har det i forklaringen (har hun slettet nettopp det spørsmålet i feilveien for quizspørsmål, finnes det ikke lenger, og da sjekkes bare at de andre er umerket).
 
-Steg 4 og feilveiene for kort og Esc kjøres i samme flashcard-økt i «Uke 37: Merkevare»: hun øver, retter ett kort, sletter ett, markerer ett og trykker Esc. Feilveiene for kort står i flyten uten et bestemt steg. De passer best i denne økten, der steg 4 også skal vise modellkortet når epic 7 er bygd.
+**Modellkortet:** `merkevare.pdf` har lista «AIDA-modellen» med punktene Attention, Interest, Desire og Action på side 6. Demomodellen lager ett modellkort av den, «Forklar AIDA-modellen.», med huskeregelen AIDA. Modellkort øves som flashcards (FR-56), så det telles med overalt der kort telles: «15 kort · 8 quizspørsmål» på emnekortet, 5 kort for «Uke 37: Merkevare» i forelesningstabellen og i «Lag og øv», og «15 kort fra 8 forelesninger» i «Øv på hele emnet». Økten for hele emnet i steg 2 har derfor 15 kort, og testen sjekker at modellkortet viser punktene der også.
+
+Steg 4 og feilveiene for kort og Esc kjøres i samme flashcard-økt i «Uke 37: Merkevare» med fem kort: hun øver på det første kortet, retter det, sletter det, kan de to neste, kommer til modellkortet, snur det, endrer huskeregelen, trykker «Kunne ikke» på modellkortet og avslutter med Esc. Resultatet blir «Avbrutt etter 3 av 4». Feilveiene for kort står i flyten uten et bestemt steg. De passer best i denne økten.
+
+**Rekkefølgen i økten:** Økten stokker kortene tilfeldig (FR-23). For at modellkortet skal komme midt i økten, slik flyten sier, og feilveiene skal treffe et vanlig kort, holder testen `Math.random` fast på 0,5 mens økten starter. Det gir rekkefølgen Merkevare, Image, Logo, modellkortet, Slagord. Testen sjekker likevel at minst ett kort kommer før modellkortet og ett etter. Stokkingen selv testes i enhetstestene i [`session.test.ts`](../../frontend/modules/practice/session.test.ts) og i steg 2, der rekkefølgen er tilfeldig.
+
+**Huskeregelen:** Klara skriver «Alle Ivrige Deltakere Applauderer». Den sjekkes bare for tomt felt, aldri mot forbokstavene (AR-4). Testen sjekker at den står på kortet med en gang, at punktene og markeringen er uendret, og at den er lagret.
 
 ## Flyt 3 – Klara rydder i filene (FR-12, FR-13)
 
@@ -167,6 +174,14 @@ Disse delene av epic 5 er ikke steg i noen av de fire flytene, og testes derfor 
 - NESTE STEG «Lag flashcards» og «Øv nå» på en forelesning med bare quiz ([`emnekort.spec.ts`](../../frontend/e2e/emnekort.spec.ts)), «Last opp PDF» og «sist øvd dd.mm» når alt er øvd (enhetstestene i [`next-step.test.ts`](../../frontend/modules/subjects/next-step.test.ts)), og feilmeldingen i emnekortet ([`home-page.test.tsx`](../../frontend/modules/subjects/home-page.test.tsx))
 - SISTE ØKT for en avbrutt økt, og en quiz på hele emnet som ikke teller for forelesninger uten quiz ([`ovd.spec.ts`](../../frontend/e2e/ovd.spec.ts))
 - tellingene og statusen i forelesningstabellen på 768 px ([`forelesningstabell.spec.ts`](../../frontend/e2e/forelesningstabell.spec.ts))
+
+## Det epic 7 har bygd som ingen flyt viser
+
+Modellkortet i økten og «Endre huskeregel» er steg 4 i flyt 2, og modellkortene i tellingene er steg 2, 4 og 5 i flyt 3. Resten av epic 7 testes i de vanlige Playwright-testene eller i backend-testene:
+
+- «Lag modellkort» på Flashcards-raden med jobbstatusen, meldingen når notatene ikke har lister, «Legg til huskeregel» på et kort uten huskeregel, tomt felt og Esc i huskeregeldialogen, og modellkort i økten for hele emnet ([`modellkort.spec.ts`](../../frontend/e2e/modellkort.spec.ts))
+- «Rediger» med punktene (ett per linje) ([`edit-flashcard-dialog.test.tsx`](../../frontend/modules/practice/components/edit-flashcard-dialog.test.tsx) og backend-testene)
+- huskeregelen fra forbokstavene, kort som forkastes, og bryteren `FEATURE_MNEMONICS` (backend-testene, blant annet `test_models.py` og `test_model_card_practice.py`)
 
 ## Det epic 6 har bygd som ingen flyt viser
 

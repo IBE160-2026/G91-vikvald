@@ -171,3 +171,4 @@
 - [x] 2026-11-25 [story-7-2-ov-pa-modellkort](947-2026-11-25-11-16-43-story-7-2-ov-pa-modellkort.md) — frigjør diskplass, kjør Playwright, ta skjermbildene, sett 7.2 og epic 7 til done, push og flett PR-en for story/7-2 (løst 2026-11-25)
 - [ ] 2026-11-25 [story-7-2-ov-pa-modellkort](947-2026-11-25-11-16-43-story-7-2-ov-pa-modellkort.md) — vurder kanttilfellene fra story 7.2 (#320–#324)
 - [x] 2026-11-25 [story-7-2-ov-pa-modellkort](947-2026-11-25-11-16-43-story-7-2-ov-pa-modellkort.md) — appen bruker om lag 1,7 GB disk mens den kjører, så ledig plass faller under 5 GB: frigjør mer plass eller avgjør hva grensen gjelder for (løst 2026-11-25)
+- [x] 2026-11-25 [brukerreiser-etter-epic-7](946-2026-11-25-14-51-34-brukerreiser-etter-epic-7.md) — frigjør diskplass, kjør hele Playwright-pakken, før KI-sporet, push brukerreiser/epic-7, lag PR-en og flett (løst 2026-11-25)

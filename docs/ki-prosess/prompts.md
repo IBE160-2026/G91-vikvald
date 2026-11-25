@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-25: Brukerreisetestene utvidet etter epic 7
+
+Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 7 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).
+
+**Resultat:** flyt 2 har fått steg 4 med modellkortet «Forklar AIDA-modellen» midt i flashcard-økten og «Endre huskeregel», og modellkortet er talt med i tellingene og i økten for hele emnet. Oversikten [brukerreiser.md](../testing/brukerreiser.md) viser status for hvert steg. Commit `04eee4a`, `2f86241`.
+
 ## 2026-11-25: Story 7.2 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `7-2-øv-på-modellkort-og-endre-huskeregelen`.
