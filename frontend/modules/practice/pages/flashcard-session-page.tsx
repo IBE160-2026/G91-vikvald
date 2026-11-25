@@ -11,6 +11,7 @@ import { iconProps } from "@/components/icon";
 import { SideMenu, useCloseSideMenu, useOpenShortcuts, useSideMenuCollapsed } from "@/components/side-menu";
 import { Button } from "@/components/ui/button";
 import { notFoundOnMissing } from "@/lib/api";
+import { useAppConfig } from "@/lib/config";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { usePracticeShortcuts, useShortcutsEnabled, type ShortcutBinding } from "@/lib/practice-shortcuts";
 import { useDocumentTitle } from "@/lib/use-document-title";
@@ -28,6 +29,7 @@ import {
 import { EditFlashcardDialog } from "../components/edit-flashcard-dialog";
 import { Flashcard } from "../components/flashcard";
 import { MissedList, type MissedItem } from "../components/missed-list";
+import { MnemonicDialog } from "../components/mnemonic-dialog";
 import { ResultSummary } from "../components/result-summary";
 import { SessionPanel } from "../components/session-panel";
 import { ShortcutHints, resultHints } from "../components/shortcut-hints";
@@ -198,6 +200,14 @@ function useScope({ lectureId, subjectId }: ScopeProps): Scope {
 // and nothing is saved. After a save or a delete, the lecture's queries and
 // every subject's card list are refetched, so «Øv igjen», «Lag og øv» and the
 // subject page show the right numbers. The keys are off while a dialog is open.
+//
+// Model cards (story 7.2, FR-56): they come with the other cards from the
+// same lists, are shuffled in, marked and counted like any card, and the
+// session is saved as "flashcards". «Endre huskeregel» / «Legg til
+// huskeregel» on a flipped model card opens the mnemonic dialog; once saved,
+// the card shows the new mnemonic at once and its marking is not changed.
+// With FEATURE_MNEMONICS off (or before the config has loaded) the button is
+// not shown, but the mnemonic a card has is.
 export function FlashcardSessionPage(props: ScopeProps) {
   const router = useRouter();
   const scope = useScope(props);
@@ -217,6 +227,8 @@ export function FlashcardSessionPage(props: ScopeProps) {
   const closeSideMenu = useCloseSideMenu();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
+  const [editingMnemonic, setEditingMnemonic] = useState(false);
+  const mnemonicsOn = useAppConfig().data?.feature_mnemonics === true;
   const [deleting, setDeleting] = useState(false);
   // The card the delete confirmation is about (kept while the dialog closes).
   const [deleteTarget, setDeleteTarget] = useState<FlashcardData | null>(null);
@@ -303,11 +315,11 @@ export function FlashcardSessionPage(props: ScopeProps) {
     const own = session?.cards[saved.id];
     if (!session || !own) return;
     // Keep what the session has beyond the API's fields (a subject card's
-    // lecture, which the PATCH answer does not have).
-    const merged = { ...own, front: saved.front, back: saved.back };
+    // lecture, which the PATCH answer does not have). The marks are not touched.
+    const merged = { ...own, ...saved } as FlashcardData;
     setSession({ ...session, cards: { ...session.cards, [saved.id]: merged } });
     updateOwnCards((cards) =>
-      cards.map((other) => (other.id === saved.id ? { ...other, front: saved.front, back: saved.back } : other)),
+      cards.map((other) => (other.id === saved.id ? ({ ...other, ...saved } as FlashcardData) : other)),
     );
     refreshCardQueries(merged);
   }
@@ -419,6 +431,7 @@ export function FlashcardSessionPage(props: ScopeProps) {
             focusOnMount={step > 0}
             showHints={shortcutsOn}
             onEdit={() => setEditing(true)}
+            onEditMnemonic={mnemonicsOn ? () => setEditingMnemonic(true) : undefined}
             onDelete={() => {
               setDeleteTarget(card);
               setDeleting(true);
@@ -427,6 +440,14 @@ export function FlashcardSessionPage(props: ScopeProps) {
         ) : null}
       </div>
       {card ? <EditFlashcardDialog open={editing} card={card} onClose={() => setEditing(false)} onSaved={cardSaved} /> : null}
+      {card?.kind === "model" ? (
+        <MnemonicDialog
+          open={editingMnemonic}
+          card={card}
+          onClose={() => setEditingMnemonic(false)}
+          onSaved={cardSaved}
+        />
+      ) : null}
       {deleteTarget ? (
         <DeleteConfirmDialog
           open={deleting}

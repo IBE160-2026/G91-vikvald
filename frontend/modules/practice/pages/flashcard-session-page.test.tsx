@@ -9,7 +9,7 @@ import { SHORTCUTS_KEY } from "@/lib/practice-shortcuts";
 import type { Lecture, Subject } from "@/modules/subjects/types";
 
 import { lectureFlashcardsQueryKey, subjectFlashcardsQueryKey } from "../api";
-import type { Flashcard, SubjectFlashcard } from "../types";
+import type { Flashcard, ModelCard, SubjectFlashcard } from "../types";
 import { FlashcardSessionPage } from "./flashcard-session-page";
 
 const notFound = vi.fn();
@@ -60,7 +60,23 @@ let flashcardsStatus = 200;
 let saveStatus = 204;
 // The answer to DELETE /api/flashcards/{id} (story 3.7).
 let deleteStatus = 204;
+// FEATURE_MNEMONICS from GET /api/config (story 7.2); null answers 404 (not loaded).
+let mnemonicsSwitch: boolean | null = true;
 let client: QueryClient;
+
+// A model card (story 7.2): the points and the mnemonic instead of a back.
+function modelCard(id: string, mnemonic: string | null = "AIDA"): ModelCard {
+  return {
+    id,
+    kind: "model",
+    front: "Forklar AIDA-modellen.",
+    back: null,
+    points: ["Attention (oppmerksomhet)", "Interest (interesse)", "Desire (ønske)", "Action (handling)"],
+    mnemonic,
+    formula_flag: false,
+    source: { file_id: "f1", file_name: "merkevare-notater.pdf", page_no: 9 },
+  };
+}
 
 beforeEach(() => {
   cards = [card("a", "Merkevare"), card("b", "Pris"), card("c", "Segment", 2)];
@@ -69,6 +85,7 @@ beforeEach(() => {
   flashcardsStatus = 200;
   saveStatus = 204;
   deleteStatus = 204;
+  mnemonicsSwitch = true;
   notFound.mockReset();
   push.mockReset();
   // Just below 1: the shuffle keeps the order, so the test knows it.
@@ -82,11 +99,37 @@ beforeEach(() => {
         if (deleteStatus === 204) return new Response(null, { status: 204 });
         return jsonResponse(deleteStatus, { error: { code: deleteStatus === 404 ? "NOT_FOUND" : "INTERNAL_ERROR", details: {} } });
       }
-      // PATCH: the card as saved (trimmed), with its source.
+      // PATCH: the card as saved (the fields sent, trimmed), with its source.
       const id = path.slice("/api/flashcards/".length);
-      const body = JSON.parse(String(init?.body)) as { front: string; back: string };
+      const body = JSON.parse(String(init?.body)) as Partial<Record<"front" | "back" | "mnemonic", string>> & {
+        points?: string[];
+      };
       const old = [...cards, ...subjectCards].find((other) => other.id === id)!;
-      return jsonResponse(200, { id, kind: old.kind, source: old.source, front: body.front.trim(), back: body.back.trim() });
+      const changed: Record<string, unknown> = {};
+      for (const key of ["front", "back", "mnemonic"] as const) {
+        if (body[key] !== undefined) changed[key] = body[key].trim();
+      }
+      if (body.points) changed.points = body.points.map((point) => point.trim()).filter(Boolean);
+      return jsonResponse(200, {
+        id,
+        kind: old.kind,
+        source: old.source,
+        formula_flag: old.formula_flag,
+        front: old.front,
+        back: old.back,
+        points: old.points ?? null,
+        mnemonic: old.mnemonic ?? null,
+        ...changed,
+      });
+    }
+    if (path === "/api/config") {
+      if (mnemonicsSwitch === null) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
+      return jsonResponse(200, {
+        demo_mode: false,
+        feature_mnemonics: mnemonicsSwitch,
+        feature_freetext: true,
+        feature_summary: true,
+      });
     }
     if (path === "/api/practice-sessions") {
       if (saveStatus === 204) return new Response(null, { status: 204 });
@@ -866,6 +909,145 @@ describe("FlashcardSessionPage", () => {
       await within(dialog).findByText("Det kan ikke angres.");
       fireEvent.click(within(dialog).getByRole("button", { name: "Slett kortet" }));
       await waitFor(() => expect(push).toHaveBeenCalledWith("/emner/s1"));
+    });
+  });
+
+  describe("modellkort (story 7.2)", () => {
+    function patchBodies(): Record<string, unknown>[] {
+      return fetchMock.mock.calls
+        .filter(([url, init]) => String(url).startsWith("/api/flashcards/") && init?.method === "PATCH")
+        .map(([, init]) => JSON.parse(String(init?.body)) as Record<string, unknown>);
+    }
+
+    // The model card's list of points.
+    function pointList(): HTMLElement | null {
+      return document.querySelector<HTMLElement>("[data-slot='model-card-back'] ol");
+    }
+
+    async function flipModelCard() {
+      expect(await screen.findByText("Forklar AIDA-modellen.")).toBeTruthy();
+      fireEvent.click(button("Snu kortet"));
+    }
+
+    it("FR-56, FR-42, UX-DR28: modellkortet står i økten, viser punktene og huskeregelen, og telles i økten som lagres som flashcards", async () => {
+      cards = [modelCard("m"), card("b", "Pris")];
+      renderPage();
+      expect(await screen.findByText("/ 2")).toBeTruthy();
+      expect(pointList()).toBeNull();
+      await flipModelCard();
+      const list = pointList()!;
+      expect(list.tagName).toBe("OL");
+      expect(within(list).getAllByRole("listitem")).toHaveLength(4);
+      expect(screen.getByText("Huskeregel:")).toBeTruthy();
+      expect(screen.getByText("merkevare-notater.pdf, side 9")).toBeTruthy();
+      expect(await screen.findByRole("button", { name: "Endre huskeregel" })).toBeTruthy();
+      expect(button("Rediger")).toBeTruthy();
+      expect(button("Slett")).toBeTruthy();
+
+      press("2");
+      expect(front()).toBe("Pris");
+      markWithButtons("Kunne ikke");
+      // «Pris» comes back; mark it known to finish.
+      markWithButtons("Kunne");
+      await waitFor(() => expect(saved()).toHaveLength(1));
+      expect(saved()[0]).toMatchObject({ kind: "flashcards", shown: 2, answered: 2, correct: 1, wrong: 1 });
+    });
+
+    it("FR-46, UX-DR21: «Endre huskeregel» åpner dialogen med fokus i feltet; 2 og Mellomrom skriver tekst, og «Lagre» viser den nye huskeregelen uten å endre markeringen", async () => {
+      cards = [modelCard("m")];
+      renderPage(undefined, { frame: true });
+      expect(await screen.findByText("/ 1")).toBeTruthy();
+      await flipModelCard();
+      const opener = await screen.findByRole("button", { name: "Endre huskeregel" });
+      opener.focus();
+      fireEvent.click(opener);
+      const dialog = await screen.findByRole("dialog", { name: "Endre huskeregel" });
+      const field = within(dialog).getByLabelText("Huskeregel") as HTMLInputElement;
+      await waitFor(() => expect(document.activeElement).toBe(field));
+      expect(field.value).toBe("AIDA");
+      press("2");
+      press(" ");
+      expect(screen.getByText("Kunne 0 · Kunne ikke 0")).toBeTruthy();
+      fireEvent.change(field, { target: { value: "  Alle I Dag Allerede  " } });
+      fireEvent.click(within(dialog).getByRole("button", { name: "Lagre" }));
+
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(patchBodies()).toEqual([{ mnemonic: "  Alle I Dag Allerede  " }]);
+      expect(screen.getByText("Alle I Dag Allerede")).toBeTruthy();
+      // Still flipped, nothing marked, and focus back on the button.
+      expect(button("Kunne").disabled).toBe(false);
+      expect(screen.getByText("Kunne 0 · Kunne ikke 0")).toBeTruthy();
+      await waitFor(() => expect(document.activeElement).toBe(button("Endre huskeregel")));
+    });
+
+    it("FR-46, E33: tom huskeregel lagrer ingenting, gir rød kant, «Skriv inn en huskeregel.» og fokus i feltet", async () => {
+      cards = [modelCard("m")];
+      renderPage();
+      await flipModelCard();
+      fireEvent.click(await screen.findByRole("button", { name: "Endre huskeregel" }));
+      const dialog = await screen.findByRole("dialog", { name: "Endre huskeregel" });
+      const field = within(dialog).getByLabelText("Huskeregel") as HTMLInputElement;
+      fireEvent.change(field, { target: { value: "   " } });
+      fireEvent.click(within(dialog).getByRole("button", { name: "Lagre" }));
+      expect(await within(dialog).findByText("Skriv inn en huskeregel.")).toBeTruthy();
+      expect(field.getAttribute("aria-invalid")).toBe("true");
+      await waitFor(() => expect(document.activeElement).toBe(field));
+      expect(patchBodies()).toEqual([]);
+    });
+
+    it("UX-DR25: «Avbryt» og Esc lukker uten endring og gir fokus tilbake til knappen", async () => {
+      cards = [modelCard("m")];
+      renderPage();
+      await flipModelCard();
+      const opener = await screen.findByRole("button", { name: "Endre huskeregel" });
+      for (const close of ["Avbryt", "Escape"]) {
+        opener.focus();
+        fireEvent.click(opener);
+        const dialog = await screen.findByRole("dialog", { name: "Endre huskeregel" });
+        fireEvent.change(within(dialog).getByLabelText("Huskeregel"), { target: { value: "Noe annet" } });
+        if (close === "Avbryt") fireEvent.click(within(dialog).getByRole("button", { name: "Avbryt" }));
+        else fireEvent.keyDown(dialog, { key: "Escape" });
+        await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+        await waitFor(() => expect(document.activeElement).toBe(opener));
+      }
+      expect(patchBodies()).toEqual([]);
+      expect(screen.getByText("AIDA")).toBeTruthy();
+    });
+
+    it("FR-46: uten huskeregel står bare punktene, knappen heter «Legg til huskeregel», og feltet er tomt", async () => {
+      cards = [modelCard("m", null)];
+      renderPage();
+      await flipModelCard();
+      expect(screen.queryByText("Huskeregel:")).toBeNull();
+      fireEvent.click(await screen.findByRole("button", { name: "Legg til huskeregel" }));
+      const dialog = await screen.findByRole("dialog", { name: "Legg til huskeregel" });
+      expect((within(dialog).getByLabelText("Huskeregel") as HTMLInputElement).value).toBe("");
+    });
+
+    it("AR-11: med FEATURE_MNEMONICS av mangler huskeregelknappen, men huskeregelen vises", async () => {
+      mnemonicsSwitch = false;
+      cards = [modelCard("m")];
+      renderPage();
+      await flipModelCard();
+      await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/config")).toBe(true));
+      expect(screen.getByText("Huskeregel:")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Endre huskeregel" })).toBeNull();
+      expect(button("Rediger")).toBeTruthy();
+    });
+
+    it("FR-27, FR-42: «Rediger» på et modellkort retter punktene, ett per linje, og huskeregelen står", async () => {
+      cards = [modelCard("m")];
+      renderPage();
+      await flipModelCard();
+      fireEvent.click(button("Rediger"));
+      const points = screen.getByLabelText("Punkter") as HTMLTextAreaElement;
+      expect(points.value).toBe("Attention (oppmerksomhet)\nInterest (interesse)\nDesire (ønske)\nAction (handling)");
+      fireEvent.change(points, { target: { value: " Attention \n\nInterest" } });
+      fireEvent.click(button("Lagre"));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(patchBodies()).toEqual([{ front: "Forklar AIDA-modellen.", points: [" Attention ", "", "Interest"] }]);
+      expect(within(pointList()!).getAllByRole("listitem")).toHaveLength(2);
+      expect(screen.getByText("AIDA")).toBeTruthy();
     });
   });
 });

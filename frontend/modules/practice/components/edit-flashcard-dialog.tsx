@@ -22,6 +22,15 @@ const REQUIRED: Record<Field, string> = {
   back: "FLASHCARD_BACK_REQUIRED",
 };
 
+// A model card's points are edited as one point per line; the field's own
+// text when no line has text (the API's FLASHCARD_BACK_REQUIRED is about the answer).
+export const POINTS_REQUIRED = "Skriv inn minst ett punkt.";
+
+// The text in the «Svar» or «Punkter» field when the dialog opens.
+function backText(card: Flashcard): string {
+  return card.kind === "model" ? card.points.join("\n") : card.back;
+}
+
 type Props = {
   open: boolean;
   card: Flashcard;
@@ -40,11 +49,22 @@ type Props = {
 // are shown on the same field. Any other error (also 404) shows the fallback
 // text in role="alert", and the dialog stays open. Saved: onSaved with the
 // card, then the dialog closes and focus goes back to «Rediger».
+//
+// Story 7.2 (FR-27, FR-42): for a model card the second field is «Punkter»,
+// one point per line. Empty lines are dropped (by the API), and at least one
+// point must be left, else «Skriv inn minst ett punkt.». The mnemonic is not
+// changed here and is never recomputed from the points (AR-4).
 export function EditFlashcardDialog({ open, card, onClose, onSaved }: Props) {
   const frontRef = useRef<HTMLTextAreaElement>(null);
   const backRef = useRef<HTMLTextAreaElement>(null);
   const [front, setFront] = useState(card.front);
-  const [back, setBack] = useState(card.back);
+  const [back, setBack] = useState(() => backText(card));
+  const isModel = card.kind === "model";
+  // The message for each field when it is empty.
+  const required: Record<Field, string> = {
+    front: messageFor(REQUIRED.front),
+    back: isModel ? POINTS_REQUIRED : messageFor(REQUIRED.back),
+  };
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [focusRequest, setFocusRequest] = useState<{ field: Field } | null>(null);
@@ -55,7 +75,7 @@ export function EditFlashcardDialog({ open, card, onClose, onSaved }: Props) {
     setWasOpen(open);
     if (open) {
       setFront(card.front);
-      setBack(card.back);
+      setBack(backText(card));
       setErrors({});
       setFormError(null);
     }
@@ -68,7 +88,8 @@ export function EditFlashcardDialog({ open, card, onClose, onSaved }: Props) {
 
   // Through useMutation, so a lost login (401) goes to the app's one handler.
   const saving = useMutation({
-    mutationFn: (input: { front: string; back: string }) => updateFlashcard(card.id, input),
+    mutationFn: ({ front, back }: { front: string; back: string }) =>
+      updateFlashcard(card.id, isModel ? { front, points: back.split("\n") } : { front, back }),
     onSuccess: (saved) => {
       onSaved(saved);
       onClose();
@@ -79,7 +100,7 @@ export function EditFlashcardDialog({ open, card, onClose, onSaved }: Props) {
         (key) => error instanceof ApiError && error.code === REQUIRED[key],
       );
       if (field) {
-        setErrors({ [field]: messageFor(REQUIRED[field]) });
+        setErrors({ [field]: required[field] });
         setFocusRequest({ field });
       } else {
         setFormError(FALLBACK_MESSAGE);
@@ -92,8 +113,8 @@ export function EditFlashcardDialog({ open, card, onClose, onSaved }: Props) {
     if (busy) return;
     setFormError(null);
     const found: Partial<Record<Field, string>> = {};
-    if (!front.trim()) found.front = messageFor(REQUIRED.front);
-    if (!back.trim()) found.back = messageFor(REQUIRED.back);
+    if (!front.trim()) found.front = required.front;
+    if (!back.trim()) found.back = required.back;
     setErrors(found);
     if (found.front || found.back) {
       setFocusRequest({ field: found.front ? "front" : "back" });
@@ -126,8 +147,8 @@ export function EditFlashcardDialog({ open, card, onClose, onSaved }: Props) {
         />
         <TextAreaField
           ref={backRef}
-          label="Svar"
-          name="back"
+          label={isModel ? "Punkter" : "Svar"}
+          name={isModel ? "points" : "back"}
           value={back}
           error={errors.back}
           onChange={(event) => {

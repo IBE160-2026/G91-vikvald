@@ -6,8 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 
-import type { Flashcard } from "../types";
-import { EditFlashcardDialog } from "./edit-flashcard-dialog";
+import type { Flashcard, ModelCard } from "../types";
+import { EditFlashcardDialog, POINTS_REQUIRED } from "./edit-flashcard-dialog";
 
 const CARD: Flashcard = {
   id: "c1",
@@ -38,31 +38,42 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function Harness({ onSaved }: { onSaved: (card: Flashcard) => void }) {
+const MODEL: ModelCard = {
+  id: "m1",
+  kind: "model",
+  front: "Forklar AIDA-modellen.",
+  back: null,
+  points: ["Attention", "Interest", "Desire", "Action"],
+  mnemonic: "AIDA",
+  formula_flag: false,
+  source: { file_id: "f1", file_name: "merkevare-notater.pdf", page_no: 9 },
+};
+
+function Harness({ onSaved, card = CARD }: { onSaved: (card: Flashcard) => void; card?: Flashcard }) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <button type="button" onClick={() => setOpen(true)}>
         Rediger
       </button>
-      <EditFlashcardDialog open={open} card={CARD} onClose={() => setOpen(false)} onSaved={onSaved} />
+      <EditFlashcardDialog open={open} card={card} onClose={() => setOpen(false)} onSaved={onSaved} />
     </>
   );
 }
 
-function setup() {
+function setup(card: Flashcard = CARD) {
   const onSaved = vi.fn();
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
-      <Harness onSaved={onSaved} />
+      <Harness onSaved={onSaved} card={card} />
     </QueryClientProvider>,
   );
   const opener = screen.getByRole("button", { name: "Rediger" });
   opener.focus();
   fireEvent.click(opener);
   const front = screen.getByLabelText("Spørsmål") as HTMLTextAreaElement;
-  const back = screen.getByLabelText("Svar") as HTMLTextAreaElement;
+  const back = screen.getByLabelText(card.kind === "model" ? "Punkter" : "Svar") as HTMLTextAreaElement;
   return { onSaved, opener, front, back };
 }
 
@@ -167,5 +178,41 @@ describe("EditFlashcardDialog", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
     expect(onSaved).not.toHaveBeenCalled();
+  });
+
+  describe("modellkort (story 7.2)", () => {
+    it("FR-42, FR-27: «Punkter» har ett punkt per linje, og «Lagre» sender front og punktene", async () => {
+      const saved = { ...MODEL, points: ["Attention", "Interest"] };
+      fetchMock.mockResolvedValue(jsonResponse(200, saved));
+      const { onSaved, back } = setup(MODEL);
+      expect(screen.queryByLabelText("Svar")).toBeNull();
+      expect(back.value).toBe("Attention\nInterest\nDesire\nAction");
+      fireEvent.change(back, { target: { value: "Attention\n\n Interest " } });
+      save();
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({
+        front: MODEL.front,
+        points: ["Attention", "", " Interest "],
+      });
+      expect(onSaved).toHaveBeenCalledWith(saved);
+    });
+
+    it("FR-42: uten punkter lagres ingenting, og feltet sier «Skriv inn minst ett punkt.»", async () => {
+      const { back } = setup(MODEL);
+      fireEvent.change(back, { target: { value: " \n \n" } });
+      save();
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(back.getAttribute("aria-invalid")).toBe("true");
+      expect(screen.getByText(POINTS_REQUIRED)).toBeTruthy();
+      expect(document.activeElement).toBe(back);
+    });
+
+    it("FR-42: FLASHCARD_BACK_REQUIRED fra API-et vises på «Punkter»", async () => {
+      fetchMock.mockResolvedValue(errorResponse(422, "FLASHCARD_BACK_REQUIRED"));
+      const { back } = setup(MODEL);
+      save();
+      expect(await screen.findByText(POINTS_REQUIRED)).toBeTruthy();
+      expect(back.getAttribute("aria-invalid")).toBe("true");
+    });
   });
 });
