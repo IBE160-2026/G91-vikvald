@@ -208,6 +208,41 @@ export async function quizQuestionsViaApi(
   return (await response.json()) as ApiQuestion[];
 }
 
+// Makes short-answer free-text questions from the lecture's files through the
+// API (story 8.1; the mock model makes one question «Forklar [begrep].» per
+// definition sentence, with the sentence as the model answer) and waits until
+// there are `expected`.
+export async function makeFreetextViaApi(page: Page, lectureId: string, requested: 5 | 10 | 15, expected: number) {
+  const response = await page.request.post(`/api/lectures/${lectureId}/jobs`, {
+    data: { kind: "freetext", params: { requested, question_kind: "short" } },
+  });
+  expect(response.status()).toBe(202);
+  await expect
+    .poll(
+      async () =>
+        (await (await page.request.get(`/api/lectures/${lectureId}/content-counts`)).json()).freetext_questions,
+      { timeout: 15_000 },
+    )
+    .toBe(expected);
+}
+
+// A free-text question as the API gives it, with the model answer (FR-49).
+export type ApiFreetextQuestion = {
+  id: string;
+  question: string;
+  model_answer: string;
+  formula_flag: boolean;
+  source: { file_name: string; page_no: number };
+  lecture: { name: string };
+};
+
+// The free-text questions of a subject (story 8.3).
+export async function freetextQuestionsViaApi(page: Page, subjectId: string): Promise<ApiFreetextQuestion[]> {
+  const response = await page.request.get(`/api/subjects/${subjectId}/freetext-questions`);
+  expect(response.status()).toBe(200);
+  return (await response.json()) as ApiFreetextQuestion[];
+}
+
 // The question in the quiz session (09).
 export function quizQuestion(page: Page): Locator {
   return page.locator('[data-slot="quiz-question"]');
