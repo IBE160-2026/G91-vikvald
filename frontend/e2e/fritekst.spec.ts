@@ -21,10 +21,11 @@ const NARROW = { width: 768, height: 1024 };
 const LECTURE_NAME = "Uke 37: Merkevare";
 const NOTHING = "Notatene ga ikke grunnlag for fritekstspørsmål. Ingenting er lagret.";
 
-// Seven definitions over two pages: seven questions at most.
+// Seven definitions over two pages: seven questions at most. One sentence per
+// line, so no line runs past the edge of the test PDF's page and gets cut.
 const SEVEN = [
   "Merkevare er et navn. Pris er det kunden betaler.",
-  "Segment er en gruppe kunder. Målgruppe er de bedriften vil nå. Posisjon er plassen hos kunden. Kanal er veien til kunden. Budskap er det som blir sagt.",
+  "Segment er en gruppe kunder.\nMålgruppe er de bedriften vil nå.\nPosisjon er plassen hos kunden.\nKanal er veien til kunden.\nBudskap er det som blir sagt.",
 ];
 // Two definitions: two questions at most.
 const TWO = ["Merkevare er et navn. Pris er det kunden betaler."];
@@ -76,7 +77,7 @@ async function makeFreetextViaApi(page: Page, lectureId: string, expected: numbe
 }
 
 test.describe("Fritekstspørsmål (story 8.1)", () => {
-  test("FR-48, FR-49, UX-DR18, UX-DR19, UX-DR24, NFR-8: med bare tastaturet lager hun langsvar med «Rask», de andre radene venter, og raden viser antallet uten «Øv nå»", async ({
+  test("FR-48, UX-DR18, UX-DR19, UX-DR24, NFR-8: med bare tastaturet lager hun langsvar med «Rask», de andre radene venter, og raden viser antallet uten «Øv nå»", async ({
     page,
   }) => {
     await page.setViewportSize(WIDE);
