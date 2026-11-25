@@ -322,6 +322,33 @@ export function subjectCard(page: Page, name: string): Locator {
   return page.locator('[data-slot="subject-card"]').filter({ has: page.getByRole("heading", { level: 2, name }) });
 }
 
+// The overview (GET /api/overview, story 5.1) as the app gets it: «øvd» per lecture.
+export type ApiOverview = {
+  subjects: { id: string; lectures: { id: string; name: string; practiced: boolean }[] }[];
+};
+
+// The next GET /api/overview the page sends, parsed. Start waiting before the
+// step that makes the app fetch it (for example the link back from a session),
+// and check the sidebar or semester line only after the answer has come: «Øvd»
+// on the screen comes from this answer, however long it takes on a busy
+// machine (#343).
+export function nextOverview(page: Page): Promise<ApiOverview> {
+  return page
+    .waitForResponse(
+      (response) => response.request().method() === "GET" && new URL(response.url()).pathname === "/api/overview",
+    )
+    .then(async (response) => {
+      expect(response.status()).toBe(200);
+      return (await response.json()) as ApiOverview;
+    });
+}
+
+// Whether the lecture is practised in the overview.
+export function practicedIn(overview: ApiOverview, lectureId: string): boolean | undefined {
+  return overview.subjects.flatMap((subject) => subject.lectures).find((lecture) => lecture.id === lectureId)
+    ?.practiced;
+}
+
 // The lecture link in the sidebar, whose name ends with its status dot (story 5.1).
 export function sidebarLecture(page: Page, name: string): Locator {
   return page.getByRole("navigation", { name: "Emner" }).getByRole("link", { name: new RegExp(`^${name} (Øvd|Ikke øvd ennå)$`) });

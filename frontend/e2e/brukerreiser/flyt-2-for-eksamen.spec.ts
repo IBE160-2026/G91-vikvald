@@ -22,7 +22,9 @@ import {
   makeFreetextViaApi,
   makeModelCardsViaApi,
   makeQuizViaApi,
+  nextOverview,
   pdfFile,
+  practicedIn,
   quizQuestion,
   quizQuestionsViaApi,
   registerWithTermsViaApi,
@@ -313,11 +315,16 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     });
     await expectNoAxeViolations(page);
 
+    // Back on the subject page the overview is fetched again (story 5.1). The
+    // test waits for that answer before it looks for «Øvd» (#343).
+    const overview = nextOverview(page);
     await page.getByRole("link", { name: "Tilbake til emnet" }).click();
     await expect(page).toHaveURL(`/emner/${subjectId}`);
     await expect(page.locator("main h1")).toHaveText("Markedsføring");
     // The session over the whole subject counts for every lecture with cards,
     // so all eight are now practised, without a reload (story 5.1, 5.2, 5.5).
+    const answer = await overview;
+    for (const id of lectureIds.values()) expect(practicedIn(answer, id)).toBe(true);
     await expect(semesterLineItems(page)).toHaveText([LINE_TEXT(8)]);
     for (let i = 0; i < LECTURES.length; i += 1) {
       await expect(page.locator("main tbody tr").nth(i).getByRole("cell").nth(5)).toHaveText(practisedToday);
@@ -426,8 +433,11 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     });
     await expectNoAxeViolations(page);
 
+    // SISTE ØKT comes from the overview, fetched again on the subject page (#343).
+    const overview = nextOverview(page);
     await page.getByRole("link", { name: "Tilbake til emnet" }).click();
     await expect(page).toHaveURL(`/emner/${subjectId}`);
+    await overview;
     const practiceAll = page.getByRole("region", { name: "Øv på hele emnet" });
     await expect(practiceAll.getByText("7 spørsmål fra 2 forelesninger")).toBeVisible();
     // SISTE ØKT now shows the quiz (story 5.1).
@@ -777,8 +787,11 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     expect(JSON.stringify(body)).not.toContain(OWN_ANSWER);
 
     // Back on the subject page, SISTE ØKT shows the free-text session.
+    // SISTE ØKT comes from the overview, fetched again on the subject page (#343).
+    const overview = nextOverview(page);
     await page.getByRole("link", { name: "Tilbake til emnet" }).click();
     await expect(page).toHaveURL(`/emner/${subjectId}`);
+    await overview;
     const practiceAll = page.getByRole("region", { name: "Øv på hele emnet" });
     await expect(practiceAll.getByText("Fritekstspørsmål · Hele emnet", { exact: true })).toBeVisible();
     await expect(practiceAll.getByText(`${dayFromToday(0).dayMonth} · 3 av 5 riktige`, { exact: true })).toBeVisible();
