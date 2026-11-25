@@ -162,7 +162,7 @@
 - [ ] 2026-11-23 [story-6-6-avsluttende-kontroll](950-2026-11-23-20-41-07-story-6-6-avsluttende-kontroll.md) — kjør kjerneflyten i Edge (#297) og eventuelt Safari, som kan kuttes (#298)
 - [ ] 2026-11-23 [story-6-6-avsluttende-kontroll](950-2026-11-23-20-41-07-story-6-6-avsluttende-kontroll.md) — lag stikkprøven med Gemini, vurder den mot læreboka og før tallene og ventetiden i docs/kvalitet/ (SK-13–SK-15, SK-17, NFR-17, #299)
 - [ ] 2026-11-23 [story-6-6-avsluttende-kontroll](950-2026-11-23-20-41-07-story-6-6-avsluttende-kontroll.md) — velg modell ut fra stikkprøven og sett den i .env.example (#4)
-- [ ] 2026-11-23 [story-6-6-avsluttende-kontroll](950-2026-11-23-20-41-07-story-6-6-avsluttende-kontroll.md) — bør ha-testen må kreve at inngangen finnes når epic 7–9 bygges (#301)
+- [x] 2026-11-23 [story-6-6-avsluttende-kontroll](950-2026-11-23-20-41-07-story-6-6-avsluttende-kontroll.md) — bør ha-testen må kreve at inngangen finnes når epic 7–9 bygges (#301) (fritekst løst 2026-11-25 i story 8.1; sammendrag gjenstår til epic 9)
 - [ ] 2026-11-23 [story-6-6-avsluttende-kontroll](950-2026-11-23-20-41-07-story-6-6-avsluttende-kontroll.md) — vurder kanttilfellene fra story 6.6 (#301–#308), særlig vurderingsverdiene og SK-14 (#305)
 - [ ] 2026-11-23 [brukerreiser-etter-epic-6](949-2026-11-23-21-12-47-brukerreiser-etter-epic-6.md) — flyttestene utvides med modellkort (epic 7), fritekst (epic 8) og sammendrag (epic 9) når de er bygd
 - [x] 2026-11-25 [story-7-1-modellkort](948-2026-11-25-09-51-05-story-7-1-modellkort.md) — frigjør diskplass, kjør Playwright, ta skjermbildene og flett PR-en for story/7-1 (#318) (løst 2026-11-25)
@@ -172,3 +172,5 @@
 - [ ] 2026-11-25 [story-7-2-ov-pa-modellkort](947-2026-11-25-11-16-43-story-7-2-ov-pa-modellkort.md) — vurder kanttilfellene fra story 7.2 (#320–#324)
 - [x] 2026-11-25 [story-7-2-ov-pa-modellkort](947-2026-11-25-11-16-43-story-7-2-ov-pa-modellkort.md) — appen bruker om lag 1,7 GB disk mens den kjører, så ledig plass faller under 5 GB: frigjør mer plass eller avgjør hva grensen gjelder for (løst 2026-11-25)
 - [x] 2026-11-25 [brukerreiser-etter-epic-7](946-2026-11-25-14-51-34-brukerreiser-etter-epic-7.md) — frigjør diskplass, kjør hele Playwright-pakken, før KI-sporet, push brukerreiser/epic-7, lag PR-en og flett (løst 2026-11-25)
+- [ ] 2026-11-25 [story-8-1-fritekstsporsmal](945-2026-11-25-16-10-17-story-8-1-fritekstsporsmal.md) — vurder kanttilfellene fra story 8.1 (#329–#334)
+- [ ] 2026-11-25 [story-8-1-fritekstsporsmal](945-2026-11-25-16-10-17-story-8-1-fritekstsporsmal.md) — bare 2,4 GB disk er ledig etter opprydding, under grensen på 5 GB for neste `--build`
