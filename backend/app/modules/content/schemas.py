@@ -14,6 +14,8 @@ class ContentCounts(BaseModel):
     # Model cards (kind "model") made from the lecture's files. The lecture
     # page adds them to the Flashcards row's count.
     model_cards: int
+    # Free-text questions (short and long) made from the lecture's files.
+    freetext_questions: int
 
 
 class FlashcardSource(BaseModel):

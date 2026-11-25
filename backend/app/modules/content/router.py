@@ -27,6 +27,7 @@ from app.modules.content.service import (
     delete_flashcard,
     delete_quiz_question,
     flashcard_count,
+    freetext_question_count,
     lecture_flashcards,
     lecture_quiz_questions,
     model_card_count,
@@ -55,6 +56,7 @@ async def lecture_content_counts(lecture_id: str, user: CurrentUser, session: Se
         flashcards=await flashcard_count(session, lecture.id),
         quiz_questions=await quiz_question_count(session, lecture.id),
         model_cards=await model_card_count(session, lecture.id),
+        freetext_questions=await freetext_question_count(session, lecture.id),
     )
 
 
