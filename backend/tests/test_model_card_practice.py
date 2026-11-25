@@ -57,9 +57,9 @@ async def _add_model_card(
 
 @pytest.fixture
 async def model_card(client: AsyncClient, lecture: str, engine: AsyncEngine) -> tuple[str, dict[str, Any]]:
-    """A model card next to the mock's qa and concept cards; returns its id and a plain (concept) card."""
-    qa = await _plain_card(client, lecture)
-    return await _add_model_card(engine, qa["source"]["file_id"]), qa
+    """A model card next to the concept cards the mock makes; returns its id and one of those plain cards."""
+    plain = await _plain_card(client, lecture)
+    return await _add_model_card(engine, plain["source"]["file_id"]), plain
 
 
 async def _patch(client: AsyncClient, card_id: str, body: dict[str, Any]) -> Response:
@@ -72,7 +72,7 @@ async def _patch(client: AsyncClient, card_id: str, body: dict[str, Any]) -> Res
 async def test_fr56_forelesningens_liste_har_modellkortet_med_de_andre(
     client: AsyncClient, lecture: str, model_card: tuple[str, dict[str, Any]]
 ) -> None:
-    card_id, _qa = model_card
+    card_id, _plain = model_card
     cards = await _flashcards(client, lecture)
     # The mock makes concept cards; the model card is listed with them.
     assert {card["kind"] for card in cards} == {"concept", "model"}
@@ -86,10 +86,25 @@ async def test_fr56_forelesningens_liste_har_modellkortet_med_de_andre(
 async def test_fr42_modellkort_uten_huskeregel_har_mnemonic_null(
     client: AsyncClient, lecture: str, engine: AsyncEngine
 ) -> None:
-    qa = await _plain_card(client, lecture)
-    card_id = await _add_model_card(engine, qa["source"]["file_id"], mnemonic=None)
+    plain = await _plain_card(client, lecture)
+    card_id = await _add_model_card(engine, plain["source"]["file_id"], mnemonic=None)
     [model] = [card for card in await _flashcards(client, lecture) if card["id"] == card_id]
     assert model["mnemonic"] is None
+
+
+async def test_fr42_modellkort_uten_punkter_i_databasen_gir_tom_liste(
+    client: AsyncClient, lecture: str, engine: AsyncEngine
+) -> None:
+    plain = await _plain_card(client, lecture)
+    card_id = await _add_model_card(engine, plain["source"]["file_id"])
+    async with async_sessionmaker(engine)() as session:
+        stored = await session.get(Flashcard, uuid.UUID(card_id))
+        assert stored is not None
+        stored.points = None
+        await session.commit()
+    [model] = [card for card in await _flashcards(client, lecture) if card["id"] == card_id]
+    assert model["points"] == []
+    assert all(card["points"] is None for card in await _flashcards(client, lecture) if card["kind"] != "model")
 
 
 # --- Mnemonic ----------------------------------------------------------------
@@ -98,7 +113,7 @@ async def test_fr42_modellkort_uten_huskeregel_har_mnemonic_null(
 async def test_fr46_ny_huskeregel_lagres_trimmet(
     client: AsyncClient, model_card: tuple[str, dict[str, Any]], engine: AsyncEngine
 ) -> None:
-    card_id, _qa = model_card
+    card_id, _plain = model_card
     response = await _patch(client, card_id, {"mnemonic": "  Alle I Dag Allerede  "})
     assert response.status_code == 200
     body = response.json()
@@ -113,8 +128,8 @@ async def test_fr46_ny_huskeregel_lagres_trimmet(
 async def test_fr46_huskeregel_kan_legges_til_paa_kort_uten(
     client: AsyncClient, lecture: str, engine: AsyncEngine
 ) -> None:
-    qa = await _plain_card(client, lecture)
-    card_id = await _add_model_card(engine, qa["source"]["file_id"], mnemonic=None)
+    plain = await _plain_card(client, lecture)
+    card_id = await _add_model_card(engine, plain["source"]["file_id"], mnemonic=None)
     response = await _patch(client, card_id, {"mnemonic": "Pris, Produkt, Plass, Påvirkning"})
     assert response.status_code == 200
     assert response.json()["mnemonic"] == "Pris, Produkt, Plass, Påvirkning"
@@ -124,7 +139,7 @@ async def test_fr46_huskeregel_kan_legges_til_paa_kort_uten(
 async def test_fr46_tom_huskeregel_avvises(
     client: AsyncClient, model_card: tuple[str, dict[str, Any]], engine: AsyncEngine, mnemonic: str | None
 ) -> None:
-    card_id, _qa = model_card
+    card_id, _plain = model_card
     response = await _patch(client, card_id, {"mnemonic": mnemonic})
     assert response.status_code == 422
     assert _code(response) == "FLASHCARD_BACK_REQUIRED"
@@ -136,7 +151,7 @@ async def test_fr46_tom_huskeregel_avvises(
 async def test_fr46_bryteren_av_gir_404_feature_disabled(
     client: AsyncClient, model_card: tuple[str, dict[str, Any]], engine: AsyncEngine, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    card_id, _qa = model_card
+    card_id, _plain = model_card
     monkeypatch.setenv("FEATURE_MNEMONICS", "false")
     get_settings.cache_clear()
     response = await _patch(client, card_id, {"mnemonic": "X"})
@@ -159,7 +174,7 @@ async def test_fr46_bryteren_av_gir_404_feature_disabled(
 async def test_fr42_punktene_rettes_trimmet_uten_tomme_linjer(
     client: AsyncClient, model_card: tuple[str, dict[str, Any]], engine: AsyncEngine
 ) -> None:
-    card_id, _qa = model_card
+    card_id, _plain = model_card
     response = await _patch(client, card_id, {"front": "  Forklar AIDA.  ", "points": [" A ", "", "B"]})
     assert response.status_code == 200
     body = response.json()
@@ -173,7 +188,7 @@ async def test_fr42_punktene_rettes_trimmet_uten_tomme_linjer(
 async def test_fr42_tomme_punkter_avvises(
     client: AsyncClient, model_card: tuple[str, dict[str, Any]], engine: AsyncEngine, points: list[str] | None
 ) -> None:
-    card_id, _qa = model_card
+    card_id, _plain = model_card
     response = await _patch(client, card_id, {"front": "Ny", "points": points})
     assert response.status_code == 422
     assert _code(response) == "FLASHCARD_BACK_REQUIRED"
@@ -185,7 +200,7 @@ async def test_fr42_tomme_punkter_avvises(
 async def test_fr42_tom_forside_paa_modellkort_avvises(
     client: AsyncClient, model_card: tuple[str, dict[str, Any]]
 ) -> None:
-    card_id, _qa = model_card
+    card_id, _plain = model_card
     response = await _patch(client, card_id, {"front": "  ", "points": ["A"]})
     assert _code(response) == "FLASHCARD_FRONT_REQUIRED"
 
@@ -205,21 +220,21 @@ async def test_fr42_feil_felt_for_typen_gir_validation_error(
     target: str,
     body: dict[str, Any],
 ) -> None:
-    card_id, qa = model_card
-    chosen = card_id if target == "model" else qa["id"]
+    card_id, plain = model_card
+    chosen = card_id if target == "model" else plain["id"]
     response = await _patch(client, chosen, body)
     assert response.status_code == 422
     assert _code(response) == "VALIDATION_ERROR"
     stored = await _stored(engine, chosen)
     assert stored is not None
-    assert stored.back == (None if target == "model" else qa["back"])
+    assert stored.back == (None if target == "model" else plain["back"])
     assert stored.points == (POINTS if target == "model" else None)
 
 
 async def test_fr46_andres_modellkort_gir_404(
     client: AsyncClient, model_card: tuple[str, dict[str, Any]], engine: AsyncEngine
 ) -> None:
-    card_id, _qa = model_card
+    card_id, _plain = model_card
     await _log_in_new_user(client, "ola@eksempel.no")
     response = await _patch(client, card_id, {"mnemonic": "Olas regel"})
     assert response.status_code == 404
@@ -236,7 +251,7 @@ async def test_fr46_andres_modellkort_gir_404(
 async def test_fr56_modellkort_slettes_som_andre_kort(
     client: AsyncClient, lecture: str, model_card: tuple[str, dict[str, Any]], engine: AsyncEngine
 ) -> None:
-    card_id, _qa = model_card
+    card_id, _plain = model_card
     assert (await client.delete(f"{FLASHCARDS}/{card_id}")).status_code == 204
     assert await _stored(engine, card_id) is None
     assert all(card["kind"] != "model" for card in await _flashcards(client, lecture))

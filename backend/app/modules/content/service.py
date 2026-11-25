@@ -426,7 +426,8 @@ def _flashcard_out(card: Flashcard, file_name: str) -> FlashcardOut:
         kind=card.kind,
         front=card.front,
         back=card.back,
-        points=list(card.points) if card.points is not None else None,
+        # A model card always has a list (also when the column is NULL).
+        points=list(card.points or []) if card.kind == MODEL_CARD_KIND else None,
         mnemonic=card.mnemonic or None,
         formula_flag=card.formula_flag,
         source=FlashcardSource(file_id=card.file_id, file_name=file_name, page_no=card.page_no),
