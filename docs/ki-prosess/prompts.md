@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-26: Brukerreisetestene utvidet etter epic 8
+
+En subagent i den autonome kjøringen utvidet brukerreisetestene etter epic 8, slik avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) sier. Oppdraget var steg 5–7 i flyt 2 (fritekst) og årsaken til de ustabile testene i #343.
+
+**Resultat:** branchen `brukerreiser/epic-8`, testene i [`frontend/e2e/brukerreiser/`](../../frontend/e2e/brukerreiser/) og oversikten i [brukerreiser.md](../testing/brukerreiser.md).
+
 ## 2026-11-25: Story 8.3 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `8-3-fritekst-for-hele-emnet-og-slett-dårlige-spørsmål`.
