@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { Flashcard as FlashcardData, Mark } from "../types";
+import type { Flashcard as FlashcardData, Mark, ModelCard } from "../types";
 import { Flashcard } from "./flashcard";
 
 afterEach(cleanup);
@@ -141,5 +141,73 @@ describe("Flashcard", () => {
     const { container } = render(<Harness />);
     fireEvent.click(screen.getByRole("button", { name: "Snu kortet" }));
     expect(container.querySelector("[data-slot='formula-flag']")).toBeNull();
+  });
+
+  describe("modellkort (story 7.2)", () => {
+    const MODEL: ModelCard = {
+      id: "m1",
+      kind: "model",
+      front: "Forklar AIDA-modellen.",
+      back: null,
+      points: ["Attention (oppmerksomhet)", "Interest (interesse)", "Desire (ønske)", "Action (handling)"],
+      mnemonic: "AIDA. Kunden går fra oppmerksomhet til handling.",
+      formula_flag: true,
+      source: { file_id: "f1", file_name: "merkevare-notater.pdf", page_no: 9 },
+    };
+
+    it("UX-DR28, FR-42: ikke snudd viser bare SPØRSMÅL og «Snu kortet»; snudd viser punktene, huskeregelen, formelmerket og kilden", () => {
+      const { container } = render(<Harness card={MODEL} />);
+      expect(container.querySelector("ol")).toBeNull();
+      expect(screen.queryByText("Huskeregel:")).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Snu kortet" }));
+      expect(screen.getByText("SVAR")).toBeTruthy();
+      expect(container.querySelectorAll("ol > li")).toHaveLength(4);
+      expect(screen.getByText("Huskeregel:")).toBeTruthy();
+      expectFlagRightAboveSource(container);
+      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Kunne" }));
+    });
+
+    it("FR-46, UX-DR20: bunnfeltet har «Endre huskeregel» før «Rediger» og «Slett»", () => {
+      const onEditMnemonic = vi.fn();
+      const onFlip = vi.fn();
+      render(
+        <Flashcard
+          card={MODEL}
+          flipped
+          onFlip={onFlip}
+          onMark={vi.fn()}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onEditMnemonic={onEditMnemonic}
+        />,
+      );
+      const footer = document.querySelector("[data-slot='flashcard-footer']")!;
+      const names = [...footer.querySelectorAll("button")].map((button) => button.textContent);
+      expect(names).toEqual(["Endre huskeregel", "Rediger", "Slett"]);
+      const change = screen.getByRole("button", { name: "Endre huskeregel" });
+      expect(change.dataset.variant).toBe("text");
+      fireEvent.click(change);
+      expect(onEditMnemonic).toHaveBeenCalledOnce();
+      expect(onFlip).not.toHaveBeenCalled();
+    });
+
+    it("FR-46: uten huskeregel heter knappen «Legg til huskeregel»", () => {
+      render(
+        <Flashcard card={{ ...MODEL, mnemonic: null }} flipped onFlip={vi.fn()} onMark={vi.fn()} onEditMnemonic={vi.fn()} />,
+      );
+      expect(screen.getByRole("button", { name: "Legg til huskeregel" })).toBeTruthy();
+      expect(screen.queryByText("Huskeregel:")).toBeNull();
+    });
+
+    it("AR-11: uten onEditMnemonic (bryteren av) står huskeregelen, men knappen mangler", () => {
+      render(<Flashcard card={MODEL} flipped onFlip={vi.fn()} onMark={vi.fn()} onEdit={vi.fn()} />);
+      expect(screen.getByText("Huskeregel:")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: /huskeregel/ })).toBeNull();
+    });
+
+    it("FR-27: et vanlig kort får aldri huskeregelknappen", () => {
+      render(<Flashcard card={CARD} flipped onFlip={vi.fn()} onMark={vi.fn()} onEditMnemonic={vi.fn()} />);
+      expect(screen.queryByRole("button", { name: /huskeregel/ })).toBeNull();
+    });
   });
 });

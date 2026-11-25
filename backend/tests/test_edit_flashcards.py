@@ -178,7 +178,9 @@ async def test_sk6_andres_ukjent_og_ugyldig_kort_gir_lik_404(
     assert stored.front == card["front"]
 
 
-async def test_sk6_modellkort_kan_ikke_rettes_her(client: AsyncClient, lecture: str, engine: AsyncEngine) -> None:
+async def test_fr27_modellkort_kan_rettes_og_slettes_her(
+    client: AsyncClient, lecture: str, engine: AsyncEngine
+) -> None:
     card = (await _cards_in(client, lecture))[0]
     model_id = uuid.uuid4()
     async with async_sessionmaker(engine)() as session:
@@ -188,8 +190,9 @@ async def test_sk6_modellkort_kan_ikke_rettes_her(client: AsyncClient, lecture: 
             )
         )
         await session.commit()
-    assert (await _patch(client, model_id, {"front": "Ny"})).status_code == 404
-    assert (await client.delete(f"{FLASHCARDS}/{model_id}")).status_code == 404
+    assert (await _patch(client, model_id, {"front": "Ny"})).status_code == 200
+    assert (await client.delete(f"{FLASHCARDS}/{model_id}")).status_code == 204
+    assert await _stored(engine, str(model_id)) is None
 
 
 @pytest.mark.parametrize("method", ["PATCH", "DELETE"])

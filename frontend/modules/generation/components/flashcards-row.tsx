@@ -17,8 +17,8 @@ const MODEL_CARDS: ExtraJob = { kind: "models", label: "Lag modellkort", request
 // (story 7.1, UX-DR18), which starts a model-card job directly, and its count
 // includes the model cards. With the switch off (or before the config has
 // loaded) the button is not shown, but the row still follows a model-card job.
-// «Øv nå» is active only with ordinary flashcards, since model cards are
-// practised from story 7.2.
+// «Øv nå» is active also with only model cards: they are practised in the
+// same session as the other flashcards (story 7.2, FR-56).
 export function FlashcardsRow(props: GenerationRowProps) {
   const router = useRouter();
   const config = useAppConfig();
@@ -31,8 +31,6 @@ export function FlashcardsRow(props: GenerationRowProps) {
       title="Flashcards"
       testId="flashcards-row"
       countOf={(counts) => counts.flashcards + (counts.model_cards ?? 0)}
-      /* Model cards are practised from story 7.2; until then only qa/concept cards. */
-      practiceCountOf={(counts) => counts.flashcards}
       countText={(count) => `${count} kort`}
       createLabel="Lag flashcards"
       onPractice={() => router.push(`/forelesninger/${props.lectureId}/flashcards`)}

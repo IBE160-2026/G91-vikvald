@@ -46,6 +46,21 @@ describe("nextStep (story 5.4)", () => {
     expect(step.action.href).toBe("/forelesninger/U38/quiz");
   });
 
+  it("FR-58, FR-56: en forelesning med bare modellkort gir «2 kort, ikke øvd ennå» og Øv nå til flashcards (story 7.2)", () => {
+    const onlyModels: LectureFileCount = {
+      lecture_id: "U38",
+      file_count: 1,
+      page_count: 4,
+      content_counts: [
+        { kind: "model_cards", count: 2 },
+        { kind: "quiz_questions", count: 5 },
+      ],
+    };
+    const step = nextStep("s", [lecture("U38")], fileCounts(onlyModels));
+    expect(step.reason).toBe("2 kort, ikke øvd ennå");
+    expect(step.action.href).toBe("/forelesninger/U38/flashcards");
+  });
+
   it("FR-58: med både kort og quiz startes flashcards først", () => {
     const step = nextStep("s", [lecture("U38")], fileCounts(counts("U38", 16, 12)));
     expect(step.reason).toBe("16 kort, ikke øvd ennå");

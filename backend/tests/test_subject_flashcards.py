@@ -15,7 +15,7 @@ from tests.test_subjects import NOT_FOUND
 __all__ = ["no_jobs_left"]
 
 SUBJECTS = "/api/subjects"
-CARD_FIELDS = {"id", "kind", "front", "back", "formula_flag", "source", "lecture"}
+CARD_FIELDS = {"id", "kind", "front", "back", "points", "mnemonic", "formula_flag", "source", "lecture"}
 
 
 async def _subject_flashcards(client: AsyncClient, subject_id: str) -> list[dict]:
@@ -94,7 +94,7 @@ async def test_fr23_kort_fra_et_annet_emne_kommer_ikke_med(client: AsyncClient) 
     assert await _subject_flashcards(client, subject_id) == []
 
 
-async def test_fr23_modellkort_kommer_ikke_med(client: AsyncClient, engine: AsyncEngine) -> None:
+async def test_fr56_modellkort_kommer_med_i_emneokta(client: AsyncClient, engine: AsyncEngine) -> None:
     await _log_in_new_user(client)
     subject_id = await _new_subject(client)
     await _lecture_with_cards(client, subject_id, "Uke 37", "2026-09-11", [["Alfa"]], "a.pdf")
@@ -106,11 +106,17 @@ async def test_fr23_modellkort_kommer_ikke_med(client: AsyncClient, engine: Asyn
                 kind="model",
                 front="AIDA",
                 back=None,
+                points=["Attention", "Interest", "Desire", "Action"],
+                mnemonic="AIDA",
                 page_no=1,
             )
         )
         await session.commit()
-    assert [card["front"] for card in await _subject_flashcards(client, subject_id)] == ["Alfa"]
+    after = await _subject_flashcards(client, subject_id)
+    assert [card["front"] for card in after] == ["Alfa", "AIDA"]
+    assert after[1]["kind"] == "model"
+    assert after[1]["points"] == ["Attention", "Interest", "Desire", "Action"]
+    assert after[1]["lecture"]["name"] == "Uke 37"
 
 
 async def test_fr4_andres_ukjent_eller_ugyldig_emne_gir_404(client: AsyncClient) -> None:

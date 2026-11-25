@@ -11,7 +11,13 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError, ErrorCode
-from app.modules.content.models import MODEL_CARD_KIND, PLAIN_FLASHCARD_KINDS, Flashcard, QuizQuestion
+from app.modules.content.models import (
+    FLASHCARD_KINDS,
+    MODEL_CARD_KIND,
+    PLAIN_FLASHCARD_KINDS,
+    Flashcard,
+    QuizQuestion,
+)
 from app.modules.content.registry import DeleteScope
 from app.modules.content.schemas import (
     FlashcardOut,
@@ -248,50 +254,42 @@ async def flashcard_count(session: AsyncSession, lecture_id: uuid.UUID) -> int:
 async def first_flashcard_times(
     session: AsyncSession, lecture_ids: tuple[uuid.UUID, ...]
 ) -> dict[uuid.UUID, datetime]:
-    """When each lecture got its first flashcard (qa or concept; model cards do
-    not count, as in flashcard_count). Lectures without cards are missing."""
+    """When each lecture got its first flashcard of any kind. Model cards count
+    too, since they are practised in the same session (FR-56). Lectures
+    without cards are missing."""
     if not lecture_ids:
         return {}
     statement = (
         select(File.lecture_id, func.min(Flashcard.created_at))
         .join(File, Flashcard.file_id == File.id)
-        .where(File.lecture_id.in_(lecture_ids), Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS))
+        .where(File.lecture_id.in_(lecture_ids), Flashcard.kind.in_(FLASHCARD_KINDS))
         .group_by(File.lecture_id)
     )
     return {lecture_id: first for lecture_id, first in (await session.execute(statement)).all()}
 
 
 async def lecture_flashcards(session: AsyncSession, lecture_id: uuid.UUID) -> list[FlashcardOut]:
-    """The lecture's flashcards (qa and concept) with their source, ordered by
-    file (upload order), then page, then the order they were made in."""
+    """The lecture's flashcards (qa, concept and model cards, FR-56) with their
+    source, ordered by file (upload order), then page, then the order they
+    were made in."""
     statement = (
         select(Flashcard, File.original_name)
         .join(File, Flashcard.file_id == File.id)
-        .where(File.lecture_id == lecture_id, Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS))
+        .where(File.lecture_id == lecture_id, Flashcard.kind.in_(FLASHCARD_KINDS))
         .order_by(File.uploaded_at, File.id, Flashcard.page_no, Flashcard.created_at, Flashcard.position, Flashcard.id)
     )
-    return [
-        FlashcardOut(
-            id=card.id,
-            kind=card.kind,
-            front=card.front,
-            back=card.back,
-            formula_flag=card.formula_flag,
-            source=FlashcardSource(file_id=card.file_id, file_name=file_name, page_no=card.page_no),
-        )
-        for card, file_name in (await session.execute(statement)).all()
-    ]
+    return [_flashcard_out(card, file_name) for card, file_name in (await session.execute(statement)).all()]
 
 
 async def subject_flashcards(session: AsyncSession, subject_id: uuid.UUID) -> list[SubjectFlashcardOut]:
-    """The flashcards (qa and concept) from all the subject's lectures, with
+    """The flashcards (qa, concept and model cards) from all the subject's lectures, with
     their source and lecture. Ordered by lecture (date, then when it was
     created), then as for one lecture: file, page, the order they were made in."""
     statement = (
         select(Flashcard, File.original_name, Lecture.id, Lecture.name)
         .join(File, Flashcard.file_id == File.id)
         .join(Lecture, File.lecture_id == Lecture.id)
-        .where(Lecture.subject_id == subject_id, Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS))
+        .where(Lecture.subject_id == subject_id, Flashcard.kind.in_(FLASHCARD_KINDS))
         .order_by(
             Lecture.date,
             Lecture.created_at,
@@ -306,12 +304,7 @@ async def subject_flashcards(session: AsyncSession, subject_id: uuid.UUID) -> li
     )
     return [
         SubjectFlashcardOut(
-            id=card.id,
-            kind=card.kind,
-            front=card.front,
-            back=card.back,
-            formula_flag=card.formula_flag,
-            source=FlashcardSource(file_id=card.file_id, file_name=file_name, page_no=card.page_no),
+            **_flashcard_out(card, file_name).model_dump(),
             lecture=LectureRef(id=lecture_id, name=lecture_name),
         )
         for card, file_name, lecture_id, lecture_name in (await session.execute(statement)).all()
@@ -401,10 +394,10 @@ async def count_flashcards(session: AsyncSession, scope: DeleteScope) -> int:
 async def get_flashcard(
     session: AsyncSession, user_id: uuid.UUID, flashcard_id: str
 ) -> tuple[Flashcard, str, uuid.UUID]:
-    """Her flashcard (qa or concept) with its file's name and its lecture's id.
-    A card has no user_id of its own: it is hers through file, lecture and
-    subject. Someone else's, a missing and a malformed id (and a model card)
-    all give the same 404 NOT_FOUND."""
+    """Her flashcard (qa, concept or model card) with its file's name and its
+    lecture's id. A card has no user_id of its own: it is hers through file,
+    lecture and subject. Someone else's, a missing and a malformed id all
+    give the same 404 NOT_FOUND."""
     try:
         parsed = uuid.UUID(flashcard_id)
     except ValueError:
@@ -417,7 +410,7 @@ async def get_flashcard(
         .where(
             Flashcard.id == parsed,
             Subject.user_id == user_id,
-            Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS),
+            Flashcard.kind.in_(FLASHCARD_KINDS),
         )
     )
     row = (await session.execute(statement)).first()
@@ -433,9 +426,21 @@ def _flashcard_out(card: Flashcard, file_name: str) -> FlashcardOut:
         kind=card.kind,
         front=card.front,
         back=card.back,
+        # A model card always has a list (also when the column is NULL).
+        points=list(card.points or []) if card.kind == MODEL_CARD_KIND else None,
+        mnemonic=card.mnemonic or None,
         formula_flag=card.formula_flag,
         source=FlashcardSource(file_id=card.file_id, file_name=file_name, page_no=card.page_no),
     )
+
+
+def _wrong_fields(changes: FlashcardUpdate, is_model: bool) -> list[str]:
+    """The fields sent that do not belong to the card's kind: back on a model
+    card, points or mnemonic on a qa or concept card."""
+    sent = changes.model_fields_set
+    if is_model:
+        return ["back"] if "back" in sent else []
+    return [name for name in ("points", "mnemonic") if name in sent]
 
 
 async def update_flashcard(
@@ -444,18 +449,43 @@ async def update_flashcard(
     """Save the student's own text (FR-27). The text is trimmed at both ends,
     line breaks inside are kept. Only empty fields are rejected (front first),
     never with the generation's validate_item (AR-4): her text needs no page
-    to come from. Nothing is stored when a field is empty."""
+    to come from. Nothing is stored when a field is empty.
+
+    A model card takes front, points and mnemonic (FR-42, FR-46): empty
+    lines among the points are dropped, and at least one must be left. Her
+    mnemonic is never checked against the points' first letters, and fixing
+    the points never recomputes it (AR-4). An empty mnemonic or no points
+    give FLASHCARD_BACK_REQUIRED, as both stand on the back. A field that
+    does not belong to the card's kind gives VALIDATION_ERROR."""
     card, file_name, _lecture_id = await get_flashcard(session, user_id, flashcard_id)
+    wrong = _wrong_fields(changes, card.kind == MODEL_CARD_KIND)
+    if wrong:
+        raise AppError(ErrorCode.VALIDATION_ERROR, {"fields": dict.fromkeys(wrong, "not_allowed")})
+    sent = changes.model_fields_set
     front = changes.front.strip() if changes.front is not None else None
     back = changes.back.strip() if changes.back is not None else None
+    points = None
+    if "points" in sent:
+        points = [point.strip() for point in changes.points or [] if point.strip()]
+    mnemonic = None
+    if "mnemonic" in sent:
+        mnemonic = (changes.mnemonic or "").strip()
     if front is not None and not front:
         raise AppError(ErrorCode.FLASHCARD_FRONT_REQUIRED)
     if back is not None and not back:
+        raise AppError(ErrorCode.FLASHCARD_BACK_REQUIRED)
+    if points is not None and not points:
+        raise AppError(ErrorCode.FLASHCARD_BACK_REQUIRED)
+    if mnemonic is not None and not mnemonic:
         raise AppError(ErrorCode.FLASHCARD_BACK_REQUIRED)
     if front is not None:
         card.front = front
     if back is not None:
         card.back = back
+    if points is not None:
+        card.points = points
+    if mnemonic is not None:
+        card.mnemonic = mnemonic
     result = _flashcard_out(card, file_name)
     await session.commit()
     return result

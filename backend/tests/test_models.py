@@ -474,11 +474,13 @@ async def test_fr12_slett_fil_tar_modellkortene_med(client: AsyncClient, lecture
     assert await _model_cards(engine) == []
 
 
-async def test_fr12_modellkort_vises_ikke_som_vanlige_flashcards(client: AsyncClient, lecture: str) -> None:
-    # Practising model cards comes in story 7.2: until then they are not listed as flashcards.
+async def test_fr56_modellkort_listes_med_flashcards_som_kind_model(client: AsyncClient, lecture: str) -> None:
+    # Story 7.2: model cards are practised as flashcards, listed with kind "model".
     await _start(client, lecture)
     await _finish_jobs()
-    assert (await client.get(f"{LECTURES}/{lecture}/flashcards")).json() == []
+    cards = (await client.get(f"{LECTURES}/{lecture}/flashcards")).json()
+    assert cards
+    assert all(card["kind"] == "model" and card["back"] is None and card["points"] for card in cards)
 
 
 async def test_fr22_modellkortenes_forsider_er_ikke_kjente_flashcards(

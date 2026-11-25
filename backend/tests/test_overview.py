@@ -380,7 +380,7 @@ def test_ar16_samme_type_to_ganger_er_en_feil(freetext_registered: dict[uuid.UUI
         register_first_content("flashcards", other)
 
 
-async def test_ar16_first_content_times_teller_ikke_modellkort(client: AsyncClient, engine: AsyncEngine) -> None:
+async def test_fr56_first_content_times_teller_modellkort(client: AsyncClient, engine: AsyncEngine) -> None:
     await _log_in_new_user(client)
     _, first, second = await _subject_with_lectures(client)
     await _add_card(engine, first, T, kind="model")
@@ -390,7 +390,7 @@ async def test_ar16_first_content_times_teller_ikke_modellkort(client: AsyncClie
     async with async_sessionmaker(engine)() as session:
         found = await first_content_times(session, (uuid.UUID(first), uuid.UUID(second)), "flashcards")
 
-    assert found == {uuid.UUID(second): T + timedelta(hours=1)}
+    assert found == {uuid.UUID(first): T, uuid.UUID(second): T + timedelta(hours=1)}
 
 
 async def test_ar16_first_content_times_for_quiz_og_ukjent_type(client: AsyncClient, engine: AsyncEngine) -> None:
