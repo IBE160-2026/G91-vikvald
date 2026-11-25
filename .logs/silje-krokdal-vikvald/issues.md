@@ -175,4 +175,6 @@
 - [ ] 2026-11-25 [story-8-1-fritekstsporsmal](945-2026-11-25-16-10-17-story-8-1-fritekstsporsmal.md) — vurder kanttilfellene fra story 8.1 (#329–#334)
 - [x] 2026-11-25 [story-8-1-fritekstsporsmal](945-2026-11-25-16-10-17-story-8-1-fritekstsporsmal.md) — bare 2,4 GB disk er ledig etter opprydding, under grensen på 5 GB for neste `--build` (løst 2026-11-25)
 - [ ] 2026-11-25 [story-8-2-ov-pa-fritekst](944-2026-11-25-20-25-51-story-8-2-ov-pa-fritekst.md) — vurder kanttilfellene fra story 8.2 (#336–#341)
-- [ ] 2026-11-25 [story-8-2-ov-pa-fritekst](944-2026-11-25-20-25-51-story-8-2-ov-pa-fritekst.md) — bare 2,4 GB disk er ledig etter opprydding, under grensen på 5 GB for neste `--build`
+- [x] 2026-11-25 [story-8-2-ov-pa-fritekst](944-2026-11-25-20-25-51-story-8-2-ov-pa-fritekst.md) — bare 2,4 GB disk er ledig etter opprydding, under grensen på 5 GB for neste `--build` (løst 2026-11-25)
+- [ ] 2026-11-25 [story-8-3-fritekst-hele-emnet](943-2026-11-25-21-37-26-story-8-3-fritekst-hele-emnet.md) — vurder kanttilfellene fra story 8.3 (#344–#347)
+- [ ] 2026-11-25 [story-8-3-fritekst-hele-emnet](943-2026-11-25-21-37-26-story-8-3-fritekst-hele-emnet.md) — sletting av alle spørsmålene fra en forelesnings første jobb kan gjøre at en tidligere emneøkt ikke lenger teller som «øvd» (regelen fra 5.1)
