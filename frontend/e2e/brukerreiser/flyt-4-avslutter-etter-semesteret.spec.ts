@@ -74,7 +74,7 @@ test.describe("FR-3, FR-5 / flyt 4: Klara avslutter etter semesteret", () => {
     const card = page.getByRole("region", { name: "Slett kontoen" });
     // What goes (the generated content kinds registered so far: flashcards since story 3.7 and quiz questions since story 4.1), and how much she has.
     await expect(
-      card.getByText("Alle emner, filer og alt generert innhold slettes for godt: flashcards og quizspørsmål. Det kan ikke angres."),
+      card.getByText("Alle emner, filer og alt generert innhold slettes for godt: flashcards, quizspørsmål og modellkort. Det kan ikke angres."),
     ).toBeVisible();
     await expect(card.getByText(`Du har nå ${COUNTS}.`)).toBeVisible();
     await expect(card.getByRole("button", { name: "Slett kontoen …" })).toBeVisible();
@@ -86,7 +86,7 @@ test.describe("FR-3, FR-5 / flyt 4: Klara avslutter etter semesteret", () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Avbryt" })).toBeFocused();
     await expect(dialog.getByText(email)).toBeVisible();
-    await expect(dialog.getByText("Alle emner, filer og alt generert innhold slettes for godt: flashcards og quizspørsmål.")).toBeVisible();
+    await expect(dialog.getByText("Alle emner, filer og alt generert innhold slettes for godt: flashcards, quizspørsmål og modellkort.")).toBeVisible();
     await expect(dialog.getByText(`Dette sletter også ${COUNTS}.`)).toBeVisible();
     await expect(dialog.getByText("Det kan ikke angres.")).toBeVisible();
     await expectNoAxeViolations(page);
