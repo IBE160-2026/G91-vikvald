@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-25: Story 7.2 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `7-2-øv-på-modellkort-og-endre-huskeregelen`.
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-7-2-oev-paa-modellkort-og-endre-huskeregelen.md), branchen `story/7-2` og kanttilfellene #320–#324.
+
 ## 2026-11-25: Story 7.1 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `7-1-lag-modellkort-fra-en-forelesning`.
