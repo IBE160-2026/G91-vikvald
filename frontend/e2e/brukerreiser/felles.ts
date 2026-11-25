@@ -155,7 +155,8 @@ export async function makeModelCardsViaApi(page: Page, lectureId: string, expect
 export async function flashcardCountViaApi(page: Page, lectureId: string): Promise<number> {
   const response = await page.request.get(`/api/lectures/${lectureId}/flashcards`);
   expect(response.status()).toBe(200);
-  return ((await response.json()) as unknown[]).length;
+  // Since story 7.2 the list also has the model cards (kind "model"); they are counted apart.
+  return ((await response.json()) as { kind: string }[]).filter((card) => card.kind !== "model").length;
 }
 
 // The Flashcards row in «Lag og øv» on the lecture page (04). Since story 4.1
