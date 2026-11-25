@@ -2,7 +2,7 @@
 title: 'Story 8.2: Øv på fritekst og vurder deg selv'
 type: 'feature'
 created: '2026-11-25'
-status: 'in-progress'
+status: 'blocked'
 baseline_revision: '5aa7e88438224c211bd88991bdd770d29d3f547f'
 review_loop_iteration: 0
 followup_review_recommended: false
@@ -119,3 +119,10 @@ deferred: []
 - `cd backend && uv run pytest && uv run ruff check . && uv run mypy app` -- expected: alle grønne.
 - `cd frontend && npm run test && npm run lint && npx tsc --noEmit` -- expected: alle grønne.
 - `cd frontend && npx playwright test` mot `docker compose up --build -d` -- expected: alle grønne.
+
+## Auto Run Result
+
+Status: blocked
+Blocking condition: diskregelen. Det var 1,5 GB ledig mens appen kjørte. Etter `docker compose down`, `docker builder prune -f` og `docker image prune -f` var det 2,4 GB, altså fortsatt under 5 GB, så kjøringen stoppet før `docker compose up --build` og Playwright.
+
+Koden er bygd og committet på `story/8-2`. `uv run pytest` (915 bestått), `npm run test` (1018 bestått) og `npx tsc --noEmit` er grønne. Gjenstår: Playwright mot nytt bygg, skjermbilder, gjennomgang (step 4), KI-sporet, `sprint-status.yaml`, sesjonsloggen, issues og PR.
