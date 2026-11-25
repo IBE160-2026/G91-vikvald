@@ -1,12 +1,14 @@
 """HTTP routes for the content module: GET /api/lectures/{id}/content-counts,
 GET /api/lectures/{id}/flashcards, GET /api/lectures/{id}/quiz-questions,
 GET /api/lectures/{id}/freetext-questions, GET /api/subjects/{id}/flashcards,
-GET /api/subjects/{id}/quiz-questions, and
-PATCH and DELETE /api/flashcards/{id}, and DELETE /api/quiz-questions/{id}.
+GET /api/subjects/{id}/quiz-questions, GET /api/subjects/{id}/freetext-questions,
+PATCH and DELETE /api/flashcards/{id}, DELETE /api/quiz-questions/{id}, and
+DELETE /api/freetext-questions/{id}.
 
 The lecture page needs only the number of cards; the practice session needs
 the cards with their source (and, for a whole subject, their lecture), and lets
-the student edit or delete a bad card or delete a bad quiz question. More content types are added later.
+the student edit or delete a bad card or delete a bad quiz or free-text
+question. More content types are added later.
 """
 
 from typing import Annotated
@@ -27,6 +29,7 @@ from app.modules.content.schemas import (
 )
 from app.modules.content.service import (
     delete_flashcard,
+    delete_freetext_question,
     delete_quiz_question,
     flashcard_count,
     freetext_question_count,
@@ -36,6 +39,7 @@ from app.modules.content.service import (
     model_card_count,
     quiz_question_count,
     subject_flashcards,
+    subject_freetext_questions,
     subject_quiz_questions,
     update_flashcard,
 )
@@ -47,6 +51,7 @@ lectures_router = APIRouter(prefix="/api/lectures")
 subjects_router = APIRouter(prefix="/api/subjects")
 flashcards_router = APIRouter(prefix="/api/flashcards")
 quiz_questions_router = APIRouter(prefix="/api/quiz-questions")
+freetext_questions_router = APIRouter(prefix="/api/freetext-questions")
 
 CurrentUser = Annotated[User, Depends(current_user)]
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -110,6 +115,18 @@ async def subject_quiz_question_list(
     return await subject_quiz_questions(session, subject.id)
 
 
+# As for one lecture: the switch is checked before the subject is looked up
+# (AR-11), and the model answer is sent on purpose (AR-15).
+@subjects_router.get("/{subject_id}/freetext-questions")
+async def subject_freetext_question_list(
+    subject_id: str, user: CurrentUser, session: Session
+) -> list[FreetextQuestionOut]:
+    if not get_settings().FEATURE_FREETEXT:
+        raise AppError(ErrorCode.FEATURE_DISABLED)
+    subject = await get_subject(session, user.id, subject_id)
+    return await subject_freetext_questions(session, subject.id)
+
+
 # Editing or deleting a card is not stopped by a running job: the cards belong
 # to the file, not to the job.
 @flashcards_router.patch("/{flashcard_id}")
@@ -135,4 +152,15 @@ async def remove_flashcard(flashcard_id: str, user: CurrentUser, session: Sessio
 @quiz_questions_router.delete("/{question_id}", status_code=204)
 async def remove_quiz_question(question_id: str, user: CurrentUser, session: Session) -> Response:
     await delete_quiz_question(session, user.id, question_id)
+    return Response(status_code=204)
+
+
+# Like a quiz question, a free-text question can be deleted while a job runs,
+# and it cannot be edited. The switch is checked before the question is
+# looked up (AR-11).
+@freetext_questions_router.delete("/{question_id}", status_code=204)
+async def remove_freetext_question(question_id: str, user: CurrentUser, session: Session) -> Response:
+    if not get_settings().FEATURE_FREETEXT:
+        raise AppError(ErrorCode.FEATURE_DISABLED)
+    await delete_freetext_question(session, user.id, question_id)
     return Response(status_code=204)

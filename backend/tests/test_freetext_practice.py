@@ -153,7 +153,7 @@ async def _subject_of(client: AsyncClient, lecture_id: str) -> str:
     return (await client.get(f"{LECTURES}/{lecture_id}")).json()["subject_id"]
 
 
-def _session_body(subject_id: str, lecture_id: str, **changes: Any) -> dict[str, Any]:
+def _session_body(subject_id: str, lecture_id: str | None, **changes: Any) -> dict[str, Any]:
     body: dict[str, Any] = {
         "session_id": str(uuid.uuid4()),
         "subject_id": subject_id,
