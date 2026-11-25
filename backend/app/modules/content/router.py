@@ -1,6 +1,7 @@
 """HTTP routes for the content module: GET /api/lectures/{id}/content-counts,
-GET /api/lectures/{id}/flashcards, GET /api/lectures/{id}/quiz-questions, GET /api/subjects/{id}/flashcards,
-GET /api/lectures/{id}/freetext-questions, GET /api/subjects/{id}/quiz-questions, and
+GET /api/lectures/{id}/flashcards, GET /api/lectures/{id}/quiz-questions,
+GET /api/lectures/{id}/freetext-questions, GET /api/subjects/{id}/flashcards,
+GET /api/subjects/{id}/quiz-questions, and
 PATCH and DELETE /api/flashcards/{id}, and DELETE /api/quiz-questions/{id}.
 
 The lecture page needs only the number of cards; the practice session needs

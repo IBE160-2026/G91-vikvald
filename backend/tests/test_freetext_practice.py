@@ -9,6 +9,9 @@ import pytest
 from httpx import AsyncClient
 
 from app.core.config import get_settings
+from app.main import app
+from app.modules.generation.port import GenerationOptions, Page
+from app.modules.generation.providers import get_generator
 from tests.test_files import _log_in_new_user, _new_lecture, _upload
 from tests.test_freetext import PAGE_TEXT, _start, definitions, lecture
 from tests.test_jobs import _finish_jobs, no_jobs_left, pdf_with_pages
@@ -55,6 +58,23 @@ async def test_fr49_fr50_sporsmalene_har_alle_feltene_med_modellsvar_og_kilde(cl
         "Merkevare er et navn.",
         1,
     )
+
+
+async def test_fr41_fr49_formelmerket_folger_med_sporsmalet(client: AsyncClient, lecture: str) -> None:
+    class Model:
+        async def generate(self, kind: str, pages: list[Page], options: GenerationOptions) -> list[dict[str, Any]]:
+            item = {"file_id": str(pages[0].file_id), "page_no": 1, "model_answer": "Et svar."}
+            return [
+                {**item, "question": "Drøft merkevare."},
+                {**item, "question": "Drøft pris.", "formula_missing": True},
+            ]
+
+    app.dependency_overrides[get_generator] = Model
+    await _made(client, lecture)
+
+    flags = {item["question"]: item["formula_flag"] for item in await _freetext_questions(client, lecture)}
+
+    assert flags == {"Drøft merkevare.": False, "Drøft pris.": True}
 
 
 async def test_fr50_langsvar_har_kind_long(client: AsyncClient, lecture: str) -> None:
@@ -158,7 +178,7 @@ async def _overview_subject(client: AsyncClient, subject_id: str) -> dict[str, A
     return subject
 
 
-async def test_fr51_fr56_okt_med_delvis_riktig_lagres_og_vises_som_siste_okt(
+async def test_fr56_freetext_fr51_okt_med_delvis_riktig_lagres_og_vises_som_siste_okt(
     client: AsyncClient, lecture: str
 ) -> None:
     await _made(client, lecture)
@@ -179,7 +199,7 @@ async def test_fr51_fr56_okt_med_delvis_riktig_lagres_og_vises_som_siste_okt(
     assert (last["correct"], last["partial"], last["wrong"]) == (1, 1, 1)
 
 
-async def test_fr56_forelesningsokt_med_fritekst_teller_som_ovd(client: AsyncClient, lecture: str) -> None:
+async def test_fr56_freetext_forelesningsokt_teller_som_ovd(client: AsyncClient, lecture: str) -> None:
     await _made(client, lecture)
     subject_id = await _subject_of(client, lecture)
     [before] = (await _overview_subject(client, subject_id))["lectures"]
