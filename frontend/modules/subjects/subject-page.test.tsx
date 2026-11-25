@@ -8,7 +8,7 @@ import { focusHeadingAfterNavigation, headingFocusPending, resetHeadingFocus } f
 import { SubjectPage } from "./pages/subject-page";
 import type { SubjectFileCounts } from "@/modules/files/types";
 import { OVERVIEW_QUERY_KEY } from "@/modules/practice/api";
-import type { Overview, QuizQuestion, SubjectFlashcard } from "@/modules/practice/types";
+import type { FreetextQuestion, Overview, QuizQuestion, SubjectFlashcard } from "@/modules/practice/types";
 import type { Lecture, Subject } from "./types";
 
 // The real notFound() throws to show app/(app)/not-found.tsx; here it only records the call.
@@ -56,6 +56,23 @@ let subjectFlashcards: SubjectFlashcard[] = [];
 // The questions GET /api/subjects/a/quiz-questions answers with (none by default).
 let subjectQuizQuestions: QuizQuestion[] = [];
 
+// The questions GET /api/subjects/a/freetext-questions answers with (none by
+// default), and the switch FEATURE_FREETEXT in GET /api/config (off by default).
+let subjectFreetextQuestions: FreetextQuestion[] = [];
+let freetextOn = false;
+
+function freetextQuestion(id: string, lectureId: string): FreetextQuestion {
+  return {
+    id,
+    kind: "short",
+    question: `Forklar ${id}.`,
+    model_answer: `${id} er et begrep i faget.`,
+    formula_flag: false,
+    source: { file_id: "f1", file_name: "notater.pdf", page_no: 1 },
+    lecture: { id: lectureId, name: lectureId },
+  };
+}
+
 function quizQuestion(id: string, lectureId: string): QuizQuestion {
   return {
     id,
@@ -101,6 +118,14 @@ function respond(lectures: Lecture[] = LECTURES, fileCounts: SubjectFileCounts =
       lecture_count: lectureStore.filter((lecture) => lecture.subject_id === subject.id).length,
     });
     if (path === "/api/subjects") return jsonResponse(200, [...store.values()].map(counted));
+    if (path === "/api/config") {
+      return jsonResponse(200, {
+        demo_mode: true,
+        feature_mnemonics: false,
+        feature_freetext: freetextOn,
+        feature_summary: false,
+      });
+    }
     if (path === "/api/overview") {
       const fallback: Overview = {
         subjects: [...store.values()].map((subject) => ({
@@ -145,6 +170,11 @@ function respond(lectures: Lecture[] = LECTURES, fileCounts: SubjectFileCounts =
     if (questions) {
       if (!store.has(questions[1])) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
       return jsonResponse(200, questions[1] === "a" ? subjectQuizQuestions : []);
+    }
+    const freetext = path.match(/^\/api\/subjects\/([^/]+)\/freetext-questions$/);
+    if (freetext) {
+      if (!store.has(freetext[1])) return jsonResponse(404, { error: { code: "NOT_FOUND", details: {} } });
+      return jsonResponse(200, freetext[1] === "a" ? subjectFreetextQuestions : []);
     }
     const preview = path.match(/^\/api\/subjects\/([^/]+)\/delete-preview$/);
     if (preview) {
@@ -195,6 +225,8 @@ beforeEach(() => {
   overview = null;
   subjectFlashcards = [];
   subjectQuizQuestions = [];
+  subjectFreetextQuestions = [];
+  freetextOn = false;
   vi.stubGlobal("fetch", fetchMock);
   respond();
 });
@@ -666,6 +698,78 @@ describe("emnesiden", () => {
       const fake = fetchMock.getMockImplementation()!;
       fetchMock.mockImplementation(async (url, init) =>
         String(url).endsWith("/quiz-questions")
+          ? jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } })
+          : fake(url, init),
+      );
+      renderPage();
+      const alert = await within(await screen.findByRole("region", { name: "Øv på hele emnet" })).findByRole("alert");
+      expect(alert.textContent).toBe("Noe gikk galt. Prøv igjen.");
+    });
+  });
+
+  describe("Fritekstspørsmål på hele emnet (story 8.3)", () => {
+    function practiceSection(): HTMLElement {
+      return screen.getByRole("region", { name: "Øv på hele emnet" });
+    }
+
+    function freetextCalls(): number {
+      return fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/freetext-questions")).length;
+    }
+
+    it("FR-50, UX-DR14: raden Fritekstspørsmål under Quiz med «7 spørsmål fra 1 forelesning» og «Start ›» til emneøkten", async () => {
+      freetextOn = true;
+      subjectQuizQuestions = [quizQuestion("q", "l1")];
+      subjectFreetextQuestions = ["a", "b", "c", "d", "e", "f", "g"].map((id) => freetextQuestion(id, "l1"));
+      renderPage();
+      expect(await screen.findByText("7 spørsmål fra 1 forelesning")).toBeTruthy();
+      const section = practiceSection();
+      const titles = within(section).getAllByRole("heading", { level: 3 }).map((heading) => heading.textContent);
+      expect(titles).toEqual(["Quiz", "Fritekstspørsmål"]);
+      const link = within(section).getByRole("link", { name: "Start fritekst på hele emnet" });
+      expect(link.getAttribute("href")).toBe("/emner/a/fritekst");
+      expect(link.dataset.variant).toBe("text");
+      expect(link.querySelector("svg")).toBeTruthy();
+      expect(link.querySelector(".sr-only")!.textContent).toBe("fritekst på hele emnet");
+      const row = link.closest("[data-slot='practice-all-row']")!;
+      expect(row.className).toContain("flex-row");
+    });
+
+    it("FR-50: spørsmål fra to forelesninger gir «3 spørsmål fra 2 forelesninger»", async () => {
+      freetextOn = true;
+      subjectFreetextQuestions = [freetextQuestion("a", "l1"), freetextQuestion("b", "l2"), freetextQuestion("c", "l2")];
+      renderPage();
+      expect(await screen.findByText("3 spørsmål fra 2 forelesninger")).toBeTruthy();
+    });
+
+    it("FR-50: emne uten fritekstspørsmål gir ingen rad", async () => {
+      freetextOn = true;
+      subjectQuizQuestions = [quizQuestion("q", "l1")];
+      const client = renderPage();
+      expect(await screen.findByText("1 spørsmål fra 1 forelesning")).toBeTruthy();
+      await waitFor(() =>
+        expect(client.getQueryState(["subjects", "a", "freetext-questions"])?.status).toBe("success"),
+      );
+      expect(within(practiceSection()).queryByRole("heading", { level: 3, name: "Fritekstspørsmål" })).toBeNull();
+    });
+
+    it("AR-11: med bryteren av hentes ingen fritekstspørsmål, og det er ingen rad og ingen feiltekst", async () => {
+      subjectQuizQuestions = [quizQuestion("q", "l1")];
+      subjectFreetextQuestions = [freetextQuestion("a", "l1")];
+      const client = renderPage();
+      expect(await screen.findByText("1 spørsmål fra 1 forelesning")).toBeTruthy();
+      await waitFor(() => expect(client.getQueryState(["config"])?.status).toBe("success"));
+      expect(freetextCalls()).toBe(0);
+      const section = practiceSection();
+      expect(within(section).queryByRole("heading", { level: 3, name: "Fritekstspørsmål" })).toBeNull();
+      expect(within(section).queryByRole("alert")).toBeNull();
+    });
+
+    it("FR-50: feil når fritekstspørsmålene hentes gir reserveteksten i seksjonen", async () => {
+      freetextOn = true;
+      subjectQuizQuestions = [quizQuestion("q", "l1")];
+      const fake = fetchMock.getMockImplementation()!;
+      fetchMock.mockImplementation(async (url, init) =>
+        String(url).endsWith("/freetext-questions")
           ? jsonResponse(500, { error: { code: "INTERNAL_ERROR", details: {} } })
           : fake(url, init),
       );
