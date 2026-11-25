@@ -1530,14 +1530,15 @@ describe("Modellkort (story 7.1)", () => {
     expect(within(row).queryByRole("button", { name: "Lag modellkort" })).toBeNull();
   });
 
-  it("FR-42: med bare modellkort teller raden dem, men «Øv nå» er ikke aktiv før de kan øves (story 7.2)", async () => {
+  it("FR-42, FR-56: med bare modellkort teller raden dem, og «Øv nå» er aktiv (story 7.2)", async () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     modelCount = 2;
     renderPage();
     const row = await screen.findByRole("group", { name: "Flashcards" });
     expect(await within(row).findByText("2 kort")).toBeTruthy();
-    const practice = within(row).getByRole("button", { name: "Øv nå" }) as HTMLButtonElement;
-    expect(practice.disabled).toBe(true);
+    await waitFor(() =>
+      expect((within(row).getByRole("button", { name: "Øv nå" }) as HTMLButtonElement).disabled).toBe(false),
+    );
     cleanup();
 
     cardCount = 3;

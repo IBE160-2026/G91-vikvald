@@ -48,10 +48,6 @@ type Props = GenerationRowProps & {
   testId: string;
   // The row's count from the lecture's content counts.
   countOf: (counts: ContentCounts) => number;
-  // What «Øv nå» can practise, when it is less than the count (model cards are
-  // counted on the Flashcards row but practised from story 7.2). 0 makes
-  // «Øv nå» not active. Defaults to countOf.
-  practiceCountOf?: (counts: ContentCounts) => number;
   // «24 kort», «15 spørsmål».
   countText: (count: number) => string;
   // «Lag flashcards», «Lag quiz».
@@ -96,7 +92,6 @@ export function GenerationRow({
   title,
   testId,
   countOf,
-  practiceCountOf,
   countText,
   createLabel,
   onPractice,
@@ -203,7 +198,6 @@ export function GenerationRow({
   }
 
   const count = counts.data ? countOf(counts.data) : 0;
-  const practiceCount = counts.data ? (practiceCountOf ?? countOf)(counts.data) : 0;
   const hasFiles = fileCount === undefined ? undefined : fileCount > 0;
   const running = starting || job?.status === "running";
   let state: CreateRowState = "idle";
@@ -234,7 +228,7 @@ export function GenerationRow({
         onCreate={() => setDialogOpen(true)}
         onCreateMore={() => setDialogOpen(true)}
         extraAction={extra && showExtra ? { label: extra.label, onClick: startExtra } : undefined}
-        onPractice={practiceCount > 0 ? onPractice : undefined}
+        onPractice={count > 0 ? onPractice : undefined}
         jobText={generationTexts[starting ? startingKind : (job?.kind ?? kind)].jobText}
         announcement={announcement}
         message={message}

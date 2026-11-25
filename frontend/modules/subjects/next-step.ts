@@ -13,10 +13,17 @@ import type { OverviewLecture } from "@/modules/practice/types";
 
 // The practice types in the order «Øv nå» tries them (flashcards -> quiz). The
 // first type a lecture has content of is the one started, and the reason names
-// it. Free text (epic 8) is added to this list when it exists.
+// it. `counted` are the content counts that make up the type: model cards are
+// practised as flashcards (story 7.2, FR-56). Free text (epic 8) is added to
+// this list when it exists.
 const PRACTICE_KINDS = [
-  { kind: "flashcards", path: "flashcards", text: (count: number) => `${count} kort` },
-  { kind: "quiz_questions", path: "quiz", text: (count: number) => `${count} quizspørsmål` },
+  {
+    kind: "flashcards",
+    counted: ["flashcards", "model_cards"],
+    path: "flashcards",
+    text: (count: number) => `${count} kort`,
+  },
+  { kind: "quiz_questions", counted: ["quiz_questions"], path: "quiz", text: (count: number) => `${count} quizspørsmål` },
 ] as const;
 
 export type ContentCounts = { flashcards: number; quiz_questions: number };
@@ -60,7 +67,8 @@ export type NextStep = {
 // The first practice type the lecture has content of, or null.
 function firstKind(counts: LectureFileCount | undefined) {
   for (const item of PRACTICE_KINDS) {
-    const value = count(counts, item.kind);
+    const kinds: readonly string[] = item.counted;
+    const value = kinds.reduce((total, kind) => total + count(counts, kind), 0);
     if (value > 0) return { ...item, value };
   }
   return null;
