@@ -17,8 +17,10 @@ Utvide Playwright-testene av brukerreisene etter epic 7, særlig steg 4 i flyt 2
 - `2f86241`: oversikten viser steg 4 i flyt 2 som testet, nytt avsnitt «Det epic 7 har bygd som ingen flyt viser», og testplanen nevner flyttesten under FR-42, FR-43 og FR-46.
 - Tester: `npx playwright test e2e/brukerreiser` mot `docker compose up --build -d` grønn (flyt 2: 14 av 14, også 42 av 42 med `--repeat-each 3`; flyt 1, 3 og 4 grønne i første kjøring). `uv run pytest`: 832 grønne. `npm run test`: grønt (exit 0).
 - Ingen feil i appen funnet; ingen appretting.
-- Full `npx playwright test` ble avbrutt: ledig disk var 1,9 GB mens appen kjørte (grensen er 2 GB). Appen er stoppet med `docker compose down` (uten `-v`). Etterpå 2,9 GB ledig.
-- Ikke gjort: KI-sporet i `docs/ki-prosess/`, push, PR og fletting.
+- Første forsøk på full `npx playwright test` ble avbrutt: ledig disk var 1,9 GB mens appen kjørte (grensen er 2 GB). Appen ble stoppet med `docker compose down` (uten `-v`).
+- Etter at det var frigjort plass (over 6 GB), ble appen startet med `docker compose up -d` uten `--build`, siden branchen ikke endrer appkoden. Full `npx playwright test`: 194 grønne, 4 hoppet over (testbrukertestene, som hopper over seg selv når databasen ikke er tom). Laveste ledige disk under kjøringen var om lag 6 GB. Appen er stoppet med `docker compose down`.
+- `2aa987d`: KI-sporet (`prompts.md` og `beslutninger.md` om fast rekkefølge i økten). Ingen rettinger til `korrigeringer.md`.
+- Push, PR og fletting gjøres etter denne loggen.
 
 ### Åpne punkter
-- Frigjør diskplass, kjør hele `npx playwright test` mot appen, før KI-sporet (prompts, beslutningen om `Math.random`), push `brukerreiser/epic-7`, lag PR-en og flett.
+Ingen.
