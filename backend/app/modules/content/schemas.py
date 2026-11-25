@@ -80,3 +80,22 @@ class QuizQuestionOut(BaseModel):
     source: FlashcardSource
     # The lecture the question was made from (shown in the explanation card).
     lecture: LectureRef
+
+
+# "short" («Kortsvar») or "long" («Langsvar»).
+FreetextKind = Literal["short", "long"]
+
+
+class FreetextQuestionOut(BaseModel):
+    id: uuid.UUID
+    # As the student chose when the questions were made.
+    kind: FreetextKind
+    question: str
+    # Sent with the question on purpose (AR-15); the session shows it only
+    # after the student has written an answer and asked to see it.
+    model_answer: str
+    # As for FlashcardOut (FR-41).
+    formula_flag: bool = False
+    source: FlashcardSource
+    # The lecture the question was made from (shown under the model answer).
+    lecture: LectureRef

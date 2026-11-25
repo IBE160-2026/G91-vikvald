@@ -1,12 +1,13 @@
 """Business logic for stored content: save generated flashcards, model cards,
-quiz questions and free-text questions, count them, list flashcards and quiz
-questions with their source, and let the student edit or delete a flashcard
+quiz questions and free-text questions, count them, list flashcards, quiz
+questions and free-text questions with their source, and let the student edit or delete a flashcard
 and delete a quiz question."""
 
 import hashlib
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import cast
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,6 +26,8 @@ from app.modules.content.schemas import (
     FlashcardOut,
     FlashcardSource,
     FlashcardUpdate,
+    FreetextKind,
+    FreetextQuestionOut,
     LectureRef,
     QuizQuestionOut,
     SubjectFlashcardOut,
@@ -454,6 +457,39 @@ async def count_freetext_questions(session: AsyncSession, scope: DeleteScope) ->
         return 0
     statement = select(func.count(FreetextQuestion.id)).where(FreetextQuestion.file_id.in_(scope.file_ids))
     return int(await session.scalar(statement) or 0)
+
+
+async def lecture_freetext_questions(session: AsyncSession, lecture_id: uuid.UUID) -> list[FreetextQuestionOut]:
+    """The lecture's free-text questions with the model answer, source and
+    lecture, ordered as lecture_quiz_questions: file (upload order), page, the
+    order they were made in."""
+    statement = (
+        select(FreetextQuestion, File.original_name, Lecture.id, Lecture.name)
+        .join(File, FreetextQuestion.file_id == File.id)
+        .join(Lecture, File.lecture_id == Lecture.id)
+        .where(File.lecture_id == lecture_id)
+        .order_by(
+            File.uploaded_at,
+            File.id,
+            FreetextQuestion.page_no,
+            FreetextQuestion.created_at,
+            FreetextQuestion.position,
+            FreetextQuestion.id,
+        )
+    )
+    return [
+        FreetextQuestionOut(
+            id=item.id,
+            # The CHECK rule keeps kind to "short" or "long".
+            kind=cast(FreetextKind, item.kind),
+            question=item.question,
+            model_answer=item.model_answer,
+            formula_flag=item.formula_flag,
+            source=FlashcardSource(file_id=item.file_id, file_name=file_name, page_no=item.page_no),
+            lecture=LectureRef(id=ref_id, name=ref_name),
+        )
+        for item, file_name, ref_id, ref_name in (await session.execute(statement)).all()
+    ]
 
 
 async def first_freetext_question_times(
