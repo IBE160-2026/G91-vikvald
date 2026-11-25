@@ -2,8 +2,8 @@
 title: 'Story 7.2: Øv på modellkort og endre huskeregelen'
 type: 'feature'
 created: '2026-11-25'
-status: 'ready-for-dev'
-baseline_revision: '705b3a6964bb150865208546c3270f23038c94e8'
+status: 'done'
+baseline_revision: 'a557de7e8fffd953a5c518d24623c176e7a6110c'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -100,6 +100,44 @@ deferred: []
 - Given `FEATURE_MNEMONICS=false`, when et modellkort vises, then mangler huskeregelknappen, mens huskeregelen som finnes, vises.
 - Given økten med et modellkort og dialogen, when axe kjøres, then er det ingen brudd.
 
+## Spec Change Log
+
+## Review Triage Log
+
+### 2026-11-25 — Review pass
+- verdicts: 25 findings — high 0, medium 0, low 19, false 6, maybe-false 0
+- findings:
+  - Edge Case Hunter
+    - `[low]` `[patch]` Modellkort med `points` NULL i databasen sendes som `points: null` — `_flashcard_out` sender alltid en liste for `kind="model"`. Ny backendtest.
+    - `[low]` `[patch]` (samme rot) `ModelCardBack` krasjer når `points` er null — dekket av rettelsen i backend.
+    - `[low]` `[patch]` (samme rot) «Rediger» krasjer når `points` er null — dekket av rettelsen i backend.
+    - `[low]` `[reject]` Et punkt med linjeskift inni deles i flere når det lagres uendret — punktene lages av lister med ett punkt per linje; svært sjelden, og en rettelse krever ny redigeringsform.
+    - `[low]` `[patch]` Uavsluttet parentes før kolon («A (b: c») gir termen «A (b» — `pointParts` deler bare på kolon uten åpen parentes foran. Ny test.
+  - Blind Hunter
+    - `[false]` `[reject]` FR-56 er feil krav-ID for listetestene — PRD-en sier under FR-56 at modellkort er flashcards og øves i samme økt, og storien lister «FR-56 (modellkort)».
+    - `[false]` `[reject]` KI-sporet mangler — føres i samme økt etter gjennomgangen.
+    - `[low]` `[reject]` Når punktene rettes, kan huskeregelen bli stående usynkronisert — med vilje (AR-4, spesifikasjonen); studenten kan endre huskeregelen selv.
+    - `[low]` `[reject]` Ingen øvre grense for antall punkter eller lengden på huskeregelen — det samme gjelder forside og svar fra epic 3; lokal app for én bruker, og en grense krever nye vakter og tekster.
+    - `[low]` `[reject]` Feilkoden for tomt felt sier ikke hvilket felt — dialogene sender aldri punkter og huskeregel samtidig, og hver dialog har ett felt som kan gi koden.
+    - `[false]` `[reject]` Skjemaet håndhever ikke formen per type — ingen kode lager slike svar; `_flashcard_out` er eneste vei ut, og den bygger fra raden.
+    - `[low]` `[patch]` `pointParts` deler «Kl. 10:30» og «https://» på kolon — kolon teller bare når det følges av mellomrom. Nye tester. (Lang innledning i fet skrift avvist: heuristikken er med vilje enkel.)
+    - `[low]` `[reject]` Bryteren av er bare delvis testet — listene leser ikke bryteren, og 404 for huskeregel og skjult knapp er testet.
+    - `[low]` `[patch]` Grenen for «konfigurasjonen er ikke lastet» i økttesten brukes ikke — ny test der knappen mangler uten konfigurasjon.
+    - `[low]` `[reject]` Lagring av huskeregel i en emneøkt er ikke testet — flettingen er den samme koden, og den eksisterende emnetesten viser at kortet beholder forelesningen.
+    - `[low]` `[patch]` Kommentaren til `PLAIN_FLASHCARD_KINDS` er ufullstendig — skrevet om, så den nevner dublettsjekken og slettetellingen.
+    - `[low]` `[patch]` Navnene i `test_model_card_practice.py` stemmer ikke (`qa` er et begrepskort) — omdøpt til `plain`.
+    - `[false]` `[reject]` `SubjectFlashcardOut` bygd med `model_dump` kan feile ved nye felt — `SubjectFlashcardOut` arver fra `FlashcardOut`, så felt i `FlashcardOut` finnes alltid der.
+    - `[false]` `[reject]` Ingen test for «Øv nå» med null kort — raden viser ikke «Øv nå» uten innhold (`lecture-page.test.tsx:1062`), og quizraden har aldri brukt `practiceCountOf`.
+  - Verification Gap
+    - (ingen funn)
+  - Intent Alignment
+    - `[low]` `[reject]` Blanding av modellkort og andre kort er ikke vist i nettleseren — stokkingen er felles kode fra epic 3, og listene er testet i backend.
+    - `[low]` `[reject]` «Kunne ikke» på et modellkort er ikke testet for seg — samme øktkode som andre kort.
+    - `[low]` `[reject]` «Slett» på modellkort er bare testet i API-et — samme slettebekreftelse og samme rute som andre kort.
+    - `[low]` `[reject]` Bryteren av er ikke testet i nettleseren — Playwright kjører mot én Docker-konfigurasjon med bryteren på (som i 7.1).
+    - `[false]` `[reject]` Feilkoden for tom huskeregel er én av flere lesninger — valget står i spesifikasjonen og føres som kanttilfelle.
+    - `[low]` `[reject]` «Øv nå», «Neste å øve på» og øvd-regelen er endret uten eget akseptkriterium — følger av FR-42 («øves som andre flashcards»), står i Design Notes og føres i `beslutninger.md`.
+
 ## Design Notes
 
 - **Feilkoden for tomme felt:** AC sier «den samme feilkoden … som redigering av kort bruker fra epic 3». Epic 3 har to koder; huskeregelen og punktene står på baksiden, så `FLASHCARD_BACK_REQUIRED` brukes. Dialogene viser egne tekster for feltet («Skriv inn en huskeregel.»), så meldingsfila trenger ingen ny kode. Kanttilfelle.
@@ -113,3 +151,25 @@ deferred: []
 - `cd backend && uv run pytest && uv run ruff check . && uv run mypy app` -- expected: grønt.
 - `cd frontend && npm run test && npm run lint && npx tsc --noEmit` -- expected: grønt.
 - `cd frontend && npx playwright test` mot `docker compose up --build -d` -- expected: grønt.
+
+## Auto Run Result
+
+**Status:** done (bygging og gjennomgang). Playwright etter rettelsene, skjermbildene og PR-en gjenstår, se «Gjenstående risiko».
+
+**Hva som er bygd:** modellkortene er med i kortlistene for forelesning og emne (`kind="model"`, `points`, `mnemonic`) og øves i flashcard-økten sammen med de andre kortene. Baksiden viser punktene som en ordnet liste med bokstavbokser og loddrett linje, huskeregelen på merknadsflaten («Huskeregel:») og kilden. «Endre huskeregel»/«Legg til huskeregel» åpner en dialog som lagrer med `PATCH /api/flashcards/{id}`; tom huskeregel gir «Skriv inn en huskeregel.». «Rediger» retter forsiden og punktene (ett per linje). Med `FEATURE_MNEMONICS=false` mangler knappen, og `PATCH` med `mnemonic` gir 404. «Øv nå», «Neste å øve på» og øvd-regelen regner modellkort som kort.
+
+**Filer:**
+- `backend/app/modules/content/{schemas,service,router,models}.py` -- listene, `PATCH` med punkter og huskeregel, bryteren, øvd.
+- `backend/scripts/export_quality_sample.py` -- stikkprøven tar bare med vanlige flashcards.
+- `backend/tests/test_model_card_practice.py` (ny) og fem snudde tester.
+- `frontend/modules/practice/components/model-card-back.tsx`, `mnemonic-dialog.tsx` (nye), `flashcard.tsx`, `edit-flashcard-dialog.tsx`, `pages/flashcard-session-page.tsx`, `types.ts`, `api.ts` (+ tester).
+- `frontend/modules/generation/components/{flashcards-row,generation-row}.tsx`, `frontend/modules/subjects/next-step.ts` (+ tester).
+- `frontend/e2e/modellkort.spec.ts`, `frontend/e2e/brukerreiser/felles.ts`, `docs/testplan.md`.
+
+**Gjennomgang:** 25 funn. 8 rettet (alle lave, i fire grupper), 0 utsatt, 17 avvist (6 feilaktige) med grunn i loggen over.
+
+**followup_review_recommended:** false. Ingen rettede funn var `high` eller `medium`.
+
+**Verifisering:** før rettelsene: `uv run pytest` 831 grønne, `npm run test` grønt, `npx playwright test` mot `docker compose up --build -d` 192 grønne og 4 hoppet over (uten testbruker). Etter rettelsene: `uv run pytest` 832 grønne, `uv run ruff check .` rent, `npm run test` 968 grønne (75 filer), `npx tsc --noEmit` rent. `npm run lint` finnes ikke i `package.json`. `uv run mypy app` er ikke satt opp i prosjektet.
+
+**Gjenstående risiko:** Playwright er ikke kjørt etter rettelsene fra gjennomgangen, og skjermbildene i `docs/skjermbilder/story-7-2/` er ikke tatt, fordi diskplassen var 4,8 GB etter rydding (grensen for `--build` er 5 GB). Rettelsene gjelder `points` for modellkort uten punkter og hvordan punktene deles på kolon; begge har enhetstester.
