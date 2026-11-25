@@ -21,7 +21,7 @@ export function lectureFlashcardsQueryKey(lectureId: string) {
   return ["lectures", lectureId, "flashcards"] as const;
 }
 
-// GET /api/lectures/{id}/flashcards: the lecture's cards (qa and concept) with
+// GET /api/lectures/{id}/flashcards: the lecture's cards (qa, concept and model) with
 // their source, ordered by file and page. 404 NOT_FOUND for someone else's or a
 // missing lecture.
 export function fetchLectureFlashcards(lectureId: string): Promise<Flashcard[]> {
@@ -54,7 +54,7 @@ export function isSubjectFlashcardsQueryKey(key: QueryKey): boolean {
   return key.length === 3 && key[0] === "subjects" && key[2] === "flashcards";
 }
 
-// GET /api/subjects/{id}/flashcards: the cards (qa and concept) from all the
+// GET /api/subjects/{id}/flashcards: the cards (qa, concept and model) from all the
 // subject's lectures with their source and lecture, ordered by lecture date,
 // then file and page. 404 NOT_FOUND for someone else's or a missing subject.
 export function fetchSubjectFlashcards(subjectId: string): Promise<SubjectFlashcard[]> {
@@ -84,9 +84,11 @@ export function fetchSubjectQuizQuestions(subjectId: string): Promise<QuizQuesti
   return apiFetch<QuizQuestion[]>(`/api/subjects/${encodeURIComponent(subjectId)}/quiz-questions`);
 }
 
-// What the student may change on a card: the question (front) and the answer
-// (back). A field left out is not changed.
-export type FlashcardUpdateInput = { front?: string; back?: string };
+// What the student may change on a card: the question (front), and the answer
+// (back) on a qa or concept card or the points and the mnemonic on a model card
+// (story 7.2). A field left out is not changed. A mnemonic is refused with 404
+// FEATURE_DISABLED when the switch is off.
+export type FlashcardUpdateInput = { front?: string; back?: string; points?: string[]; mnemonic?: string };
 
 // PATCH /api/flashcards/{id}: 200 with the saved card (the text trimmed at both
 // ends). 422 FLASHCARD_FRONT_REQUIRED / FLASHCARD_BACK_REQUIRED for an empty

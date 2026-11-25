@@ -8,17 +8,35 @@ export type FlashcardSource = Source & {
   file_id: string;
 };
 
-export type Flashcard = {
+type CardBase = {
   id: string;
-  // "qa" (question/answer) or "concept" (term/explanation); both are shown the same way.
-  kind: "qa" | "concept";
   front: string;
-  back: string;
   // Made from a page with a formula, or the model reported something missing
   // (FR-41): shown as formula-flag above the source.
   formula_flag: boolean;
   source: FlashcardSource;
 };
+
+// A question/answer card ("qa") or a term/explanation card ("concept"); both
+// are shown the same way. The API sends points and mnemonic as null.
+export type PlainFlashcard = CardBase & {
+  kind: "qa" | "concept";
+  back: string;
+  points?: null;
+  mnemonic?: null;
+};
+
+// A model card (story 7.1, FR-42): no back, but the points in the notes'
+// order and the mnemonic, or null when the card has none (FR-44). Practised
+// with the other flashcards (story 7.2, FR-56).
+export type ModelCard = CardBase & {
+  kind: "model";
+  back: null;
+  points: string[];
+  mnemonic: string | null;
+};
+
+export type Flashcard = PlainFlashcard | ModelCard;
 
 // A card in a whole-subject session: also the lecture it was made from.
 export type SubjectFlashcard = Flashcard & {

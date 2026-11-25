@@ -9,6 +9,7 @@ import { SourceLink } from "@/components/source-link";
 import { Button } from "@/components/ui/button";
 
 import type { Flashcard as FlashcardData, Mark } from "../types";
+import { ModelCardBack } from "./model-card-back";
 import { FLASHCARD_HINTS, ShortcutHints } from "./shortcut-hints";
 
 type Props = {
@@ -26,6 +27,9 @@ type Props = {
   // out, the buttons are not shown.
   onEdit?: () => void;
   onDelete?: () => void;
+  // «Endre huskeregel» / «Legg til huskeregel» on a flipped model card (story
+  // 7.2). Left out (FEATURE_MNEMONICS off), the button is not shown.
+  onEditMnemonic?: () => void;
 };
 
 // flashcard (DESIGN.md "Øving", mockup 07): white, at most 768 px, rounded.xl,
@@ -44,6 +48,11 @@ type Props = {
 // Under the card: «Kunne ikke» (outline, ✗) and «Kunne» (primary, ✓), both
 // 208 × 48 px and disabled until the card is flipped. After the flip, focus
 // goes to «Kunne». Under them the shortcut hint line (story 3.4).
+//
+// Story 7.2: a model card (kind "model") has the same frame, buttons and keys,
+// but its back is model-card-back (the points and the mnemonic), and the
+// footer has «Endre huskeregel» (or «Legg til huskeregel» when it has none)
+// before «Rediger».
 export function Flashcard({
   card,
   flipped,
@@ -53,8 +62,11 @@ export function Flashcard({
   showHints = false,
   onEdit,
   onDelete,
+  onEditMnemonic,
 }: Props) {
   const flipRef = useRef<HTMLButtonElement>(null);
+  // Only a model card has a mnemonic to change.
+  const mnemonicAction = card.kind === "model" ? onEditMnemonic : undefined;
   const knownRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -100,7 +112,13 @@ export function Flashcard({
           <>
             <div className="border-t border-divider px-7 pt-5 pb-5">
               <p className="text-overline text-ink-muted">SVAR</p>
-              <p className="mt-2 text-card-answer break-words whitespace-pre-line text-ink">{card.back}</p>
+              {card.kind === "model" ? (
+                <div className="mt-3">
+                  <ModelCardBack card={card} />
+                </div>
+              ) : (
+                <p className="mt-2 text-card-answer break-words whitespace-pre-line text-ink">{card.back}</p>
+              )}
             </div>
             <div
               data-slot="flashcard-footer"
@@ -108,8 +126,20 @@ export function Flashcard({
             >
               <FormulaFlag flagged={card.formula_flag} className="basis-full" />
               <SourceLink source={card.source} />
-              {onEdit || onDelete ? (
+              {onEdit || onDelete || mnemonicAction ? (
                 <div className="flex flex-wrap gap-1">
+                  {mnemonicAction ? (
+                    <Button
+                      variant="text"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        mnemonicAction();
+                      }}
+                    >
+                      <Pencil {...iconProps} />
+                      {card.kind === "model" && card.mnemonic ? "Endre huskeregel" : "Legg til huskeregel"}
+                    </Button>
+                  ) : null}
                   {onEdit ? (
                     <Button
                       variant="text"
