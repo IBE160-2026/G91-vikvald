@@ -19,4 +19,4 @@ Bygge story 8.3 i den autonome kjøringen: øve på fritekstspørsmål fra hele 
 
 ### Åpne punkter
 - Vurder kanttilfellene fra story 8.3 (#344–#347).
-- Utsatt fra gjennomgangen: sletter studenten alle spørsmålene fra den første jobben i en forelesning, kan en tidligere emneøkt slutte å telle som «øvd». Regelen er fra 5.1 og gjelder alle typer innhold.
+- Utsatt fra gjennomgangen: sletter studenten alle spørsmålene fra den første jobben i en forelesning, kan en tidligere emneøkt slutte å telle som «øvd». Regelen er fra 5.1 og gjelder alle typer innhold (#348).
