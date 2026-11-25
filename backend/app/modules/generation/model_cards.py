@@ -174,7 +174,7 @@ def _stored_mnemonic(points: list[str], mnemonic: str | None) -> str | None:
     return mnemonic.strip() or None
 
 
-async def save(session: AsyncSession, items: list[ValidItem]) -> None:
+async def save(session: AsyncSession, items: list[ValidItem], _options: GenerationOptions) -> None:
     add_model_cards(
         session,
         [

@@ -120,7 +120,7 @@ async def existing_keys(session: AsyncSession, lecture_id: uuid.UUID) -> frozens
     return frozenset(front.casefold() for front in await flashcard_fronts(session, lecture_id))
 
 
-async def save(session: AsyncSession, items: list[ValidItem]) -> None:
+async def save(session: AsyncSession, items: list[ValidItem], _options: GenerationOptions) -> None:
     add_flashcards(
         session,
         [

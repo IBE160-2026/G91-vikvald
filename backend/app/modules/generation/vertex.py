@@ -22,6 +22,7 @@ from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.providers.google_cloud import GoogleCloudProvider
 from pydantic_ai.settings import ModelSettings
 
+from app.modules.generation.freetext import QUESTION_KINDS
 from app.modules.generation.port import GenerationOptions, Page
 from app.modules.generation.quiz import DIFFICULTIES
 from app.modules.generation.registry import get_content_type
@@ -58,11 +59,15 @@ def build_vertex_model(project: str, model_name: str) -> GoogleModel:
 def instructions_for(kind: str, options: GenerationOptions) -> str:
     """The content type's instructions file (instructions/<kind>.md), the one
     place where «{difficulty}» becomes the chosen difficulty's description
-    (e.g. «Vanskelig: bruke stoffet på et eksempel»). Without a difficulty the
-    placeholder is left as it is (the app always sets one for quiz)."""
+    (e.g. «Vanskelig: bruke stoffet på et eksempel») and «{question_kind}» the
+    chosen question type's (e.g. «Langsvar: forklar sammenhenger eller gi et
+    eksempel»). Without a value the placeholder is left as it is (the app
+    always sets one for quiz and free text)."""
     text = get_content_type(kind).instructions_file.read_text(encoding="utf-8")
     if options.difficulty is not None:
         text = text.replace("{difficulty}", DIFFICULTIES[options.difficulty])
+    if options.question_kind is not None:
+        text = text.replace("{question_kind}", QUESTION_KINDS[options.question_kind])
     return text
 
 

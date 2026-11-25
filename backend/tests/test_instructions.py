@@ -32,7 +32,7 @@ def _flat(kind: str) -> str:
 # --- The files (AR-3) ------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models", "freetext"])
 def test_ar3_instructions_file_is_in_instructions_folder(kind: str) -> None:
     path = get_content_type(kind).instructions_file
     assert path == INSTRUCTIONS_DIR / f"{kind}.md"
@@ -43,7 +43,7 @@ def test_ar3_old_prompts_folder_is_gone() -> None:
     assert not (GENERATION_DIR / "prompts").exists()
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models", "freetext"])
 def test_ar3_instructions_file_is_tracked_in_git(kind: str) -> None:
     path = get_content_type(kind).instructions_file
     try:
@@ -60,7 +60,7 @@ def test_ar3_instructions_file_is_tracked_in_git(kind: str) -> None:
     assert result.returncode == 0, result.stderr
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models", "freetext"])
 def test_ar3_instructions_ask_for_the_source_from_the_page_label(kind: str) -> None:
     text = _text(kind)
     assert "file_id: …, filnavn: …, page_no: …" in text
@@ -68,7 +68,7 @@ def test_ar3_instructions_ask_for_the_source_from_the_page_label(kind: str) -> N
     assert "`page_no` som PDF-ens eget sidetall fra 1" in text
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models", "freetext"])
 def test_ar3_instructions_only_use_the_pages(kind: str) -> None:
     assert "bruk bare stoff som står på sidene" in _flat(kind)
 
@@ -76,7 +76,7 @@ def test_ar3_instructions_only_use_the_pages(kind: str) -> None:
 # --- Language (FR-2) -------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models", "freetext"])
 def test_fr2_flashcard_instructions_require_norwegian_terms(kind: str) -> None:
     text = _flat(kind)
     assert "norsk bokmål, også når notatene er på engelsk" in text
@@ -155,14 +155,14 @@ def test_fr31_quiz_instructions_forbid_all_of_the_above() -> None:
     assert "ikke bruk «alle de ovenfor»" in text
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models", "freetext"])
 def test_sk17_instructions_skip_pages_without_content_and_allow_an_empty_list(kind: str) -> None:
     text = _flat(kind)
     assert "sider uten faglig innhold" in text
     assert "er en tom liste et riktig svar" in text
 
 
-@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models"])
+@pytest.mark.parametrize("kind", ["flashcards", "quiz", "models", "freetext"])
 def test_ar3_instructions_cite_the_main_page_when_several_pages_are_used(kind: str) -> None:
     assert "på flere sider, oppgi siden der hovedpoenget står" in _flat(kind)
 

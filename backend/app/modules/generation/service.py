@@ -196,6 +196,7 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
         requested=job.requested,
         existing_keys=await content_type.existing_keys(session, job.lecture_id),
         difficulty=(job.params or {}).get("difficulty"),
+        question_kind=(job.params or {}).get("question_kind"),
     )
     # End the read transaction before the (possibly slow) page images and model call.
     await session.commit()
@@ -228,7 +229,7 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
     ]
 
     try:
-        await content_type.save(session, kept)
+        await content_type.save(session, kept, options)
         result = await session.execute(
             update(Job)
             .where(Job.id == job_id, Job.status == JOB_RUNNING)

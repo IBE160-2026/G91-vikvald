@@ -14,12 +14,13 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from app.core.config import Settings
-from app.modules.content.models import Flashcard, QuizQuestion
+from app.modules.content.models import Flashcard, FreetextQuestion, QuizQuestion
 from app.modules.files.models import File
 from app.modules.generation import flashcards
 from app.modules.generation.flashcards import definition_term, normalise, sentences
 from app.modules.generation.mock import MockGenerator
 from app.modules.generation.models import JOB_DONE, Job
+from app.modules.generation.port import GenerationOptions
 from app.modules.generation.registry import (
     ContentType,
     ValidItem,
@@ -75,7 +76,7 @@ async def _count(sessionmaker: async_sessionmaker[AsyncSession], model: Any) -> 
 
 
 async def _all_counts(sessionmaker: async_sessionmaker[AsyncSession]) -> dict[str, int]:
-    models = (User, Subject, Lecture, File, Job, Flashcard, QuizQuestion, PracticeSession)
+    models = (User, Subject, Lecture, File, Job, Flashcard, QuizQuestion, FreetextQuestion, PracticeSession)
     return {model.__tablename__: await _count(sessionmaker, model) for model in models}
 
 
@@ -124,8 +125,16 @@ async def test_nfr3_seed_creates_test_user_and_subject(
                 select(func.count()).select_from(QuizQuestion).where(QuizQuestion.file_id == files[0].id)
             )
             assert questions == len(EXPECTED_FRONTS[lecture.name])
+            # One free-text question per definition (FR-48, NFR-2a), all short.
+            freetext = list(
+                await session.scalars(select(FreetextQuestion).where(FreetextQuestion.file_id == files[0].id))
+            )
+            assert sorted(question.question for question in freetext) == sorted(
+                f"Forklar {front}." for front in EXPECTED_FRONTS[lecture.name]
+            )
+            assert {question.kind for question in freetext} == {"short"}
             kinds = sorted(await session.scalars(select(Job.kind).where(Job.lecture_id == lecture.id)))
-            assert kinds == ["flashcards", "models", "quiz"]
+            assert kinds == ["flashcards", "freetext", "models", "quiz"]
     assert await _count(sessionmaker, PracticeSession) == 2
 
 
@@ -141,6 +150,7 @@ async def test_ar14_seed_jobs_all_done_none_failed(sessionmaker: async_sessionma
         "flashcards": {"requested": 20},
         "quiz": {"requested": 20, "difficulty": "medium"},
         "models": {"requested": 20},
+        "freetext": {"requested": 10, "question_kind": "short"},
     }
 
 
@@ -249,7 +259,7 @@ def extra_type() -> Any:
     async def no_keys(_session: AsyncSession, _lecture_id: uuid.UUID) -> frozenset[str]:
         return frozenset()
 
-    async def save(_session: AsyncSession, items: list[ValidItem]) -> None:
+    async def save(_session: AsyncSession, items: list[ValidItem], _options: GenerationOptions) -> None:
         saved.extend(items)
 
     register_content_type(
@@ -290,6 +300,7 @@ async def test_ar14_seed_skips_disabled_extra_type(
         "flashcards",
         "quiz",
         "models",
+        "freetext",
     ]
 
 
@@ -327,7 +338,7 @@ async def test_fr42_seed_makes_no_model_cards_with_switch_off(
         assert list(await session.scalars(select(Flashcard).where(Flashcard.kind == "model"))) == []
         assert list(await session.scalars(select(Job).where(Job.kind == "models"))) == []
         # The other content is made as before.
-        assert set(await session.scalars(select(Job.kind))) == {"flashcards", "quiz"}
+        assert set(await session.scalars(select(Job.kind))) == {"flashcards", "quiz", "freetext"}
 
 
 async def test_nfr3_overview_shows_practised_and_not_practised(sessionmaker: async_sessionmaker[AsyncSession]) -> None:
@@ -471,3 +482,30 @@ def test_nfr3_no_other_pdfs_in_repo() -> None:
         pytest.skip("git is not available")
     allowed = {f"backend/app/seed/notater/{name}.pdf" for name in NOTE_NAMES} | {"backend/tests/fixtures/definisjoner.pdf"}
     assert set(listed) <= allowed
+
+
+async def test_fr48_seed_makes_freetext_questions_with_switch_on(
+    sessionmaker: async_sessionmaker[AsyncSession],
+) -> None:
+    assert await seed_if_empty(sessionmaker, _settings(FEATURE_FREETEXT=True)) is True
+    async with sessionmaker() as session:
+        rows = (
+            await session.execute(
+                select(Lecture.name, func.count(FreetextQuestion.id))
+                .join(File, FreetextQuestion.file_id == File.id)
+                .join(Lecture, File.lecture_id == Lecture.id)
+                .group_by(Lecture.name)
+            )
+        ).all()
+    # At least one sample lecture has free-text questions (here: all three).
+    assert {name: count for name, count in rows} == {name: len(fronts) for name, fronts in EXPECTED_FRONTS.items()}
+
+
+async def test_fr48_seed_makes_no_freetext_questions_with_switch_off(
+    sessionmaker: async_sessionmaker[AsyncSession],
+) -> None:
+    assert await seed_if_empty(sessionmaker, _settings(FEATURE_FREETEXT=False)) is True
+    async with sessionmaker() as session:
+        assert list(await session.scalars(select(FreetextQuestion))) == []
+        assert list(await session.scalars(select(Job).where(Job.kind == "freetext"))) == []
+        assert set(await session.scalars(select(Job.kind))) == {"flashcards", "quiz", "models"}

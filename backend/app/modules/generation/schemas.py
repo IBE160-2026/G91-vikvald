@@ -4,24 +4,30 @@ import uuid
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, StrictInt, field_validator, model_validator
 
 from app.modules.generation.registry import get_content_type, is_registered
 
-# The scopes «Rask» (10), «Vanlig» (20, the default) and «Dyp» (30).
-DEFAULT_REQUESTED = 20
 # «Lett», «Middels» (the default) and «Vanskelig», for types with a difficulty (quiz).
 Difficulty = Literal["easy", "medium", "hard"]
 DEFAULT_DIFFICULTY: Difficulty = "medium"
+# «Kortsvar» (the default) and «Langsvar», for types with a question type (free text).
+QuestionKind = Literal["short", "long"]
+DEFAULT_QUESTION_KIND: QuestionKind = "short"
 
 
 class JobParams(BaseModel):
-    requested: Literal[10, 20, 30] = DEFAULT_REQUESTED
+    # The scope: one of the content type's scopes (ContentType.scopes, e.g.
+    # 10/20/30 for flashcards, 5/10/15 for free text). Left out, JobCreate sets
+    # the type's default_requested.
+    requested: StrictInt | None = None
     difficulty: Difficulty | None = None
+    question_kind: QuestionKind | None = None
 
 
 class JobCreate(BaseModel):
     kind: str
+    # Always set after validation, with every default filled in.
     params: JobParams | None = None
 
     @field_validator("kind")
@@ -32,17 +38,38 @@ class JobCreate(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def _difficulty_fits_kind(self) -> "JobCreate":
-        """A type with a difficulty gets «medium» when none is given; a type
-        without one (flashcards) may not be given one."""
+    def _params_fit_kind(self) -> "JobCreate":
+        """The parameters checked against the content type (AR-12): requested
+        must be one of its scopes (the type's default when left out); a type
+        with a difficulty gets «medium» and one with a question type «short»
+        when none is given; a type without them may not be given them."""
+        content_type = get_content_type(self.kind)
         params = self.params or JobParams()
-        if get_content_type(self.kind).uses_difficulty:
+        update: dict[str, object] = {}
+        if params.requested is None:
+            update["requested"] = content_type.default_requested
+        elif params.requested not in content_type.scopes:
+            raise ValueError(f"{self.kind} takes requested {list(content_type.scopes)}")
+        if content_type.uses_difficulty:
             if params.difficulty is None:
-                params = params.model_copy(update={"difficulty": DEFAULT_DIFFICULTY})
+                update["difficulty"] = DEFAULT_DIFFICULTY
         elif params.difficulty is not None:
             raise ValueError(f"{self.kind} has no difficulty")
-        self.params = params
+        if content_type.uses_question_kind:
+            if params.question_kind is None:
+                update["question_kind"] = DEFAULT_QUESTION_KIND
+        elif params.question_kind is not None:
+            raise ValueError(f"{self.kind} has no question_kind")
+        self.params = params.model_copy(update=update) if update else params
         return self
+
+    def job_params(self) -> tuple[dict[str, Any], int]:
+        """The parameters to store on the job (without empty fields, so
+        flashcards stay {"requested": 20}) and the number requested, with every
+        default filled in by the validation above."""
+        params = self.params or JobParams()
+        requested = params.requested if params.requested is not None else get_content_type(self.kind).default_requested
+        return params.model_dump(exclude_none=True), requested
 
 
 class JobOut(BaseModel):
@@ -50,7 +77,7 @@ class JobOut(BaseModel):
     lecture_id: uuid.UUID
     kind: str
     # The request's parameters as stored, e.g. {"requested": 20, "difficulty":
-    # "medium"}, so «Prøv igjen» can start a job with the same choices.
+    # "medium"} or {"requested": 10, "question_kind": "short"}, so «Prøv igjen» can start a job with the same choices.
     params: dict[str, Any]
     status: Literal["running", "done", "failed"]
     requested: int

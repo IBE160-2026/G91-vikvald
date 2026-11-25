@@ -28,7 +28,7 @@ from app.modules.files.service import delete_account, store_file
 from app.modules.generation.mock import MockGenerator
 from app.modules.generation.models import JOB_DONE
 from app.modules.generation.registry import enabled_content_types
-from app.modules.generation.schemas import JobCreate, JobParams
+from app.modules.generation.schemas import JobCreate
 from app.modules.generation.service import create_job, get_job_for_user, run_job
 from app.modules.identity.service import accept_terms, any_user_exists, register_user
 from app.modules.practice.schemas import PracticeSessionIn
@@ -150,10 +150,9 @@ async def _generate(
     """One job as POST /api/lectures/{id}/jobs makes it, but awaited and always
     with the mock model. Returns how many items it made; a job that does not
     end as done is an error."""
-    body = JobCreate(kind=kind)
-    params = body.params or JobParams()
+    params, requested = JobCreate(kind=kind).job_params()
     async with sessionmaker() as session:
-        job = await create_job(session, lecture_id, kind, params.model_dump(exclude_none=True), params.requested)
+        job = await create_job(session, lecture_id, kind, params, requested)
     await run_job(job.id, MockGenerator(), sessionmaker)
     async with sessionmaker() as session:
         finished, _ = await get_job_for_user(session, user_id, str(job.id))
