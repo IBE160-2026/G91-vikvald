@@ -44,8 +44,10 @@ export type SubjectFlashcard = Flashcard & {
 };
 
 // How a card was marked: «Kunne» or «Kunne ikke». A quiz question uses the
-// same marks: "known" is a correct answer, "missed" a wrong one.
-export type Mark = "known" | "missed";
+// same marks: "known" is a correct answer, "missed" a wrong one. A free-text
+// question (story 8.2) also has "partial": she assessed herself as «Delvis
+// riktig». Flashcards and quiz never use it.
+export type Mark = "known" | "partial" | "missed";
 
 // A quiz question (story 4.2), from GET /api/lectures/{id}/quiz-questions. The
 // answer key is sent with it (AR-15); the page shows it only after the student
@@ -58,6 +60,21 @@ export type QuizQuestion = {
   // The correct option's place in `options` (0–3).
   correct_index: number;
   explanation: string;
+  // As for Flashcard (FR-41).
+  formula_flag: boolean;
+  source: FlashcardSource;
+  lecture: { id: string; name: string };
+};
+
+// A free-text question (story 8.2), from GET /api/lectures/{id}/freetext-questions.
+// The model answer is sent with it (AR-15); the page shows it only after the
+// student has written an answer and asked to see it.
+export type FreetextQuestion = {
+  id: string;
+  // «Kortsvar» or «Langsvar», as chosen when the questions were made.
+  kind: "short" | "long";
+  question: string;
+  model_answer: string;
   // As for Flashcard (FR-41).
   formula_flag: boolean;
   source: FlashcardSource;
