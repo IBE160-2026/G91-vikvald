@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-25: Story 8.2 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `8-2-øv-på-fritekst-og-vurder-deg-selv`.
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-8-2-ov-pa-fritekst-og-vurder-deg-selv.md), branchen `story/8-2` og kanttilfellene #336–#341.
+
 ## 2026-11-25: Story 8.1 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `8-1-lag-fritekstspørsmål`.
