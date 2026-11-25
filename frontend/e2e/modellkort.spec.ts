@@ -74,6 +74,7 @@ test.describe("Modellkort (story 7.1)", () => {
     await page.keyboard.press("Enter");
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(row.getByText("Lager modellkort …", { exact: true }).first()).toBeVisible();
+    await expect(row.getByText("Du kan bruke resten av appen imens.")).toBeVisible();
     await expect(quizRow(page).getByText("Venter til modellkortene er ferdige")).toBeVisible();
     await expect(quizRow(page).getByRole("button", { name: "Lag quiz" })).toBeDisabled();
     // Focus is kept on the row now that the button is gone.
@@ -88,6 +89,8 @@ test.describe("Modellkort (story 7.1)", () => {
     // «Lag modellkort» stays beside «Lag flere» when the row has content.
     await expect(row.getByRole("button", { name: "Lag modellkort" })).toBeEnabled();
     await expect(row.getByRole("button", { name: "Lag flere" })).toBeVisible();
+    // Only model cards: «Øv nå» waits for story 7.2, where they can be practised.
+    await expect(row.getByRole("button", { name: "Øv nå" })).toBeDisabled();
     await expect(quizRow(page).getByText("Venter til modellkortene er ferdige")).toHaveCount(0);
     expect(await contentCounts(page, lectureId)).toEqual({ flashcards: 0, quiz_questions: 0, model_cards: 2 });
     await expectNoAxeViolations(page);

@@ -36,14 +36,22 @@ export type ExtraJob = {
 
 type Props = GenerationRowProps & {
   kind: ScopedJobKind;
-  // The extra kind, or undefined (also when its feature switch is off).
+  // The extra kind, or undefined. The row follows its jobs whenever it is
+  // given, also while the button is hidden (showExtra false: the feature
+  // switch is off or the config has not loaded), so a running model-card job
+  // never makes the row wait for itself.
   extra?: ExtraJob;
+  showExtra?: boolean;
   // «Flashcards», «Quiz»: the row's title and the name of its group.
   title: string;
   // The test id of the row's group (e.g. «flashcards-row»).
   testId: string;
   // The row's count from the lecture's content counts.
   countOf: (counts: ContentCounts) => number;
+  // What «Øv nå» can practise, when it is less than the count (model cards are
+  // counted on the Flashcards row but practised from story 7.2). 0 makes
+  // «Øv nå» not active. Defaults to countOf.
+  practiceCountOf?: (counts: ContentCounts) => number;
   // «24 kort», «15 spørsmål».
   countText: (count: number) => string;
   // «Lag flashcards», «Lag quiz».
@@ -84,9 +92,11 @@ type Props = GenerationRowProps & {
 export function GenerationRow({
   kind,
   extra,
+  showExtra = true,
   title,
   testId,
   countOf,
+  practiceCountOf,
   countText,
   createLabel,
   onPractice,
@@ -117,7 +127,10 @@ export function GenerationRow({
   // The newest of the row's jobs (one per kind from jobs/latest).
   const job = jobs.data
     ?.filter(isOwn)
-    .reduce<Job | undefined>((newest, other) => (!newest || other.started_at > newest.started_at ? other : newest), undefined);
+    .reduce<Job | undefined>(
+      (newest, other) => (!newest || Date.parse(other.started_at) > Date.parse(newest.started_at) ? other : newest),
+      undefined,
+    );
   const texts = generationTexts[job?.kind ?? kind];
   // A running job of another row's kind in the same lecture (at most one runs).
   const otherRunning = jobs.data?.find((other) => !isOwn(other) && other.status === "running");
@@ -190,6 +203,7 @@ export function GenerationRow({
   }
 
   const count = counts.data ? countOf(counts.data) : 0;
+  const practiceCount = counts.data ? (practiceCountOf ?? countOf)(counts.data) : 0;
   const hasFiles = fileCount === undefined ? undefined : fileCount > 0;
   const running = starting || job?.status === "running";
   let state: CreateRowState = "idle";
@@ -219,8 +233,8 @@ export function GenerationRow({
         createLabel={createLabel}
         onCreate={() => setDialogOpen(true)}
         onCreateMore={() => setDialogOpen(true)}
-        extraAction={extra ? { label: extra.label, onClick: startExtra } : undefined}
-        onPractice={onPractice}
+        extraAction={extra && showExtra ? { label: extra.label, onClick: startExtra } : undefined}
+        onPractice={practiceCount > 0 ? onPractice : undefined}
         jobText={generationTexts[starting ? startingKind : (job?.kind ?? kind)].jobText}
         announcement={announcement}
         message={message}

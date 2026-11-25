@@ -1529,6 +1529,36 @@ describe("Modellkort (story 7.1)", () => {
     await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/config")).toBe(true));
     expect(within(row).queryByRole("button", { name: "Lag modellkort" })).toBeNull();
   });
+
+  it("FR-42: med bare modellkort teller raden dem, men «Øv nå» er ikke aktiv før de kan øves (story 7.2)", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    modelCount = 2;
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Flashcards" });
+    expect(await within(row).findByText("2 kort")).toBeTruthy();
+    const practice = within(row).getByRole("button", { name: "Øv nå" }) as HTMLButtonElement;
+    expect(practice.disabled).toBe(true);
+    cleanup();
+
+    cardCount = 3;
+    renderPage();
+    const withCards = await screen.findByRole("group", { name: "Flashcards" });
+    expect(await within(withCards).findByText("5 kort")).toBeTruthy();
+    await waitFor(() =>
+      expect((within(withCards).getByRole("button", { name: "Øv nå" }) as HTMLButtonElement).disabled).toBe(false),
+    );
+  });
+
+  it("FR-42: med bryteren av følger raden likevel en modellkortjobb som går, og venter ikke på seg selv", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    mnemonics = false;
+    holdJob = true;
+    latestJob = job({ id: "jm", kind: "models", status: "running", params: { requested: 30 }, requested: 30 });
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Flashcards" });
+    expect(await within(row).findByText("Lager modellkort …", { selector: "p" })).toBeTruthy();
+    expect(within(row).queryByText("Venter til modellkortene er ferdige")).toBeNull();
+  });
 });
 
 describe("Semesterlinja på forelesningssiden (story 5.5)", () => {
