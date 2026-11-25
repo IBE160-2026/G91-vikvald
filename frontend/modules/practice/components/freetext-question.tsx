@@ -1,8 +1,9 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check, Trash2, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
+import { iconProps } from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -58,6 +59,8 @@ type Props = {
   // The hint line under the self-assessment (the switch «Bruk hurtigtaster» is on).
   showHints?: boolean;
   colorIndex?: number;
+  // «Slett» (story 8.3): opens the delete confirmation. Left out: no button.
+  onDelete?: () => void;
 };
 
 // The question in the free-text session (story 8.2, mockup 12), in the 832 px
@@ -76,6 +79,10 @@ type Props = {
 // «Riktig» (✗, ◐, ✓ as decoration), none chosen beforehand. A press calls
 // onAssess; the page moves on at once. The hint line «1 Feil · 2 Delvis
 // riktig · 3 Riktig · Esc avslutt» stands under the buttons, to the right.
+//
+// With onDelete (story 8.3): «Slett», a red text button with a trash can,
+// stands to the left of «Vis modellsvar» before the model answer is shown,
+// and in the model-answer footer by the source afterwards. It has no key.
 export function FreetextQuestion({
   question,
   number,
@@ -85,6 +92,7 @@ export function FreetextQuestion({
   onAssess,
   showHints = false,
   colorIndex,
+  onDelete,
 }: Props) {
   const [answer, setAnswer] = useState("");
   const fieldId = useId();
@@ -133,6 +141,7 @@ export function FreetextQuestion({
         onChange={(event) => setAnswer(event.target.value)}
         readOnly={revealed}
         aria-describedby={revealed ? deliveredId : undefined}
+        data-answer-field
         className="mt-2 min-h-[112px]"
       />
       {revealed ? (
@@ -145,6 +154,7 @@ export function FreetextQuestion({
               lectureName={question.lecture.name}
               colorIndex={colorIndex}
               titleRef={modelTitleRef}
+              onDelete={onDelete}
             />
           </div>
           <section
@@ -181,7 +191,13 @@ export function FreetextQuestion({
           ) : null}
         </>
       ) : (
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+          {onDelete ? (
+            <Button variant="text" className="text-danger hover:bg-danger-tint" onClick={onDelete}>
+              <Trash2 {...iconProps} />
+              Slett
+            </Button>
+          ) : null}
           <Button size="lg" disabled={!canReveal} onClick={onReveal}>
             Vis modellsvar
           </Button>

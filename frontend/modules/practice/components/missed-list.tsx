@@ -27,10 +27,12 @@ export type MissedQuizItem = MissedItem & {
 };
 
 // A free-text question she assessed as «Feil» or «Delvis riktig» (story 8.2):
-// the question, the model answer and her mark, never her own answer.
+// the question, the model answer and her mark, never her own answer. In a
+// whole-subject session also the lecture's name (story 8.3).
 export type MissedFreetextItem = MissedItem & {
   mark: "missed" | "partial";
   modelAnswer: string;
+  lecture?: string;
 };
 
 type Props =
@@ -57,7 +59,9 @@ type Props =
 // or Delvis riktig, in the grid's order: the number (read as «Spørsmål 4:»),
 // her mark as text («✗ Feil» or «◐ Delvis riktig», the symbol aria-hidden),
 // the question, the model answer, and the formula flag and source. Her own
-// answer is never shown (it is never kept).
+// answer is never shown (it is never kept). An item with a lecture (a
+// whole-subject session, story 8.3) shows the lecture's name under the source,
+// as in the quiz list.
 export function MissedList(props: Props) {
   if (props.kind === "quiz") return <QuizMissedList items={props.items} />;
   if (props.kind === "freetext") return <FreetextMissedList items={props.items} />;
@@ -180,6 +184,12 @@ function FreetextMissedList({ items }: { items: readonly MissedFreetextItem[] })
               <div className="mt-2 flex min-w-0 flex-col gap-1">
                 <FormulaFlag flagged={item.formula_flag} className="mb-1" />
                 <SourceLink source={item.source} />
+                {item.lecture === undefined ? null : (
+                  <p data-slot="missed-lecture" className="text-caption break-words text-ink-muted">
+                    <span className="sr-only">Forelesning: </span>
+                    {item.lecture}
+                  </p>
+                )}
               </div>
             </div>
           </li>

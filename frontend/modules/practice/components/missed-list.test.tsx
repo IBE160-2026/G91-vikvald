@@ -183,4 +183,47 @@ describe("MissedList", () => {
     // Her own answer is never part of the list.
     expect(section.textContent).not.toContain("Ditt svar");
   });
+
+  it("FR-50: i en fritekstøkt på hele emnet står forelesningen under kilden på hver rad", () => {
+    render(
+      <MissedList
+        kind="freetext"
+        items={[
+          {
+            id: "a",
+            number: 1,
+            mark: "partial",
+            front: "Forklar Merkevare.",
+            modelAnswer: "Merkevare er et navn.",
+            source: { file_name: "merkevare.pdf", page_no: 1 },
+            lecture: "Uke 37: Merkevare",
+          },
+        ]}
+      />,
+    );
+    const [row] = within(screen.getByRole("region", { name: "Feil og delvis riktig" })).getAllByRole("listitem");
+    const lecture = row.querySelector("[data-slot='missed-lecture']")!;
+    expect(lecture.textContent).toBe("Forelesning: Uke 37: Merkevare");
+    expect(lecture.className).toContain("text-ink-muted");
+    expect(lecture.previousElementSibling?.getAttribute("data-slot")).toBe("source-link");
+  });
+
+  it("FR-51: uten forelesning (forelesningsøkt) står ingen forelesning i lista", () => {
+    render(
+      <MissedList
+        kind="freetext"
+        items={[
+          {
+            id: "a",
+            number: 1,
+            mark: "missed",
+            front: "Forklar Merkevare.",
+            modelAnswer: "Merkevare er et navn.",
+            source: { file_name: "merkevare.pdf", page_no: 1 },
+          },
+        ]}
+      />,
+    );
+    expect(document.querySelector("[data-slot='missed-lecture']")).toBeNull();
+  });
 });

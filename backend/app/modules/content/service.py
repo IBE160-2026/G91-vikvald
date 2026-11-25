@@ -492,6 +492,43 @@ async def lecture_freetext_questions(session: AsyncSession, lecture_id: uuid.UUI
     ]
 
 
+async def subject_freetext_questions(session: AsyncSession, subject_id: uuid.UUID) -> list[FreetextQuestionOut]:
+    """The free-text questions from all the subject's lectures, with the model
+    answer, source and lecture. Ordered as subject_quiz_questions: lecture
+    (date, then when it was created), then file, page, the order they were
+    made in."""
+    statement = (
+        select(FreetextQuestion, File.original_name, Lecture.id, Lecture.name)
+        .join(File, FreetextQuestion.file_id == File.id)
+        .join(Lecture, File.lecture_id == Lecture.id)
+        .where(Lecture.subject_id == subject_id)
+        .order_by(
+            Lecture.date,
+            Lecture.created_at,
+            Lecture.id,
+            File.uploaded_at,
+            File.id,
+            FreetextQuestion.page_no,
+            FreetextQuestion.created_at,
+            FreetextQuestion.position,
+            FreetextQuestion.id,
+        )
+    )
+    return [
+        FreetextQuestionOut(
+            id=item.id,
+            # The CHECK rule keeps kind to "short" or "long".
+            kind=cast(FreetextKind, item.kind),
+            question=item.question,
+            model_answer=item.model_answer,
+            formula_flag=item.formula_flag,
+            source=FlashcardSource(file_id=item.file_id, file_name=file_name, page_no=item.page_no),
+            lecture=LectureRef(id=ref_id, name=ref_name),
+        )
+        for item, file_name, ref_id, ref_name in (await session.execute(statement)).all()
+    ]
+
+
 async def first_freetext_question_times(
     session: AsyncSession, lecture_ids: tuple[uuid.UUID, ...]
 ) -> dict[uuid.UUID, datetime]:
@@ -639,5 +676,33 @@ async def get_quiz_question(session: AsyncSession, user_id: uuid.UUID, question_
 async def delete_quiz_question(session: AsyncSession, user_id: uuid.UUID, question_id: str) -> None:
     """Delete her quiz question (FR-37). Someone else's or a missing one gives 404."""
     question = await get_quiz_question(session, user_id, question_id)
+    await session.delete(question)
+    await session.commit()
+
+
+async def get_freetext_question(session: AsyncSession, user_id: uuid.UUID, question_id: str) -> FreetextQuestion:
+    """Her free-text question. Like a quiz question it is hers through file,
+    lecture and subject. Someone else's, a missing and a malformed id all give
+    the same 404 NOT_FOUND."""
+    try:
+        parsed = uuid.UUID(question_id)
+    except ValueError:
+        raise AppError(ErrorCode.NOT_FOUND) from None
+    statement = (
+        select(FreetextQuestion)
+        .join(File, FreetextQuestion.file_id == File.id)
+        .join(Lecture, File.lecture_id == Lecture.id)
+        .join(Subject, Lecture.subject_id == Subject.id)
+        .where(FreetextQuestion.id == parsed, Subject.user_id == user_id)
+    )
+    question = await session.scalar(statement)
+    if question is None:
+        raise AppError(ErrorCode.NOT_FOUND)
+    return question
+
+
+async def delete_freetext_question(session: AsyncSession, user_id: uuid.UUID, question_id: str) -> None:
+    """Delete her free-text question (FR-52). Someone else's or a missing one gives 404."""
+    question = await get_freetext_question(session, user_id, question_id)
     await session.delete(question)
     await session.commit()

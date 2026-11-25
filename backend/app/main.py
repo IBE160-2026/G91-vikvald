@@ -14,7 +14,7 @@ from app.core.health import router as health_router
 from app.core.public_config import router as public_config_router
 from app.modules.content.router import flashcards_router
 from app.modules.content.router import lectures_router as content_lectures_router
-from app.modules.content.router import quiz_questions_router
+from app.modules.content.router import freetext_questions_router, quiz_questions_router
 from app.modules.content.router import subjects_router as content_subjects_router
 from app.modules.files.router import account_router, files_router
 from app.modules.files.router import lectures_router as files_lectures_router
@@ -80,6 +80,7 @@ def create_app() -> FastAPI:
     app.include_router(content_subjects_router)
     app.include_router(flashcards_router)
     app.include_router(quiz_questions_router)
+    app.include_router(freetext_questions_router)
     app.include_router(practice_router)
     app.include_router(overview_router)
     return app

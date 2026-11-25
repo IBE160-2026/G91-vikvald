@@ -9,6 +9,7 @@ import { SHORTCUTS_KEY } from "@/lib/practice-shortcuts";
 import type { Lecture, Subject } from "@/modules/subjects/types";
 
 import { freetextCountsText } from "../adapter";
+import { lectureFreetextQuestionsQueryKey, subjectFreetextQuestionsQueryKey } from "../api";
 import { hasAnswer, wordCount } from "../components/freetext-question";
 import type { FreetextQuestion } from "../types";
 import { FreetextSessionPage } from "./freetext-session-page";
@@ -50,24 +51,44 @@ function question(id: string, term: string, page = 1, formula = false): Freetext
 }
 
 let questions: FreetextQuestion[] = [];
+// GET /api/subjects/s1/freetext-questions: questions from two lectures (story 8.3).
+let subjectQuestions: FreetextQuestion[] = [];
 let lectureStatus = 200;
 // 200, 404 (FEATURE_DISABLED) or 500.
 let questionsStatus = 200;
 let saveStatus = 204;
+// The answer to DELETE /api/freetext-questions/{id} (story 8.3).
+let deleteStatus = 204;
+let client: QueryClient;
 
 beforeEach(() => {
   questions = [question("a", "Merkevare"), question("b", "Pris", 2, true), question("c", "Segment", 3)];
+  subjectQuestions = [
+    question("a", "Merkevare"),
+    { ...question("p", "Rabatt", 2), lecture: { id: "l2", name: "Uke 38: Pris" } },
+  ];
   lectureStatus = 200;
   questionsStatus = 200;
   saveStatus = 204;
+  deleteStatus = 204;
   notFound.mockReset();
   push.mockReset();
   // Just below 1: the shuffle keeps the order, so the test knows it.
   vi.spyOn(Math, "random").mockReturnValue(0.999);
   vi.stubGlobal("fetch", fetchMock);
   fetchMock.mockReset();
-  fetchMock.mockImplementation(async (url) => {
+  fetchMock.mockImplementation(async (url, init) => {
     const path = String(url);
+    if (path.startsWith("/api/freetext-questions/") && init?.method === "DELETE") {
+      if (deleteStatus === 204) {
+        // The server no longer has the question.
+        const id = path.slice("/api/freetext-questions/".length);
+        questions = questions.filter((other) => other.id !== id);
+        subjectQuestions = subjectQuestions.filter((other) => other.id !== id);
+        return new Response(null, { status: 204 });
+      }
+      return jsonResponse(deleteStatus, { error: { code: deleteStatus === 404 ? "NOT_FOUND" : "INTERNAL_ERROR", details: {} } });
+    }
     if (path === "/api/practice-sessions") {
       if (saveStatus === 204) return new Response(null, { status: 204 });
       return jsonResponse(saveStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
@@ -77,6 +98,11 @@ beforeEach(() => {
       return jsonResponse(200, LECTURE);
     }
     if (path === "/api/subjects/s1") return jsonResponse(200, SUBJECT);
+    if (path === "/api/subjects/s1/freetext-questions") {
+      if (questionsStatus === 404) return jsonResponse(404, { error: { code: "FEATURE_DISABLED", details: {} } });
+      if (questionsStatus !== 200) return jsonResponse(questionsStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
+      return jsonResponse(200, subjectQuestions);
+    }
     if (path === "/api/lectures/l1/freetext-questions") {
       if (questionsStatus === 404) return jsonResponse(404, { error: { code: "FEATURE_DISABLED", details: {} } });
       if (questionsStatus !== 200) return jsonResponse(questionsStatus, { error: { code: "INTERNAL_ERROR", details: {} } });
@@ -94,12 +120,12 @@ afterEach(() => {
   document.title = "";
 });
 
-function renderPage() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function renderPage(props: { lectureId: string } | { subjectId: string } = { lectureId: "l1" }) {
+  client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
       <SideMenuProvider>
-        <FreetextSessionPage lectureId="l1" />
+        <FreetextSessionPage {...props} />
       </SideMenuProvider>
     </QueryClientProvider>,
   );
@@ -515,6 +541,324 @@ describe("FreetextSessionPage", () => {
       const h1 = await screen.findByRole("heading", { level: 1, name: "Fritekst" });
       expect(h1.className).toContain("sr-only");
       expect(screen.getByText("SPØRSMÅL 1 AV 3")).toBeTruthy();
+    });
+  });
+
+  describe("hele emnet (story 8.3)", () => {
+    function renderSubject(subjectId = "s1") {
+      renderPage({ subjectId });
+    }
+
+    async function subjectStarted() {
+      expect(await screen.findByText("/ 2")).toBeTruthy();
+    }
+
+    it("FR-50: panelet viser «Fritekst» og «Markedsføring, hele emnet», og økten har spørsmålene fra alle forelesningene", async () => {
+      renderSubject();
+      await subjectStarted();
+      await waitFor(() => expect(document.title).toBe("Fritekst – Markedsføring – Studiekamerat"));
+      const panel = screen.getByRole("region", { name: "Fritekst" });
+      expect(within(panel).getByText("Markedsføring, hele emnet")).toBeTruthy();
+      expect(screen.getByText("SPØRSMÅL 1 AV 2")).toBeTruthy();
+      expect(heading()).toBe("Forklar Merkevare.");
+      expect(document.activeElement).toBe(field());
+      expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/subjects/s1/freetext-questions")).toBe(true);
+      expect(fetchMock.mock.calls.some(([url]) => String(url).startsWith("/api/lectures"))).toBe(false);
+    });
+
+    it("FR-50: modellsvaret viser forelesningen til hvert spørsmål", async () => {
+      renderSubject();
+      await subjectStarted();
+      write("Svar");
+      fireEvent.click(button("Vis modellsvar"));
+      const card = document.querySelector("[data-slot='model-answer']") as HTMLElement;
+      expect(within(card).getByText("Uke 37: Merkevare")).toBeTruthy();
+      fireEvent.click(button("Riktig"));
+      write("Svar");
+      fireEvent.click(button("Vis modellsvar"));
+      const next = document.querySelector("[data-slot='model-answer']") as HTMLElement;
+      expect(within(next).getByText("Uke 38: Pris")).toBeTruthy();
+    });
+
+    it("FR-50, FR-56: resultatet har «Markedsføring, hele emnet», forelesningen i lista, «Tilbake til emnet» og lagres med lecture_id null", async () => {
+      renderSubject();
+      await subjectStarted();
+      answerAndAssess("Feil");
+      answerAndAssess("Delvis riktig");
+      expect(screen.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 2 spørsmålene" })).toBeTruthy();
+      expect(screen.getAllByText("Markedsføring, hele emnet").length).toBeGreaterThan(0);
+      const rows = within(document.querySelector("[data-slot='missed-list']") as HTMLElement).getAllByRole("listitem");
+      expect(rows.map((row) => row.querySelector("[data-slot='missed-lecture']")!.textContent)).toEqual([
+        "Forelesning: Uke 37: Merkevare",
+        "Forelesning: Uke 38: Pris",
+      ]);
+      expect(screen.getByRole("link", { name: "Tilbake til emnet" }).getAttribute("href")).toBe("/emner/s1");
+      expect(screen.queryByRole("link", { name: "Tilbake til forelesningen" })).toBeNull();
+      expect(screen.getByText("tilbake til emnet")).toBeTruthy();
+      await waitFor(() =>
+        expect(saved()).toEqual([
+          expect.objectContaining({
+            kind: "freetext",
+            subject_id: "s1",
+            lecture_id: null,
+            aborted: false,
+            answered: 2,
+            correct: 0,
+            partial: 1,
+            wrong: 1,
+          }),
+        ]),
+      );
+      press("Escape");
+      expect(push).toHaveBeenCalledWith("/emner/s1");
+    });
+
+    it("FR-56: avbrutt etter én vurdering lagres med lecture_id null og aborted", async () => {
+      renderSubject();
+      await subjectStarted();
+      answerAndAssess("Riktig");
+      fireEvent.click(button("Avslutt økt"));
+      expect(screen.getByRole("heading", { level: 2, name: "Avbrutt etter 1 av 2" })).toBeTruthy();
+      await waitFor(() =>
+        expect(saved()).toEqual([
+          expect.objectContaining({ kind: "freetext", subject_id: "s1", lecture_id: null, aborted: true, answered: 1 }),
+        ]),
+      );
+      expect(push).not.toHaveBeenCalled();
+    });
+
+    it("FR-56: «Avslutt økt» uten vurdering går rett til emnesiden uten POST", async () => {
+      renderSubject();
+      await subjectStarted();
+      fireEvent.click(button("Avslutt økt"));
+      expect(push).toHaveBeenCalledWith("/emner/s1");
+      cleanup();
+      expect(saved()).toHaveLength(0);
+    });
+
+    it("FR-50: «Øv igjen» henter emnets spørsmål på nytt", async () => {
+      renderSubject();
+      await subjectStarted();
+      answerAndAssess("Riktig");
+      fireEvent.click(button("Avslutt økt"));
+      const before = fetchMock.mock.calls.filter(([url]) => String(url) === "/api/subjects/s1/freetext-questions").length;
+      subjectQuestions = [...subjectQuestions, question("d", "Kanal", 2)];
+      fireEvent.click(button("Øv igjen"));
+      expect(await screen.findByText("SPØRSMÅL 1 AV 3")).toBeTruthy();
+      expect(
+        fetchMock.mock.calls.filter(([url]) => String(url) === "/api/subjects/s1/freetext-questions").length,
+      ).toBe(before + 1);
+    });
+
+    it("A15: uten spørsmål vises tomtilstanden med «Tilbake til emnet»", async () => {
+      subjectQuestions = [];
+      renderSubject();
+      expect(
+        await screen.findByRole("heading", { level: 1, name: "Det finnes ingen fritekstspørsmål her ennå." }),
+      ).toBeTruthy();
+      expect(screen.getByRole("link", { name: "Tilbake til emnet" }).getAttribute("href")).toBe("/emner/s1");
+    });
+
+    it("FR-4: andres eller ukjent emne gir «Fant ikke siden»", async () => {
+      renderSubject("s9");
+      await waitFor(() => expect(notFound).toHaveBeenCalled());
+    });
+
+    it("AR-11: bryteren av gir «Fant ikke siden» også for emneøkten", async () => {
+      questionsStatus = 404;
+      renderSubject();
+      await waitFor(() => expect(notFound).toHaveBeenCalled());
+    });
+  });
+
+  describe("slett et spørsmål (story 8.3)", () => {
+    // The DELETE requests to /api/freetext-questions/{id}.
+    function deleteCalls(): string[] {
+      return fetchMock.mock.calls
+        .filter(([url, init]) => String(url).startsWith("/api/freetext-questions/") && init?.method === "DELETE")
+        .map(([url]) => String(url));
+    }
+
+    // «Slett» gets focus first (as with a click in the browser), so focus can go back to it.
+    async function openDelete() {
+      const remove = button("Slett");
+      remove.focus();
+      fireEvent.click(remove);
+      const dialog = await screen.findByRole("dialog", { name: "Slette spørsmålet?" });
+      await within(dialog).findByText("Det kan ikke angres.");
+      return dialog;
+    }
+
+    async function confirmDelete(dialog: HTMLElement) {
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett spørsmålet" }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    }
+
+    it("FR-52: «Slett» står før modellsvaret (ved «Vis modellsvar») og etter (i modellsvarets bunnfelt), og det finnes ingen «Rediger»", async () => {
+      renderPage();
+      await started();
+      const before = button("Slett");
+      expect(before.dataset.variant).toBe("text");
+      expect(before.className).toContain("text-danger");
+      // To the left of «Vis modellsvar», in the same footer.
+      expect(before.nextElementSibling).toBe(button("Vis modellsvar"));
+      expect(screen.queryByRole("button", { name: "Rediger" })).toBeNull();
+      write("Svar");
+      fireEvent.click(button("Vis modellsvar"));
+      const card = document.querySelector("[data-slot='model-answer']") as HTMLElement;
+      expect(within(card).getByRole("button", { name: "Slett" }).dataset.variant).toBe("text");
+      expect(screen.getAllByRole("button", { name: "Slett" })).toHaveLength(1);
+      expect(screen.queryByRole("button", { name: "Rediger" })).toBeNull();
+    });
+
+    it("FR-52, UX-DR22, E22: slett før modellsvaret gir bekreftelsen, «SPØRSMÅL 1 AV 2», tomt felt med fokus og ingenting vurdert", async () => {
+      renderPage();
+      await started();
+      write("Et halvt svar");
+      const dialog = await openDelete();
+      expect(within(dialog).getByText("Forklar Merkevare.")).toBeTruthy();
+      expect(dialog.textContent).not.toContain("Dette sletter også");
+      expect(document.activeElement).toBe(within(dialog).getByRole("button", { name: "Avbryt" }));
+      expect(within(dialog).getByRole("button", { name: "Slett spørsmålet" }).dataset.variant).toBe("danger");
+
+      await confirmDelete(dialog);
+      expect(deleteCalls()).toEqual(["/api/freetext-questions/a"]);
+      expect(screen.getByText("/ 2")).toBeTruthy();
+      expect(screen.getByText("SPØRSMÅL 1 AV 2")).toBeTruthy();
+      expect(screen.getByText("Ingen vurdert ennå")).toBeTruthy();
+      expect(heading()).toBe("Forklar Pris.");
+      expect(field().value).toBe("");
+      await waitFor(() => expect(document.activeElement).toBe(field()));
+    });
+
+    it("FR-52: slett etter modellsvaret tar bort selvvurderingen og viser neste spørsmål", async () => {
+      renderPage();
+      await started();
+      answerAndAssess("Riktig");
+      write("Svar");
+      fireEvent.click(button("Vis modellsvar"));
+      await confirmDelete(await openDelete());
+      expect(deleteCalls()).toEqual(["/api/freetext-questions/b"]);
+      expect(screen.queryByRole("heading", { name: "Hvordan gikk det?" })).toBeNull();
+      expect(screen.getByText("/ 2")).toBeTruthy();
+      expect(screen.getByText("SPØRSMÅL 2 AV 2")).toBeTruthy();
+      expect(screen.getByText("1 riktig")).toBeTruthy();
+      expect(heading()).toBe("Forklar Segment.");
+      expect(field().value).toBe("");
+      // 3 does nothing now: the self-assessment is gone.
+      (document.activeElement as HTMLElement | null)?.blur();
+      press("3");
+      expect(screen.getByText("SPØRSMÅL 2 AV 2")).toBeTruthy();
+    });
+
+    it("FR-52: sletting fjerner spørsmålet fra cachen og oppfrisker forelesningen og alle emners øvingslister", async () => {
+      renderPage();
+      await started();
+      const invalidate = vi.spyOn(client, "invalidateQueries");
+      await confirmDelete(await openDelete());
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["lectures", "l1"] });
+      const predicate = (invalidate.mock.calls.find(([filters]) => filters && "predicate" in filters)![0] as {
+        predicate: (query: { queryKey: readonly unknown[] }) => boolean;
+      }).predicate;
+      expect(predicate({ queryKey: subjectFreetextQuestionsQueryKey("s9") })).toBe(true);
+      expect(predicate({ queryKey: ["subjects", "s9", "quiz-questions"] })).toBe(true);
+      expect(predicate({ queryKey: ["subjects", "s9"] })).toBe(false);
+      expect(
+        client.getQueryData<FreetextQuestion[]>(lectureFreetextQuestionsQueryKey("l1"))!.map((other) => other.id),
+      ).toEqual(["b", "c"]);
+    });
+
+    it("FR-52, E22: siste spørsmål slettet etter en vurdering: økten er ferdig, lagres som ikke avbrutt og viser resultatet", async () => {
+      questions = [question("a", "Merkevare"), question("b", "Pris", 2)];
+      renderPage();
+      expect(await screen.findByText("/ 2")).toBeTruthy();
+      answerAndAssess("Riktig");
+      await confirmDelete(await openDelete());
+      const title = await screen.findByRole("heading", { level: 2, name: "Du har gått gjennom 1 spørsmål" });
+      await waitFor(() => expect(document.activeElement).toBe(title));
+      await waitFor(() =>
+        expect(saved()).toEqual([
+          expect.objectContaining({ kind: "freetext", aborted: false, answered: 1, correct: 1 }),
+        ]),
+      );
+      expect(push).not.toHaveBeenCalled();
+    });
+
+    it("FR-52, E22: eneste spørsmål slettet går tilbake til forelesningen uten lagring", async () => {
+      questions = [question("a", "Merkevare")];
+      renderPage();
+      expect(await screen.findByText("/ 1")).toBeTruthy();
+      await confirmDelete(await openDelete());
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/forelesninger/l1"));
+      expect(saved()).toEqual([]);
+    });
+
+    it("FR-52, E22: eneste spørsmål slettet i en emneøkt går tilbake til emnet", async () => {
+      subjectQuestions = [question("a", "Merkevare")];
+      renderPage({ subjectId: "s1" });
+      expect(await screen.findByText("/ 1")).toBeTruthy();
+      await confirmDelete(await openDelete());
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/emner/s1"));
+      expect(saved()).toEqual([]);
+    });
+
+    it("FR-52: avbryt og Esc sletter ingenting, hurtigtastene er av i dialogen, og fokus går tilbake til «Slett»", async () => {
+      renderPage();
+      await started();
+      write("Svar");
+      fireEvent.click(button("Vis modellsvar"));
+      let dialog = await openDelete();
+      // The session's keys are off while the dialog is open: no assessment.
+      press("3");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Avbryt" }));
+      expect(screen.queryByRole("dialog")).toBeNull();
+      await waitFor(() => expect(document.activeElement).toBe(button("Slett")));
+      expect(screen.getByText("Ingen vurdert ennå")).toBeTruthy();
+
+      dialog = await openDelete();
+      fireEvent.keyDown(dialog, { key: "Escape" });
+      expect(screen.queryByRole("dialog")).toBeNull();
+      await waitFor(() => expect(document.activeElement).toBe(button("Slett")));
+      expect(deleteCalls()).toEqual([]);
+      expect(heading()).toBe("Forklar Merkevare.");
+      expect(screen.getByText("/ 3")).toBeTruthy();
+      expect(screen.getByRole("heading", { name: "Hvordan gikk det?" })).toBeTruthy();
+      expect(push).not.toHaveBeenCalled();
+    });
+
+    it("FR-52, E22: 404 ved sletting (allerede borte) tar også spørsmålet ut", async () => {
+      deleteStatus = 404;
+      renderPage();
+      await started();
+      await confirmDelete(await openDelete());
+      expect(screen.getByText("/ 2")).toBeTruthy();
+    });
+
+    it("FR-52: en annen feil ved sletting viser reserveteksten i dialogen, og spørsmålet står", async () => {
+      deleteStatus = 500;
+      renderPage();
+      await started();
+      const dialog = await openDelete();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Slett spørsmålet" }));
+      expect((await within(dialog).findByRole("alert")).textContent).toBe(FALLBACK_MESSAGE);
+      expect(screen.getByText("/ 3")).toBeTruthy();
+      expect(document.querySelector("[data-question-title]")!.textContent).toBe("Forklar Merkevare.");
+    });
+
+    it("FR-52: i en emneøkt oppdateres spørsmålets egen forelesning og emnets liste i cachen", async () => {
+      subjectQuestions = [
+        { ...question("p", "Rabatt", 2), lecture: { id: "l2", name: "Uke 38: Pris" } },
+        question("a", "Merkevare"),
+      ];
+      renderPage({ subjectId: "s1" });
+      expect(await screen.findByText("/ 2")).toBeTruthy();
+      const invalidate = vi.spyOn(client, "invalidateQueries");
+      await confirmDelete(await openDelete());
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["lectures", "l2"] });
+      expect(
+        client.getQueryData<FreetextQuestion[]>(subjectFreetextQuestionsQueryKey("s1"))!.map((other) => other.id),
+      ).toEqual(["a"]);
+      expect(screen.getByText("/ 1")).toBeTruthy();
     });
   });
 });

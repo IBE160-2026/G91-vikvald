@@ -81,8 +81,8 @@ function captureSaves(page: Page): Request[] {
 async function writeAndReveal(page: Page, text = "Et kort svar") {
   await expect(answerField(page)).toBeFocused();
   await page.keyboard.type(text);
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Vis modellsvar" })).toBeFocused();
+  // Past «Slett» (story 8.3), which stands to the left of «Vis modellsvar».
+  await tabTo(page, page.getByRole("button", { name: "Vis modellsvar" }));
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { level: 3, name: "Modellsvar" })).toBeFocused();
 }
@@ -117,7 +117,7 @@ test.describe("Fritekst-økt (story 8.2)", () => {
     await page.keyboard.type("  To  ord\nher 2 ");
     await expect(answerField(page)).toHaveValue("  To  ord\nher 2 ");
     await expect(panel.getByText("Ingen vurdert ennå")).toBeVisible();
-    await page.keyboard.press("Tab");
+    await tabTo(page, page.getByRole("button", { name: "Vis modellsvar" }));
     await page.keyboard.press("Enter");
     const modelTitle = page.getByRole("heading", { level: 3, name: "Modellsvar" });
     await expect(modelTitle).toBeFocused();

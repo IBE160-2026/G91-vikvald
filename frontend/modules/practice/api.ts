@@ -82,13 +82,29 @@ export function subjectQuizQuestionsQueryKey(subjectId: string) {
   return ["subjects", subjectId, "quiz-questions"] as const;
 }
 
-// True for ["subjects", <any id>, "flashcards"] and ["subjects", <any id>,
-// "quiz-questions"]: the job watcher refetches all of them when a job ends,
-// since it does not know the lecture's subject.
+// The subject's free-text questions (story 8.3): under the subject's key
+// (["subjects", id]), like the subject's quiz questions. A running session
+// keeps its own copy.
+export function subjectFreetextQuestionsQueryKey(subjectId: string) {
+  return ["subjects", subjectId, "freetext-questions"] as const;
+}
+
+const SUBJECT_PRACTICE_LISTS: readonly unknown[] = ["flashcards", "quiz-questions", "freetext-questions"];
+
+// True for ["subjects", <any id>, "flashcards"], ["subjects", <any id>,
+// "quiz-questions"] and ["subjects", <any id>, "freetext-questions"]: the job
+// watcher refetches all of them when a job ends, since it does not know the
+// lecture's subject.
 export function isSubjectPracticeQueryKey(key: QueryKey): boolean {
-  return (
-    key.length === 3 && key[0] === "subjects" && (key[2] === "flashcards" || key[2] === "quiz-questions")
-  );
+  return key.length === 3 && key[0] === "subjects" && SUBJECT_PRACTICE_LISTS.includes(key[2]);
+}
+
+// GET /api/subjects/{id}/freetext-questions (story 8.3): the questions from
+// all the subject's lectures with the model answer, source and lecture,
+// ordered by lecture date, then file and page. 404 NOT_FOUND for someone
+// else's or a missing subject, 404 FEATURE_DISABLED when FEATURE_FREETEXT is off.
+export function fetchSubjectFreetextQuestions(subjectId: string): Promise<FreetextQuestion[]> {
+  return apiFetch<FreetextQuestion[]>(`/api/subjects/${encodeURIComponent(subjectId)}/freetext-questions`);
 }
 
 // GET /api/subjects/{id}/quiz-questions: the questions from all the subject's
@@ -125,4 +141,11 @@ export function deleteFlashcard(id: string): Promise<void> {
 // NOT_FOUND when it is already gone (or not hers). Quiz questions cannot be edited.
 export function deleteQuizQuestion(id: string): Promise<void> {
   return apiFetch<void>(`/api/quiz-questions/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+// DELETE /api/freetext-questions/{id} (story 8.3): 204, the question is gone.
+// 404 NOT_FOUND when it is already gone (or not hers), 404 FEATURE_DISABLED
+// when the switch is off. Free-text questions cannot be edited.
+export function deleteFreetextQuestion(id: string): Promise<void> {
+  return apiFetch<void>(`/api/freetext-questions/${encodeURIComponent(id)}`, { method: "DELETE" });
 }

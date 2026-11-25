@@ -1,11 +1,12 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type Ref } from "react";
 
+import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { iconProps } from "@/components/icon";
 import { SideMenu, useCloseSideMenu, useOpenShortcuts, useSideMenuCollapsed } from "@/components/side-menu";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,14 @@ import { useDocumentTitle } from "@/lib/use-document-title";
 import { fetchLecture, fetchSubject, lectureQueryKey, subjectQueryKey } from "@/modules/subjects/api";
 
 import { freetextAdapter } from "../adapter";
-import { fetchLectureFreetextQuestions, lectureFreetextQuestionsQueryKey } from "../api";
+import {
+  deleteFreetextQuestion,
+  fetchLectureFreetextQuestions,
+  fetchSubjectFreetextQuestions,
+  isSubjectPracticeQueryKey,
+  lectureFreetextQuestionsQueryKey,
+  subjectFreetextQuestionsQueryKey,
+} from "../api";
 import { FreetextQuestion } from "../components/freetext-question";
 import { MissedList, type MissedFreetextItem } from "../components/missed-list";
 import { ResultSummary } from "../components/result-summary";
@@ -27,6 +35,7 @@ import {
   currentCard,
   gridCells,
   isFinished,
+  removeCard,
   sessionCounts,
   shownCount,
   shuffle,
@@ -39,8 +48,6 @@ import { useSessionSaver, type SaverSnapshot } from "../use-session-saver";
 
 const FINISHED = "Økten er ferdig";
 const FINISHED_SAVED = "Økten er ferdig og lagret";
-const BACK_TEXT = "Tilbake til forelesningen";
-const BACK_HINT = "tilbake til forelesningen";
 
 // The questions of a session: copied once from the first fetch made after the
 // page opened, by id. Her answers are not here: each one lives only in its
@@ -64,6 +71,92 @@ function newSession(questions: readonly FreetextQuestionData[]): Session {
 function notFoundWhenMissingOrOff(error: unknown): void {
   if (error instanceof ApiError && error.code === "FEATURE_DISABLED") notFound();
   notFoundOnMissing(error);
+}
+
+// Where the session's questions come from: one lecture (story 8.2) or the
+// whole subject (story 8.3).
+type ScopeProps = { lectureId: string; subjectId?: undefined } | { subjectId: string; lectureId?: undefined };
+
+// What differs between a lecture session and a subject session: where the
+// questions come from, the name in the panel and the result, the way back,
+// and what is saved. Everything else is the same code (mirrors useQuizScope
+// in quiz-session-page.tsx).
+type Scope = {
+  // The query for the lecture or subject itself: its error (404) counts.
+  owner: UseQueryResult<unknown>;
+  questions: UseQueryResult<FreetextQuestionData[]>;
+  // The session's own question list in the cache.
+  questionsKey: readonly unknown[];
+  // The lecture's or the subject's name (the document title); undefined while loading.
+  name: string | undefined;
+  // The panel's and the result's scope: the lecture name or «<subject>, hele emnet».
+  scopeName: string | undefined;
+  colorIndex: number | undefined;
+  // Saved with the session: the subject, and the lecture (null for a subject session).
+  saveSubjectId: string | undefined;
+  saveLectureId: string | null;
+  backPath: string;
+  backText: string;
+  // The hint line's text for Esc on the result page.
+  backHint: string;
+  // A subject session shows each listed question's lecture.
+  showLecture: boolean;
+};
+
+function useFreetextScope({ lectureId, subjectId }: ScopeProps): Scope {
+  const lecture = useQuery({
+    queryKey: lectureQueryKey(lectureId ?? ""),
+    queryFn: () => fetchLecture(lectureId ?? ""),
+    enabled: lectureId !== undefined,
+  });
+  const ownSubjectId = subjectId ?? lecture.data?.subject_id;
+  const subject = useQuery({
+    queryKey: subjectQueryKey(ownSubjectId ?? ""),
+    queryFn: () => fetchSubject(ownSubjectId ?? ""),
+    enabled: ownSubjectId !== undefined,
+  });
+  const lectureQuestions = useQuery({
+    queryKey: lectureFreetextQuestionsQueryKey(lectureId ?? ""),
+    queryFn: () => fetchLectureFreetextQuestions(lectureId ?? ""),
+    enabled: lectureId !== undefined && lecture.isSuccess,
+  });
+  const subjectQuestions = useQuery({
+    queryKey: subjectFreetextQuestionsQueryKey(subjectId ?? ""),
+    queryFn: () => fetchSubjectFreetextQuestions(subjectId ?? ""),
+    enabled: subjectId !== undefined && subject.isSuccess,
+  });
+
+  if (subjectId !== undefined) {
+    const name = subject.data?.name;
+    return {
+      owner: subject,
+      questions: subjectQuestions,
+      questionsKey: subjectFreetextQuestionsQueryKey(subjectId),
+      name,
+      scopeName: name === undefined ? undefined : `${name}, hele emnet`,
+      colorIndex: subject.data?.color_index,
+      saveSubjectId: subjectId,
+      saveLectureId: null,
+      backPath: `/emner/${subjectId}`,
+      backText: "Tilbake til emnet",
+      backHint: "tilbake til emnet",
+      showLecture: true,
+    };
+  }
+  return {
+    owner: lecture,
+    questions: lectureQuestions,
+    questionsKey: lectureFreetextQuestionsQueryKey(lectureId ?? ""),
+    name: lecture.data?.name,
+    scopeName: lecture.data?.name,
+    colorIndex: subject.data?.color_index,
+    saveSubjectId: lecture.data?.subject_id,
+    saveLectureId: lectureId ?? null,
+    backPath: `/forelesninger/${lectureId}`,
+    backText: "Tilbake til forelesningen",
+    backHint: "tilbake til forelesningen",
+    showLecture: false,
+  };
 }
 
 // The free-text session for one lecture (story 8.2, mockup 12), at
@@ -109,20 +202,37 @@ function notFoundWhenMissingOrOff(error: unknown): void {
 // dialog.
 //
 // Narrow screen: the panel is behind «Meny» (SideMenu), with the hidden h1 «Fritekst».
-export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
+//
+// The whole subject (story 8.3), at /emner/<id>/fritekst: the questions from
+// all the subject's lectures; the panel and the result say «<subject>, hele
+// emnet» with the subject's colour; the model answer shows each question's
+// own lecture, and so does the list (under the source). The session is saved
+// with lecture_id null, and every way back («Tilbake til emnet», Esc on the
+// result, «Avslutt økt» with nothing assessed, the empty state) goes to the
+// subject page. The text «lecture» above means the subject for a subject
+// session.
+//
+// Delete (story 8.3, FR-52): «Slett» before the model answer (left of «Vis
+// modellsvar») and after it (in the model-answer footer) opens the shared
+// delete confirmation («Slette spørsmålet?», the question's text, no counts).
+// «Avbryt» and Esc delete nothing and give focus back to «Slett»; the keys are
+// off while the dialog is open. Deleted (204, or 404 when it was already
+// gone): the question leaves the session with removeCard. The question shown
+// is never assessed (an assessment moves on at once), so it leaves the order,
+// the counter and the total. The next question is shown with an empty field
+// and focus in «Ditt svar». No questions left: with something assessed the
+// session is finished (saved as not aborted, the result page); with nothing
+// assessed she goes back to where the session started, and nothing is saved.
+// The session's own question list in the cache loses the question, and the
+// question's lecture and every subject's practice lists are refetched.
+export function FreetextSessionPage(props: ScopeProps) {
   const router = useRouter();
-  const lecture = useQuery({ queryKey: lectureQueryKey(lectureId), queryFn: () => fetchLecture(lectureId) });
-  const subjectId = lecture.data?.subject_id;
-  const subject = useQuery({
-    queryKey: subjectQueryKey(subjectId ?? ""),
-    queryFn: () => fetchSubject(subjectId ?? ""),
-    enabled: subjectId !== undefined,
-  });
-  const questions = useQuery({
-    queryKey: lectureFreetextQuestionsQueryKey(lectureId),
-    queryFn: () => fetchLectureFreetextQuestions(lectureId),
-    enabled: lecture.isSuccess,
-  });
+  const scope = useFreetextScope(props);
+  const { owner, questions, questionsKey } = scope;
+  const queryClient = useQueryClient();
+  const [deleting, setDeleting] = useState(false);
+  // The question the delete confirmation is about (kept while the dialog closes).
+  const [deleteTarget, setDeleteTarget] = useState<FreetextQuestionData | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   // «Vis modellsvar» has been pressed for the current question.
   const [revealed, setRevealed] = useState(false);
@@ -142,13 +252,14 @@ export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
     setSession(newSession(questions.data));
   }
 
+  const { saveSubjectId, saveLectureId } = scope;
   const saver = useSessionSaver((): SaverSnapshot | null =>
-    session && subjectId
-      ? { subjectId, lectureId, kind: "freetext", counts: sessionCounts(session.state) }
+    session && saveSubjectId
+      ? { subjectId: saveSubjectId, lectureId: saveLectureId, kind: "freetext", counts: sessionCounts(session.state) }
       : null,
   );
 
-  const name = lecture.data?.name;
+  const { name, scopeName } = scope;
   useDocumentTitle(name ? `Fritekst – ${name} – Studiekamerat` : null);
 
   const finished = session !== null && session.state.order.length > 0 && isFinished(session.state);
@@ -161,7 +272,7 @@ export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
     if (showResult) resultTitleRef.current?.focus();
   }, [showResult]);
 
-  const backPath = `/forelesninger/${lectureId}`;
+  const { backPath, backText, backHint } = scope;
   const back = () => router.push(backPath);
 
   const currentId = session ? currentCard(session.state) : undefined;
@@ -174,9 +285,10 @@ export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
     setRevealed(false);
   }
 
-  // «Øv igjen»: the questions the lecture has now, a new order, a new
-  // session_id and a new start time. If the fetch fails or comes back empty,
-  // the session's own questions.
+  // «Øv igjen»: the questions the lecture (or the whole subject) has now, a
+  // new order, a new session_id and a new start time. If the fetch fails or
+  // comes back empty, the session's own questions (the ones assessed; a
+  // deleted question has left the order).
   async function playAgain() {
     if (!session || restartingRef.current) return;
     restartingRef.current = true;
@@ -194,6 +306,27 @@ export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
     }
   }
 
+  // After a delete: the session's own question list in the cache loses the
+  // question at once (so «Øv igjen» never brings it back), and the question's
+  // lecture (its counts and lists) and every subject's practice lists are
+  // refetched. The session itself keeps its own copy.
+  function questionDeleted(deleted: FreetextQuestionData) {
+    queryClient.setQueryData<FreetextQuestionData[]>(questionsKey, (old) =>
+      old ? old.filter((other) => other.id !== deleted.id) : old,
+    );
+    void queryClient.invalidateQueries({ queryKey: ["lectures", deleted.lecture.id] });
+    void queryClient.invalidateQueries({ predicate: (query) => isSubjectPracticeQueryKey(query.queryKey) });
+    if (!session) return;
+    const state = removeCard(session.state, deleted.id);
+    if (state.order.length === 0) {
+      // No questions left and nothing assessed: back to where the session started.
+      back();
+      return;
+    }
+    setSession({ ...session, state });
+    setRevealed(false);
+  }
+
   // «Avslutt økt» and Esc: nothing assessed goes straight back; otherwise the
   // session is saved as aborted and the result is shown.
   function end() {
@@ -207,12 +340,12 @@ export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
   }
 
   // Errors count only before the session starts.
-  if (session === null && lecture.error) notFoundWhenMissingOrOff(lecture.error);
+  if (session === null && owner.error) notFoundWhenMissingOrOff(owner.error);
   if (session === null && questions.error) notFoundWhenMissingOrOff(questions.error);
 
-  const loadError = session === null && (lecture.isError || questions.isError);
+  const loadError = session === null && (owner.isError || questions.isError);
   const empty = session !== null && session.state.order.length === 0;
-  const practising = session !== null && !empty && !loadError && name !== undefined;
+  const practising = session !== null && !empty && !loadError && scopeName !== undefined;
 
   const assessBindings: ShortcutBinding[] = revealed
     ? [
@@ -232,7 +365,7 @@ export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
       : [...assessBindings, { key: "Escape", action: end }, { key: "?", action: openShortcuts }];
   usePracticeShortcuts(bindings, { singleKeys: shortcutsOn });
 
-  if (loadError || empty || !session || name === undefined) {
+  if (loadError || empty || !session || scopeName === undefined) {
     return (
       <div className="min-w-0 px-content-inset pt-7 pb-7">
         {loadError ? (
@@ -245,7 +378,7 @@ export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
           <>
             <h1 className="text-page-title">Det finnes ingen fritekstspørsmål her ennå.</h1>
             <Button asChild variant="outline" className="mt-5">
-              <Link href={backPath}>{BACK_TEXT}</Link>
+              <Link href={backPath}>{backText}</Link>
             </Button>
           </>
         ) : null}
@@ -253,7 +386,7 @@ export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
     );
   }
 
-  const colorIndex = subject.data?.color_index;
+  const colorIndex = scope.colorIndex;
 
   return (
     <div className="flex min-h-[calc(100vh-var(--spacing-topbar-height))]">
@@ -261,7 +394,7 @@ export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
         <SessionPanel
           adapter={freetextAdapter}
           state={session.state}
-          scopeName={name}
+          scopeName={scopeName}
           colorIndex={colorIndex}
           onEnd={end}
           aborted={aborted}
@@ -279,10 +412,13 @@ export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
           <FreetextResult
             session={session}
             aborted={aborted}
-            scopeName={name}
+            scopeName={scopeName}
             saveFailed={saver.status === "failed"}
             titleRef={resultTitleRef}
             backHref={backPath}
+            backText={backText}
+            backHint={backHint}
+            showLecture={scope.showLecture}
             onPlayAgain={() => void playAgain()}
             showHints={shortcutsOn}
           />
@@ -297,9 +433,33 @@ export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
             onAssess={assess}
             showHints={shortcutsOn}
             colorIndex={colorIndex}
+            onDelete={() => {
+              setDeleteTarget(question);
+              setDeleting(true);
+            }}
           />
         ) : null}
       </div>
+      {deleteTarget ? (
+        <DeleteConfirmDialog
+          open={deleting}
+          title="Slette spørsmålet?"
+          confirmLabel="Slett spørsmålet"
+          item={{ name: deleteTarget.question }}
+          target="freetext-question"
+          previewKey={["freetext-questions", deleteTarget.id]}
+          // A question takes nothing with it: no counts, only «Det kan ikke angres.».
+          loadCounts={async () => []}
+          remove={() => deleteFreetextQuestion(deleteTarget.id)}
+          onClose={() => setDeleting(false)}
+          onDeleted={() => questionDeleted(deleteTarget)}
+          // The deleted question's «Slett» is gone: focus goes to the result
+          // title (session finished) or to the next question's answer field.
+          focusAfterDelete={() =>
+            resultTitleRef.current ?? document.querySelector<HTMLElement>("[data-answer-field]")
+          }
+        />
+      ) : null}
       <div role="status" className="sr-only">
         {finished ? (saver.status === "saved" ? FINISHED_SAVED : FINISHED) : ""}
       </div>
@@ -314,6 +474,12 @@ type FreetextResultProps = {
   saveFailed: boolean;
   titleRef: Ref<HTMLHeadingElement>;
   backHref: string;
+  // «Tilbake til forelesningen» or «Tilbake til emnet».
+  backText: string;
+  // The hint line's text for Esc: «tilbake til forelesningen» or «tilbake til emnet».
+  backHint: string;
+  // A subject session: each listed question shows its lecture under the source.
+  showLecture: boolean;
   onPlayAgain: () => void;
   showHints: boolean;
 };
@@ -329,6 +495,9 @@ function FreetextResult({
   saveFailed,
   titleRef,
   backHref,
+  backText,
+  backHint,
+  showLecture,
   onPlayAgain,
   showHints,
 }: FreetextResultProps) {
@@ -345,6 +514,7 @@ function FreetextResult({
         modelAnswer: question.model_answer,
         source: question.source,
         formula_flag: question.formula_flag,
+        ...(showLecture ? { lecture: question.lecture.name } : {}),
       },
     ];
   });
@@ -372,11 +542,11 @@ function FreetextResult({
       ) : null}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <div className="min-w-0">
-          {showHints ? <ShortcutHints hints={resultHints(BACK_HINT)} align="start" /> : null}
+          {showHints ? <ShortcutHints hints={resultHints(backHint)} align="start" /> : null}
         </div>
         <div className="ml-auto flex flex-wrap gap-3">
           <Button asChild variant="outline" size="lg">
-            <Link href={backHref}>{BACK_TEXT}</Link>
+            <Link href={backHref}>{backText}</Link>
           </Button>
           <Button size="lg" onClick={onPlayAgain}>
             Øv igjen

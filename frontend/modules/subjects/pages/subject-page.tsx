@@ -10,6 +10,7 @@ import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { iconProps } from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import { notFoundOnMissing } from "@/lib/api";
+import { useAppConfig } from "@/lib/config";
 import { focusHeadingAfterNavigation, useFocusHeadingOnArrival } from "@/lib/focus-heading";
 import { FALLBACK_MESSAGE } from "@/lib/messages";
 import { useDocumentTitle } from "@/lib/use-document-title";
@@ -18,13 +19,15 @@ import {
   OVERVIEW_QUERY_KEY,
   fetchOverview,
   fetchSubjectFlashcards,
+  fetchSubjectFreetextQuestions,
   fetchSubjectQuizQuestions,
   subjectFlashcardsQueryKey,
+  subjectFreetextQuestionsQueryKey,
   subjectQuizQuestionsQueryKey,
 } from "@/modules/practice/api";
 import { PracticeAllCard, type PracticeAllRow } from "@/modules/practice/components/practice-all-card";
 import { lastSessionLines } from "@/modules/practice/last-session";
-import type { QuizQuestion, SubjectFlashcard } from "@/modules/practice/types";
+import type { FreetextQuestion, QuizQuestion, SubjectFlashcard } from "@/modules/practice/types";
 
 import {
   SUBJECTS_QUERY_KEY,
@@ -51,7 +54,10 @@ import { fileCountLabel, formatWeekdayDate, lectureCountLabel } from "../format"
 // (story 3.6) with the row Flashcards («120 kort fra 6 forelesninger», «Øv på
 // flashcards»), shown only when the subject has cards, and under it the row
 // Quiz («8 spørsmål fra 2 forelesninger», «Start ›», story 4.4), shown only
-// when the subject has quiz questions. At the bottom of the card stands SISTE
+// when the subject has quiz questions, and under that the row Fritekstspørsmål
+// («7 spørsmål fra 1 forelesning», «Start ›», story 8.3), shown only when the
+// switch FEATURE_FREETEXT is on and the subject has free-text questions (with
+// the switch off, they are not even fetched). At the bottom of the card stands SISTE
 // ØKT (story 5.1), from GET /api/overview, when the subject has a session.
 // The table's Status («Øvd 03.11») also comes from the overview (story 5.2),
 // and so does the semester line under the buttons (story 5.5, the subject
@@ -82,6 +88,13 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
     queryFn: () => fetchSubjectQuizQuestions(subjectId),
     enabled: subject.isSuccess,
   });
+  const config = useAppConfig();
+  const freetextOn = config.data?.feature_freetext === true;
+  const freetextQuestions = useQuery({
+    queryKey: subjectFreetextQuestionsQueryKey(subjectId),
+    queryFn: () => fetchSubjectFreetextQuestions(subjectId),
+    enabled: subject.isSuccess && freetextOn,
+  });
   // Shared with the sidebar (same key), and refetched when a session is saved.
   const overview = useQuery({ queryKey: OVERVIEW_QUERY_KEY, queryFn: fetchOverview });
   const overviewSubject = overview.data?.subjects.find((item) => item.id === subjectId);
@@ -94,12 +107,14 @@ export function SubjectPage({ subjectId }: { subjectId: string }) {
   const practiceRows = [
     ...flashcardRows(subjectId, flashcards.data),
     ...quizRows(subjectId, quizQuestions.data),
+    ...(freetextOn ? freetextRows(subjectId, freetextQuestions.data) : []),
   ];
   // Only a failed first load shows the fallback text; a failed background
   // refetch keeps the row it has.
   const practiceError =
     (flashcards.isError && flashcards.data === undefined) ||
-    (quizQuestions.isError && quizQuestions.data === undefined);
+    (quizQuestions.isError && quizQuestions.data === undefined) ||
+    (freetextOn && freetextQuestions.isError && freetextQuestions.data === undefined);
   const [lectureDialogOpen, setLectureDialogOpen] = useState(false);
   // Which dialog was opened last; it keeps its mode while it closes.
   const [dialogMode, setDialogMode] = useState<SubjectFormMode>("rename");
@@ -278,6 +293,31 @@ function quizRows(subjectId: string, questions: QuizQuestion[] | undefined): Pra
         <Button asChild variant="text" className="-mr-2">
           <Link href={`/emner/${subjectId}/quiz`}>
             Start <span className="sr-only">quiz på hele emnet</span>
+            <ArrowRight {...iconProps} />
+          </Link>
+        </Button>
+      ),
+    },
+  ];
+}
+
+// The row Fritekstspørsmål in «Øv på hele emnet», under Quiz (story 8.3): «N
+// spørsmål fra M forelesninger» and the text button «Start ›», read as «Start
+// fritekst på hele emnet», like the quiz row. No row while the questions load
+// or when the subject has none.
+function freetextRows(subjectId: string, questions: FreetextQuestion[] | undefined): PracticeAllRow[] {
+  if (!questions || questions.length === 0) return [];
+  const lectures = new Set(questions.map((question) => question.lecture.id)).size;
+  return [
+    {
+      id: "freetext",
+      title: "Fritekstspørsmål",
+      scope: `${questions.length} spørsmål fra ${lectureCountLabel(lectures)}`,
+      inline: true,
+      action: (
+        <Button asChild variant="text" className="-mr-2">
+          <Link href={`/emner/${subjectId}/fritekst`}>
+            Start <span className="sr-only">fritekst på hele emnet</span>
             <ArrowRight {...iconProps} />
           </Link>
         </Button>
