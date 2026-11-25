@@ -2,7 +2,7 @@
 title: 'Story 7.1: Lag modellkort fra en forelesning'
 type: 'feature'
 created: '2026-11-23'
-status: 'ready-for-dev'
+status: 'done'
 baseline_revision: 'baa5c8b4834df40a9905676451009eebf534e26c'
 review_loop_iteration: 0
 followup_review_recommended: false
@@ -10,7 +10,14 @@ context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-7-context.md'
   - '{project-root}/_bmad-output/implementation-artifacts/autonom-kjoring.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Den ekte modellen kan lage et modellkort med samme forside som et som finnes, og løpet fjerner ikke slike dubletter selv.
+    evidence: |-
+      existing_keys sendes bare til modellen i forespørselen (vertex.py). Mock-regelen hopper over kjente forsider, men validate_item og løpet i service.py gjør det ikke. Slik har det vært for flashcards og quiz siden epic 3, så det er ikke laget i denne storien.
+    location: >-
+      backend/app/modules/generation/service.py
+    severity: low
 ---
 
 <intent-contract>
@@ -115,6 +122,49 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-25 — Review pass
+- verdicts: 35 findings — high 0, medium 2, low 13, false 9, maybe-false 0 (11 avvist som lave uten verdi eller som spesifikasjonsendring, gruppert under)
+- findings:
+  - Blind Hunter
+    - `[medium]` `[patch]` Raden teller modellkort, men «Øv nå» åpner en tom økt når det bare finnes modellkort — `practiceCountOf` på `GenerationRow`; «Øv nå» er ikke aktiv uten vanlige flashcards (Vitest og Playwright).
+    - `[false]` `[reject]` Dialogen «Nye kort legges til de N du har» teller modellkort — modellkort er kort (FR-42), og raden ved siden av viser samme tall.
+    - `[low]` `[reject]` Huskeregelen lagres slik modellen ga den, ikke normalisert — tabellen i intent-kontrakten sier «lagres som modellen ga den»; å endre det er å endre spesifikasjonen.
+    - `[low]` `[reject]` «Forklar» i forsiden håndheves ikke — FR-45 krever det ikke; det er en instruks til modellen.
+    - `[low]` `[defer]` Den ekte modellen kan lage dubletter — fantes før storien for alle typer; ført i `deferred`.
+    - `[low]` `[reject]` Mock-regelen tåler ikke punktlinjer som brytes over to linjer — demomodellen er mekanisk med vilje (Siljes avgjørelse 14.11); å støtte det krever ny logikk.
+    - `[low]` `[patch]` Kommentaren om rekkefølgen i `_ensure_builtin_types` stemte ikke — importene er delt i må ha og bryterstyrte typer.
+    - `[low]` `[reject]` Kontoteksten med bryteren av er ikke testet — modellkort slettes med kontoen uansett bryter, så teksten er riktig; ny test gir lite.
+    - `[low]` `[reject]` Slettetellinger for forelesning og emne er ikke testet med modellkort — de går gjennom samme register som fila, som er testet.
+    - `[low]` `[reject]` Axe-testen med eksempelemnet godtar 5 eller 6 kort — Docker-databasen kan være seedet før story 7.1, og testen skal ikke feile av det.
+    - `[low]` `[reject]` Ingen CHECK-regel i databasen for modellkort — bare `content` skriver tabellen (AR-16), og lagringen er testet.
+    - `[false]` `[reject]` KI-sporet mangler — føres i samme økt etter gjennomgangen.
+  - Edge Case Hunter
+    - `[medium]` `[patch]` (samme rot som første funn) Bare modellkort gir aktiv «Øv nå» — rettet som over.
+    - `[false]` `[reject]` Dialogens antall teller modellkort — som over.
+    - `[false]` `[reject]` Raden teller gamle modellkort med bryteren av — 7.2 viser eksisterende modellkort også med bryteren av, så tellingen er riktig.
+    - `[low]` `[patch]` Før konfigurasjonen er lastet, viser raden «Venter til modellkortene er ferdige» for sin egen jobb — raden følger alltid `models`, og bare knappen styres av bryteren (`showExtra`). Ny Vitest.
+    - `[low]` `[patch]` `started_at` ble sammenlignet som tekst — `Date.parse`.
+    - `[low]` `[reject]` Huskeregelen normaliseres ikke — som over.
+    - `[low]` `[patch]` Linja over lista med «?» eller «!», eller bare tegn — `?!` fjernes, og en linje med bare tegn gir ikke kort. Nye tester.
+    - `[low]` `[reject]` Underpunkter slås sammen med lista — mekanisk demomodell; krever ny logikk.
+    - `[low]` `[reject]` Linjer som begynner med årstall og punktum — krever tre slike linjer etter hverandre; svært sjelden.
+    - `[low]` `[defer]` Dubletter fra den ekte modellen — som over.
+    - `[low]` `[patch]` `flashcard_fronts` tok med modellkortenes forsider — filtrert på `qa`/`concept`. Ny test.
+    - `[low]` `[patch]` Emnekortet teller ikke modellkort, mens forelesningstabellen gjør det — `subjectContentCounts` legger dem til i «kort». Ny Vitest.
+    - `[low]` `[reject]` Spesifikasjonen sier `models.py`, fila heter `model_cards.py` — rettelsen er å endre spesifikasjonen; forklart i modulens docstring og under.
+    - `[false]` `[reject]` `api.ts` er ikke endret — trengte ingen endring; `JobKind` går gjennom typen.
+  - Verification Gap
+    - `[low]` `[patch]` (samme som emnekortet over) Emnekortet mangler test med modellkort — rettet som over.
+    - `[medium]` `[patch]` (samme som første funn) «Øv nå» med bare modellkort — rettet som over.
+  - Intent Alignment
+    - `[false]` `[reject]` (a) Øving er ikke mulig i 7.1 — story 7.2 dekker det; «Øv nå» er nå ikke aktiv med bare modellkort.
+    - `[low]` `[patch]` (b) «Du kan bruke resten av appen imens.» ble ikke sjekket for modellkort — lagt til i Playwright.
+    - `[false]` `[reject]` (c) Ferdigteksten, `requested: 30` og «Prøv igjen» — valg i spesifikasjonen, ført som kanttilfeller.
+    - `[low]` `[reject]` (d) Sletting av forelesning og emne er ikke testet med modellkort — som over.
+    - `[false]` `[reject]` (e) Bryteren av er testet i Vitest og pytest, ikke i nettleseren — Playwright kjører mot én Docker-konfigurasjon med bryteren på.
+    - `[false]` `[reject]` (f) Vertex testes bare mot filene — det er det akseptkriteriet ber om.
+    - `[false]` `[reject]` (g) Endringer i eksisterende tester — følger av at `model_cards` er nytt i tellingene.
+
 ## Design Notes
 
 - **Antall i jobben:** «Lag modellkort» har ingen dialog. Frontenden sender `requested: 30` (det største omfanget), og raden viser aldri «færre enn valgt» for modellkort, siden studenten ikke har valgt noe.
@@ -129,3 +179,28 @@ deferred: []
 - `cd backend && uv run ruff check . && uv run mypy app` -- expected: ingen feil (hvis satt opp).
 - `cd frontend && npm run test && npm run lint && npx tsc --noEmit` -- expected: alle grønne.
 - `cd frontend && npx playwright test` mot `docker compose up --build -d` -- expected: alle grønne.
+
+## Auto Run Result
+
+**Status:** done
+
+**Hva som er bygd:** innholdstypen `models` (modellkort) i registeret, med mock-regel, huskeregel av forbokstavene, kontroll før lagring, instruks for Gemini og bryteren `FEATURE_MNEMONICS`. Modellkort lagres som `flashcards` med `kind="model"`, `points` og `mnemonic` (migrering 0010), telles for seg i slettebekreftelsen og i `content-counts`, og seed lager dem for eksempelforelesningene. Forelesningssiden har tekstknappen «Lag modellkort» på Flashcards-raden.
+
+**Filer:**
+- `backend/alembic/versions/0010_add_model_card_fields.py` -- `points` og `mnemonic`.
+- `backend/app/modules/content/*` -- lagring, telling og `model_cards` i registeret.
+- `backend/app/modules/generation/model_cards.py` -- typen (heter `model_cards.py` fordi `models.py` er jobbtabellene).
+- `backend/app/modules/generation/instructions/models.md` -- instruksen.
+- `backend/app/modules/generation/registry.py`, `router.py` -- registrering og 404 med bryteren av.
+- `frontend/components/create-row.tsx`, `frontend/modules/generation/*` -- knappen, tekstene og raden som følger to jobbtyper.
+- `frontend/modules/subjects/next-step.ts` -- emnekortet teller modellkort.
+- `frontend/e2e/*` -- ny `modellkort.spec.ts`, flyt 3 med modellkort (#131), axe krever knappen (#301), PDF med flere linjer.
+- `README.md`, `docs/testplan.md`, `docs/testing/brukerreiser.md`.
+
+**Gjennomgang:** 35 funn. 9 rettet (2 medium, 7 lave), 1 utsatt (dubletter fra den ekte modellen, fantes før), resten avvist med grunn i loggen over.
+
+**followup_review_recommended:** false. Ingen rettede funn var `high`, og de to medium-funnene hadde samme rot og er dekket av nye tester.
+
+**Verifisering:** `uv run pytest` 806 grønne før rettelsene, berørte filer 178 grønne etter; `uv run ruff check .` rent; `npm run test` 928 grønne før rettelsene, berørte filer 469 grønne etter; `npx tsc --noEmit` rent. Hele pakken og Playwright kjøres i story-løpet.
+
+**Gjenstående risiko:** modellkort kan ikke øves før story 7.2, så Flashcards-raden teller kort som ennå ikke vises i økten. «Øv nå» er ikke aktiv når det bare finnes modellkort.
