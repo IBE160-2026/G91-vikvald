@@ -164,7 +164,7 @@
 - [ ] 2026-11-23 [story-6-6-avsluttende-kontroll](950-2026-11-23-20-41-07-story-6-6-avsluttende-kontroll.md) — velg modell ut fra stikkprøven og sett den i .env.example (#4)
 - [x] 2026-11-23 [story-6-6-avsluttende-kontroll](950-2026-11-23-20-41-07-story-6-6-avsluttende-kontroll.md) — bør ha-testen må kreve at inngangen finnes når epic 7–9 bygges (#301) (fritekst løst 2026-11-25 i story 8.1; sammendrag gjenstår til epic 9)
 - [ ] 2026-11-23 [story-6-6-avsluttende-kontroll](950-2026-11-23-20-41-07-story-6-6-avsluttende-kontroll.md) — vurder kanttilfellene fra story 6.6 (#301–#308), særlig vurderingsverdiene og SK-14 (#305)
-- [ ] 2026-11-23 [brukerreiser-etter-epic-6](949-2026-11-23-21-12-47-brukerreiser-etter-epic-6.md) — flyttestene utvides med modellkort (epic 7), fritekst (epic 8) og sammendrag (epic 9) når de er bygd
+- [x ] 2026-11-23 [brukerreiser-etter-epic-6](949-2026-11-23-21-12-47-brukerreiser-etter-epic-6.md) — flyttestene utvides med modellkort (epic 7), fritekst (epic 8) og sammendrag (epic 9) når de er bygd (modellkort og fritekst testet, sammendrag videreført; løst 2026-11-26)
 - [x] 2026-11-25 [story-7-1-modellkort](948-2026-11-25-09-51-05-story-7-1-modellkort.md) — frigjør diskplass, kjør Playwright, ta skjermbildene og flett PR-en for story/7-1 (#318) (løst 2026-11-25)
 - [ ] 2026-11-25 [story-7-1-modellkort](948-2026-11-25-09-51-05-story-7-1-modellkort.md) — vurder kanttilfellene fra story 7.1 (#312–#317)
 - [ ] 2026-11-25 [story-7-1-modellkort](948-2026-11-25-09-51-05-story-7-1-modellkort.md) — vurder teksten «Vi fant ingen modeller …» når alle modellkortene finnes fra før, og knappene på Flashcards-raden over to linjer i 1280 px
@@ -178,3 +178,5 @@
 - [x] 2026-11-25 [story-8-2-ov-pa-fritekst](944-2026-11-25-20-25-51-story-8-2-ov-pa-fritekst.md) — bare 2,4 GB disk er ledig etter opprydding, under grensen på 5 GB for neste `--build` (løst 2026-11-25)
 - [ ] 2026-11-25 [story-8-3-fritekst-hele-emnet](943-2026-11-25-21-37-26-story-8-3-fritekst-hele-emnet.md) — vurder kanttilfellene fra story 8.3 (#344–#347)
 - [ ] 2026-11-25 [story-8-3-fritekst-hele-emnet](943-2026-11-25-21-37-26-story-8-3-fritekst-hele-emnet.md) — sletting av alle spørsmålene fra en forelesnings første jobb kan gjøre at en tidligere emneøkt ikke lenger teller som «øvd» (regelen fra 5.1, #348)
+- [ ] 2026-11-26 [brukerreiser-etter-epic-8](942-2026-11-26-00-55-11-brukerreiser-etter-epic-8.md) — brukerreisetestene utvides med sammendrag (epic 9, steg 11 i flyt 1) når det er bygd
+- [ ] 2026-11-26 [brukerreiser-etter-epic-8](942-2026-11-26-00-55-11-brukerreiser-etter-epic-8.md) — følg med på om flyt 1 steg 8 feiler igjen; årsaken til #343 der er sannsynlig, men ikke bevist
