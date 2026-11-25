@@ -5,7 +5,8 @@ function that counts its rows made from a set of files and lectures. The delete
 preview asks the registry, so a new content type shows up in the confirmation
 without any change to the delete code. Flashcards and quiz questions are
 registered by this module itself (the first time the registry is used), so
-they always come first, in that order, followed by model cards.
+they always come first, in that order, followed by model cards and free-text
+questions.
 
 The module also keeps the delete guards (AR-7): a module that owns something
 that must stop a delete (generation's running jobs) registers a guard here, and
@@ -16,8 +17,8 @@ It also answers "when did this lecture first get content of a practice kind"
 (AR-16, story 5.1): every practice kind registers a function that gives the
 time of the first content per lecture, and `first_content_times` asks it. The
 practice module uses this to decide which lectures a whole-subject session
-counts for, without reading the content tables itself. Flashcards and quiz are
-registered by this module itself, like the counters.
+counts for, without reading the content tables itself. Flashcards, quiz and
+free text are registered by this module itself, like the counters.
 
 This module imports nothing from `files` or `subjects` at the top.
 """
@@ -67,7 +68,12 @@ def _ensure_builtin_counters() -> None:
     global _builtin_counters_registered
     if _builtin_counters_registered:
         return
-    from app.modules.content.service import count_flashcards, count_model_cards, count_quiz_questions
+    from app.modules.content.service import (
+        count_flashcards,
+        count_freetext_questions,
+        count_model_cards,
+        count_quiz_questions,
+    )
 
     _counters["flashcards"] = count_flashcards
     _counters["quiz_questions"] = count_quiz_questions
@@ -75,6 +81,9 @@ def _ensure_builtin_counters() -> None:
     # registered: a card made while FEATURE_MNEMONICS was on is still deleted
     # with its file, so the confirmation must name it.
     _counters["model_cards"] = count_model_cards
+    # Free-text questions (epic 8), always registered for the same reason as
+    # model cards (FEATURE_FREETEXT).
+    _counters["freetext_questions"] = count_freetext_questions
     # Set only once registered, so a failed import is tried again next time.
     _builtin_counters_registered = True
 
@@ -116,15 +125,22 @@ def _ensure_builtin_first_content() -> None:
     global _builtin_first_content_registered
     if _builtin_first_content_registered:
         return
-    from app.modules.content.service import first_flashcard_times, first_quiz_question_times
+    from app.modules.content.service import (
+        first_flashcard_times,
+        first_freetext_question_times,
+        first_quiz_question_times,
+    )
 
     _first_content.setdefault("flashcards", first_flashcard_times)
     _first_content.setdefault("quiz", first_quiz_question_times)
+    # A whole-subject free-text session counts for the lectures that had
+    # free-text questions when it started (#236).
+    _first_content.setdefault("freetext", first_freetext_question_times)
     _builtin_first_content_registered = True
 
 
 def register_first_content(kind: str, first_times: FirstContentTimes) -> None:
-    """Add a practice kind (e.g. "freetext" in epic 8). The same kind twice is
+    """Add a practice kind (e.g. "summary"). The same kind twice is
     a programming error."""
     _ensure_builtin_first_content()
     if kind in _first_content:

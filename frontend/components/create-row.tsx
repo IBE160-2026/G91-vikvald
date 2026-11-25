@@ -33,6 +33,9 @@ export type CreateRowProps = {
   // «Øv nå»: opens the session (the Flashcards row gives it from story 3.3).
   // Without it the button is shown but not active (for types without practice yet).
   onPractice?: () => void;
+  // false: «Øv nå» is not shown at all, only «Lag flere» (free text until its
+  // session is built in story 8.2). Default true.
+  showPractice?: boolean;
   // The job-status text, e.g. «Lager flashcards …».
   jobText: string;
   // Read out by the live region (start and end of a job).
@@ -65,6 +68,7 @@ export function CreateRow({
   onCreateMore,
   extraAction,
   onPractice,
+  showPractice = true,
   jobText,
   announcement,
   message,
@@ -115,14 +119,16 @@ export function CreateRow({
               {/* Practising needs no job: while another row's job runs
                   («waiting»), «Øv nå» stays active (EXPERIENCE.md flow 1,
                   step 7: she practises flashcards while the quiz is made). */}
-              <Button
-                className="min-w-[184px]"
-                onClick={onPractice}
-                disabled={state === "disabled" || !onPractice}
-                aria-describedby={state === "disabled" ? describedBy : undefined}
-              >
-                Øv nå
-              </Button>
+              {showPractice ? (
+                <Button
+                  className="min-w-[184px]"
+                  onClick={onPractice}
+                  disabled={state === "disabled" || !onPractice}
+                  aria-describedby={state === "disabled" ? describedBy : undefined}
+                >
+                  Øv nå
+                </Button>
+              ) : null}
             </>
           ) : (
             <Button

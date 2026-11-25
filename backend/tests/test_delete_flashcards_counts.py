@@ -73,7 +73,7 @@ def test_ar7_flashcards_og_quizsporsmal_er_innmeldt_for_typer_som_kommer_senere(
 
     registry.register_counter("later_kind", count)
     try:
-        assert registry.registered_kinds() == ["flashcards", "quiz_questions", "model_cards", "later_kind"]
+        assert registry.registered_kinds() == ["flashcards", "quiz_questions", "model_cards", "freetext_questions", "later_kind"]
     finally:
         registry.unregister_counter("later_kind")
 
@@ -141,7 +141,7 @@ async def test_fr5_kontoens_forhandsvisning_teller_flashcards_og_ikke_andres(cli
             {"kind": "files", "count": 1},
             {"kind": "flashcards", "count": 5},
         ],
-        "content_kinds": ["flashcards", "quiz_questions", "model_cards"],
+        "content_kinds": ["flashcards", "quiz_questions", "model_cards", "freetext_questions"],
     }
 
 

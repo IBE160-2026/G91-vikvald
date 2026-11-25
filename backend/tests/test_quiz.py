@@ -285,7 +285,7 @@ async def test_fr28_quizjobb_gir_202_og_lager_fem_sporsmal(client: AsyncClient, 
     [job] = await _latest(client, lecture)
     assert (job["status"], job["created"], job["discarded"]) == ("done", 5, 0)
     assert job["params"] == {"requested": 20, "difficulty": "medium"}
-    assert await _counts(client, lecture) == {"flashcards": 0, "quiz_questions": 5, "model_cards": 0}
+    assert await _counts(client, lecture) == {"flashcards": 0, "quiz_questions": 5, "model_cards": 0, "freetext_questions": 0}
 
 
 async def test_fr29_uten_vanskelighetsgrad_brukes_middels(client: AsyncClient, lecture: str) -> None:
@@ -373,7 +373,7 @@ async def test_fr33_nye_sporsmal_legges_til_de_gamle(client: AsyncClient, engine
     await _finish_jobs()
     [job] = await _latest(client, lecture_id)
     assert job["created"] == 4
-    assert await _counts(client, lecture_id) == {"flashcards": 0, "quiz_questions": 8, "model_cards": 0}
+    assert await _counts(client, lecture_id) == {"flashcards": 0, "quiz_questions": 8, "model_cards": 0, "freetext_questions": 0}
 
 
 async def test_sk4_mock_invalid_forkaster_quizsporsmal_og_gir_faerre(

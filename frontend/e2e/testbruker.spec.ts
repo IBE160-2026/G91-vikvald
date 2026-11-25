@@ -18,7 +18,7 @@ const CARDS = 15;
 const QUESTIONS = 15;
 // One model card per lecture (story 7.1, FEATURE_MNEMONICS on by default):
 // AIDA, the four segmentation bases and the four P's. The subject card counts
-// them as «kort»; the session practises them from story 7.2.
+// them as «kort», and so do «Øv på hele emnet» and the session from story 7.2 (FR-56).
 const MODEL_CARDS = 3;
 
 async function expectNoAxeViolations(page: Page) {
@@ -72,14 +72,14 @@ test.describe("Testbruker og eksempelemne (story 6.4)", () => {
       await expect(table.getByText(name, { exact: true })).toBeVisible();
     }
     const practiceAll = page.getByRole("region", { name: "Øv på hele emnet" });
-    await expect(practiceAll.getByText(`${CARDS} kort fra 3 forelesninger`)).toBeVisible();
+    await expect(practiceAll.getByText(`${CARDS + MODEL_CARDS} kort fra 3 forelesninger`)).toBeVisible();
     await expectNoAxeViolations(page);
 
     // The flashcard session over the whole subject.
     await practiceAll.getByRole("link", { name: "Øv på flashcards" }).click();
     await expect(page).toHaveURL(/\/emner\/[0-9a-f-]{36}\/flashcards$/);
     const panel = page.getByRole("region", { name: "Flashcards" });
-    await expect(panel.getByText(`/ ${CARDS}`)).toBeVisible();
+    await expect(panel.getByText(`/ ${CARDS + MODEL_CARDS}`)).toBeVisible();
     await page.getByRole("button", { name: "Snu kortet" }).click();
     await expect(page.locator('[data-slot="flashcard"] [data-slot="source-link"]')).toHaveText(
       /^(markedsmiksen|segmentering|aida)\.pdf, side 1$/,

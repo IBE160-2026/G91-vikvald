@@ -16,6 +16,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
 from app.modules.content.models import Flashcard, QuizQuestion
+from app.modules.content import registry as content_registry
 from app.modules.content.registry import first_content_times, register_first_content, unregister_first_content
 from app.modules.files.models import File
 from app.modules.practice.models import PracticeSession
@@ -341,18 +342,23 @@ async def test_fr56_emneokt_i_ett_emne_merker_ikke_forelesninger_i_et_annet(
 
 @pytest.fixture
 def freetext_registered() -> Iterator[dict[uuid.UUID, datetime]]:
-    """A "freetext" kind registered later, as epic 8 will. The test fills in
-    the first times it answers with."""
+    """A "freetext" kind registered later, in place of the built-in one from
+    story 8.1 (restored afterwards). The test fills in the first times it
+    answers with."""
     answers: dict[uuid.UUID, datetime] = {}
 
     async def first_freetext_times(_session: Any, lecture_ids: tuple[uuid.UUID, ...]) -> dict[uuid.UUID, datetime]:
         return {lecture_id: moment for lecture_id, moment in answers.items() if lecture_id in lecture_ids}
 
+    content_registry._ensure_builtin_first_content()
+    builtin = content_registry._first_content["freetext"]
+    unregister_first_content("freetext")
     register_first_content("freetext", first_freetext_times)
     try:
         yield answers
     finally:
         unregister_first_content("freetext")
+        register_first_content("freetext", builtin)
 
 
 async def test_ar16_type_registrert_senere_brukes_av_regelen(

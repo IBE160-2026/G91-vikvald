@@ -308,7 +308,7 @@ async def test_fr42_jobben_gir_202_og_lagrer_modellkortene(
         ["Produkt", "Pris", "Plass", "Påvirkning"],
     )
     # Counted apart from the other flashcards.
-    assert await _counts(client, lecture) == {"flashcards": 0, "quiz_questions": 0, "model_cards": 2}
+    assert await _counts(client, lecture) == {"flashcards": 0, "quiz_questions": 0, "model_cards": 2, "freetext_questions": 0}
 
 
 async def test_fr22_lag_modellkort_igjen_lagrer_ingenting_nytt(

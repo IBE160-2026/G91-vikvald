@@ -61,7 +61,7 @@ describe("ScopeDialog", () => {
     await waitFor(() => expect(deep.getAttribute("aria-checked")).toBe("true"));
     expect(document.activeElement).toBe(deep);
     fireEvent.click(within(dialog).getByRole("button", { name: "Lag flashcards" }));
-    expect(onStart).toHaveBeenCalledWith(30);
+    expect(onStart).toHaveBeenCalledWith({ requested: 30 });
   });
 
   it("FR-17: «Vanlig» er valgt igjen neste gang dialogen åpnes", async () => {
@@ -73,7 +73,7 @@ describe("ScopeDialog", () => {
     const dialog = await screen.findByRole("dialog", { name: "Lag flashcards" });
     expect(within(dialog).getByRole("radio", { name: "Vanlig" }).getAttribute("aria-checked")).toBe("true");
     fireEvent.click(within(dialog).getByRole("button", { name: "Lag flashcards" }));
-    expect(onStart).toHaveBeenCalledWith(20);
+    expect(onStart).toHaveBeenCalledWith({ requested: 20 });
   });
 
   it("UX-DR21: «Avbryt» lukker uten å starte", () => {
@@ -88,8 +88,9 @@ describe("ScopeDialog", () => {
     const dialog = screen.getByRole("dialog", { name: "Lag flashcards" });
     expect(within(dialog).queryByRole("radiogroup", { name: "Vanskelighetsgrad" })).toBeNull();
     fireEvent.click(within(dialog).getByRole("button", { name: "Lag flashcards" }));
-    expect(onStart).toHaveBeenCalledWith(20);
-    expect(onStart.mock.calls[0]).toHaveLength(1);
+    expect(onStart).toHaveBeenCalledWith({ requested: 20 });
+    // Only the scope: no difficulty or question type.
+    expect(Object.keys(onStart.mock.calls[0][0])).toEqual(["requested"]);
   });
 });
 
@@ -132,7 +133,7 @@ describe("ScopeDialog for quiz", () => {
     // The scope did not change.
     expect(within(dialog).getByRole("radio", { name: "Vanlig" }).getAttribute("aria-checked")).toBe("true");
     fireEvent.click(within(dialog).getByRole("button", { name: "Lag quiz" }));
-    expect(onStart).toHaveBeenCalledWith(20, "hard");
+    expect(onStart).toHaveBeenCalledWith({ requested: 20, difficulty: "hard" });
   });
 
   it("FR-29: «Middels» er valgt igjen neste gang dialogen åpnes", async () => {
@@ -145,6 +146,70 @@ describe("ScopeDialog for quiz", () => {
     reopen(true);
     const dialog = await screen.findByRole("dialog", { name: "Lag quiz" });
     fireEvent.click(within(dialog).getByRole("button", { name: "Lag quiz" }));
-    expect(onStart).toHaveBeenCalledWith(20, "medium");
+    expect(onStart).toHaveBeenCalledWith({ requested: 20, difficulty: "medium" });
+  });
+});
+
+describe("ScopeDialog for fritekst", () => {
+  it("FR-48: «Lag fritekstspørsmål» har Type før Omfang, 5/10/15 og ingen vanskelighetsgrad, med «Kortsvar» og «Vanlig» valgt", () => {
+    renderDialog(vi.fn(), vi.fn(), true, "freetext", 7);
+    const dialog = screen.getByRole("dialog", { name: "Lag fritekstspørsmål" });
+    expect(within(dialog).getByText("Nye spørsmål legges til de 7 du har fra før.")).toBeTruthy();
+    const groups = within(dialog).getAllByRole("radiogroup");
+    const type = within(dialog).getByRole("radiogroup", { name: "Type" });
+    const scope = within(dialog).getByRole("radiogroup", { name: "Omfang" });
+    expect(groups).toEqual([type, scope]);
+    const kinds = within(type).getAllByRole("radio");
+    expect(kinds.map((radio) => document.getElementById(radio.getAttribute("aria-labelledby")!)!.textContent)).toEqual([
+      "Kortsvar",
+      "Langsvar",
+    ]);
+    expect(kinds.map((radio) => document.getElementById(radio.getAttribute("aria-describedby")!)!.textContent)).toEqual([
+      "Svar med noen få setninger",
+      "Forklar sammenhenger eller gi et eksempel",
+    ]);
+    expect(within(type).getByRole("radio", { name: "Kortsvar" }).getAttribute("aria-checked")).toBe("true");
+    for (const value of [5, 10, 15]) expect(within(dialog).getByText(`Inntil ${value} spørsmål`)).toBeTruthy();
+    expect(within(dialog).queryByText("Inntil 20 spørsmål")).toBeNull();
+    expect(within(scope).getByRole("radio", { name: "Vanlig" }).getAttribute("aria-checked")).toBe("true");
+    expect(within(dialog).queryByRole("radiogroup", { name: "Vanskelighetsgrad" })).toBeNull();
+    expect(within(dialog).getByText("Du kan bruke resten av appen imens.")).toBeTruthy();
+    const buttons = within(dialog).getAllByRole("button").map((button) => button.textContent);
+    expect(buttons.slice(-2)).toEqual(["Avbryt", "Lag fritekstspørsmål"]);
+  });
+
+  it("FR-48: uten endring starter den med kortsvar og 10 spørsmål", () => {
+    const { onStart } = renderDialog(vi.fn(), vi.fn(), true, "freetext");
+    fireEvent.click(screen.getByRole("button", { name: "Lag fritekstspørsmål" }));
+    expect(onStart).toHaveBeenCalledWith({ requested: 10, question_kind: "short" });
+  });
+
+  it("FR-48: piltastene flytter bare innen gruppen, og Langsvar og Rask sender question_kind long og 5", async () => {
+    const { onStart } = renderDialog(vi.fn(), vi.fn(), true, "freetext");
+    const dialog = screen.getByRole("dialog", { name: "Lag fritekstspørsmål" });
+    const short = within(dialog).getByRole("radio", { name: "Kortsvar" });
+    short.focus();
+    fireEvent.keyDown(short, { key: "ArrowRight" });
+    const long = within(dialog).getByRole("radio", { name: "Langsvar" });
+    await waitFor(() => expect(long.getAttribute("aria-checked")).toBe("true"));
+    expect(document.activeElement).toBe(long);
+    // The scope did not change.
+    expect(within(dialog).getByRole("radio", { name: "Vanlig" }).getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Rask" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Lag fritekstspørsmål" }));
+    expect(onStart).toHaveBeenCalledWith({ requested: 5, question_kind: "long" });
+  });
+
+  it("FR-48: «Kortsvar» og «Vanlig» er valgt igjen neste gang dialogen åpnes", async () => {
+    const onStart = vi.fn();
+    const { reopen } = renderDialog(onStart, vi.fn(), true, "freetext");
+    fireEvent.click(screen.getByRole("radio", { name: "Langsvar" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Dyp" }));
+    reopen(false);
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    reopen(true);
+    const dialog = await screen.findByRole("dialog", { name: "Lag fritekstspørsmål" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Lag fritekstspørsmål" }));
+    expect(onStart).toHaveBeenCalledWith({ requested: 10, question_kind: "short" });
   });
 });

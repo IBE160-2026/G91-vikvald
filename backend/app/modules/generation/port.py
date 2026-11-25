@@ -40,6 +40,9 @@ class GenerationOptions:
     # The chosen difficulty ("easy", "medium" or "hard") for types that have
     # one (quiz); None for the others. The mock rules ignore it.
     difficulty: str | None = None
+    # The chosen question type ("short" or "long") for types that have one
+    # (free text); None for the others. The mock rules ignore it.
+    question_kind: str | None = None
 
 
 class FormulaReport(BaseModel):

@@ -5,8 +5,10 @@ validation, how existing content is found and how valid items are saved
 (through the content module), and its instructions file for the real model.
 The pipeline only knows this registry, so a new type (quiz, model cards, ...)
 needs no change to the pipeline.
-A type that has a difficulty (quiz) says so with uses_difficulty, and a type
-behind a feature switch (FEATURE_*) says so with feature.
+A type that has a difficulty (quiz) says so with uses_difficulty, a type with
+a question type (free text) with uses_question_kind, the scopes a job may ask
+for with scopes and default_requested, and a type behind a feature switch
+(FEATURE_*) says so with feature.
 """
 
 import uuid
@@ -40,8 +42,10 @@ class ValidItem:
     formula_flag: bool
 
 
-# Adds the valid items to the session; the pipeline commits.
-Save = Callable[[AsyncSession, list[ValidItem]], Awaitable[None]]
+# Adds the valid items to the session; the pipeline commits. The job's options
+# come along, so a type can store what the student chose (free text stores
+# options.question_kind); the other types ignore them.
+Save = Callable[[AsyncSession, list[ValidItem], GenerationOptions], Awaitable[None]]
 # How LLM_PROVIDER=mock-invalid breaks item number `index` of the mock list
 # (SK-4): index % 4 == 0 stays valid, the others are broken so validate_item
 # throws them away.
@@ -63,6 +67,13 @@ class ContentType:
     # Whether a job takes params.difficulty (quiz). For the other types a
     # difficulty in the request is a validation error.
     uses_difficulty: bool = False
+    # Whether a job takes params.question_kind (free text: "short" or "long").
+    # For the other types a question_kind in the request is a validation error.
+    uses_question_kind: bool = False
+    # The values params.requested may have («Rask», «Vanlig», «Dyp») and the
+    # one used when it is left out. The one place that decides what is valid.
+    scopes: tuple[int, ...] = (10, 20, 30)
+    default_requested: int = 20
     # The feature switch the type belongs to (e.g. "summary" for FEATURE_SUMMARY),
     # or None for the must-have types (flashcards, quiz), which are always on.
     feature: Feature | None = None
@@ -85,9 +96,10 @@ def unregister_content_type(kind: str) -> None:
 
 def enabled_content_types(settings: Settings | None = None) -> list[ContentType]:
     """Every registered type without the types whose feature switch is off:
-    the must-have types first, then the others, each in registration order (so
-    the order does not depend on which module was imported first). The seed
-    makes content of exactly these (AR-14)."""
+    the must-have types first, then the others, the built-in types in a fixed
+    order (_BUILTIN_ORDER) and any other type after them in registration
+    order, so the order does not depend on which module was imported first.
+    The seed makes content of exactly these (AR-14)."""
     _ensure_builtin_types()
     settings = settings or get_settings()
     enabled = [
@@ -95,7 +107,19 @@ def enabled_content_types(settings: Settings | None = None) -> list[ContentType]
         for content_type in _types.values()
         if content_type.feature is None or getattr(settings, f"FEATURE_{content_type.feature.upper()}")
     ]
-    return sorted(enabled, key=lambda content_type: content_type.feature is not None)
+    return sorted(enabled, key=_order)
+
+
+# The built-in types in a fixed order: the must-have types, then the types
+# behind a switch in the order they were built. A module may import a type
+# module early (vertex.py imports freetext), so registration order alone is
+# not fixed. Other types (tests) come after, in registration order.
+_BUILTIN_ORDER = ("flashcards", "quiz", "models", "freetext")
+
+
+def _order(content_type: ContentType) -> tuple[bool, int]:
+    position = _BUILTIN_ORDER.index(content_type.kind) if content_type.kind in _BUILTIN_ORDER else len(_BUILTIN_ORDER)
+    return (content_type.feature is not None, position)
 
 
 def get_content_type(kind: str) -> ContentType:
@@ -115,3 +139,4 @@ def _ensure_builtin_types() -> None:
     # first, then the types behind a feature switch.
     from app.modules.generation import flashcards, quiz  # noqa: F401, I001
     from app.modules.generation import model_cards  # noqa: F401
+    from app.modules.generation import freetext  # noqa: F401

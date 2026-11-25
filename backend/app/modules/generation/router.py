@@ -20,7 +20,7 @@ from app.modules.generation.models import Job
 from app.modules.generation.port import Generator
 from app.modules.generation.providers import get_generator
 from app.modules.generation.registry import get_content_type
-from app.modules.generation.schemas import JobCreate, JobOut, JobParams, TrackedJobOut
+from app.modules.generation.schemas import JobCreate, JobOut, TrackedJobOut
 from app.modules.generation.service import (
     active_jobs,
     create_job,
@@ -83,11 +83,8 @@ async def start_job(
     lecture = await get_lecture(session, user.id, lecture_id)
     if not await list_files(session, lecture.id):
         raise AppError(ErrorCode.LECTURE_HAS_NO_FILES)
-    params = body.params or JobParams()
-    # Without empty fields: flashcards stay {"requested": 20}.
-    job = await create_job(
-        session, lecture.id, body.kind, params.model_dump(exclude_none=True), params.requested
-    )
+    params, requested = body.job_params()
+    job = await create_job(session, lecture.id, body.kind, params, requested)
     answer = _job_out(job)
     start_task(run_job(job.id, generator, sessionmaker))
     return answer

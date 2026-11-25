@@ -1,6 +1,7 @@
-"""Business logic for stored content: save generated flashcards, model cards
-and quiz questions, count them, list flashcards with their source, and let the student
-edit or delete a flashcard and delete a quiz question."""
+"""Business logic for stored content: save generated flashcards, model cards,
+quiz questions and free-text questions, count them, list flashcards and quiz
+questions with their source, and let the student edit or delete a flashcard
+and delete a quiz question."""
 
 import hashlib
 import uuid
@@ -16,6 +17,7 @@ from app.modules.content.models import (
     MODEL_CARD_KIND,
     PLAIN_FLASHCARD_KINDS,
     Flashcard,
+    FreetextQuestion,
     QuizQuestion,
 )
 from app.modules.content.registry import DeleteScope
@@ -389,6 +391,85 @@ async def count_flashcards(session: AsyncSession, scope: DeleteScope) -> int:
         Flashcard.file_id.in_(scope.file_ids), Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS)
     )
     return int(await session.scalar(statement) or 0)
+
+
+@dataclass(frozen=True)
+class NewFreetextQuestion:
+    file_id: uuid.UUID
+    page_no: int
+    # "short" or "long": the type the student chose (FREETEXT_KINDS).
+    kind: str
+    question: str
+    model_answer: str
+    # As for NewFlashcard (FR-41).
+    formula_flag: bool = False
+
+
+def add_freetext_questions(session: AsyncSession, questions: list[NewFreetextQuestion]) -> None:
+    """Add the free-text questions to the session. New questions are added to
+    the existing ones, never in their place. The caller commits (one
+    transaction with the job). created_at and position as in add_flashcards."""
+    saved_at = datetime.now(UTC)
+    session.add_all(
+        FreetextQuestion(
+            id=uuid.uuid4(),
+            file_id=item.file_id,
+            kind=item.kind,
+            question=item.question,
+            model_answer=item.model_answer,
+            page_no=item.page_no,
+            formula_flag=item.formula_flag,
+            created_at=saved_at,
+            position=position,
+        )
+        for position, item in enumerate(questions)
+    )
+
+
+async def freetext_question_texts(session: AsyncSession, lecture_id: uuid.UUID) -> list[str]:
+    """The question text of every free-text question (short and long) made
+    from the lecture's files."""
+    statement = (
+        select(FreetextQuestion.question)
+        .join(File, FreetextQuestion.file_id == File.id)
+        .where(File.lecture_id == lecture_id)
+        .order_by(FreetextQuestion.created_at, FreetextQuestion.position, FreetextQuestion.id)
+    )
+    return list(await session.scalars(statement))
+
+
+async def freetext_question_count(session: AsyncSession, lecture_id: uuid.UUID) -> int:
+    """The number of free-text questions made from the lecture's files."""
+    statement = (
+        select(func.count(FreetextQuestion.id))
+        .join(File, FreetextQuestion.file_id == File.id)
+        .where(File.lecture_id == lecture_id)
+    )
+    return int(await session.scalar(statement) or 0)
+
+
+async def count_freetext_questions(session: AsyncSession, scope: DeleteScope) -> int:
+    """The free-text questions made from the files in the delete scope (FR-12)."""
+    if not scope.file_ids:
+        return 0
+    statement = select(func.count(FreetextQuestion.id)).where(FreetextQuestion.file_id.in_(scope.file_ids))
+    return int(await session.scalar(statement) or 0)
+
+
+async def first_freetext_question_times(
+    session: AsyncSession, lecture_ids: tuple[uuid.UUID, ...]
+) -> dict[uuid.UUID, datetime]:
+    """When each lecture got its first free-text question (#236). Lectures
+    without questions are missing."""
+    if not lecture_ids:
+        return {}
+    statement = (
+        select(File.lecture_id, func.min(FreetextQuestion.created_at))
+        .join(File, FreetextQuestion.file_id == File.id)
+        .where(File.lecture_id.in_(lecture_ids))
+        .group_by(File.lecture_id)
+    )
+    return {lecture_id: first for lecture_id, first in (await session.execute(statement)).all()}
 
 
 async def get_flashcard(

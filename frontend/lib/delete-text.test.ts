@@ -28,6 +28,12 @@ describe("alsoDeletedSentence", () => {
     ).toBe("Dette sletter også 18 flashcards, 11 quizspørsmål og 2 modellkort laget fra fila.");
   });
 
+  it("FR-12, FR-48: fritekstspørsmål nevnes i bekreftelsen for en fil", () => {
+    expect(alsoDeletedSentence([{ kind: "freetext_questions", count: 10 }], "file")).toBe(
+      "Dette sletter også 10 fritekstspørsmål laget fra fila.",
+    );
+  });
+
   it("UX-DR22: entall for 1", () => {
     expect(
       alsoDeletedSentence(
@@ -132,6 +138,9 @@ describe("accountDeletedText", () => {
     );
     expect(accountDeletedText(["flashcards", "ukjent", "model_cards", "quiz_questions"])).toBe(
       "Alle emner, filer og alt generert innhold slettes for godt: flashcards, modellkort og quizspørsmål.",
+    );
+    expect(accountDeletedText(["flashcards", "quiz_questions", "model_cards", "freetext_questions"])).toBe(
+      "Alle emner, filer og alt generert innhold slettes for godt: flashcards, quizspørsmål, modellkort og fritekstspørsmål.",
     );
     expect(accountDeletedText(["ukjent", "toString"])).toBe(
       "Alle emner, filer og alt generert innhold slettes for godt.",

@@ -19,6 +19,7 @@ import { FileList } from "@/modules/files/components/file-list";
 import { UploadZone, rejectionText } from "@/modules/files/components/upload-zone";
 import type { UploadedFile } from "@/modules/files/types";
 import { FlashcardsRow } from "@/modules/generation/components/flashcards-row";
+import { FreetextRow } from "@/modules/generation/components/freetext-row";
 import { QuizRow } from "@/modules/generation/components/quiz-row";
 import { OVERVIEW_QUERY_KEY } from "@/modules/practice/api";
 
@@ -260,6 +261,16 @@ export function LecturePage({ lectureId }: { lectureId: string }) {
                     fileCount={files.data?.length}
                     pageCount={files.data?.reduce((sum, file) => sum + file.page_count, 0)}
                   />
+                  {/* Behind FEATURE_FREETEXT (story 8.1): not shown while the config loads. */}
+                  {config.data?.feature_freetext === true ? (
+                    <FreetextRow
+                      key={`freetext-${lectureId}`}
+                      lectureId={lectureId}
+                      lectureName={lecture.data.name}
+                      fileCount={files.data?.length}
+                      pageCount={files.data?.reduce((sum, file) => sum + file.page_count, 0)}
+                    />
+                  ) : null}
                 </div>
               </section>
             </div>

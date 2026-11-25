@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-25: Story 8.1 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `8-1-lag-fritekstspørsmål`.
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-8-1-lag-fritekstsporsmal.md), branchen `story/8-1` og kanttilfellene #329–#334.
+
 ## 2026-11-25: Brukerreisetestene utvidet etter epic 7
 
 Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 7 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).

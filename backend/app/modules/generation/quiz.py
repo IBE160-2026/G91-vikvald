@@ -131,7 +131,7 @@ async def existing_keys(session: AsyncSession, lecture_id: uuid.UUID) -> frozens
     return frozenset(text.casefold() for text in await quiz_question_texts(session, lecture_id))
 
 
-async def save(session: AsyncSession, items: list[ValidItem]) -> None:
+async def save(session: AsyncSession, items: list[ValidItem], _options: GenerationOptions) -> None:
     add_quiz_questions(
         session,
         [

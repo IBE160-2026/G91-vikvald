@@ -78,3 +78,31 @@ class QuizQuestion(Base):
     # The order the row was made in within the batch it was saved with. A batch
     # shares one created_at, so this keeps "the order they were made in" fixed.
     position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
+
+# The free-text question types (epic 8): «Kortsvar» and «Langsvar».
+FREETEXT_KINDS = ("short", "long")
+
+
+class FreetextQuestion(Base):
+    __tablename__ = "freetext_questions"
+    __table_args__ = (CheckConstraint("kind IN ('short', 'long')", name="ck_freetext_questions_kind"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    # The file the question was made from. Deleting the file deletes its questions.
+    file_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("files.id", ondelete="CASCADE"), index=True
+    )
+    # "short" or "long" (FREETEXT_KINDS): the type the student chose for the job.
+    kind: Mapped[str] = mapped_column(String(16))
+    question: Mapped[str] = mapped_column(Text)
+    model_answer: Mapped[str] = mapped_column(Text)
+    # The PDF's own page number, starting at 1.
+    page_no: Mapped[int] = mapped_column(Integer)
+    # True when the source page needed an image or the model reported that
+    # something was missing (FR-41); set by the generation pipeline.
+    formula_flag: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utc_now)
+    # The order the row was made in within the batch it was saved with, as for
+    # the other content tables.
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
