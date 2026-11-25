@@ -433,17 +433,24 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     // 0.5 while the session starts, which gives the order Merkevare, Image,
     // Logo, the model card, Slagord: the error paths for cards land on a plain
     // card, and the model card comes in the middle of the session, as in the flow.
+    // It is put back once the session shows its first card, that is, when the
+    // shuffle is done. A fixed timer (5 s, as before) ran out before the cards
+    // had loaded when the machine was busy, and the order became random (#343).
     await page.evaluate(() => {
-      const original = Math.random;
+      const holder = window as unknown as { __originalRandom?: () => number };
+      holder.__originalRandom = Math.random;
       Math.random = () => 0.5;
-      setTimeout(() => {
-        Math.random = original;
-      }, 5_000);
     });
     await createSection(page).getByRole("button", { name: "Øv nå" }).click();
     await expect(page).toHaveURL(`/forelesninger/${merkevareId}/flashcards`);
     await expect(sessionPanel(page).getByText("Uke 37: Merkevare")).toBeVisible();
     await expect(sessionPanel(page).getByText("/ 5")).toBeVisible();
+    await expect(cardFront(page)).toHaveText(MERKEVARE_FRONTS[0]);
+    await page.evaluate(() => {
+      const holder = window as unknown as { __originalRandom?: () => number };
+      if (holder.__originalRandom) Math.random = holder.__originalRandom;
+      delete holder.__originalRandom;
+    });
     expect(MERKEVARE_FRONTS).toContain(await cardFront(page).textContent());
     await page.keyboard.press(" ");
     await expect(page.getByText("SVAR", { exact: true })).toBeVisible();
