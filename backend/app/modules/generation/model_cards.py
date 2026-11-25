@@ -28,7 +28,7 @@ FRONT_PREFIX = "Forklar "
 # A list line: a bullet (•, ◦, ▪, -, –, *) or a number with «.» or «)», then a space.
 _LIST_MARKER = re.compile(r"^\s*(?:[•◦▪\-–*]|\d{1,3}[.)])\s+")
 # What ends the line above the list and is dropped before «.» is added.
-_FRONT_END = ".:;"
+_FRONT_END = ".:;?!"
 
 
 def first_letter(point: str) -> str | None:
@@ -71,7 +71,7 @@ def _lists_on_page(page: Page) -> list[tuple[str, list[str]]]:
 def mock_rule(pages: list[Page], options: GenerationOptions) -> list[dict[str, Any]]:
     """One model card per list (NFR-2a): a line followed by three or more lines
     that start with a bullet or a number, on one page. The front is «Forklar
-    [the line above, without a closing . : or ;].», the points are the list
+    [the line above, without a closing . : ; ? or !].», the points are the list
     lines without bullet or number, and the mnemonic follows FR-43/FR-44. A list
     with a point without any letter gives no card. Cards whose front (ignoring
     case) is in options.existing_keys, or was made earlier in this run, are
@@ -82,7 +82,11 @@ def mock_rule(pages: list[Page], options: GenerationOptions) -> list[dict[str, A
         for above, points in _lists_on_page(page):
             if any(first_letter(point) is None for point in points):
                 continue
-            front = f"{FRONT_PREFIX}{above.rstrip(_FRONT_END).rstrip()}."
+            above_text = above.rstrip(_FRONT_END).rstrip()
+            # A line of only punctuation names nothing to explain.
+            if not above_text:
+                continue
+            front = f"{FRONT_PREFIX}{above_text}."
             if front.casefold() in seen:
                 continue
             seen.add(front.casefold())

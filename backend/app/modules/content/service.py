@@ -224,11 +224,12 @@ async def count_quiz_questions(session: AsyncSession, scope: DeleteScope) -> int
 
 
 async def flashcard_fronts(session: AsyncSession, lecture_id: uuid.UUID) -> list[str]:
-    """The front of every card made from the lecture's files."""
+    """The front of every flashcard (qa and concept) made from the lecture's
+    files. Model cards have their own fronts (model_card_fronts)."""
     statement = (
         select(Flashcard.front)
         .join(File, Flashcard.file_id == File.id)
-        .where(File.lecture_id == lecture_id)
+        .where(File.lecture_id == lecture_id, Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS))
         .order_by(Flashcard.created_at, Flashcard.position, Flashcard.id)
     )
     return list(await session.scalars(statement))

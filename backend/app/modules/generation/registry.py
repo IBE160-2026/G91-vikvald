@@ -111,5 +111,7 @@ def is_registered(kind: str) -> bool:
 
 def _ensure_builtin_types() -> None:
     # Importing a type's module registers it. Done here (not at the top) so the
-    # type modules can import this one. The must-have types come first.
-    from app.modules.generation import flashcards, model_cards, quiz  # noqa: F401
+    # type modules can import this one. The must-have types are registered
+    # first, then the types behind a feature switch.
+    from app.modules.generation import flashcards, quiz  # noqa: F401, I001
+    from app.modules.generation import model_cards  # noqa: F401

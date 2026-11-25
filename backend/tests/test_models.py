@@ -90,10 +90,22 @@ def test_nfr2a_mock_lager_ett_modellkort_per_liste() -> None:
     }
 
 
-@pytest.mark.parametrize("above", ["Rekkefølgen gir navnet til modellen.", "Rekkefølgen gir navnet til modellen:"])
+@pytest.mark.parametrize(
+    "above",
+    [
+        "Rekkefølgen gir navnet til modellen.",
+        "Rekkefølgen gir navnet til modellen:",
+        "Rekkefølgen gir navnet til modellen?",
+        "Rekkefølgen gir navnet til modellen!",
+    ],
+)
 def test_nfr2a_linja_over_som_slutter_med_tegn_gir_ett_punktum(above: str) -> None:
     [card] = mock([page(list_page(above, ["Attention", "Interest", "Desire", "Action"]))])
     assert card["front"] == "Forklar Rekkefølgen gir navnet til modellen."
+
+
+def test_nfr2a_linja_over_med_bare_tegn_gir_ingen_kort() -> None:
+    assert mock([page(list_page("...", ["Attention", "Interest", "Desire", "Action"]))]) == []
 
 
 def test_nfr2a_for_kort_liste_gir_ingen_kort() -> None:
@@ -467,6 +479,19 @@ async def test_fr12_modellkort_vises_ikke_som_vanlige_flashcards(client: AsyncCl
     await _start(client, lecture)
     await _finish_jobs()
     assert (await client.get(f"{LECTURES}/{lecture}/flashcards")).json() == []
+
+
+async def test_fr22_modellkortenes_forsider_er_ikke_kjente_flashcards(
+    client: AsyncClient, lecture: str, engine: AsyncEngine
+) -> None:
+    # The flashcards job is told only about flashcard fronts, not model-card fronts.
+    await _start(client, lecture)
+    await _finish_jobs()
+    async with async_sessionmaker(engine)() as session:
+        flashcard_keys = await get_content_type("flashcards").existing_keys(session, uuid.UUID(lecture))
+        model_keys = await get_content_type("models").existing_keys(session, uuid.UUID(lecture))
+    assert model_keys
+    assert not model_keys & flashcard_keys
 
 
 # --- Migration (AR-13) -------------------------------------------------------
