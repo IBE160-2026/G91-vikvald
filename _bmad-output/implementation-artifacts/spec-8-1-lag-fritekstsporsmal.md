@@ -2,7 +2,8 @@
 title: 'Story 8.1: Lag fritekstspørsmål'
 type: 'feature'
 created: '2026-11-25'
-status: 'in-progress'
+status: 'done'
+baseline_revision: '47913a4ef65dfd8c98f994e0f8dd370d45201968'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -10,7 +11,14 @@ context:
   - '{project-root}/_bmad-output/implementation-artifacts/autonom-kjoring.md'
   - '{project-root}/_bmad-output/implementation-artifacts/spec-7-1-lag-modellkort-fra-en-forelesning.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Den ekte modellen kan lage et fritekstspørsmål med samme tekst som et som finnes, og løpet fjerner ikke slike dubletter selv.
+    evidence: |-
+      existing_keys sendes bare til modellen i forespørselen (vertex.py). Mock-regelen hopper over kjente spørsmål, men validate_item og løpet i service.py gjør det ikke. Slik har det vært for alle typer siden epic 3 (også ført i spec-7-1).
+    location: >-
+      backend/app/modules/generation/service.py
+    severity: low
 ---
 
 <intent-contract>
@@ -112,6 +120,42 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-25 — Review pass
+- verdicts: 28 findings — high 0, medium 0, low 22, false 6, maybe-false 0
+- findings:
+  - Blind Hunter
+    - `[false]` `[reject]` KI-sporet i `docs/ki-prosess/` mangler — føres i samme økt etter gjennomgangen, før PR-en.
+    - `[low]` `[reject]` Omfangene 5/10/15 står både i registeret og i dialogen — å hente dem fra API-et er ny flate; backenden avviser feil verdi med 422, og Vitest og pytest låser begge listene.
+    - `[low]` `[reject]` Tekstene for type står flere steder — dialogen og instruksen er skrevet for ulike lesere; ingen feil oppstår.
+    - `[low]` `[reject]` `vertex.py` importerer `freetext.QUESTION_KINDS` — samme mønster som `quiz.DIFFICULTIES`; en krok i registeret er en omskriving uten feil å rette.
+    - `[low]` `[patch]` Kommentaren i `test_fr48_uten_params_gir_vanlig_og_kortsvar` beskrev et tilfelle ingen test dekket — kommentaren er fjernet, og `test_fr48_bare_requested_gir_kortsvar` er lagt til.
+    - `[low]` `[reject]` `save` faller tilbake til «short» — valideringen setter alltid typen; tilbakefallet kan ikke nås fra API-et.
+    - `[low]` `[reject]` Standardomfanget settes to steder i `JobCreate` — gir samme verdi; ingen feil.
+    - `[low]` `[reject]` Med bryteren av og ugyldige parametre svarer API-et 422, ikke 404 — valideringen av kroppen kjører før ruten, slik den har gjort for modellkort siden 7.1; appen sender aldri slike kall, og å flytte bryteren foran valideringen krever ny logikk.
+    - `[low]` `[reject]` Fritekstraden er ikke testet i ventetilstand — `GenerationRow` er felles for alle radene og ventetilstanden er testet der.
+    - `[low]` `[patch]` Kommentaren over kontoteksten i flyt 4 nevnte bare to typer — oppdatert med modellkort (7.1) og fritekstspørsmål (8.1).
+    - `[low]` `[reject]` Frontend-typene for omfang er løsere — backenden er kilden til sannhet og avviser feil par.
+    - `[low]` `[reject]` Kjente spørsmål sendes til modellen med små bokstaver — gjelder alle typer siden epic 3; ikke innført her.
+    - `[low]` `[patch]` Docstringen i `content/service.py` var for lang og utdatert — brutt om og rettet.
+    - `[low]` `[reject]` Migreringstesten sjekker ikke standardverdien for `formula_flag` — modellen og migreringen er like som for quiz, og lagringen er testet.
+    - `[low]` `[reject]` Overskriften «Type» er vag — storien sier «velger hun type»; gruppa ligger i en dialog med tittelen «Lag fritekstspørsmål».
+  - Edge Case Hunter
+    - `[false]` `[reject]` Manglende `question_kind` gir plassholderen ordrett til modellen — `JobCreate` setter alltid typen før jobben lagres.
+    - `[false]` `[reject]` Ukjent `question_kind` gir `KeyError` — `Literal["short", "long"]` avviser alt annet med 422.
+    - `[low]` `[defer]` Den ekte modellen kan lage dubletter — fantes før storien for alle typer; ført i `deferred`.
+    - `[low]` `[reject]` (samme rot som 422/404 over) Bryter av med ugyldige parametre — som over.
+    - `[low]` `[reject]` `StrictInt` avviser `10.0` — frontenden sender heltall; `Literal[10, 20, 30]` godtok heller ikke tekst.
+    - `[false]` `[reject]` Dialogen beholder gammelt omfang når `kind` endres mens den er åpen — hver rad har sin egen dialog med fast `kind`.
+    - `[low]` `[reject]` (samme rot som 422/404 over) README-påstanden om 404 — som over.
+  - Intent Alignment
+    - `[low]` `[patch]` FR-49 var brukt om valg av type, men betyr modellsvar og kilde — testplanen er rettet, testene for type og omfang heter nå FR-48, og `test_fr49_validate_item_forkaster_ugyldige` bærer FR-49.
+    - `[low]` `[patch]` FR-22 hadde ingen test der en ny jobb legger til spørsmål — `test_fr22_fr48_nye_sporsmal_legges_til_de_gamle`.
+    - `[false]` `[reject]` Kortsvar og langsvar gir like spørsmål i mock — akseptkriteriet sier det.
+    - `[low]` `[reject]` Sletting av forelesning, emne og erstatting er ikke testet for fritekst — går gjennom samme telleregister som fila, som er testet.
+    - `[false]` `[reject]` Endringer utenfor storien (`Save`, omfang per type, `showPractice`) — nødvendige for akseptkriteriene og beskrevet i Design Notes.
+  - Verification Gap
+    - `[low]` `[patch]` Ingen test viste at kjente spørsmål og tellingen gjelder én forelesning — `test_fr48_kjente_sporsmal_og_tellingen_gjelder_bare_egen_forelesning`.
+
 ## Design Notes
 
 - **Typen lagres fra jobben:** `Save` får `GenerationOptions`, og `freetext.save` setter `kind=options.question_kind`. Den løse modellen har derfor ikke noe `kind`-felt. De andre typene ignorerer argumentet.
@@ -124,3 +168,26 @@ deferred: []
 - `cd backend && uv run pytest && uv run ruff check . && uv run mypy app` -- expected: alle grønne, ingen feil.
 - `cd frontend && npm run test && npm run lint && npx tsc --noEmit` -- expected: alle grønne.
 - `cd frontend && npx playwright test` mot `docker compose up --build -d` -- expected: alle grønne.
+
+## Auto Run Result
+
+**Status:** done
+
+**Hva som er bygd:** innholdstypen `freetext` (kortsvar og langsvar med modellsvar) i registeret, med mock-regel «Forklar [begrep].», kontroll før lagring, instruks for Gemini og bryteren `FEATURE_FREETEXT`. Spørsmålene lagres i den nye tabellen `freetext_questions` (migrering 0011) gjennom `content`, telles i slettebekreftelsen og i `content-counts`, teller for «øvd» i emneøkter (#236), og seed lager dem. Forelesningssiden har raden «Fritekstspørsmål» med dialogen for type og omfang, uten «Øv nå» til story 8.2.
+
+**Filer:**
+- `backend/alembic/versions/0011_create_freetext_questions.py` -- tabellen.
+- `backend/app/modules/content/*` -- lagring, telling, første innhold og `freetext_questions` i tellingene.
+- `backend/app/modules/generation/freetext.py`, `instructions/freetext.md` -- typen og instruksen.
+- `backend/app/modules/generation/registry.py`, `schemas.py`, `port.py`, `service.py`, `vertex.py` -- omfang per type, `question_kind`, `Save` med options, fast rekkefølge på typene.
+- `frontend/modules/generation/*`, `frontend/components/create-row.tsx`, `frontend/lib/messages.ts`, `frontend/modules/subjects/pages/lecture-page.tsx` -- raden, dialogen og tekstene.
+- `frontend/e2e/fritekst.spec.ts`, `universell-utforming.spec.ts` (#301), `konto.spec.ts`, flyt 4, `modellkort.spec.ts`.
+- `README.md`, `docs/testplan.md`, `docs/testing/brukerreiser.md`.
+
+**Gjennomgang:** 28 funn. 6 rettet (alle lave), 1 utsatt (dubletter fra den ekte modellen, fantes før), resten avvist med grunn i loggen over. Playwright fant i tillegg at en lang linje i test-PDF-en ble kuttet; testen har nå én setning per linje.
+
+**followup_review_recommended:** false. Ingen rettede funn var `high` eller `medium`.
+
+**Verifisering:** se PR-en og sesjonsloggen for tallene fra `uv run pytest`, `npm run test`, `npx tsc --noEmit` og `npx playwright test` mot `docker compose up --build -d`.
+
+**Gjenstående risiko:** fritekstspørsmål kan ikke øves før story 8.2. Med bryteren av og ugyldige parametre svarer API-et 422 i stedet for 404.
