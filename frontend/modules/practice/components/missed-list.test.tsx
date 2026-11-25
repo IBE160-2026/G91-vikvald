@@ -144,4 +144,43 @@ describe("MissedList", () => {
     expectFlagRightAboveSource(rows[1]);
     expect(rows[1].querySelector("[data-slot='missed-lecture']")).not.toBeNull();
   });
+
+  it("FR-51: friteksten har h3, antall og én rad per spørsmål med nummer, merke i tekst, spørsmål, modellsvar og kilde", () => {
+    render(
+      <MissedList
+        kind="freetext"
+        items={[
+          {
+            id: "a",
+            number: 2,
+            mark: "missed",
+            front: "Forklar Merkevare.",
+            modelAnswer: "Merkevare er et navn.",
+            source: { file_name: "merkevare.pdf", page_no: 1 },
+          },
+          {
+            id: "b",
+            number: 5,
+            mark: "partial",
+            front: "Forklar Pris.",
+            modelAnswer: "Pris er det kunden betaler.",
+            source: { file_name: "merkevare.pdf", page_no: 2 },
+            formula_flag: true,
+          },
+        ]}
+      />,
+    );
+    const section = screen.getByRole("region", { name: "Feil og delvis riktig" });
+    expect(within(section).getByRole("heading", { level: 3, name: "Feil og delvis riktig" })).toBeTruthy();
+    expect(within(section).getByText("2 spørsmål").className).toContain("text-ink-muted");
+    const rows = within(section).getAllByRole("listitem");
+    expect(rows.map((row) => row.textContent)).toEqual([
+      "Spørsmål 2:FeilForklar Merkevare.Merkevare er et navn.merkevare.pdf, side 1",
+      "Spørsmål 5:Delvis riktigForklar Pris.Pris er det kunden betaler.Inneholder formel – sjekk mot kildenmerkevare.pdf, side 2",
+    ]);
+    expect(rows[1].querySelector("svg[data-icon='partial']")?.getAttribute("aria-hidden")).toBe("true");
+    expectFlagRightAboveSource(rows[1]);
+    // Her own answer is never part of the list.
+    expect(section.textContent).not.toContain("Ditt svar");
+  });
 });

@@ -2,8 +2,8 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { flashcardAdapter, quizAdapter } from "../adapter";
-import { advance, answerCurrent, gridCells, markCurrent, startSession } from "../session";
+import { flashcardAdapter, freetextAdapter, quizAdapter } from "../adapter";
+import { advance, answerCurrent, assessCurrent, gridCells, markCurrent, startSession } from "../session";
 import { AnswerGrid } from "./answer-grid";
 
 afterEach(cleanup);
@@ -74,5 +74,26 @@ describe("AnswerGrid", () => {
       "Spørsmål 1",
       "Spørsmål 2: ikke besvart ennå",
     ]);
+  });
+
+  it("FR-51, UX-DR9: fritekst gir ✓, ◐ og ✗, lest som «Spørsmål 2: delvis riktig», og ◐ står i blekk på surface-partial", () => {
+    let state = startSession(["A", "B", "C", "D"]);
+    state = assessCurrent(state, "known");
+    state = assessCurrent(state, "partial");
+    state = assessCurrent(state, "missed");
+    render(<AnswerGrid cells={gridCells(state)} adapter={freetextAdapter} />);
+    const items = screen.getAllByRole("listitem");
+    expect(items.map((item) => item.querySelector(".sr-only")!.textContent)).toEqual([
+      "Spørsmål 1: riktig",
+      "Spørsmål 2: delvis riktig",
+      "Spørsmål 3: feil",
+      "Spørsmål 4",
+    ]);
+    expect(items[1].dataset.mark).toBe("partial");
+    expect(items[1].className).toContain("bg-surface-partial");
+    expect(items[1].className).toContain("text-ink");
+    expect(items[1].className).not.toMatch(/subject|success|danger/);
+    expect(items[1].querySelector("svg[data-icon='partial']")).toBeTruthy();
+    expect(items[1].querySelector("svg")!.getAttribute("aria-hidden")).toBe("true");
   });
 });

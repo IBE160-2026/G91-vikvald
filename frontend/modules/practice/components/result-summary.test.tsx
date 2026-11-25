@@ -2,7 +2,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { ResultSummary, quizResultSubtitle, quizResultTitle, resultTitle } from "./result-summary";
+import { ResultSummary, freetextResultTitle, quizResultSubtitle, quizResultTitle, resultTitle } from "./result-summary";
 
 afterEach(cleanup);
 
@@ -99,5 +99,34 @@ describe("ResultSummary kind=quiz", () => {
       "Uke 37 · 2 av 2 riktige",
     );
     expect(quizResultTitle({ total: 15, answered: 15, correct: 11, aborted: false })).toBe("11 av 15 riktige");
+  });
+
+  it("FR-51, FR-56: fritekst ferdig har ØKT FERDIG, tittelen, forelesningen og tre felt uten feiring", () => {
+    const { container } = render(
+      <ResultSummary
+        kind="freetext"
+        total={3}
+        counts={{ answered: 3, correct: 1, partial: 1, wrong: 1 }}
+        aborted={false}
+        scopeName="Uke 37: Merkevare"
+      />,
+    );
+    expect(screen.getByText("ØKT FERDIG").className).toContain("text-overline");
+    const title = screen.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 3 spørsmålene" });
+    expect(title.getAttribute("tabindex")).toBe("-1");
+    expect(screen.getByText("Uke 37: Merkevare")).toBeTruthy();
+    expect(fields(container)).toEqual(["Riktig1", "Delvis riktig1", "Feil1"]);
+    const partial = container.querySelectorAll("[data-slot='result-field'] > span")[1];
+    expect(partial.className).toContain("bg-surface-partial");
+    expect(partial.querySelector("svg[data-icon='partial']")).toBeTruthy();
+    expect(container.textContent).not.toMatch(/%|Bra|Gratulerer/);
+  });
+
+  it("FR-51: fritekst med ett spørsmål, og avbrutt etter A av N", () => {
+    expect(freetextResultTitle({ total: 1, answered: 1, aborted: false })).toBe("Du har gått gjennom 1 spørsmål");
+    expect(freetextResultTitle({ total: 10, answered: 10, aborted: false })).toBe(
+      "Du har gått gjennom alle 10 spørsmålene",
+    );
+    expect(freetextResultTitle({ total: 3, answered: 1, aborted: true })).toBe("Avbrutt etter 1 av 3");
   });
 });
