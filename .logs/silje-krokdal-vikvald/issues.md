@@ -173,4 +173,6 @@
 - [x] 2026-11-25 [story-7-2-ov-pa-modellkort](947-2026-11-25-11-16-43-story-7-2-ov-pa-modellkort.md) — appen bruker om lag 1,7 GB disk mens den kjører, så ledig plass faller under 5 GB: frigjør mer plass eller avgjør hva grensen gjelder for (løst 2026-11-25)
 - [x] 2026-11-25 [brukerreiser-etter-epic-7](946-2026-11-25-14-51-34-brukerreiser-etter-epic-7.md) — frigjør diskplass, kjør hele Playwright-pakken, før KI-sporet, push brukerreiser/epic-7, lag PR-en og flett (løst 2026-11-25)
 - [ ] 2026-11-25 [story-8-1-fritekstsporsmal](945-2026-11-25-16-10-17-story-8-1-fritekstsporsmal.md) — vurder kanttilfellene fra story 8.1 (#329–#334)
-- [ ] 2026-11-25 [story-8-1-fritekstsporsmal](945-2026-11-25-16-10-17-story-8-1-fritekstsporsmal.md) — bare 2,4 GB disk er ledig etter opprydding, under grensen på 5 GB for neste `--build`
+- [x] 2026-11-25 [story-8-1-fritekstsporsmal](945-2026-11-25-16-10-17-story-8-1-fritekstsporsmal.md) — bare 2,4 GB disk er ledig etter opprydding, under grensen på 5 GB for neste `--build` (løst 2026-11-25)
+- [ ] 2026-11-25 [story-8-2-ov-pa-fritekst](944-2026-11-25-20-25-51-story-8-2-ov-pa-fritekst.md) — vurder kanttilfellene fra story 8.2 (#336–#341)
+- [ ] 2026-11-25 [story-8-2-ov-pa-fritekst](944-2026-11-25-20-25-51-story-8-2-ov-pa-fritekst.md) — bare 2,4 GB disk er ledig etter opprydding, under grensen på 5 GB for neste `--build`
