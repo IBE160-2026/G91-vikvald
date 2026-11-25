@@ -34,7 +34,7 @@ async def _made(client: AsyncClient, lecture_id: str, body: dict[str, Any] | Non
     await _finish_jobs()
 
 
-async def test_fr50_sporsmalene_har_alle_feltene_med_modellsvar_og_kilde(client: AsyncClient, lecture: str) -> None:
+async def test_fr49_fr50_sporsmalene_har_alle_feltene_med_modellsvar_og_kilde(client: AsyncClient, lecture: str) -> None:
     await _made(client, lecture)
 
     questions = await _freetext_questions(client, lecture)

@@ -194,7 +194,7 @@ describe("FreetextSessionPage", () => {
     expect(button("Vis modellsvar").disabled).toBe(false);
   });
 
-  it("FR-51, A8: «Vis modellsvar» låser feltet, viser «Levert · 3 ord», modellsvaret med kilde og fokus på «Modellsvar», og selvvurderingen uten forhåndsvalg", async () => {
+  it("FR-49, FR-51, A8: «Vis modellsvar» låser feltet, viser «Levert · 3 ord», modellsvaret med kilde og fokus på «Modellsvar», og selvvurderingen uten forhåndsvalg", async () => {
     renderPage();
     await started();
     write("  To  ord\nher ");
