@@ -9,14 +9,30 @@ import type { ModelCard } from "../types";
 // «term (oversettelse)» nor «term: forklaring» is all rest.
 export type PointParts = { term: string; muted: string; rest: string };
 
+// The first «:» that ends a term: followed by a space (or the end of the
+// point), and not inside an unclosed «(». -1 when there is none, so «Kl.
+// 10:30» and «https://x» are not split.
+function termColon(point: string): number {
+  for (let index = point.indexOf(":"); index !== -1; index = point.indexOf(":", index + 1)) {
+    if (index === 0) continue;
+    const next = point[index + 1];
+    if (next !== undefined && next !== " ") continue;
+    const before = point.slice(0, index);
+    const open = before.split("(").length - before.split(")").length;
+    if (open <= 0) return index;
+  }
+  return -1;
+}
+
 // «Attention (oppmerksomhet)» -> term «Attention», muted «(oppmerksomhet)».
-// «Produkt: varen …» -> term «Produkt», rest «: varen …». Whichever of «(»
-// and «:» comes first decides; one at the very start does not count.
+// «Produkt: varen …» -> term «Produkt», rest «: varen …». Whichever of a
+// closed «(…)» and a term colon (see termColon) comes first decides; one at
+// the very start does not count. Anything else is plain text.
 export function pointParts(point: string): PointParts {
   const paren = point.indexOf("(");
-  const colon = point.indexOf(":");
+  const colon = termColon(point);
   const close = paren > 0 ? point.indexOf(")", paren) : -1;
-  if (paren > 0 && close > paren && (colon <= 0 || paren < colon)) {
+  if (paren > 0 && close > paren && (colon === -1 || paren < colon)) {
     return {
       term: point.slice(0, paren).trimEnd(),
       muted: point.slice(paren, close + 1),

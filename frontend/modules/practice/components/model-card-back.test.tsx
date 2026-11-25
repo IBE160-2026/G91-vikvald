@@ -38,6 +38,22 @@ describe("pointParts", () => {
   });
 });
 
+describe("pointParts, kolon og parentes", () => {
+  it("UX-DR28: en parentes som ikke lukkes før kolonet, gir vanlig tekst", () => {
+    expect(pointParts("A (b: c")).toEqual({ term: "", muted: "", rest: "A (b: c" });
+  });
+
+  it("UX-DR28: et kolon uten mellomrom etter deler ikke punktet", () => {
+    expect(pointParts("Kl. 10:30 (morgen)")).toEqual({ term: "Kl. 10:30", muted: "(morgen)", rest: "" });
+    expect(pointParts("Se https://x")).toEqual({ term: "", muted: "", rest: "Se https://x" });
+    expect(pointParts("Kl. 10:30: start")).toEqual({ term: "Kl. 10:30", muted: "", rest: ": start" });
+  });
+
+  it("UX-DR28: et kolon til slutt avslutter termen", () => {
+    expect(pointParts("Produkt:")).toEqual({ term: "Produkt", muted: "", rest: ":" });
+  });
+});
+
 describe("pointLetter", () => {
   it("UX-DR28: første bokstav, stor, også æ/ø/å og etter tegn", () => {
     expect(pointLetter("attention")).toBe("A");

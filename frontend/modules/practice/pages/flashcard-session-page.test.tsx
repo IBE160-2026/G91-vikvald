@@ -1035,6 +1035,17 @@ describe("FlashcardSessionPage", () => {
       expect(button("Rediger")).toBeTruthy();
     });
 
+    it("AR-11: uten config (ikke lastet) står huskeregelen, men huskeregelknappen mangler", async () => {
+      mnemonicsSwitch = null;
+      cards = [modelCard("m")];
+      renderPage();
+      await flipModelCard();
+      await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/config")).toBe(true));
+      expect(screen.getByText("Huskeregel:")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Endre huskeregel" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "Legg til huskeregel" })).toBeNull();
+    });
+
     it("FR-27, FR-42: «Rediger» på et modellkort retter punktene, ett per linje, og huskeregelen står", async () => {
       cards = [modelCard("m")];
       renderPage();
