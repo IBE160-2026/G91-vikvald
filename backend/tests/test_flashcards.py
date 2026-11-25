@@ -14,7 +14,7 @@ from tests.test_subjects import NOT_FOUND
 __all__ = ["lecture", "no_jobs_left"]
 
 LECTURES = "/api/lectures"
-CARD_FIELDS = {"id", "kind", "front", "back", "formula_flag", "source"}
+CARD_FIELDS = {"id", "kind", "front", "back", "points", "mnemonic", "formula_flag", "source"}
 
 
 async def _flashcards(client: AsyncClient, lecture_id: str) -> list[dict]:
@@ -49,7 +49,7 @@ async def test_fr20_kortene_har_kilde_og_kommer_i_fil_og_siderekkefolge(client: 
     assert cards[0]["back"] == "Alfa er et begrep i faget."
 
 
-async def test_fr19_bare_sporsmal_og_begrepskort_kommer_med(
+async def test_fr19_fr56_modellkort_kommer_med_blant_sporsmals_og_begrepskortene(
     client: AsyncClient, lecture: str, engine: AsyncEngine
 ) -> None:
     await _start(client, lecture)
@@ -63,11 +63,22 @@ async def test_fr19_bare_sporsmal_og_begrepskort_kommer_med(
                 kind="model",
                 front="AIDA",
                 back=None,
+                points=["Attention", "Interest", "Desire", "Action"],
+                mnemonic="AIDA",
                 page_no=1,
             )
         )
         await session.commit()
-    assert [card["front"] for card in await _flashcards(client, lecture)] == [card["front"] for card in cards]
+    after = await _flashcards(client, lecture)
+    assert len(after) == 6
+    model = next(card for card in after if card["kind"] == "model")
+    assert (model["front"], model["back"], model["points"], model["mnemonic"]) == (
+        "AIDA",
+        None,
+        ["Attention", "Interest", "Desire", "Action"],
+        "AIDA",
+    )
+    assert all(card["points"] is None and card["mnemonic"] is None for card in after if card["kind"] != "model")
 
 
 async def test_fr20_kortene_fra_en_annen_forelesning_kommer_ikke_med(client: AsyncClient, lecture: str) -> None:
