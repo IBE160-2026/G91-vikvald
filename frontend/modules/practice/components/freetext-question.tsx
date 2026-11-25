@@ -88,6 +88,7 @@ export function FreetextQuestion({
 }: Props) {
   const [answer, setAnswer] = useState("");
   const fieldId = useId();
+  const deliveredId = useId();
   const assessTitleId = useId();
   const fieldRef = useRef<HTMLTextAreaElement>(null);
   const modelTitleRef = useRef<HTMLHeadingElement>(null);
@@ -119,7 +120,11 @@ export function FreetextQuestion({
         <label htmlFor={fieldId} className="text-label text-ink">
           Ditt svar
         </label>
-        {revealed ? <p className="text-meta text-ink-muted">Levert · {wordCount(answer)} ord</p> : null}
+        {revealed ? (
+          <p id={deliveredId} className="text-meta text-ink-muted">
+            Levert · {wordCount(answer)} ord
+          </p>
+        ) : null}
       </div>
       <Textarea
         ref={fieldRef}
@@ -127,6 +132,7 @@ export function FreetextQuestion({
         value={answer}
         onChange={(event) => setAnswer(event.target.value)}
         readOnly={revealed}
+        aria-describedby={revealed ? deliveredId : undefined}
         className="mt-2 min-h-[112px]"
       />
       {revealed ? (

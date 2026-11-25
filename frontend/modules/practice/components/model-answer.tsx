@@ -1,4 +1,4 @@
-import type { Ref } from "react";
+import { useId, type Ref } from "react";
 
 import { FormulaFlag } from "@/components/formula-flag";
 import { SourceLink, type Source } from "@/components/source-link";
@@ -25,10 +25,11 @@ type Props = {
 // source on the left and the subject dot with the lecture's name on the right
 // (wrapping under each other when narrow). Built like explanation-card.
 export function ModelAnswer({ modelAnswer, source, formulaFlag, lectureName, colorIndex, titleRef }: Props) {
+  const titleId = useId();
   return (
-    <section data-slot="model-answer" className="w-full rounded-lg border border-border-card bg-surface shadow-lift">
+    <section data-slot="model-answer" aria-labelledby={titleId} className="w-full rounded-lg border border-border-card bg-surface shadow-lift">
       <div className="px-5 pt-4 pb-4">
-        <h3 ref={titleRef} tabIndex={-1} className="text-item-title text-ink">
+        <h3 id={titleId} ref={titleRef} tabIndex={-1} className="text-item-title text-ink">
           Modellsvar
         </h3>
         <p className="mt-2 text-body break-words whitespace-pre-line text-ink">{modelAnswer}</p>

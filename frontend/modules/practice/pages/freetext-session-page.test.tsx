@@ -200,7 +200,9 @@ describe("FreetextSessionPage", () => {
     write("  To  ord\nher ");
     fireEvent.click(button("Vis modellsvar"));
     expect(field().readOnly).toBe(true);
-    expect(screen.getByText("Levert · 3 ord")).toBeTruthy();
+    const delivered = screen.getByText("Levert · 3 ord");
+    expect(field().getAttribute("aria-describedby")).toBe(delivered.id);
+    expect(screen.getByRole("region", { name: "Modellsvar" })).toBeTruthy();
     const title = screen.getByRole("heading", { level: 3, name: "Modellsvar" });
     expect(title.getAttribute("tabindex")).toBe("-1");
     expect(document.activeElement).toBe(title);
@@ -360,6 +362,39 @@ describe("FreetextSessionPage", () => {
     const [first, second] = saved();
     expect(second.session_id).not.toBe(first.session_id);
     expect(second).toEqual(expect.objectContaining({ aborted: true, answered: 1, wrong: 1 }));
+  });
+
+  it("FR-50: feiler hentingen ved «Øv igjen», starter den nye økten med spørsmålene fra forrige økt", async () => {
+    renderPage();
+    await started();
+    answerAndAssess("Riktig");
+    answerAndAssess("Riktig");
+    answerAndAssess("Riktig");
+    questionsStatus = 500;
+    fireEvent.click(button("Øv igjen"));
+    expect(await screen.findByText("SPØRSMÅL 1 AV 3")).toBeTruthy();
+    expect(field().value).toBe("");
+    await waitFor(() => expect(document.activeElement).toBe(field()));
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("FR-50: kommer hentingen ved «Øv igjen» tom tilbake, brukes spørsmålene fra forrige økt", async () => {
+    renderPage();
+    await started();
+    answerAndAssess("Riktig");
+    answerAndAssess("Riktig");
+    answerAndAssess("Riktig");
+    questions = [];
+    fireEvent.click(button("Øv igjen"));
+    expect(await screen.findByText("SPØRSMÅL 1 AV 3")).toBeTruthy();
+    expect(screen.queryByText("Det finnes ingen fritekstspørsmål her ennå.")).toBeNull();
+  });
+
+  it("FR-50: spørsmålene stokkes, så økten starter ikke nødvendigvis med det første fra API-et", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    renderPage();
+    await started();
+    expect(heading()).not.toBe("Forklar Merkevare.");
   });
 
   it("A15: uten spørsmål vises «Det finnes ingen fritekstspørsmål her ennå.» og ingen panel", async () => {

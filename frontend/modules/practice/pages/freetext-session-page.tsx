@@ -175,14 +175,15 @@ export function FreetextSessionPage({ lectureId }: { lectureId: string }) {
   }
 
   // «Øv igjen»: the questions the lecture has now, a new order, a new
-  // session_id and a new start time. If the fetch fails, the session's own questions.
+  // session_id and a new start time. If the fetch fails or comes back empty,
+  // the session's own questions.
   async function playAgain() {
     if (!session || restartingRef.current) return;
     restartingRef.current = true;
     const own = session.state.order.map((id) => session.questions[id]);
     try {
       const result = await questions.refetch();
-      const fresh = !result.isError && result.data ? result.data : own;
+      const fresh = !result.isError && result.data && result.data.length > 0 ? result.data : own;
       saver.restart();
       setSession(newSession(fresh));
       setAborted(false);
