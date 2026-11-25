@@ -35,6 +35,16 @@ export function quizResultHints(backHint: string): readonly ShortcutHint[] {
   ];
 }
 
+// Free text (story 8.2, mockup 12): under the self-assessment, right-aligned
+// under its buttons. The page shows it only while the self-assessment is
+// visible, since 1/2/3 work only then (E27).
+export const freetextHints: readonly ShortcutHint[] = [
+  { key: "1", text: "Feil" },
+  { key: "2", text: "Delvis riktig" },
+  { key: "3", text: "Riktig" },
+  { key: "Esc", text: "avslutt" },
+];
+
 // The result page (mockup 08). backHint is where Esc goes: «tilbake til
 // forelesningen» or «tilbake til emnet».
 export function resultHints(backHint: string): readonly ShortcutHint[] {
@@ -49,15 +59,17 @@ export function ShortcutHints({
   align = "center",
 }: {
   hints: readonly ShortcutHint[];
-  // Centred under buttons, or at the start of the line (the quiz's footer).
-  align?: "center" | "start";
+  // Centred under buttons, at the start of the line (the quiz's footer), or at
+  // the end (under the free-text self-assessment).
+  align?: "center" | "start" | "end";
 }) {
   return (
     <ul
       data-slot="shortcut-hints"
       aria-label="Hurtigtaster"
       className={
-        "flex flex-wrap items-center gap-x-5 gap-y-2 " + (align === "center" ? "justify-center" : "justify-start")
+        "flex flex-wrap items-center gap-x-5 gap-y-2 " +
+        (align === "center" ? "justify-center" : align === "end" ? "justify-end" : "justify-start")
       }
     >
       {hints.map((hint) => (

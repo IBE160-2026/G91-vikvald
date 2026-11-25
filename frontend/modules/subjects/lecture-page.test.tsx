@@ -1606,14 +1606,17 @@ describe("Fritekstspørsmål (story 8.1)", () => {
     expect(within(row).queryByRole("button", { name: "Øv nå" })).toBeNull();
   });
 
-  it("FR-48: med spørsmål viser raden «12 spørsmål» og «Lag flere», men ikke «Øv nå»", async () => {
+  it("FR-48, FR-50: med spørsmål viser raden «12 spørsmål», «Lag flere» og «Øv nå», som åpner fritekst-økten", async () => {
     files = [uploadedFile("merkevare.pdf", 3)];
     freetextCount = 12;
     renderPage();
     const row = await screen.findByRole("group", { name: "Fritekstspørsmål" });
     expect(await within(row).findByText("12 spørsmål")).toBeTruthy();
     expect(within(row).getByRole("button", { name: "Lag flere" })).toBeTruthy();
-    expect(within(row).queryByRole("button", { name: "Øv nå" })).toBeNull();
+    const practice = within(row).getByRole("button", { name: "Øv nå" }) as HTMLButtonElement;
+    await waitFor(() => expect(practice.disabled).toBe(false));
+    fireEvent.click(practice);
+    expect(push).toHaveBeenCalledWith("/forelesninger/l2/fritekst");
     const { dialog } = await openFreetextDialog("Lag flere");
     expect(within(dialog).getByText("Nye spørsmål legges til de 12 du har fra før.")).toBeTruthy();
   });
@@ -1673,7 +1676,7 @@ describe("Fritekstspørsmål (story 8.1)", () => {
       "Fritekstspørsmålene er ferdige: 5 spørsmål i Uke 38: Prising.",
     );
     expect(within(freetextRow()).getByRole("button", { name: "Lag flere" })).toBeTruthy();
-    expect(within(freetextRow()).queryByRole("button", { name: "Øv nå" })).toBeNull();
+    expect(within(freetextRow()).getByRole("button", { name: "Øv nå" })).toBeTruthy();
   });
 
   it("FR-48: «Lag flere» uten nye spørsmål gir «ingenting»-teksten", async () => {

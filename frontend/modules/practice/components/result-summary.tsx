@@ -6,11 +6,11 @@ import type { Mark } from "../types";
 import { MARK_CLASSES, MarkIcon } from "./answer-grid";
 
 type Props = {
-  // Flashcards (mockup 08, the default) or quiz (mockup 10).
-  kind?: "flashcards" | "quiz";
+  // Flashcards (mockup 08, the default), quiz (mockup 10) or free text (story 8.2).
+  kind?: "flashcards" | "quiz" | "freetext";
   // The number of cards (or questions) in the session.
   total: number;
-  counts: { answered: number; correct: number; wrong: number };
+  counts: { answered: number; correct: number; wrong: number; partial?: number };
   // Ended with «Avslutt økt» or Esc before every card was marked «Kunne».
   aborted: boolean;
   // The lecture's name (the scope of the session).
@@ -24,6 +24,21 @@ type Props = {
 export function resultTitle({ total, answered, aborted }: { total: number; answered: number; aborted: boolean }): string {
   if (aborted) return `Avbrutt etter ${answered} av ${total}`;
   return total === 1 ? "Du har gått gjennom 1 kort" : `Du har gått gjennom alle ${total} kortene`;
+}
+
+// The title over the free-text result (story 8.2): all questions gone
+// through, or where she stopped (A = questions assessed).
+export function freetextResultTitle({
+  total,
+  answered,
+  aborted,
+}: {
+  total: number;
+  answered: number;
+  aborted: boolean;
+}): string {
+  if (aborted) return `Avbrutt etter ${answered} av ${total}`;
+  return total === 1 ? "Du har gått gjennom 1 spørsmål" : `Du har gått gjennom alle ${total} spørsmålene`;
 }
 
 // The title over the quiz result: «11 av 15 riktige», or where she stopped
@@ -83,7 +98,28 @@ export function quizResultSubtitle({
 // aborted), the title «11 av 15 riktige» or «Avbrutt etter 12 av 20» in
 // result-title, and the line from quizResultSubtitle. No fields: the list of
 // wrong answers below explains the rest.
+//
+// kind="freetext" (story 8.2): the overline ØKT FERDIG, the title from
+// freetextResultTitle in page-title, the lecture's name, and a card with three
+// fields «Riktig», «Delvis riktig» and «Feil» (side by side from sm, under each
+// other when narrow). No celebration and no share: she assessed herself.
 export function ResultSummary({ kind = "flashcards", total, counts, aborted, scopeName, titleRef }: Props) {
+  if (kind === "freetext") {
+    return (
+      <div data-slot="result-summary" className="w-full">
+        <p className="text-overline text-ink-muted">ØKT FERDIG</p>
+        <h2 ref={titleRef} tabIndex={-1} className="mt-2 text-page-title text-ink">
+          {freetextResultTitle({ total, answered: counts.answered, aborted })}
+        </h2>
+        <p className="mt-2 text-body-sm break-words text-ink-muted">{scopeName}</p>
+        <div className="mt-5 grid grid-cols-1 divide-y divide-divider rounded-lg border border-border-card bg-surface shadow-lift sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <Field mark="known" label="Riktig" detail={null} value={counts.correct} />
+          <Field mark="partial" label="Delvis riktig" detail={null} value={counts.partial ?? 0} />
+          <Field mark="missed" label="Feil" detail={null} value={counts.wrong} />
+        </div>
+      </div>
+    );
+  }
   if (kind === "quiz") {
     return (
       <div data-slot="result-summary" className="w-full">

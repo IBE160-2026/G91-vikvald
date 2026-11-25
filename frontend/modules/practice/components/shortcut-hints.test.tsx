@@ -2,7 +2,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { FLASHCARD_HINTS, ShortcutHints, quizHints, quizResultHints, resultHints } from "./shortcut-hints";
+import { FLASHCARD_HINTS, ShortcutHints, freetextHints, quizHints, quizResultHints, resultHints } from "./shortcut-hints";
 
 afterEach(cleanup);
 
@@ -60,5 +60,17 @@ describe("ShortcutHints", () => {
     render(<ShortcutHints hints={quizResultHints("tilbake til forelesningen")} align="start" />);
     const items = within(screen.getByRole("list", { name: "Hurtigtaster" })).getAllByRole("listitem");
     expect(items.map((item) => item.textContent)).toEqual(["Enter ta quizen igjen", "Esc tilbake til forelesningen"]);
+  });
+
+  it("FR-51, UX-DR27: friteksten viser 1 Feil, 2 Delvis riktig, 3 Riktig og Esc avslutt, til høyre", () => {
+    render(<ShortcutHints hints={freetextHints} align="end" />);
+    const list = screen.getByRole("list", { name: "Hurtigtaster" });
+    expect(within(list).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+      "1 Feil",
+      "2 Delvis riktig",
+      "3 Riktig",
+      "Esc avslutt",
+    ]);
+    expect(list.className).toContain("justify-end");
   });
 });

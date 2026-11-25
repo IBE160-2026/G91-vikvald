@@ -115,15 +115,39 @@ export function repeatingLeft(state: SessionState): number | null {
 
 // The first marks counted, for «Kunne 5 · Kunne ikke 1» and (3.5) saving:
 // shown = different cards shown, answered = cards marked at least once,
-// correct = first mark «Kunne», wrong = first mark «Kunne ikke».
-export function sessionCounts(state: SessionState): { shown: number; answered: number; correct: number; wrong: number } {
+// correct = first mark «Kunne», partial = first mark «Delvis riktig» (free
+// text only, story 8.2), wrong = first mark «Kunne ikke». Flashcards and quiz
+// never mark "partial", so for them wrong = answered - correct as before.
+export function sessionCounts(state: SessionState): {
+  shown: number;
+  answered: number;
+  correct: number;
+  partial: number;
+  wrong: number;
+} {
   const marks = Object.values(state.firstMarks);
-  const correct = marks.filter((mark) => mark === "known").length;
-  return { shown: state.shown.length, answered: marks.length, correct, wrong: marks.length - correct };
+  const count = (wanted: Mark) => marks.filter((mark) => mark === wanted).length;
+  return {
+    shown: state.shown.length,
+    answered: marks.length,
+    correct: count("known"),
+    partial: count("partial"),
+    wrong: count("missed"),
+  };
+}
+
+// Free text (story 8.2): her self-assessment of the current question. Sets
+// its mark (answerCurrent) and moves on to the next question (advance) in one
+// step, so there is no «Neste spørsmål» in between. After the last one the
+// session is finished. An already-assessed or finished session is left as it
+// is apart from moving on.
+export function assessCurrent(state: SessionState, mark: Mark): SessionState {
+  if (currentCard(state) === undefined) return state;
+  return advance(answerCurrent(state, mark));
 }
 
 // One cell of the answer grid, in the locked order. `mark` is the first mark
-// (✓ or ✗); `current` is the card being shown (a repeated card keeps its ✗).
+// (✓, ◐ or ✗); `current` is the card being shown (a repeated card keeps its ✗).
 export type GridCell = { id: string; number: number; mark: Mark | null; current: boolean };
 
 export function gridCells(state: SessionState): GridCell[] {

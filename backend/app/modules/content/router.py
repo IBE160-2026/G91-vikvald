@@ -1,5 +1,6 @@
 """HTTP routes for the content module: GET /api/lectures/{id}/content-counts,
-GET /api/lectures/{id}/flashcards, GET /api/lectures/{id}/quiz-questions, GET /api/subjects/{id}/flashcards,
+GET /api/lectures/{id}/flashcards, GET /api/lectures/{id}/quiz-questions,
+GET /api/lectures/{id}/freetext-questions, GET /api/subjects/{id}/flashcards,
 GET /api/subjects/{id}/quiz-questions, and
 PATCH and DELETE /api/flashcards/{id}, and DELETE /api/quiz-questions/{id}.
 
@@ -20,6 +21,7 @@ from app.modules.content.schemas import (
     ContentCounts,
     FlashcardOut,
     FlashcardUpdate,
+    FreetextQuestionOut,
     QuizQuestionOut,
     SubjectFlashcardOut,
 )
@@ -29,6 +31,7 @@ from app.modules.content.service import (
     flashcard_count,
     freetext_question_count,
     lecture_flashcards,
+    lecture_freetext_questions,
     lecture_quiz_questions,
     model_card_count,
     quiz_question_count,
@@ -74,6 +77,20 @@ async def lecture_quiz_question_list(
 ) -> list[QuizQuestionOut]:
     lecture = await get_lecture(session, user.id, lecture_id)
     return await lecture_quiz_questions(session, lecture.id)
+
+
+# Free-text questions are behind FEATURE_FREETEXT: with the switch off the
+# route answers 404 FEATURE_DISABLED before the lecture is looked up (AR-11).
+# The model answer is sent on purpose (AR-15); the session shows it only after
+# the student has written an answer.
+@lectures_router.get("/{lecture_id}/freetext-questions")
+async def lecture_freetext_question_list(
+    lecture_id: str, user: CurrentUser, session: Session
+) -> list[FreetextQuestionOut]:
+    if not get_settings().FEATURE_FREETEXT:
+        raise AppError(ErrorCode.FEATURE_DISABLED)
+    lecture = await get_lecture(session, user.id, lecture_id)
+    return await lecture_freetext_questions(session, lecture.id)
 
 
 @subjects_router.get("/{subject_id}/flashcards")

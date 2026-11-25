@@ -77,7 +77,7 @@ async function makeFreetextViaApi(page: Page, lectureId: string, expected: numbe
 }
 
 test.describe("Fritekstspørsmål (story 8.1)", () => {
-  test("FR-48, UX-DR18, UX-DR19, UX-DR24, NFR-8: med bare tastaturet lager hun langsvar med «Rask», de andre radene venter, og raden viser antallet uten «Øv nå»", async ({
+  test("FR-48, UX-DR18, UX-DR19, UX-DR24, NFR-8: med bare tastaturet lager hun langsvar med «Rask», de andre radene venter, og raden viser antallet med «Øv nå» (FR-50)", async ({
     page,
   }) => {
     await page.setViewportSize(WIDE);
@@ -125,8 +125,15 @@ test.describe("Fritekstspørsmål (story 8.1)", () => {
     await page.keyboard.press("Tab");
     const usual = dialog.getByRole("radio", { name: "Vanlig" });
     await expect(usual).toBeFocused();
-    await page.keyboard.press("ArrowLeft");
-    await expect(dialog.getByRole("radio", { name: "Rask" })).toBeChecked();
+    // Radix checks a radio when it gets focus while an arrow key is down, and
+    // it moves focus a moment after keydown. A press as fast as Playwright's
+    // could let the key up first, so the key is held until focus has moved,
+    // as a real key press is.
+    const quick = dialog.getByRole("radio", { name: "Rask" });
+    await page.keyboard.down("ArrowLeft");
+    await expect(quick).toBeFocused();
+    await page.keyboard.up("ArrowLeft");
+    await expect(quick).toBeChecked();
 
     // Hold the job until the running state has been checked.
     let release: () => void = () => {};
@@ -167,7 +174,7 @@ test.describe("Fritekstspørsmål (story 8.1)", () => {
     await expect(row.getByText("5 spørsmål", { exact: true })).toBeVisible({ timeout: 15_000 });
     await expect(row.getByRole("status")).toHaveText(`Fritekstspørsmålene er ferdige: 5 spørsmål i ${LECTURE_NAME}.`);
     await expect(row.getByRole("button", { name: "Lag flere" })).toBeVisible();
-    await expect(row.getByRole("button", { name: "Øv nå" })).toHaveCount(0);
+    await expect(row.getByRole("button", { name: "Øv nå" })).toBeEnabled();
     await expect(createSection(page).getByText("Venter til fritekstspørsmålene er ferdige")).toHaveCount(0);
     expect(await contentCounts(page, lectureId)).toEqual({
       flashcards: 0,

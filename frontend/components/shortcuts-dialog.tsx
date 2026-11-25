@@ -11,8 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 
 // The shortcut dialog (EXPERIENCE.md "Hurtigtaster", story 3.4): the shared
 // dialog without a main action (one button «Lukk»), titled «Hurtigtaster». A
-// table «Tast» / «Handling» with the keys that are built so far (flashcards,
-// the result page and dialogs; quiz and free text add theirs later), and under
+// table «Tast» / «Handling» with the keys per group (flashcards, quiz, free
+// text with the self-assessment, the result page and dialogs), and under
 // it the switch «Bruk hurtigtaster» (on by default, kept in localStorage, WCAG
 // 2.1.4). Focus starts on the switch, Esc closes, and focus goes back to where
 // it was (returnFocus).
@@ -35,6 +35,15 @@ const GROUPS: { title: string; rows: Row[] }[] = [
     rows: [
       { keys: "A–D", action: "Velg svar" },
       { keys: "Enter", action: "Bekreft svar, deretter neste spørsmål" },
+      { keys: "Esc", action: "Avslutt økten" },
+    ],
+  },
+  {
+    title: "Fritekst",
+    rows: [
+      { keys: "1", action: "Feil" },
+      { keys: "2", action: "Delvis riktig" },
+      { keys: "3", action: "Riktig" },
       { keys: "Esc", action: "Avslutt økten" },
     ],
   },

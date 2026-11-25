@@ -2,7 +2,7 @@ import type { QueryKey } from "@tanstack/react-query";
 
 import { apiFetch } from "@/lib/api";
 
-import type { Flashcard, Overview, QuizQuestion, SubjectFlashcard } from "./types";
+import type { Flashcard, FreetextQuestion, Overview, QuizQuestion, SubjectFlashcard } from "./types";
 
 // The overview of all her subjects (story 5.1). Invalidated when a session is
 // saved (useSessionSaver), so the views show the new status without a reload.
@@ -40,6 +40,21 @@ export function lectureQuizQuestionsQueryKey(lectureId: string) {
 // NOT_FOUND for someone else's or a missing lecture.
 export function fetchLectureQuizQuestions(lectureId: string): Promise<QuizQuestion[]> {
   return apiFetch<QuizQuestion[]>(`/api/lectures/${encodeURIComponent(lectureId)}/quiz-questions`);
+}
+
+// The lecture's free-text questions (story 8.2): under the lecture's key
+// (["lectures", id]), so the job watcher refetches them when a free-text job
+// ends. A running session keeps its own copy.
+export function lectureFreetextQuestionsQueryKey(lectureId: string) {
+  return ["lectures", lectureId, "freetext-questions"] as const;
+}
+
+// GET /api/lectures/{id}/freetext-questions: the lecture's questions with the
+// model answer, source and lecture, ordered by file and page. 404 NOT_FOUND
+// for someone else's or a missing lecture, 404 FEATURE_DISABLED when
+// FEATURE_FREETEXT is off.
+export function fetchLectureFreetextQuestions(lectureId: string): Promise<FreetextQuestion[]> {
+  return apiFetch<FreetextQuestion[]>(`/api/lectures/${encodeURIComponent(lectureId)}/freetext-questions`);
 }
 
 // The subject's cards: under the subject's key (["subjects", id]), so the

@@ -54,8 +54,6 @@ type Props = GenerationRowProps & {
   createLabel: string;
   // «Øv nå». Without it the button is shown but not active (a type without practice yet).
   onPractice?: () => void;
-  // false: no «Øv nå» at all (free text until its session is built, story 8.2).
-  showPractice?: boolean;
 };
 
 // One row in «Lag og øv» for a content type that is made by a generation job
@@ -97,7 +95,6 @@ export function GenerationRow({
   countText,
   createLabel,
   onPractice,
-  showPractice = true,
   lectureId,
   lectureName,
   fileCount,
@@ -236,7 +233,6 @@ export function GenerationRow({
         onCreateMore={() => setDialogOpen(true)}
         extraAction={extra && showExtra ? { label: extra.label, onClick: startExtra } : undefined}
         onPractice={count > 0 ? onPractice : undefined}
-        showPractice={showPractice}
         jobText={generationTexts[starting ? startingKind : (job?.kind ?? kind)].jobText}
         announcement={announcement}
         message={message}

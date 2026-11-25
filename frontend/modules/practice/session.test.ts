@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   advance,
   answerCurrent,
+  assessCurrent,
   currentCard,
   gridCells,
   isFinished,
@@ -89,7 +90,7 @@ describe("økten", () => {
     const state = run(["A", "B", "C"], ["missed", "known", "known", "known"]);
     expect(isFinished(state)).toBe(true);
     expect(state.firstMarks).toEqual({ A: "missed", B: "known", C: "known" });
-    expect(sessionCounts(state)).toEqual({ shown: 3, answered: 3, correct: 2, wrong: 1 });
+    expect(sessionCounts(state)).toEqual({ shown: 3, answered: 3, correct: 2, partial: 0, wrong: 1 });
   });
 
   it("FR-25: «Repeterer: N kort igjen» teller køen", () => {
@@ -140,7 +141,7 @@ describe("removeCard", () => {
     expect(state.order).toEqual(["A", "B"]);
     expect(state.queue).toEqual(["B"]);
     expect(state.shown).toEqual(["A", "B"]);
-    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 1, correct: 1, wrong: 0 });
+    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 1, correct: 1, partial: 0, wrong: 0 });
   });
 
   it("FR-27: et markert kort beholder ruten og første markering, men kommer ikke igjen", () => {
@@ -152,7 +153,7 @@ describe("removeCard", () => {
     expect(state.queue).toEqual(["C"]);
     expect(state.firstMarks).toEqual({ A: "missed", B: "known" });
     expect(gridCells(state)[0]).toMatchObject({ id: "A", mark: "missed", current: false });
-    expect(sessionCounts(state)).toEqual({ shown: 3, answered: 2, correct: 1, wrong: 1 });
+    expect(sessionCounts(state)).toEqual({ shown: 3, answered: 2, correct: 1, partial: 0, wrong: 1 });
   });
 
   it("FR-27: blir et nytt kort gjeldende, regnes det som vist", () => {
@@ -167,7 +168,7 @@ describe("removeCard", () => {
     const state = removeCard(run(["A", "B"], ["known"]), "B");
     expect(isFinished(state)).toBe(true);
     expect(totalCount(state)).toBe(1);
-    expect(sessionCounts(state)).toEqual({ shown: 1, answered: 1, correct: 1, wrong: 0 });
+    expect(sessionCounts(state)).toEqual({ shown: 1, answered: 1, correct: 1, partial: 0, wrong: 0 });
   });
 
   it("FR-27: siste kort slettet uten markeringer gir en tom økt", () => {
@@ -187,7 +188,7 @@ describe("quiz: answerCurrent og advance", () => {
     const answered = answerCurrent(start, "missed");
     expect(currentCard(answered)).toBe("A");
     expect(answered.queue).toEqual(["A", "B", "C"]);
-    expect(sessionCounts(answered)).toEqual({ shown: 1, answered: 1, correct: 0, wrong: 1 });
+    expect(sessionCounts(answered)).toEqual({ shown: 1, answered: 1, correct: 0, partial: 0, wrong: 1 });
     expect(gridCells(answered)[0]).toMatchObject({ mark: "missed", current: true });
     expect(answerCurrent(answered, "known")).toBe(answered);
   });
@@ -201,7 +202,7 @@ describe("quiz: answerCurrent og advance", () => {
     state = advance(answerCurrent(state, "known"));
     expect(isFinished(state)).toBe(true);
     expect(currentCard(state)).toBeUndefined();
-    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 2, correct: 1, wrong: 1 });
+    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 2, correct: 1, partial: 0, wrong: 1 });
     expect(gridCells(state).map((cell) => cell.mark)).toEqual(["missed", "known"]);
   });
 
@@ -211,7 +212,7 @@ describe("quiz: answerCurrent og advance", () => {
     expect(totalCount(state)).toBe(3);
     expect(currentCard(state)).toBe("B");
     expect(shownCount(state)).toBe(2);
-    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 1, correct: 1, wrong: 0 });
+    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 1, correct: 1, partial: 0, wrong: 0 });
     expect(gridCells(state).map((cell) => [cell.id, cell.mark, cell.current])).toEqual([
       ["A", "known", false],
       ["B", null, true],
@@ -226,14 +227,14 @@ describe("quiz: answerCurrent og advance", () => {
     expect(currentCard(state)).toBe("C");
     expect(shownCount(state)).toBe(2);
     expect(gridCells(state).map((cell) => cell.id)).toEqual(["A", "C"]);
-    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 1, correct: 0, wrong: 1 });
+    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 1, correct: 0, partial: 0, wrong: 1 });
   });
 
   it("FR-37, E22: siste bekreftede spørsmål slettet gir en ferdig quiz; eneste ubekreftede gir en tom", () => {
     const last = answerCurrent(advance(answerCurrent(startSession(["A", "B"]), "known")), "missed");
     const finished = removeCard(last, "B");
     expect(isFinished(finished)).toBe(true);
-    expect(sessionCounts(finished)).toEqual({ shown: 2, answered: 2, correct: 1, wrong: 1 });
+    expect(sessionCounts(finished)).toEqual({ shown: 2, answered: 2, correct: 1, partial: 0, wrong: 1 });
     expect(removeCard(startSession(["A"]), "A").order).toEqual([]);
   });
 
@@ -241,5 +242,38 @@ describe("quiz: answerCurrent og advance", () => {
     const done = advance(startSession(["A"]));
     expect(advance(done)).toBe(done);
     expect(answerCurrent(done, "known")).toBe(done);
+  });
+});
+
+describe("fritekst: assessCurrent (story 8.2)", () => {
+  it("FR-51: en vurdering setter merket og går rett videre til neste spørsmål", () => {
+    const state = assessCurrent(startSession(["A", "B", "C"]), "partial");
+    expect(currentCard(state)).toBe("B");
+    expect(shownCount(state)).toBe(2);
+    expect(gridCells(state).map((cell) => [cell.id, cell.mark, cell.current])).toEqual([
+      ["A", "partial", false],
+      ["B", null, true],
+      ["C", null, false],
+    ]);
+    expect(sessionCounts(state)).toEqual({ shown: 2, answered: 1, correct: 0, partial: 1, wrong: 0 });
+  });
+
+  it("FR-50, FR-56: hvert spørsmål vises én gang, og tallene teller riktig, delvis og feil hver for seg", () => {
+    let state = startSession(["A", "B", "C"]);
+    state = assessCurrent(state, "known");
+    state = assessCurrent(state, "partial");
+    state = assessCurrent(state, "missed");
+    expect(isFinished(state)).toBe(true);
+    expect(sessionCounts(state)).toEqual({ shown: 3, answered: 3, correct: 1, partial: 1, wrong: 1 });
+  });
+
+  it("FR-51: en ferdig økt endres ikke", () => {
+    const done = assessCurrent(startSession(["A"]), "known");
+    expect(assessCurrent(done, "missed")).toBe(done);
+  });
+
+  it("FR-56: flashcards og quiz har alltid partial 0, og wrong er antall «Kunne ikke»", () => {
+    const state = markCurrent(markCurrent(startSession(["A", "B"]), "known"), "missed");
+    expect(sessionCounts(state)).toMatchObject({ correct: 1, partial: 0, wrong: 1 });
   });
 });
