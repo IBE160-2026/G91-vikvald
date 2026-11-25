@@ -5,8 +5,16 @@ import { countNouns } from "./messages";
 
 export type DeleteCount = { kind: string; count: number };
 // "flashcard": one card in the session (story 3.7), and "quiz-question": one
-// question in the quiz (story 4.5); they take nothing with them.
-export type DeleteTarget = "file" | "lecture" | "subject" | "account" | "flashcard" | "quiz-question";
+// question in the quiz (story 4.5), and "freetext-question": one free-text
+// question (story 8.3); they take nothing with them.
+export type DeleteTarget =
+  | "file"
+  | "lecture"
+  | "subject"
+  | "account"
+  | "flashcard"
+  | "quiz-question"
+  | "freetext-question";
 
 export const UNDOABLE = "Det kan ikke angres.";
 
