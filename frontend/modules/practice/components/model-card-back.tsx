@@ -59,29 +59,29 @@ export function pointLetter(point: string): string {
 // Text is plain text, never HTML.
 export function ModelCardBack({ card }: { card: ModelCard }) {
   return (
-    <div data-slot="model-card-back" className="flex flex-col gap-5">
-      <ol className="relative flex flex-col gap-3">
+    <div data-slot="model-card-back" className="flex flex-col gap-4">
+      <ol className="relative flex flex-col gap-[13px]">
         {card.points.length > 1 ? (
           <span
             aria-hidden="true"
             data-slot="model-card-line"
-            className="absolute top-4 bottom-4 left-4 w-px -translate-x-1/2 bg-border-card"
+            className="absolute top-[17px] bottom-[17px] left-[17.5px] w-[1.5px] -translate-x-1/2 bg-border-card"
           />
         ) : null}
         {card.points.map((point, index) => {
           const parts = pointParts(point);
           return (
-            <li key={index} className="relative flex items-start gap-3">
+            <li key={index} className="relative flex items-start gap-[20px]">
               <span
                 aria-hidden="true"
                 data-slot="letter-box"
-                className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border-card bg-surface-note text-meta font-semibold text-ink"
+                className="flex size-[35px] shrink-0 items-center justify-center rounded-md border border-border-card bg-surface-note text-[18px] font-semibold text-ink"
               >
                 {pointLetter(point)}
               </span>
               <span
                 data-slot="point-text"
-                className="block min-w-0 pt-1 text-card-answer break-words whitespace-pre-line text-ink"
+                className="block min-w-0 pt-[3px] text-[20px] leading-[28px] break-words whitespace-pre-line text-ink"
               >
                 {parts.term ? <span className="font-semibold">{parts.term}</span> : null}
                 {parts.term && parts.muted ? " " : null}
