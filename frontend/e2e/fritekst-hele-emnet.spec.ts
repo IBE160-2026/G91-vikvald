@@ -140,7 +140,7 @@ test.describe("Fritekst for hele emnet og slett dårlige spørsmål (story 8.3)"
     await expect(dialog.getByRole("button", { name: "Avbryt" })).toBeFocused();
     await expect(dialog).not.toContainText("Dette sletter også");
     await axeInBothWidths(page);
-    // The session's keys are off while the dialog is open.
+    // Esc closes the dialog without deleting, and focus goes back to «Slett».
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
     await expect(remove).toBeFocused();
