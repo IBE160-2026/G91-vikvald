@@ -173,3 +173,5 @@ deferred: []
 **Verifisering:** før rettelsene: `uv run pytest` 831 grønne, `npm run test` grønt, `npx playwright test` mot `docker compose up --build -d` 192 grønne og 4 hoppet over (uten testbruker). Etter rettelsene: `uv run pytest` 832 grønne, `uv run ruff check .` rent, `npm run test` 968 grønne (75 filer), `npx tsc --noEmit` rent. `npm run lint` finnes ikke i `package.json`. `uv run mypy app` er ikke satt opp i prosjektet.
 
 **Gjenstående risiko:** Playwright er ikke kjørt etter rettelsene fra gjennomgangen, og skjermbildene i `docs/skjermbilder/story-7-2/` er ikke tatt, fordi diskplassen var 4,8 GB etter rydding (grensen for `--build` er 5 GB). Rettelsene gjelder `points` for modellkort uten punkter og hvordan punktene deles på kolon; begge har enhetstester.
+
+**Etter stoppet (Siljes avgjørelse om diskgrensen):** `npx playwright test` mot `docker compose up --build -d` ga 192 grønne og 4 hoppet over. Skjermbildene viste at bokstavboksene og punktene var større enn i skisse 11; de har nå skissens størrelser (`b8ec4bc`), og `modellkort.spec.ts` og `universell-utforming.spec.ts` er grønne etter det. Skjermbildene ligger i `docs/skjermbilder/story-7-2/`.
