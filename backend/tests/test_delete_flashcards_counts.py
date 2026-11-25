@@ -73,7 +73,7 @@ def test_ar7_flashcards_og_quizsporsmal_er_innmeldt_for_typer_som_kommer_senere(
 
     registry.register_counter("later_kind", count)
     try:
-        assert registry.registered_kinds() == ["flashcards", "quiz_questions", "later_kind"]
+        assert registry.registered_kinds() == ["flashcards", "quiz_questions", "model_cards", "later_kind"]
     finally:
         registry.unregister_counter("later_kind")
 
@@ -112,13 +112,17 @@ async def test_fr12_forhandsvisning_teller_flashcards_for_fil_forelesning_og_emn
     ]
 
 
-async def test_fr12_modellkort_telles_ikke(client: AsyncClient, engine: AsyncEngine) -> None:
+async def test_fr12_modellkort_telles_for_seg(client: AsyncClient, engine: AsyncEngine) -> None:
+    # Story 7.1: model cards are counted apart from the other flashcards.
     await _log_in_new_user(client)
     _, file_id = await _lecture_with_cards(client, await _new_subject(client))
     async with async_sessionmaker(engine)() as session:
         session.add(Flashcard(file_id=uuid.UUID(file_id), kind="model", front="AIDA", back=None, page_no=1))
         await session.commit()
-    assert _counts(await client.get(f"{FILES}/{file_id}/delete-preview")) == [{"kind": "flashcards", "count": 5}]
+    assert _counts(await client.get(f"{FILES}/{file_id}/delete-preview")) == [
+        {"kind": "flashcards", "count": 5},
+        {"kind": "model_cards", "count": 1},
+    ]
 
 
 async def test_fr5_kontoens_forhandsvisning_teller_flashcards_og_ikke_andres(client: AsyncClient) -> None:
@@ -137,7 +141,7 @@ async def test_fr5_kontoens_forhandsvisning_teller_flashcards_og_ikke_andres(cli
             {"kind": "files", "count": 1},
             {"kind": "flashcards", "count": 5},
         ],
-        "content_kinds": ["flashcards", "quiz_questions"],
+        "content_kinds": ["flashcards", "quiz_questions", "model_cards"],
     }
 
 

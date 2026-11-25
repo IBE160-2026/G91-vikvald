@@ -276,8 +276,9 @@ test.describe("Universell utforming og skjermbredde på alle sider (story 6.6)",
 
   // The should-have pages (epics 7–9). The test looks for the entry in the app
   // instead of assuming an address, so the pages are checked as soon as they
-  // are built. While a switch is on and the entry is not there, the test notes
-  // «ikke bygd ennå» and is green.
+  // are built. An entry that is built (`built`) must be there when its switch is
+  // on (#301): «Lag modellkort» since story 7.1. For the others, while a switch
+  // is on and the entry is not there, the test notes «ikke bygd ennå» and is green.
   test("NFR-13, NFR-14, SK-9: bør ha-sidene som er skrudd på i GET /api/config, i 1280 og 768 px", async ({ page }, testInfo) => {
     const configResponse = await page.request.get("/api/config");
     expect(configResponse.status()).toBe(200);
@@ -287,11 +288,12 @@ test.describe("Universell utforming og skjermbredde på alle sider (story 6.6)",
     await expect(createSection(page).getByText("4 kort", { exact: true })).toBeVisible();
 
     const makeAndPractise = page.getByRole("region", { name: "Lag og øv" });
-    const entries: { flag: string; name: string; entry: Locator }[] = [
+    const entries: { flag: string; name: string; entry: Locator; built?: boolean }[] = [
       {
         flag: "feature_mnemonics",
         name: "Huskeregler («Lag modellkort»)",
         entry: createSection(page).getByRole("button", { name: "Lag modellkort" }),
+        built: true,
       },
       {
         flag: "feature_freetext",
@@ -304,13 +306,15 @@ test.describe("Universell utforming og skjermbredde på alle sider (story 6.6)",
         entry: makeAndPractise.getByRole("group", { name: "Sammendrag" }).getByRole("button").first(),
       },
     ];
-    for (const { flag, name, entry } of entries) {
+    for (const { flag, name, entry, built } of entries) {
       expect(flag in config, `${flag} mangler i GET /api/config`).toBe(true);
       if (!config[flag]) {
         testInfo.annotations.push({ type: name, description: `skrudd av (${flag}: false)` });
         continue;
       }
-      if ((await entry.count()) === 0) {
+      if (built) {
+        await expect(entry, `${name} skal finnes når ${flag} er på`).toBeVisible();
+      } else if ((await entry.count()) === 0) {
         testInfo.annotations.push({ type: name, description: "ikke bygd ennå" });
         continue;
       }
@@ -373,7 +377,9 @@ test.describe("Universell utforming med eksempelemnet (story 6.6)", () => {
   test("NFR-13, NFR-14, SK-9: forelesningssiden med eksempelnotatene, i 1280 og 768 px", async ({ page }) => {
     await page.goto(`/forelesninger/${lectureId}`);
     await expect(page.locator("main h1")).toHaveText("Markedsmiksen");
-    await expect(createSection(page).getByText("5 kort", { exact: true })).toBeVisible();
+    // 5 flashcards, and 1 model card when the database was seeded with
+    // FEATURE_MNEMONICS on after story 7.1 (an older seed has none).
+    await expect(createSection(page).getByText(/^[56] kort$/)).toBeVisible();
     await checkBothWidths(page, "app");
   });
 

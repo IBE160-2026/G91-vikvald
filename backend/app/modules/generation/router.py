@@ -12,12 +12,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.core.config import get_settings
 from app.core.db import get_session, get_sessionmaker
 from app.core.errors import AppError, ErrorCode
 from app.modules.files.service import list_files
 from app.modules.generation.models import Job
 from app.modules.generation.port import Generator
 from app.modules.generation.providers import get_generator
+from app.modules.generation.registry import get_content_type
 from app.modules.generation.schemas import JobCreate, JobOut, JobParams, TrackedJobOut
 from app.modules.generation.service import (
     active_jobs,
@@ -73,6 +75,11 @@ async def start_job(
     generator: JobGenerator,
     sessionmaker: Sessionmaker,
 ) -> JobOut:
+    # A type behind a switch that is off (e.g. models with FEATURE_MNEMONICS=false)
+    # answers 404 FEATURE_DISABLED before the lecture is looked up (AR-11).
+    feature = get_content_type(body.kind).feature
+    if feature is not None and not getattr(get_settings(), f"FEATURE_{feature.upper()}"):
+        raise AppError(ErrorCode.FEATURE_DISABLED)
     lecture = await get_lecture(session, user.id, lecture_id)
     if not await list_files(session, lecture.id):
         raise AppError(ErrorCode.LECTURE_HAS_NO_FILES)

@@ -83,7 +83,7 @@ def test_kind() -> Iterator[dict[str, int]]:
 
 
 def test_ar7_flashcards_og_quizsporsmal_er_innmeldt_som_forste_typer() -> None:
-    assert registry.registered_kinds() == ["flashcards", "quiz_questions"]
+    assert registry.registered_kinds() == ["flashcards", "quiz_questions", "model_cards"]
 
 
 def test_ar7_samme_type_to_ganger_gir_value_error(test_kind: dict[str, int]) -> None:

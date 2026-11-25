@@ -60,6 +60,9 @@ let replaceAnswer: { status: number; code: string; details?: Record<string, unkn
 let cardCount = 0;
 // Quiz questions in lecture l2.
 let quizCount = 0;
+// Model cards in lecture l2 (story 7.1), and the FEATURE_MNEMONICS switch.
+let modelCount = 0;
+let mnemonics = true;
 let latestJob: Job | null = null;
 // Latest jobs of other kinds in lecture l2 (shown with latestJob).
 let otherJobs: Job[] = [];
@@ -147,7 +150,7 @@ function respond() {
     }
     if (path === "/api/subjects/b/lectures") return jsonResponse(200, []);
     if (path === "/api/config") {
-      return jsonResponse(200, { demo_mode: demoMode, feature_mnemonics: true, feature_freetext: true, feature_summary: true });
+      return jsonResponse(200, { demo_mode: demoMode, feature_mnemonics: mnemonics, feature_freetext: true, feature_summary: true });
     }
     if (path === "/api/lectures/l2/files") {
       if (init?.method === "POST") {
@@ -179,6 +182,7 @@ function respond() {
       if (latestJob?.status === "running" && !holdJob) {
         latestJob = { ...latestJob, ...jobOutcome, discarded: 0, finished_at: "2026-11-21T10:00:03Z" };
         if (jobOutcome.status === "done" && latestJob.kind === "quiz") quizCount += jobOutcome.created ?? 0;
+        else if (jobOutcome.status === "done" && latestJob.kind === "models") modelCount += jobOutcome.created ?? 0;
         else if (jobOutcome.status === "done") cardCount += jobOutcome.created ?? 0;
       }
       return jsonResponse(200, latestJob?.status === "running" ? [{ ...latestJob, lecture_name: "Uke 38: Prising" }] : []);
@@ -187,10 +191,10 @@ function respond() {
       return jsonResponse(200, { ...latestJob, lecture_name: "Uke 38: Prising" });
     }
     if (path === "/api/lectures/l2/content-counts") {
-      return jsonResponse(200, { flashcards: cardCount, quiz_questions: quizCount });
+      return jsonResponse(200, { flashcards: cardCount, quiz_questions: quizCount, model_cards: modelCount });
     }
     if (/^\/api\/lectures\/l1\/(jobs\/latest|content-counts)$/.test(path)) {
-      return jsonResponse(200, path.endsWith("latest") ? [] : { flashcards: 0, quiz_questions: 0 });
+      return jsonResponse(200, path.endsWith("latest") ? [] : { flashcards: 0, quiz_questions: 0, model_cards: 0 });
     }
     const filePreview = path.match(/^\/api\/files\/([^/]+)\/delete-preview$/);
     if (filePreview) {
@@ -268,6 +272,8 @@ beforeEach(() => {
   replaceAnswer = undefined;
   cardCount = 0;
   quizCount = 0;
+  modelCount = 0;
+  mnemonics = true;
   latestJob = null;
   otherJobs = [];
   jobOutcome = { status: "done", created: 20, error_code: null };
@@ -1407,6 +1413,151 @@ describe("Quiz-raden (story 4.1)", () => {
     fireEvent.click(within(row).getByRole("button", { name: "Prøv igjen" }));
     expect(document.activeElement).toBe(row);
     await waitFor(() => expect(posts()).toEqual([{ kind: "quiz", params: { requested: 10, difficulty: "easy" } }]));
+  });
+});
+
+describe("Modellkort (story 7.1)", () => {
+  function flashcardsRow() {
+    return screen.getByRole("group", { name: "Flashcards" });
+  }
+  function posts() {
+    return fetchMock.mock.calls
+      .filter(([url, init]) => String(url) === "/api/lectures/l2/jobs" && init?.method === "POST")
+      .map(([, init]) => JSON.parse(String(init!.body)));
+  }
+  async function modelButton() {
+    const row = await screen.findByRole("group", { name: "Flashcards" });
+    const button = (await within(row).findByRole("button", { name: "Lag modellkort" })) as HTMLButtonElement;
+    await waitFor(() => expect(button.disabled).toBe(false));
+    return button;
+  }
+
+  it("FR-42, UX-DR18: «Lag modellkort» er en tekstknapp på Flashcards-raden, både med og uten flashcards", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    renderPage();
+    const button = await modelButton();
+    expect(button.dataset.variant).toBe("text");
+    expect(within(flashcardsRow()).getByRole("button", { name: "Lag flashcards" })).toBeTruthy();
+    cleanup();
+
+    cardCount = 24;
+    renderPage();
+    const withCards = await modelButton();
+    expect(withCards.dataset.variant).toBe("text");
+    expect(within(flashcardsRow()).getByRole("button", { name: "Lag flere" })).toBeTruthy();
+    // No separate Huskeregler row.
+    expect(screen.queryByRole("group", { name: "Huskeregler" })).toBeNull();
+  });
+
+  it("FR-42: uten filer er «Lag modellkort» ikke aktiv", async () => {
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Flashcards" });
+    const button = (await within(row).findByRole("button", { name: "Lag modellkort" })) as HTMLButtonElement;
+    await within(row).findByText("Last opp notater først.");
+    expect(button.disabled).toBe(true);
+  });
+
+  it("FR-42, UX-DR19: knappen starter jobben uten dialog, Quiz venter, og etterpå teller raden modellkortene med", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    cardCount = 5;
+    holdJob = true;
+    jobOutcome = { status: "done", created: 2, error_code: null };
+    renderPage();
+    await screen.findByText("5 kort");
+    fireEvent.click(await modelButton());
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await waitFor(() => expect(posts()).toEqual([{ kind: "models", params: { requested: 30 } }]));
+    const row = flashcardsRow();
+    expect(await within(row).findByText("Lager modellkort …", { selector: "p" })).toBeTruthy();
+    await waitFor(() => expect(within(row).getByRole("status").textContent).toBe("Lager modellkort …"));
+    expect(document.activeElement).toBe(row);
+
+    const quiz = screen.getByRole("group", { name: "Quiz" });
+    const reason = await within(quiz).findByText("Venter til modellkortene er ferdige");
+    const create = within(quiz).getByRole("button", { name: "Lag quiz" }) as HTMLButtonElement;
+    expect(create.disabled).toBe(true);
+    expect(create.getAttribute("aria-describedby")).toBe(reason.id);
+
+    holdJob = false;
+    expect(await within(row).findByText("7 kort", {}, { timeout: 3000 })).toBeTruthy();
+    expect(within(row).getByRole("status").textContent).toBe("Modellkortene er ferdige: 2 modellkort i Uke 38: Prising.");
+    // No «fewer than chosen» note: she chose no number.
+    expect(within(row).queryByText(/av inntil/)).toBeNull();
+  });
+
+  it("FR-47: ingen modeller funnet gir teksten i det levende området og ingen «Prøv igjen»", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    jobOutcome = { status: "done", created: 0, error_code: null };
+    renderPage();
+    fireEvent.click(await modelButton());
+    const row = flashcardsRow();
+    const text = "Vi fant ingen modeller eller lister i denne forelesningen.";
+    await waitFor(() => expect(within(row).getByRole("status").textContent).toBe(text), { timeout: 3000 });
+    expect(within(row).getByText(text, { selector: "p" })).toBeTruthy();
+    expect(within(row).queryByRole("alert")).toBeNull();
+    expect(within(row).queryByRole("button", { name: "Prøv igjen" })).toBeNull();
+  });
+
+  it("FR-21: en feilet modellkortjobb gir feilteksten, og «Prøv igjen» starter modellkort på nytt", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    otherJobs = [job({ kind: "flashcards", status: "done", created: 20, started_at: "2026-11-21T09:00:00Z" })];
+    latestJob = job({
+      id: "jm",
+      kind: "models",
+      params: { requested: 30 },
+      requested: 30,
+      status: "failed",
+      error_code: "GENERATION_TIMEOUT",
+      finished_at: "2026-11-21T10:00:03Z",
+    });
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Flashcards" });
+    expect((await within(row).findByRole("alert")).textContent).toBe(
+      "Vi klarte ikke å lage modellkortene. Ingenting er lagret. Prøv igjen.",
+    );
+    fireEvent.click(within(row).getByRole("button", { name: "Prøv igjen" }));
+    await waitFor(() => expect(posts()).toEqual([{ kind: "models", params: { requested: 30 } }]));
+  });
+
+  it("AR-11: med FEATURE_MNEMONICS av vises ikke knappen", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    mnemonics = false;
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Flashcards" });
+    const create = (await within(row).findByRole("button", { name: "Lag flashcards" })) as HTMLButtonElement;
+    await waitFor(() => expect(create.disabled).toBe(false));
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/config")).toBe(true));
+    expect(within(row).queryByRole("button", { name: "Lag modellkort" })).toBeNull();
+  });
+
+  it("FR-42: med bare modellkort teller raden dem, men «Øv nå» er ikke aktiv før de kan øves (story 7.2)", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    modelCount = 2;
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Flashcards" });
+    expect(await within(row).findByText("2 kort")).toBeTruthy();
+    const practice = within(row).getByRole("button", { name: "Øv nå" }) as HTMLButtonElement;
+    expect(practice.disabled).toBe(true);
+    cleanup();
+
+    cardCount = 3;
+    renderPage();
+    const withCards = await screen.findByRole("group", { name: "Flashcards" });
+    expect(await within(withCards).findByText("5 kort")).toBeTruthy();
+    await waitFor(() =>
+      expect((within(withCards).getByRole("button", { name: "Øv nå" }) as HTMLButtonElement).disabled).toBe(false),
+    );
+  });
+
+  it("FR-42: med bryteren av følger raden likevel en modellkortjobb som går, og venter ikke på seg selv", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    mnemonics = false;
+    holdJob = true;
+    latestJob = job({ id: "jm", kind: "models", status: "running", params: { requested: 30 }, requested: 30 });
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Flashcards" });
+    expect(await within(row).findByText("Lager modellkort …", { selector: "p" })).toBeTruthy();
+    expect(within(row).queryByText("Venter til modellkortene er ferdige")).toBeNull();
   });
 });
 

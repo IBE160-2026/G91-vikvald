@@ -16,6 +16,10 @@ const LECTURES = ["Markedsmiksen", "Segmentering og målgrupper", "AIDA-modellen
 // Five definition sentences per note give five cards and five quiz questions per lecture.
 const CARDS = 15;
 const QUESTIONS = 15;
+// One model card per lecture (story 7.1, FEATURE_MNEMONICS on by default):
+// AIDA, the four segmentation bases and the four P's. The subject card counts
+// them as «kort»; the session practises them from story 7.2.
+const MODEL_CARDS = 3;
 
 async function expectNoAxeViolations(page: Page) {
   const results = await new AxeBuilder({ page }).analyze();
@@ -53,7 +57,9 @@ test.describe("Testbruker og eksempelemne (story 6.4)", () => {
 
     // The front page: the subject with its content, one of three lectures practised.
     const marketing = card(page, "Markedsføring");
-    await expect(marketing.getByText(`${CARDS} kort · ${QUESTIONS} quizspørsmål`, { exact: true })).toBeVisible();
+    await expect(
+      marketing.getByText(`${CARDS + MODEL_CARDS} kort · ${QUESTIONS} quizspørsmål`, { exact: true }),
+    ).toBeVisible();
     await expect(marketing.getByText("1 av 3 forelesninger øvd", { exact: true })).toBeVisible();
     await expectNoAxeViolations(page);
 

@@ -27,10 +27,15 @@ function count(lecture: LectureFileCount | undefined, kind: string): number {
     .reduce((total, item) => total + item.count, 0);
 }
 
-// The subject's cards and quiz questions: the sum over its lectures.
+// The subject's cards and quiz questions: the sum over its lectures. «kort»
+// includes the model cards (story 7.1), as the lecture table's «Kort» column
+// and the Flashcards row on the lecture page do.
 export function subjectContentCounts(fileCounts: SubjectFileCounts): ContentCounts {
   return {
-    flashcards: fileCounts.lectures.reduce((total, lecture) => total + count(lecture, "flashcards"), 0),
+    flashcards: fileCounts.lectures.reduce(
+      (total, lecture) => total + count(lecture, "flashcards") + count(lecture, "model_cards"),
+      0,
+    ),
     quiz_questions: fileCounts.lectures.reduce((total, lecture) => total + count(lecture, "quiz_questions"), 0),
   };
 }

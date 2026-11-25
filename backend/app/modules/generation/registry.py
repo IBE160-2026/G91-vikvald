@@ -84,15 +84,18 @@ def unregister_content_type(kind: str) -> None:
 
 
 def enabled_content_types(settings: Settings | None = None) -> list[ContentType]:
-    """Every registered type in registration order, without the types whose
-    feature switch is off. The seed makes content of exactly these (AR-14)."""
+    """Every registered type without the types whose feature switch is off:
+    the must-have types first, then the others, each in registration order (so
+    the order does not depend on which module was imported first). The seed
+    makes content of exactly these (AR-14)."""
     _ensure_builtin_types()
     settings = settings or get_settings()
-    return [
+    enabled = [
         content_type
         for content_type in _types.values()
         if content_type.feature is None or getattr(settings, f"FEATURE_{content_type.feature.upper()}")
     ]
+    return sorted(enabled, key=lambda content_type: content_type.feature is not None)
 
 
 def get_content_type(kind: str) -> ContentType:
@@ -108,5 +111,7 @@ def is_registered(kind: str) -> bool:
 
 def _ensure_builtin_types() -> None:
     # Importing a type's module registers it. Done here (not at the top) so the
-    # type modules can import this one.
-    from app.modules.generation import flashcards, quiz  # noqa: F401
+    # type modules can import this one. The must-have types are registered
+    # first, then the types behind a feature switch.
+    from app.modules.generation import flashcards, quiz  # noqa: F401, I001
+    from app.modules.generation import model_cards  # noqa: F401

@@ -9,6 +9,7 @@ import {
   fileRows,
   flashcardCountViaApi,
   makeFlashcardsViaApi,
+  makeModelCardsViaApi,
   makeQuizViaApi,
   pdfFile,
   quizQuestionsViaApi,
@@ -21,9 +22,9 @@ import {
 // Flow 3 in EXPERIENCE.md («Brukerreiser (Key Flows)»), a support flow for FR-12 and FR-13.
 // The flow starts on the lecture page (04) and has no login step of its own, so
 // the account, subject, lecture, the old file and the flashcards are made
-// through the API first. The old file gives 18 flashcards and 11 quiz
-// questions, as in the flow, and the other file one of each. Model cards
-// (epic 7) are not built yet; see docs/testing/brukerreiser.md.
+// through the API first. The old file gives 18 flashcards, 11 quiz questions
+// and 2 model cards, as in the flow, and the other file one flashcard and one
+// quiz question. The Flashcards row counts the model cards with the flashcards.
 // The steps share one browser context and run in order, like one visit by Klara.
 test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
   test.describe.configure({ mode: "serial" });
@@ -37,10 +38,16 @@ test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
     "Merkevare", "Logo", "Slagord", "Pris", "Rabatt", "Kampanje", "Segment", "Nisje", "Kanal",
     "Reklame", "Sponsing", "Produkt", "Kunde", "Behov", "Motiv", "Lojalitet", "Image", "Emballasje",
   ];
-  const OLD_PAGES = Array.from({ length: 6 }, (_, index) =>
-    TERMS.slice(index * 3, index * 3 + 3)
-      .map((term) => `${term} er begrep ${TERMS.indexOf(term) + 1}.`)
-      .join(" "),
+  // Two lists under the definitions on pages 1 and 2 give the 2 model cards
+  // (AIDA with a mnemonic, the four P's without). The list lines have no «er»,
+  // so they give no flashcards or quiz questions.
+  const LISTS = ["\nDeler av AIDA\n- Attention\n- Interest\n- Desire\n- Action", "\nDe fire P-ene\n- Produkt\n- Pris\n- Plass\n- Promotion"];
+  const OLD_PAGES = Array.from(
+    { length: 6 },
+    (_, index) =>
+      TERMS.slice(index * 3, index * 3 + 3)
+        .map((term) => `${term} er begrep ${TERMS.indexOf(term) + 1}.`)
+        .join(" ") + (LISTS[index] ?? ""),
   );
 
   test.beforeAll(async ({ browser }, testInfo) => {
@@ -67,13 +74,15 @@ test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
       expect((await page.request.delete(`/api/quiz-questions/${question.id}`)).status()).toBe(204);
     }
     expect(await quizCount()).toBe(12);
+    // «Lag modellkort» (story 7.1): the 2 model cards from the old file.
+    await makeModelCardsViaApi(page, lectureId, 2);
   });
 
   async function quizCount(): Promise<number> {
     return (await quizQuestionsViaApi(page, "lectures", lectureId)).length;
   }
 
-  const DELETES_TOO = "Dette sletter også 18 flashcards og 11 quizspørsmål laget fra fila.";
+  const DELETES_TOO = "Dette sletter også 18 flashcards, 11 quizspørsmål og 2 modellkort laget fra fila.";
 
   test.afterAll(async () => {
     await context.close();
@@ -88,18 +97,17 @@ test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
     await expect(fileRows(page).nth(0)).toContainText(`6 sider · lastet opp ${(await today(page)).dayMonth}`);
     await expect(fileRows(page).nth(0).getByRole("button", { name: "Slett merkevare-notater.pdf" })).toBeVisible();
     await expect(fileRows(page).nth(0).getByRole("button", { name: "Erstatt merkevare-notater.pdf" })).toBeVisible();
-    await expect(createSection(page).getByText("19 kort", { exact: true })).toBeVisible();
+    await expect(createSection(page).getByText("21 kort", { exact: true })).toBeVisible();
     await expect(quizRow(page).getByText("12 spørsmål", { exact: true })).toBeVisible();
     await expectNoAxeViolations(page);
   });
 
-  test("Steg 2 – FR-12, UX-DR22: «Slett» på fila åpner dialogen (14) som viser fila, at 18 flashcards og 11 quizspørsmål slettes sammen med den, og at det ikke kan angres", async () => {
+  test("Steg 2 – FR-12, UX-DR22: «Slett» på fila åpner dialogen (14) som viser fila, at 18 flashcards, 11 quizspørsmål og 2 modellkort slettes sammen med den, og at det ikke kan angres", async () => {
     await page.getByRole("button", { name: "Slett merkevare-notater.pdf" }).click();
     const dialog = page.getByRole("dialog", { name: "Slette fila?" });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("merkevare-notater.pdf")).toBeVisible();
     await expect(dialog.getByText("6 sider · Uke 37: Merkevare")).toBeVisible();
-    // Model cards come with epic 7 (#131).
     await expect(dialog.getByText(DELETES_TOO)).toBeVisible();
     await expect(dialog.getByText("Det kan ikke angres.")).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Slett fila" })).toBeVisible();
@@ -116,7 +124,7 @@ test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
     expect(await fileNamesViaApi(page, lectureId)).toEqual(["merkevare-notater.pdf", "merkevare-lysark.pdf"]);
     expect(await flashcardCountViaApi(page, lectureId)).toBe(19);
     expect(await quizCount()).toBe(12);
-    await expect(createSection(page).getByText("19 kort", { exact: true })).toBeVisible();
+    await expect(createSection(page).getByText("21 kort", { exact: true })).toBeVisible();
     await expect(quizRow(page).getByText("12 spørsmål", { exact: true })).toBeVisible();
     await expectNoAxeViolations(page);
   });
@@ -141,7 +149,7 @@ test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
     expect(await quizCount()).toBe(12);
   });
 
-  test("Steg 5 – FR-13, FR-16, UX-DR16, UX-DR18: hun bekrefter, den nye fila står i lista, og tallene for flashcards og quiz i «Lag og øv» viser hva som er igjen", async () => {
+  test("Steg 5 – FR-13, FR-16, FR-42, UX-DR16, UX-DR18: hun bekrefter, den nye fila står i lista, og tallene for flashcards, modellkort og quiz i «Lag og øv» viser hva som er igjen", async () => {
     const dialog = page.getByRole("dialog", { name: "Erstatte fila?" });
     await dialog.getByRole("button", { name: "Erstatt fila" }).click();
     await expect(dialog).toHaveCount(0);
@@ -155,11 +163,13 @@ test.describe("FR-12, FR-13 / flyt 3: Klara rydder i filene", () => {
     await expect(page.getByRole("heading", { level: 2, name: "Filer" })).toBeFocused();
     expect(await fileNamesViaApi(page, lectureId)).toEqual(["merkevare-lysark.pdf", "merkevare-notater-v2.pdf"]);
 
-    // The 18 cards and 11 questions from the old file are gone; one of each
-    // from the slides is left, and she can make new content from the new file.
+    // The 18 cards, 11 questions and 2 model cards from the old file are gone;
+    // one card and one question from the slides are left (the row's count
+    // includes model cards, so 1 kort), and she can make new content.
     const section = createSection(page);
     await expect(section.getByText("1 kort", { exact: true })).toBeVisible();
     expect(await flashcardCountViaApi(page, lectureId)).toBe(1);
+    expect((await (await page.request.get(`/api/lectures/${lectureId}/content-counts`)).json()).model_cards).toBe(0);
     await expect(section.getByRole("button", { name: "Lag flere" })).toBeEnabled();
     await expect(section.getByRole("button", { name: "Øv nå" })).toBeEnabled();
     const quiz = quizRow(page);

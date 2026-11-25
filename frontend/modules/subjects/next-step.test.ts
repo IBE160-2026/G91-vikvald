@@ -138,6 +138,20 @@ describe("tellingslinja (story 5.4)", () => {
     expect(contentCountText(total)).toBe("120 kort · 64 quizspørsmål");
   });
 
+  it("FR-42, UX-DR12: modellkortene telles med i «kort», som i forelesningstabellen", () => {
+    const lectureCounts: LectureFileCount = {
+      lecture_id: "a",
+      file_count: 1,
+      page_count: 4,
+      content_counts: [
+        { kind: "flashcards", count: 3 },
+        { kind: "quiz_questions", count: 4 },
+        { kind: "model_cards", count: 2 },
+      ],
+    };
+    expect(contentCountText(subjectContentCounts(fileCounts(lectureCounts)))).toBe("5 kort · 4 quizspørsmål");
+  });
+
   it("UX-DR12: en type med 0 utelates, «16 kort» og «12 quizspørsmål»", () => {
     expect(contentCountText({ flashcards: 16, quiz_questions: 0 })).toBe("16 kort");
     expect(contentCountText({ flashcards: 0, quiz_questions: 12 })).toBe("12 quizspørsmål");

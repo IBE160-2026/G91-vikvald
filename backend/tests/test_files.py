@@ -441,7 +441,7 @@ async def test_fr16_tellinger_per_forelesning(client: AsyncClient, engine: Async
     await _add_flashcards(engine, file_a, 2)
     await _add_flashcards(engine, file_b, 1, kind="concept")
     await _add_quiz_questions(engine, file_b, 2)
-    # A model card (epic 7) is not registered as a content type yet.
+    # A model card (story 7.1) is counted apart from the other flashcards.
     await _add_flashcards(engine, file_a, 1, kind="model")
     # Content in another subject is not counted.
     other_file = (await _upload(client, await _new_lecture(client), make_pdf(["annet"]))).json()["id"]
@@ -456,6 +456,7 @@ async def test_fr16_tellinger_per_forelesning(client: AsyncClient, engine: Async
     assert lectures[first]["content_counts"] == [
         {"kind": "flashcards", "count": 3},
         {"kind": "quiz_questions", "count": 2},
+        {"kind": "model_cards", "count": 1},
     ]
     assert lectures[second]["content_counts"] == []
 

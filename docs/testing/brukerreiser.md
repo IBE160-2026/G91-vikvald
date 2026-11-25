@@ -8,7 +8,7 @@ Kjør dem slik, i `frontend/`, mens appen kjører:
 npx playwright test e2e/brukerreiser
 ```
 
-**Sist oppdatert:** etter epic 6 (formelmerket «Inneholder formel – sjekk mot kilden» fra story 6.3, som nå er testet som feilvei i flyt 2). Før det: epic 5 (status «Øvd», forelesningstabellen, SISTE ØKT, tiden til eksamen, emnekortene og semesterlinja), epic 4 (quiz), epic 3 (flashcards) og epic 2 (emner, forelesninger, filer og kontosiden). Flyt 4 er testet fra start til slutt. Flyt 3 er testet fra start til slutt, bortsett fra modellkort (epic 7) i tellingene (#131). I flyt 1 er alt testet unntatt sammendraget (epic 9). I flyt 2 er steg 1–3 og alle feilveiene testet. Modellkort, fritekst og sammendrag er ikke bygd ennå.
+**Sist oppdatert:** story 7.1 (modellkort i tellingene i flyt 3, #131). Før det: etter epic 6 (formelmerket «Inneholder formel – sjekk mot kilden» fra story 6.3, som nå er testet som feilvei i flyt 2). Før det: epic 5 (status «Øvd», forelesningstabellen, SISTE ØKT, tiden til eksamen, emnekortene og semesterlinja), epic 4 (quiz), epic 3 (flashcards) og epic 2 (emner, forelesninger, filer og kontosiden). Flyt 4 er testet fra start til slutt. Flyt 3 er testet fra start til slutt, også modellkortene i tellingene (story 7.1, #131). I flyt 1 er alt testet unntatt sammendraget (epic 9). I flyt 2 er steg 1–3 og alle feilveiene testet. Øving av modellkort (story 7.2), fritekst og sammendrag er ikke bygd ennå.
 
 **Slik leses tabellene**
 
@@ -96,17 +96,15 @@ Steg 4 og feilveiene for kort og Esc kjøres i samme flashcard-økt i «Uke 37: 
 
 ## Flyt 3 – Klara rydder i filene (FR-12, FR-13)
 
-Fil: [`flyt-3-rydder-i-filene.spec.ts`](../../frontend/e2e/brukerreiser/flyt-3-rydder-i-filene.spec.ts), `describe`: «FR-12, FR-13 / flyt 3: Klara rydder i filene». Forutsetningen lages gjennom API-et: en forelesning med den gamle `merkevare-notater.pdf` (6 sider) og lysarkene `merkevare-lysark.pdf`, og flashcards og quiz fra begge. Den gamle fila gir 18 flashcards og 18 quizspørsmål, og lysarkene ett av hver. For å få 11 quizspørsmål fra den gamle fila, som i flyten, sletter forutsetningen sju av dem gjennom API-et, som om Klara har slettet dårlige spørsmål under quizen tidligere (FR-37). Alle stegene er testet fra start til slutt. Det eneste som står igjen, er modellkort (2 i flyten, epic 7) i tellingene, se #131.
+Fil: [`flyt-3-rydder-i-filene.spec.ts`](../../frontend/e2e/brukerreiser/flyt-3-rydder-i-filene.spec.ts), `describe`: «FR-12, FR-13 / flyt 3: Klara rydder i filene». Forutsetningen lages gjennom API-et: en forelesning med den gamle `merkevare-notater.pdf` (6 sider) og lysarkene `merkevare-lysark.pdf`, og flashcards, quiz og modellkort. Den gamle fila gir 18 flashcards, 18 quizspørsmål og 2 modellkort (to punktlister på side 1 og 2), og lysarkene ett flashcard og ett quizspørsmål. Flashcards-raden teller modellkortene med, så den viser 21 kort. For å få 11 quizspørsmål fra den gamle fila, som i flyten, sletter forutsetningen sju av dem gjennom API-et, som om Klara har slettet dårlige spørsmål under quizen tidligere (FR-37). Alle stegene er testet fra start til slutt, også de 2 modellkortene i tellingene (story 7.1, #131).
 
 | Steg | Krav-ID-er | Test | Status |
 |---|---|---|---|
 | 1. Forelesningssiden (04) med en gammel versjon av fila | FR-8, UX-DR16 | «Steg 1 – FR-8, UX-DR16: forelesningssiden (04) viser den gamle versjonen av fila» | testet |
-| 2. «Slett» på fila, dialogen (14) viser fila, at 18 flashcards og 11 quizspørsmål slettes sammen med den, og at det ikke kan angres | FR-12, UX-DR22 | «Steg 2 – FR-12, UX-DR22: «Slett» på fila åpner dialogen (14) som viser fila, at 18 flashcards og 11 quizspørsmål slettes sammen med den, og at det ikke kan angres» | testet |
-| 2. Dialogen sier også hvor mange modellkort som slettes | FR-12, UX-DR22 | – (story 7.1) | ikke bygd ennå |
+| 2. «Slett» på fila, dialogen (14) viser fila, at 18 flashcards, 11 quizspørsmål og 2 modellkort slettes sammen med den, og at det ikke kan angres | FR-12, UX-DR22 | «Steg 2 – FR-12, UX-DR22: «Slett» på fila åpner dialogen (14) som viser fila, at 18 flashcards, 11 quizspørsmål og 2 modellkort slettes sammen med den, og at det ikke kan angres» | testet |
 | 3. Fokus på «Avbryt», Esc, ingenting er slettet | FR-12, UX-DR21, UX-DR22 | «Steg 3 – FR-12, UX-DR21, UX-DR22: fokus står på «Avbryt», hun trykker Esc, og ingenting er slettet» | testet |
-| 4. «Erstatt» og ny fil, bekreftelsen sier hva som slettes (18 flashcards og 11 quizspørsmål) | FR-13, UX-DR21, UX-DR22 | «Steg 4 – FR-13, UX-DR21, UX-DR22: «Erstatt» og den nye fila, bekreftelsen sier hva som slettes» | testet |
-| 5. Bekrefter, den nye fila står i lista, og tallene i «Lag og øv» viser hva som er igjen (1 kort og 1 spørsmål) | FR-13, FR-16, UX-DR16, UX-DR18 | «Steg 5 – FR-13, FR-16, UX-DR16, UX-DR18: hun bekrefter, den nye fila står i lista, og tallene for flashcards og quiz i «Lag og øv» viser hva som er igjen» | testet |
-| 5. Tallet for modellkort i «Lag og øv» | FR-13, FR-16, UX-DR18 | – (story 7.1) | ikke bygd ennå |
+| 4. «Erstatt» og ny fil, bekreftelsen sier hva som slettes (18 flashcards, 11 quizspørsmål og 2 modellkort) | FR-13, UX-DR21, UX-DR22 | «Steg 4 – FR-13, UX-DR21, UX-DR22: «Erstatt» og den nye fila, bekreftelsen sier hva som slettes» | testet |
+| 5. Bekrefter, den nye fila står i lista, og tallene i «Lag og øv» viser hva som er igjen (1 kort og 1 spørsmål, ingen modellkort) | FR-13, FR-16, FR-42, UX-DR16, UX-DR18 | «Steg 5 – FR-13, FR-16, FR-42, UX-DR16, UX-DR18: hun bekrefter, den nye fila står i lista, og tallene for flashcards, modellkort og quiz i «Lag og øv» viser hva som er igjen» | testet |
 
 ## Flyt 4 – Klara avslutter etter semesteret (FR-3, FR-5)
 
@@ -121,7 +119,7 @@ Fil: [`flyt-4-avslutter-etter-semesteret.spec.ts`](../../frontend/e2e/brukerreis
 | Feilvei: hun avbryter, ingenting slettes | FR-5, UX-DR22 | «Feilvei – FR-5, UX-DR22: hun avbryter, og ingenting slettes» | testet |
 | 5. Bekrefter: alt er slettet, og hun er tilbake på innloggingen (01) | FR-5, UX-DR40 | «Steg 5 – FR-5, UX-DR40: hun bekrefter, alt er slettet for godt, og hun er tilbake på innloggingen (01)» | testet |
 
-Steg 3 og 4 sjekker teksten «Alle emner, filer og alt generert innhold slettes for godt: flashcards og quizspørsmål.». Fra story 3.7 er flashcards meldt inn i telleregisteret, og fra story 4.1 quizspørsmål, så kontosiden og bekreftelsen nevner begge.
+Steg 3 og 4 sjekker teksten «Alle emner, filer og alt generert innhold slettes for godt: flashcards, quizspørsmål og modellkort.». Fra story 3.7 er flashcards meldt inn i telleregisteret, fra story 4.1 quizspørsmål og fra story 7.1 modellkort, så kontosiden og bekreftelsen nevner alle tre.
 
 Feilveien kjøres før steg 5, siden det ikke er noe å avbryte når kontoen er slettet. Steg 5 sjekker at innloggingen med samme e-post og passord gir feilmeldingen, og at en ny konto med samme e-post er tom.
 

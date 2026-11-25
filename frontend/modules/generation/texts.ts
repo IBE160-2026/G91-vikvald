@@ -1,5 +1,6 @@
 // The texts for a generation job, per content type. The flashcards texts are
-// approved word for word in story 3.2, the quiz texts in story 4.1.
+// approved word for word in story 3.2, the quiz texts in story 4.1, and the
+// model-card texts in story 7.1 (except the done text, which follows the others).
 
 import { messageWithDetails } from "@/lib/messages";
 
@@ -10,8 +11,9 @@ export type GenerationTexts = {
   jobText: string;
   // A failed job, whatever the code (error, time limit, restart).
   failed: (code: string | null) => string;
-  // Done with fewer than chosen.
-  fewer: (created: number, requested: number) => string;
+  // Done with fewer than chosen. Missing for a type where the student chooses
+  // no scope (model cards): then fewer than requested is no message.
+  fewer?: (created: number, requested: number) => string;
   // Done with nothing made.
   nothing: string;
   // Done, for the message on other pages and the end of a full job.
@@ -48,6 +50,13 @@ export const generationTexts: Record<JobKind, GenerationTexts> = {
     done: (created, lectureName) => `Quizspørsmålene er ferdige: ${created} spørsmål i ${lectureName}.`,
     waiting: "Venter til quizspørsmålene er ferdige",
   },
+  models: {
+    jobText: "Lager modellkort …",
+    failed: failedText("modellkortene"),
+    nothing: "Vi fant ingen modeller eller lister i denne forelesningen.",
+    done: (created, lectureName) => `Modellkortene er ferdige: ${created} modellkort i ${lectureName}.`,
+    waiting: "Venter til modellkortene er ferdige",
+  },
 };
 
 // What a row shows about its latest job. failed: the error and «Prøv igjen».
@@ -65,7 +74,7 @@ export function jobOutcome(job: Job): JobOutcome {
   if (job.status === "failed") return { type: "failed", text: texts.failed(job.error_code) };
   const created = job.created ?? 0;
   if (created === 0) return { type: "nothing", text: texts.nothing };
-  if (created < job.requested) return { type: "fewer", text: texts.fewer(created, job.requested) };
+  if (created < job.requested && texts.fewer) return { type: "fewer", text: texts.fewer(created, job.requested) };
   return { type: "complete" };
 }
 

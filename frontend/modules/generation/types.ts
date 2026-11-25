@@ -1,7 +1,11 @@
 // Types for the generation module, mirroring backend/app/modules/generation/schemas.py
 // and backend/app/modules/content/schemas.py.
 
-export type JobKind = "flashcards" | "quiz";
+// models: model cards (epic 7, behind FEATURE_MNEMONICS), followed by the Flashcards row.
+export type JobKind = "flashcards" | "quiz" | "models";
+// The kinds the student starts from the scope dialog («Lag flashcards», «Lag quiz»).
+// Model cards start directly, without a dialog.
+export type ScopedJobKind = Exclude<JobKind, "models">;
 export type JobStatus = "running" | "done" | "failed";
 
 export type Job = {
@@ -42,4 +46,6 @@ export type ContentCounts = {
   flashcards: number;
   // Quiz questions made from the lecture's files.
   quiz_questions: number;
+  // Model cards (epic 7) made from the lecture's files; the Flashcards row adds them to its count.
+  model_cards: number;
 };

@@ -49,6 +49,13 @@ EXPECTED_FRONTS = {
     "AIDA-modellen": ["AIDA-modellen", "Oppmerksomhet", "Interesse", "Begjær", "Handling"],
 }
 EXTRA_KIND = "test-summary"
+# The model card the mock makes from each note's list (FR-42-FR-44): AIDA and
+# the four ways to segment have different first letters, the four P's do not.
+EXPECTED_MODEL_CARDS = {
+    "Markedsmiksen": ("Forklar Verktøyene deles ofte inn i fire grupper.", None),
+    "Segmentering og målgrupper": ("Forklar Bedrifter bruker gjerne flere kriterier samtidig.", "GDPA"),
+    "AIDA-modellen": ("Forklar Rekkefølgen gir navnet til modellen.", "AIDA"),
+}
 
 
 def _settings(**values: Any) -> Settings:
@@ -106,7 +113,11 @@ async def test_nfr3_seed_creates_test_user_and_subject(
             # The PDF is stored on the disk like an upload.
             assert (upload_dir / str(user.id) / f"{files[0].id}.pdf").read_bytes() == (NOTES_DIR / sample.file_name).read_bytes()
             fronts = list(
-                await session.scalars(select(Flashcard.front).where(Flashcard.file_id == files[0].id).order_by(Flashcard.id))
+                await session.scalars(
+                    select(Flashcard.front)
+                    .where(Flashcard.file_id == files[0].id, Flashcard.kind != "model")
+                    .order_by(Flashcard.id)
+                )
             )
             assert sorted(fronts) == sorted(EXPECTED_FRONTS[lecture.name])
             questions = await session.scalar(
@@ -114,7 +125,7 @@ async def test_nfr3_seed_creates_test_user_and_subject(
             )
             assert questions == len(EXPECTED_FRONTS[lecture.name])
             kinds = sorted(await session.scalars(select(Job.kind).where(Job.lecture_id == lecture.id)))
-            assert kinds == ["flashcards", "quiz"]
+            assert kinds == ["flashcards", "models", "quiz"]
     assert await _count(sessionmaker, PracticeSession) == 2
 
 
@@ -129,6 +140,7 @@ async def test_ar14_seed_jobs_all_done_none_failed(sessionmaker: async_sessionma
     assert {job.kind: job.params for job in jobs} == {
         "flashcards": {"requested": 20},
         "quiz": {"requested": 20, "difficulty": "medium"},
+        "models": {"requested": 20},
     }
 
 
@@ -176,7 +188,9 @@ async def test_ar14_seed_uses_mock_model_even_with_vertex(
     assert await seed_if_empty(sessionmaker, settings) is True
     async with sessionmaker() as session:
         assert set(await session.scalars(select(Job.status))) == {JOB_DONE}
-    assert await _count(sessionmaker, Flashcard) == sum(len(fronts) for fronts in EXPECTED_FRONTS.values())
+    assert await _count(sessionmaker, Flashcard) == sum(len(fronts) for fronts in EXPECTED_FRONTS.values()) + len(
+        EXPECTED_MODEL_CARDS
+    )
 
 
 async def test_ar14_seed_failure_deletes_test_user_and_logs_error_type(
@@ -275,7 +289,45 @@ async def test_ar14_seed_skips_disabled_extra_type(
     assert [content_type.kind for content_type in enabled_content_types(_settings(FEATURE_SUMMARY=False))] == [
         "flashcards",
         "quiz",
+        "models",
     ]
+
+
+async def test_fr42_seed_makes_model_cards_with_and_without_mnemonic(
+    sessionmaker: async_sessionmaker[AsyncSession],
+) -> None:
+    assert await seed_if_empty(sessionmaker, _settings(FEATURE_MNEMONICS=True)) is True
+    async with sessionmaker() as session:
+        rows = (
+            await session.execute(
+                select(Lecture.name, Flashcard)
+                .join(File, Flashcard.file_id == File.id)
+                .join(Lecture, File.lecture_id == Lecture.id)
+                .where(Flashcard.kind == "model")
+            )
+        ).all()
+    cards = {name: card for name, card in rows}
+    assert {name: (card.front, card.mnemonic) for name, card in cards.items()} == EXPECTED_MODEL_CARDS
+    aida = cards["AIDA-modellen"]
+    assert aida.back is None
+    assert aida.points == [
+        "A: Attention, oppmerksomhet.",
+        "I: Interest, interesse.",
+        "D: Desire, begjær.",
+        "A: Action, handling.",
+    ]
+    assert len(cards["Markedsmiksen"].points) == 4
+
+
+async def test_fr42_seed_makes_no_model_cards_with_switch_off(
+    sessionmaker: async_sessionmaker[AsyncSession],
+) -> None:
+    assert await seed_if_empty(sessionmaker, _settings(FEATURE_MNEMONICS=False)) is True
+    async with sessionmaker() as session:
+        assert list(await session.scalars(select(Flashcard).where(Flashcard.kind == "model"))) == []
+        assert list(await session.scalars(select(Job).where(Job.kind == "models"))) == []
+        # The other content is made as before.
+        assert set(await session.scalars(select(Job.kind))) == {"flashcards", "quiz"}
 
 
 async def test_nfr3_overview_shows_practised_and_not_practised(sessionmaker: async_sessionmaker[AsyncSession]) -> None:

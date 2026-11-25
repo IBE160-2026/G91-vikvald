@@ -137,6 +137,21 @@ export async function makeFlashcardsViaApi(page: Page, lectureId: string, reques
     .toBe(expected);
 }
 
+// Makes model cards from the lecture's files through the API (story 7.1; the
+// mock model makes one model card per bulleted or numbered list of three or
+// more lines under a line of text) and waits until there are `expected`.
+export async function makeModelCardsViaApi(page: Page, lectureId: string, expected: number) {
+  const response = await page.request.post(`/api/lectures/${lectureId}/jobs`, {
+    data: { kind: "models", params: { requested: 30 } },
+  });
+  expect(response.status()).toBe(202);
+  await expect
+    .poll(async () => (await (await page.request.get(`/api/lectures/${lectureId}/content-counts`)).json()).model_cards, {
+      timeout: 15_000,
+    })
+    .toBe(expected);
+}
+
 export async function flashcardCountViaApi(page: Page, lectureId: string): Promise<number> {
   const response = await page.request.get(`/api/lectures/${lectureId}/flashcards`);
   expect(response.status()).toBe(200);

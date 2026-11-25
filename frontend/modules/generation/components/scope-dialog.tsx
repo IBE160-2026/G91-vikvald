@@ -8,7 +8,7 @@ import { RadioGroup } from "@/components/ui/radio-group";
 import { useAppConfig } from "@/lib/config";
 import { fileCountLabel, pageCountLabel } from "@/modules/subjects/format";
 
-import type { Difficulty, JobKind, Requested } from "../types";
+import type { Difficulty, Requested, ScopedJobKind } from "../types";
 
 const SCOPE_TITLES: { value: Requested; title: string }[] = [
   { value: 10, title: "Rask" },
@@ -28,7 +28,7 @@ const DEFAULT_DIFFICULTY: Difficulty = "medium";
 // «Inntil 20 kort», the line about what she has, and whether there is a
 // difficulty to choose.
 const KIND_TEXTS: Record<
-  JobKind,
+  ScopedJobKind,
   { title: string; unit: string; addedTo: (count: number) => string; hasDifficulty: boolean }
 > = {
   flashcards: {
@@ -46,7 +46,7 @@ const KIND_TEXTS: Record<
 };
 
 type Props = {
-  kind: JobKind;
+  kind: ScopedJobKind;
   open: boolean;
   onClose: () => void;
   // Called by «Lag flashcards» / «Lag quiz» with the chosen scope, and for

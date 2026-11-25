@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { JobKind } from "../types";
+import type { ScopedJobKind } from "../types";
 import { ScopeDialog } from "./scope-dialog";
 
 const fetchMock = vi.fn<typeof fetch>();
@@ -23,7 +23,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function renderDialog(onStart = vi.fn(), onClose = vi.fn(), open = true, kind: JobKind = "flashcards", contentCount = 0) {
+function renderDialog(onStart = vi.fn(), onClose = vi.fn(), open = true, kind: ScopedJobKind = "flashcards", contentCount = 0) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const view = (isOpen: boolean) => (
     <QueryClientProvider client={client}>

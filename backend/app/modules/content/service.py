@@ -1,5 +1,5 @@
-"""Business logic for stored content: save generated flashcards and quiz
-questions, count them, list flashcards with their source, and let the student
+"""Business logic for stored content: save generated flashcards, model cards
+and quiz questions, count them, list flashcards with their source, and let the student
 edit or delete a flashcard and delete a quiz question."""
 
 import hashlib
@@ -11,7 +11,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError, ErrorCode
-from app.modules.content.models import PLAIN_FLASHCARD_KINDS, Flashcard, QuizQuestion
+from app.modules.content.models import MODEL_CARD_KIND, PLAIN_FLASHCARD_KINDS, Flashcard, QuizQuestion
 from app.modules.content.registry import DeleteScope
 from app.modules.content.schemas import (
     FlashcardOut,
@@ -224,11 +224,12 @@ async def count_quiz_questions(session: AsyncSession, scope: DeleteScope) -> int
 
 
 async def flashcard_fronts(session: AsyncSession, lecture_id: uuid.UUID) -> list[str]:
-    """The front of every card made from the lecture's files."""
+    """The front of every flashcard (qa and concept) made from the lecture's
+    files. Model cards have their own fronts (model_card_fronts)."""
     statement = (
         select(Flashcard.front)
         .join(File, Flashcard.file_id == File.id)
-        .where(File.lecture_id == lecture_id)
+        .where(File.lecture_id == lecture_id, Flashcard.kind.in_(PLAIN_FLASHCARD_KINDS))
         .order_by(Flashcard.created_at, Flashcard.position, Flashcard.id)
     )
     return list(await session.scalars(statement))
@@ -315,6 +316,75 @@ async def subject_flashcards(session: AsyncSession, subject_id: uuid.UUID) -> li
         )
         for card, file_name, lecture_id, lecture_name in (await session.execute(statement)).all()
     ]
+
+
+@dataclass(frozen=True)
+class NewModelCard:
+    file_id: uuid.UUID
+    page_no: int
+    front: str
+    # The points in the notes' order (at least three).
+    points: tuple[str, ...]
+    # The first letters, or None when every point starts with the same letter (FR-44).
+    mnemonic: str | None
+    # As for NewFlashcard (FR-41).
+    formula_flag: bool = False
+
+
+def add_model_cards(session: AsyncSession, cards: list[NewModelCard]) -> None:
+    """Add the model cards to the session as flashcards with kind "model" and
+    no back. New cards are added to the existing ones (FR-22). The caller
+    commits (one transaction with the job). created_at and position as in
+    add_flashcards."""
+    saved_at = datetime.now(UTC)
+    session.add_all(
+        Flashcard(
+            id=uuid.uuid4(),
+            file_id=card.file_id,
+            page_no=card.page_no,
+            kind=MODEL_CARD_KIND,
+            front=card.front,
+            back=None,
+            points=list(card.points),
+            mnemonic=card.mnemonic,
+            formula_flag=card.formula_flag,
+            created_at=saved_at,
+            position=position,
+        )
+        for position, card in enumerate(cards)
+    )
+
+
+async def model_card_fronts(session: AsyncSession, lecture_id: uuid.UUID) -> list[str]:
+    """The front of every model card made from the lecture's files."""
+    statement = (
+        select(Flashcard.front)
+        .join(File, Flashcard.file_id == File.id)
+        .where(File.lecture_id == lecture_id, Flashcard.kind == MODEL_CARD_KIND)
+        .order_by(Flashcard.created_at, Flashcard.position, Flashcard.id)
+    )
+    return list(await session.scalars(statement))
+
+
+async def model_card_count(session: AsyncSession, lecture_id: uuid.UUID) -> int:
+    """The number of model cards made from the lecture's files."""
+    statement = (
+        select(func.count(Flashcard.id))
+        .join(File, Flashcard.file_id == File.id)
+        .where(File.lecture_id == lecture_id, Flashcard.kind == MODEL_CARD_KIND)
+    )
+    return int(await session.scalar(statement) or 0)
+
+
+async def count_model_cards(session: AsyncSession, scope: DeleteScope) -> int:
+    """The model cards made from the files in the delete scope, counted apart
+    from the other flashcards in the delete confirmation (FR-12)."""
+    if not scope.file_ids:
+        return 0
+    statement = select(func.count(Flashcard.id)).where(
+        Flashcard.file_id.in_(scope.file_ids), Flashcard.kind == MODEL_CARD_KIND
+    )
+    return int(await session.scalar(statement) or 0)
 
 
 async def count_flashcards(session: AsyncSession, scope: DeleteScope) -> int:

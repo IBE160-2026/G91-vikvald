@@ -26,7 +26,7 @@ describe("tekstene for flashcards", () => {
   const texts = generationTexts.flashcards;
 
   it("FR-18: færre enn valgt har den godkjente ordlyden", () => {
-    expect(texts.fewer(12, 20)).toBe("Det ble laget 12 av inntil 20 flashcards. Notatene ga ikke grunnlag for flere.");
+    expect(texts.fewer?.(12, 20)).toBe("Det ble laget 12 av inntil 20 flashcards. Notatene ga ikke grunnlag for flere.");
   });
 
   it("FR-21: feil, tidsgrense og avbrutt gir samme feiltekst, og en ukjent kode også", () => {
@@ -78,7 +78,7 @@ describe("tekstene for quiz", () => {
 
   it("FR-30: jobbtekst, færre, ingenting og ferdig har de godkjente ordlydene", () => {
     expect(texts.jobText).toBe("Lager quizspørsmål …");
-    expect(texts.fewer(12, 20)).toBe("Det ble laget 12 av inntil 20 spørsmål. Notatene ga ikke grunnlag for flere.");
+    expect(texts.fewer?.(12, 20)).toBe("Det ble laget 12 av inntil 20 spørsmål. Notatene ga ikke grunnlag for flere.");
     expect(texts.nothing).toBe("Notatene ga ikke grunnlag for spørsmål. Ingenting er lagret.");
     expect(texts.done(15, "Uke 37: Merkevare")).toBe("Quizspørsmålene er ferdige: 15 spørsmål i Uke 37: Merkevare.");
   });
@@ -103,5 +103,37 @@ describe("tekstene for quiz", () => {
     expect(finishedText({ ...quizJob, created: 0 }, "Uke 37")).toBe(
       "Notatene ga ikke grunnlag for spørsmål. Ingenting er lagret.",
     );
+  });
+});
+
+describe("tekstene for modellkort", () => {
+  const texts = generationTexts.models;
+
+  it("FR-42: jobbteksten og ventetekstene har de godkjente ordlydene", () => {
+    expect(texts.jobText).toBe("Lager modellkort …");
+    expect(texts.waiting).toBe("Venter til modellkortene er ferdige");
+  });
+
+  it("FR-47: ingenting funnet har den godkjente ordlyden og er ingen feil", () => {
+    expect(texts.nothing).toBe("Vi fant ingen modeller eller lister i denne forelesningen.");
+    const nothing = job({ kind: "models", params: { requested: 30 }, requested: 30, created: 0 });
+    expect(jobOutcome(nothing)).toEqual({
+      type: "nothing",
+      text: "Vi fant ingen modeller eller lister i denne forelesningen.",
+    });
+    expect(finishedText(nothing, "Uke 37")).toBe("Vi fant ingen modeller eller lister i denne forelesningen.");
+  });
+
+  it("FR-21: feil, tidsgrense og avbrutt gir feilteksten om modellkortene", () => {
+    for (const code of ["GENERATION_FAILED", "GENERATION_TIMEOUT", "JOB_INTERRUPTED", null]) {
+      expect(texts.failed(code)).toBe("Vi klarte ikke å lage modellkortene. Ingenting er lagret. Prøv igjen.");
+    }
+  });
+
+  it("FR-42: færre enn 30 modellkort gir ingen melding, siden studenten ikke har valgt antall", () => {
+    expect(texts.fewer).toBeUndefined();
+    const some = job({ kind: "models", params: { requested: 30 }, requested: 30, created: 2 });
+    expect(jobOutcome(some)).toEqual({ type: "complete" });
+    expect(finishedText(some, "Uke 37")).toBe("Modellkortene er ferdige: 2 modellkort i Uke 37.");
   });
 });
