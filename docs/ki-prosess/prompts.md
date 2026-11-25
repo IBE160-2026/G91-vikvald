@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-25: Story 7.1 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `7-1-lag-modellkort-fra-en-forelesning`.
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-7-1-lag-modellkort-fra-en-forelesning.md), PR-en for `story/7-1` og kanttilfellene #312–#317. Playwright og skjermbildene venter på diskplass.
+
 ## 2026-11-23: Brukerreisetestene utvidet etter epic 6
 
 Brukerreisetestene ble utvidet av en subagent i den autonome kjøringen etter at epic 6 var ferdig, etter avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md).
