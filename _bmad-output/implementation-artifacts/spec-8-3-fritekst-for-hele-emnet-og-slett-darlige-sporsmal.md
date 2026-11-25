@@ -2,7 +2,7 @@
 title: 'Story 8.3: Fritekst for hele emnet og slett dårlige spørsmål'
 type: 'feature'
 created: '2026-11-25'
-status: 'blocked'
+status: 'done'
 baseline_revision: '21f410dd5ff7e6915a449a86629c4af9e1fe4307'
 review_loop_iteration: 0
 followup_review_recommended: false
@@ -11,7 +11,14 @@ context:
   - '{project-root}/_bmad-output/implementation-artifacts/autonom-kjoring.md'
   - '{project-root}/_bmad-output/implementation-artifacts/spec-8-2-ov-pa-fritekst-og-vurder-deg-selv.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Sletting av alle spørsmålene fra en forelesnings første jobb kan flytte «første innhold» fram i tid, slik at en tidligere emneøkt slutter å telle som «øvd».
+    evidence: |-
+      first_freetext_question_times (og quiz/flashcards) bruker min(created_at) av spørsmålene som finnes nå. Regelen er fra story 5.1 (#236) og gjelder alle typer; oversikten hentes heller ikke på nytt rett etter sletting.
+    location: >-
+      backend/app/modules/content/registry.py
+    severity: low
 ---
 
 <intent-contract>
@@ -102,6 +109,38 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-25 — Review pass
+- verdicts: 24 findings — high 0, medium 0, low 14, false 10, maybe-false 0
+- findings:
+  - Intent Alignment
+    - `[low]` `[reject]` E2E-testen for emneøkten sletter med «Slett» før modellsvaret; knappen ved kilden prøves i nettleseren bare i forelesningsøkten — samme komponent og samme side i begge omfang, og Vitest dekker sletting etter modellsvaret; en ekstra e2e-flyt gir ingen ny dekning.
+    - `[low]` `[reject]` Raden sier «N spørsmål fra M forelesninger», ikke bare «10 spørsmål» — samme form som Quiz-raden (4.4) i samme kort; antallet står først. Ført som kanttilfelle.
+    - `[low]` `[reject]` Ingen e2e-test med `FEATURE_FREETEXT=false` — bryteren leses ved oppstart av backend; pytest dekker 404 FEATURE_DISABLED mot ekte backend, og jsdom dekker at raden og hentingen er borte. Samme mønster som 8.1 og 8.2.
+    - `[false]` `[reject]` AR-2 for «forelesning» er ikke testet på nytt — forelesningsruta er fra 8.2 og har `test_fr4_andres_ukjent_eller_ugyldig_forelesning_gir_404`; storien legger ikke til noen ny forelesningsrute.
+    - `[false]` `[reject]` Diffen gjør mer enn akseptkriteriene (forelesningen i lista, 404 som slettet, tilbake uten lagring) — alt står i spesifikasjonen og følger quizen fra 4.4/4.5.
+    - `[false]` `[reject]` Arbeidet er ikke gjennomgått og spesifikasjonen er ikke committet — denne gjennomgangen er nettopp det; spesifikasjonen committes ved avslutningen.
+  - Verification Gap
+    - `[low]` `[patch]` Fil- og siderekkefølgen i emnelista var ikke testet med to filer i samme forelesning — ny test `test_fr50_subject_sporsmalene_i_en_forelesning_kommer_i_fil_og_siderekkefolge` (`aa4aacf`).
+    - `[low]` `[reject]` Ruta `/emner/<id>/fritekst` prøves bare av Playwright, som CI ikke kjører — prosjektets valg fra story 1.2; hele Playwright-suiten kjøres før fletting.
+    - `[false]` `[reject]` Endrede e2e-filer er ikke kjørt — hele suiten kjøres etter rettingene.
+  - Blind Hunter
+    - `[false]` `[reject]` KI-sporet mangler — føres i samme økt etter gjennomgangen, før PR-en.
+    - `[false]` `[reject]` Ucommittet spesifikasjon og `frontend/e2e-skjermbilder/` — spesifikasjonen committes ved avslutningen; mappa er ikke denne storiens og skal ikke røres.
+    - `[low]` `[defer]` Oversikten hentes ikke på nytt etter sletting, og «øvd» bygger på tidspunktet for første spørsmål — se samlet utsatt punkt under Edge Case Hunter.
+    - `[low]` `[reject]` Slettelogikken er kopiert fra quizen — bevisst speiling av `quiz-session-page.tsx`; en felles hjelper betyr å endre to ferdige økter uten feil å rette.
+    - `[false]` `[reject]` `deleteTarget` nullstilles aldri — dialogen er lukket (`open=false`) og henter ingenting; målet beholdes med vilje mens dialogen lukker seg, som i quizen.
+    - `[false]` `[reject]` `useFreetextScope` lager spøkelsesspørringer og kan gi `/forelesninger/undefined` — deaktiverte spørringer henter ingenting, og forelesningsgrenen brukes bare når `lectureId` finnes (typen krever det).
+    - `[low]` `[reject]` Kommentaren over siden ber leseren lese «forelesning» som «emne» — samme formulering som i `quiz-session-page.tsx`; ingen feil for brukeren.
+    - `[low]` `[patch]` E2E-kommentaren påsto at øktens taster er av mens dialogen er åpen, uten å sjekke det — omskrevet til det linjene sjekker (`aa4aacf`).
+    - `[false]` `[reject]` Rekkefølgetestene kan bli ustabile ved like `created_at` — forelesningene lages i hver sin HTTP-forespørsel med mikrosekundtid; samme test har gått grønt for quizen siden 4.4.
+    - `[low]` `[reject]` «Slett» har ikke skjult tekst for skjermleser — bare én «Slett» vises om gangen, inne i spørsmålet; quizen og flashcards bruker samme navn, og e2e-testene finner knappen på det.
+    - `[low]` `[reject]` Feiler `GET /api/config`, forsvinner raden uten feiltekst — samme regel som raden på forelesningssiden (8.1); config er hurtigbufret og feiler i praksis bare når backend er nede, og da viser de andre radene feilen.
+    - `[low]` `[reject]` En test skriver reserveteksten rett inn — hele `subject-page.test.tsx` gjør det slik; endres teksten, endres alle samtidig.
+    - `[false]` `[reject]` `setQueryData` overkjøres av ny henting — hentingen skjer etter at serveren har svart 204, så den nye lista har heller ikke spørsmålet.
+  - Edge Case Hunter
+    - `[low]` `[reject]` Når det eneste spørsmålet slettes, prøver fokus å gå til det gamle svarfeltet mens siden navigerer bort — siden byttes uansett, og den nye siden setter fokus på sin overskrift; å rette det krever en ekstra ref og vakt for et sjeldent tilfelle.
+    - `[low]` `[defer]` Sletter studenten alle spørsmålene fra en forelesnings første jobb, flyttes «første fritekstspørsmål» fram i tid, og en tidligere emneøkt kan slutte å telle som «øvd» — regelen er fra 5.1/#236 og gjelder quiz og flashcards likt; ikke forårsaket av denne storien.
+
 ## Design Notes
 
 - **Ett sideomfang:** `FreetextSessionPage` tar `{lectureId} | {subjectId}` og en `useFreetextScope` som speiler `useQuizScope`, så forelesning og emne deler all øktkode.
@@ -117,10 +156,23 @@ deferred: []
 
 ## Auto Run Result
 
-**Status:** blocked
+**Status:** done
 
-**Blokkerende vilkår:** For lite ledig disk. Etter implementeringen og Playwright-kjøringen var det bare 215 MB ledig på `/` mens appen kjørte. Diskregelen sier at kjøringen stopper under 2 GB. Appen er stoppet med `docker compose down` (uten `-v`).
+**Hva som er bygd:** Fritekst for hele emnet og sletting av dårlige fritekstspørsmål. Emnesiden har raden «Fritekstspørsmål» («4 spørsmål fra 2 forelesninger», «Start ›») i «Øv på hele emnet» når bryteren er på og emnet har spørsmål. «Start ›» åpner `/emner/<id>/fritekst`, der økten henter spørsmålene fra alle forelesningene i tilfeldig rekkefølge, viser «<emne>, hele emnet», lagres med `lecture_id: null` og går tilbake til emnesiden. «Slett» står før modellsvaret og ved kilden etter det, i både forelesnings- og emneøkten, og bruker den felles slettebekreftelsen. Backend har `GET /api/subjects/{id}/freetext-questions` og `DELETE /api/freetext-questions/{id}` bak `FEATURE_FREETEXT`.
 
-**Hva som er gjort:** Backend, frontend og testene er bygd og committet lokalt på `story/8-3` (seks commits over `21f410d`). Implementeringsagenten rapporterte grønt: `uv run pytest` 930 bestått, Vitest 1050 bestått, `tsc` rent, og `npx playwright test` 206 tester der 4 er hoppet over og resten består.
+**Filer:**
+- `backend/app/modules/content/service.py`, `router.py`, `backend/app/main.py` -- emnelista, oppslag og sletting med eierskap, rutene med bryter.
+- `backend/tests/test_freetext_subject_and_delete.py` -- emnelista, rekkefølge, eierskap, bryter, sletting og «øvd» for emneøkter.
+- `frontend/modules/practice/api.ts`, `frontend/lib/delete-text.ts` -- API, spørringsnøkkel og slettemål.
+- `frontend/modules/practice/components/freetext-question.tsx`, `model-answer.tsx`, `missed-list.tsx` -- «Slett» og forelesningen i lista.
+- `frontend/modules/practice/pages/freetext-session-page.tsx`, `frontend/app/(app)/emner/[subjectId]/fritekst/page.tsx` -- emneøkten og slettingen.
+- `frontend/modules/subjects/pages/subject-page.tsx` -- raden på emnesiden.
+- Vitest-filene, `frontend/e2e/fritekst-hele-emnet.spec.ts`, `frontend/e2e/fritekst-okt.spec.ts` (tabber forbi «Slett»), `docs/testplan.md`.
 
-**Gjenstår:** kontroll av diffen og gjennomgangen (steg 4), skjermbilder, KI-sporet, sprint-status, sesjonsloggen, issuer for kanttilfeller, push, PR og fletting.
+**Gjennomgang:** 24 funn. 2 rettet (begge lave, `aa4aacf`): ny test for fil- og siderekkefølgen i emnelista, og en misvisende kommentar i e2e-testen. 1 utsatt (lav, eksisterende regel fra 5.1: sletting kan flytte «første innhold» fram i tid). 10 var feilaktige, og 11 lave ble avvist med grunn i loggen over.
+
+**followup_review_recommended:** false. Ingen rettede funn var `high` eller `medium` (2 `low`).
+
+**Verifisering:** `uv run pytest` 931 bestått, `uv run ruff check .` rent, `npm run test` 1050 bestått, `npx tsc --noEmit` rent, `npx playwright test` mot `docker compose up --build -d`: 202 bestått, 4 hoppet over (testbrukeren finnes bare med tom database), 0 feilet.
+
+**Gjenstående risiko:** `DELETE /api/freetext-questions/{id}` svarer `404 FEATURE_DISABLED` når bryteren er av, så spørsmål kan da ikke slettes enkeltvis (de slettes fortsatt med fila). Det utsatte punktet om «øvd» etter sletting.
