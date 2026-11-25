@@ -10,7 +10,8 @@ from app.core.db import Base
 
 # The card types: question/answer, term/explanation, and (epic 7) model card.
 FLASHCARD_KINDS = ("qa", "concept", "model")
-# The types counted and practised as flashcards (model cards have their own place).
+# The types counted as flashcards on the lecture page (model cards are counted
+# on their own there, but practised in the same session, FR-56).
 PLAIN_FLASHCARD_KINDS = ("qa", "concept")
 # The kind of a model card (FR-42): front, points and mnemonic, no back.
 MODEL_CARD_KIND = "model"

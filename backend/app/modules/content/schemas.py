@@ -26,11 +26,16 @@ class FlashcardSource(BaseModel):
 
 class FlashcardOut(BaseModel):
     id: uuid.UUID
-    # "qa" or "concept" (both are shown the same way). Model cards are not listed.
-    kind: Literal["qa", "concept"]
+    # "qa" or "concept" (both are shown the same way), or "model" (FR-42),
+    # shown with its points and mnemonic in the same session.
+    kind: Literal["qa", "concept", "model"]
     front: str
-    # Always set for qa and concept cards.
-    back: str
+    # Always set for qa and concept cards; None for model cards.
+    back: str | None
+    # Model cards only: the points in the notes' order. None for qa and concept.
+    points: list[str] | None = None
+    # Model cards only: the mnemonic, or None when the card has none (FR-44).
+    mnemonic: str | None = None
     # Shown as «Inneholder formel – sjekk mot kilden» above the source (FR-41).
     formula_flag: bool = False
     source: FlashcardSource
@@ -40,7 +45,13 @@ class FlashcardUpdate(BaseModel):
     # The student's new text. A field left out is not changed; an empty (or
     # only blank) one is rejected by the service with its own error code.
     front: str | None = None
+    # qa and concept cards only.
     back: str | None = None
+    # Model cards only (FR-42, FR-46). Unlike front and back, a mnemonic or
+    # points sent as null are treated as empty and rejected, since the field
+    # was sent on purpose.
+    points: list[str] | None = None
+    mnemonic: str | None = None
 
 
 class LectureRef(BaseModel):

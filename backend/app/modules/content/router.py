@@ -13,7 +13,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.db import get_session
+from app.core.errors import AppError, ErrorCode
 from app.modules.content.schemas import (
     ContentCounts,
     FlashcardOut,
@@ -95,6 +97,11 @@ async def subject_quiz_question_list(
 async def edit_flashcard(
     flashcard_id: str, changes: FlashcardUpdate, user: CurrentUser, session: Session
 ) -> FlashcardOut:
+    # A mnemonic is behind FEATURE_MNEMONICS: with the switch off, sending one
+    # answers 404 FEATURE_DISABLED before the card is looked up (AR-11). Front
+    # and points can still be fixed.
+    if "mnemonic" in changes.model_fields_set and not get_settings().FEATURE_MNEMONICS:
+        raise AppError(ErrorCode.FEATURE_DISABLED)
     return await update_flashcard(session, user.id, flashcard_id, changes)
 
 

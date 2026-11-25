@@ -147,7 +147,9 @@ async def collect(
     def key(item: dict[str, Any]) -> tuple[int, str, int]:
         return (order.get(item["lecture"]["id"], len(order)), item["source"]["file_name"], item["source"]["page_no"])
 
-    cards = await _get(client, f"/api/subjects/{subject['id']}/flashcards")
+    # SK-13 and SK-14 are about the question and concept cards: the model cards
+    # in the same list (story 7.2) have points instead of an answer and are left out.
+    cards = [card for card in await _get(client, f"/api/subjects/{subject['id']}/flashcards") if card["kind"] != "model"]
     questions = await _get(client, f"/api/subjects/{subject['id']}/quiz-questions")
     card_rows = [SampleRow(flashcard_text(card), _source(card), key(card)) for card in cards]
     quiz_rows = [SampleRow(quiz_text(question), _source(question), key(question)) for question in questions]
