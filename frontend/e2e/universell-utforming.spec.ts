@@ -277,7 +277,8 @@ test.describe("Universell utforming og skjermbredde på alle sider (story 6.6)",
   // The should-have pages (epics 7–9). The test looks for the entry in the app
   // instead of assuming an address, so the pages are checked as soon as they
   // are built. An entry that is built (`built`) must be there when its switch is
-  // on (#301): «Lag modellkort» since story 7.1. For the others, while a switch
+  // on (#301): «Lag modellkort» since story 7.1, the row «Fritekstspørsmål»
+  // (its «Lag fritekstspørsmål» dialog) since story 8.1. For the others, while a switch
   // is on and the entry is not there, the test notes «ikke bygd ennå» and is green.
   test("NFR-13, NFR-14, SK-9: bør ha-sidene som er skrudd på i GET /api/config, i 1280 og 768 px", async ({ page }, testInfo) => {
     const configResponse = await page.request.get("/api/config");
@@ -297,8 +298,9 @@ test.describe("Universell utforming og skjermbredde på alle sider (story 6.6)",
       },
       {
         flag: "feature_freetext",
-        name: "Fritekst",
-        entry: makeAndPractise.getByRole("group", { name: "Fritekst" }).getByRole("button").first(),
+        name: "Fritekst («Lag fritekstspørsmål»)",
+        entry: makeAndPractise.getByRole("group", { name: "Fritekstspørsmål" }).getByRole("button").first(),
+        built: true,
       },
       {
         flag: "feature_summary",
