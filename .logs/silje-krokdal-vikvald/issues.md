@@ -168,3 +168,5 @@
 - [x] 2026-11-25 [story-7-1-modellkort](948-2026-11-25-09-51-05-story-7-1-modellkort.md) — frigjør diskplass, kjør Playwright, ta skjermbildene og flett PR-en for story/7-1 (#318) (løst 2026-11-25)
 - [ ] 2026-11-25 [story-7-1-modellkort](948-2026-11-25-09-51-05-story-7-1-modellkort.md) — vurder kanttilfellene fra story 7.1 (#312–#317)
 - [ ] 2026-11-25 [story-7-1-modellkort](948-2026-11-25-09-51-05-story-7-1-modellkort.md) — vurder teksten «Vi fant ingen modeller …» når alle modellkortene finnes fra før, og knappene på Flashcards-raden over to linjer i 1280 px
+- [ ] 2026-11-25 [story-7-2-ov-pa-modellkort](947-2026-11-25-11-16-43-story-7-2-ov-pa-modellkort.md) — frigjør diskplass, kjør Playwright, ta skjermbildene, sett 7.2 og epic 7 til done, push og flett PR-en for story/7-2
+- [ ] 2026-11-25 [story-7-2-ov-pa-modellkort](947-2026-11-25-11-16-43-story-7-2-ov-pa-modellkort.md) — vurder kanttilfellene fra story 7.2 (#320–#324)
