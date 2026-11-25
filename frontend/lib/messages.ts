@@ -68,6 +68,7 @@ export const countNouns: Record<string, { one: string; other: string }> = {
   flashcards: { one: "flashcard", other: "flashcards" },
   quiz_questions: { one: "quizspørsmål", other: "quizspørsmål" },
   model_cards: { one: "modellkort", other: "modellkort" },
+  freetext_questions: { one: "fritekstspørsmål", other: "fritekstspørsmål" },
 };
 
 const PLACEHOLDER = /\{([a-z_]+)\}/g;

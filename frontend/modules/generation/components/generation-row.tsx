@@ -10,7 +10,7 @@ import { filesQueryKey } from "@/modules/files/api";
 
 import { contentCountsQueryKey, fetchContentCounts, fetchLatestJobs, latestJobsQueryKey, startJob } from "../api";
 import { generationTexts, jobOutcome } from "../texts";
-import type { ContentCounts, Difficulty, Job, JobKind, Requested, ScopedJobKind } from "../types";
+import type { ContentCounts, Job, JobKind, JobParams, Requested, ScopedJobKind } from "../types";
 import { useFollowJob } from "./job-watcher";
 import { ScopeDialog } from "./scope-dialog";
 
@@ -54,6 +54,8 @@ type Props = GenerationRowProps & {
   createLabel: string;
   // «Øv nå». Without it the button is shown but not active (a type without practice yet).
   onPractice?: () => void;
+  // false: no «Øv nå» at all (free text until its session is built, story 8.2).
+  showPractice?: boolean;
 };
 
 // One row in «Lag og øv» for a content type that is made by a generation job
@@ -95,6 +97,7 @@ export function GenerationRow({
   countText,
   createLabel,
   onPractice,
+  showPractice = true,
   lectureId,
   lectureName,
   fileCount,
@@ -151,12 +154,12 @@ export function GenerationRow({
     else setAnnouncement("");
   }, [job, lectureId, lectureName, queryClient, followJob, texts]);
 
-  async function start(startKind: JobKind, requested: Requested, difficulty?: Difficulty) {
+  async function start(startKind: JobKind, params: JobParams) {
     setStarting(true);
     setStartingKind(startKind);
     setStartError(null);
     try {
-      const started = await startJob(lectureId, startKind, requested, difficulty);
+      const started = await startJob(lectureId, startKind, params);
       followed.current = started.id;
       followJob(started.id);
       queryClient.setQueryData<Job[]>(latestJobsQueryKey(lectureId), (old) => [
@@ -177,24 +180,28 @@ export function GenerationRow({
     }
   }
 
-  function startFromDialog(requested: Requested, difficulty?: Difficulty) {
+  function startFromDialog(params: JobParams) {
     startedFromDialog.current = true;
     setDialogOpen(false);
-    void start(kind, requested, difficulty);
+    void start(kind, params);
   }
 
   function retry(failedJob: Job) {
     rowRef.current?.focus();
-    // The same kind and choices as the failed job.
-    const requested = (failedJob.params?.requested ?? failedJob.requested) as Requested;
-    void start(failedJob.kind, requested, failedJob.params?.difficulty);
+    // The same kind and choices as the failed job (scope, difficulty, question type).
+    const { requested = failedJob.requested, difficulty, question_kind } = failedJob.params ?? {};
+    void start(failedJob.kind, {
+      requested,
+      ...(difficulty ? { difficulty } : {}),
+      ...(question_kind ? { question_kind } : {}),
+    });
   }
 
   function startExtra() {
     if (!extra) return;
     // The button goes away while the job runs, so the row keeps the focus.
     rowRef.current?.focus();
-    void start(extra.kind, extra.requested);
+    void start(extra.kind, { requested: extra.requested });
   }
 
   const count = counts.data ? countOf(counts.data) : 0;
@@ -229,6 +236,7 @@ export function GenerationRow({
         onCreateMore={() => setDialogOpen(true)}
         extraAction={extra && showExtra ? { label: extra.label, onClick: startExtra } : undefined}
         onPractice={count > 0 ? onPractice : undefined}
+        showPractice={showPractice}
         jobText={generationTexts[starting ? startingKind : (job?.kind ?? kind)].jobText}
         announcement={announcement}
         message={message}

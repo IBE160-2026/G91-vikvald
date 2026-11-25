@@ -114,6 +114,7 @@ describe("countNouns", () => {
       flashcards: { one: "flashcard", other: "flashcards" },
       quiz_questions: { one: "quizspørsmål", other: "quizspørsmål" },
       model_cards: { one: "modellkort", other: "modellkort" },
+      freetext_questions: { one: "fritekstspørsmål", other: "fritekstspørsmål" },
     });
   });
 });

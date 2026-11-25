@@ -63,6 +63,9 @@ let quizCount = 0;
 // Model cards in lecture l2 (story 7.1), and the FEATURE_MNEMONICS switch.
 let modelCount = 0;
 let mnemonics = true;
+// Free-text questions in lecture l2 (story 8.1), and the FEATURE_FREETEXT switch.
+let freetextCount = 0;
+let freetextFeature = true;
 let latestJob: Job | null = null;
 // Latest jobs of other kinds in lecture l2 (shown with latestJob).
 let otherJobs: Job[] = [];
@@ -150,7 +153,7 @@ function respond() {
     }
     if (path === "/api/subjects/b/lectures") return jsonResponse(200, []);
     if (path === "/api/config") {
-      return jsonResponse(200, { demo_mode: demoMode, feature_mnemonics: mnemonics, feature_freetext: true, feature_summary: true });
+      return jsonResponse(200, { demo_mode: demoMode, feature_mnemonics: mnemonics, feature_freetext: freetextFeature, feature_summary: true });
     }
     if (path === "/api/lectures/l2/files") {
       if (init?.method === "POST") {
@@ -183,6 +186,7 @@ function respond() {
         latestJob = { ...latestJob, ...jobOutcome, discarded: 0, finished_at: "2026-11-21T10:00:03Z" };
         if (jobOutcome.status === "done" && latestJob.kind === "quiz") quizCount += jobOutcome.created ?? 0;
         else if (jobOutcome.status === "done" && latestJob.kind === "models") modelCount += jobOutcome.created ?? 0;
+        else if (jobOutcome.status === "done" && latestJob.kind === "freetext") freetextCount += jobOutcome.created ?? 0;
         else if (jobOutcome.status === "done") cardCount += jobOutcome.created ?? 0;
       }
       return jsonResponse(200, latestJob?.status === "running" ? [{ ...latestJob, lecture_name: "Uke 38: Prising" }] : []);
@@ -191,10 +195,15 @@ function respond() {
       return jsonResponse(200, { ...latestJob, lecture_name: "Uke 38: Prising" });
     }
     if (path === "/api/lectures/l2/content-counts") {
-      return jsonResponse(200, { flashcards: cardCount, quiz_questions: quizCount, model_cards: modelCount });
+      return jsonResponse(200, {
+        flashcards: cardCount,
+        quiz_questions: quizCount,
+        model_cards: modelCount,
+        freetext_questions: freetextCount,
+      });
     }
     if (/^\/api\/lectures\/l1\/(jobs\/latest|content-counts)$/.test(path)) {
-      return jsonResponse(200, path.endsWith("latest") ? [] : { flashcards: 0, quiz_questions: 0, model_cards: 0 });
+      return jsonResponse(200, path.endsWith("latest") ? [] : { flashcards: 0, quiz_questions: 0, model_cards: 0, freetext_questions: 0 });
     }
     const filePreview = path.match(/^\/api\/files\/([^/]+)\/delete-preview$/);
     if (filePreview) {
@@ -274,6 +283,8 @@ beforeEach(() => {
   quizCount = 0;
   modelCount = 0;
   mnemonics = true;
+  freetextCount = 0;
+  freetextFeature = true;
   latestJob = null;
   otherJobs = [];
   jobOutcome = { status: "done", created: 20, error_code: null };
@@ -1310,7 +1321,9 @@ describe("Quiz-raden (story 4.1)", () => {
     const card = row.parentElement!;
     expect(card.className).toContain("divide-y");
     expect(card.className).toContain("divide-divider");
-    expect(Array.from(card.children)).toEqual([screen.getByRole("group", { name: "Flashcards" }), row]);
+    // With FEATURE_FREETEXT on, the Fritekstspørsmål row comes last (story 8.1).
+    const freetext = await screen.findByRole("group", { name: "Fritekstspørsmål" });
+    expect(Array.from(card.children)).toEqual([screen.getByRole("group", { name: "Flashcards" }), row, freetext]);
   });
 
   it("FR-28, FR-32: med spørsmål viser raden «15 spørsmål», «Lag flere» og «Øv nå», som åpner quizøkten", async () => {
@@ -1559,6 +1572,165 @@ describe("Modellkort (story 7.1)", () => {
     const row = await screen.findByRole("group", { name: "Flashcards" });
     expect(await within(row).findByText("Lager modellkort …", { selector: "p" })).toBeTruthy();
     expect(within(row).queryByText("Venter til modellkortene er ferdige")).toBeNull();
+  });
+});
+
+describe("Fritekstspørsmål (story 8.1)", () => {
+  function freetextRow() {
+    return screen.getByRole("group", { name: "Fritekstspørsmål" });
+  }
+  function posts() {
+    return fetchMock.mock.calls
+      .filter(([url, init]) => String(url) === "/api/lectures/l2/jobs" && init?.method === "POST")
+      .map(([, init]) => JSON.parse(String(init!.body)));
+  }
+  async function openFreetextDialog(name = "Lag fritekstspørsmål") {
+    const row = await screen.findByRole("group", { name: "Fritekstspørsmål" });
+    const button = await within(row).findByRole("button", { name });
+    await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
+    button.focus();
+    fireEvent.click(button);
+    return { button, dialog: await screen.findByRole("dialog", { name: "Lag fritekstspørsmål" }) };
+  }
+
+  it("FR-48, UX-DR18: raden står etter Quiz med «Ingen ennå» og omrissknappen «Lag fritekstspørsmål»", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Fritekstspørsmål" });
+    expect(within(row).getByRole("heading", { level: 3, name: "Fritekstspørsmål" })).toBeTruthy();
+    expect(await within(row).findByText("Ingen ennå")).toBeTruthy();
+    const create = within(row).getByRole("button", { name: "Lag fritekstspørsmål" }) as HTMLButtonElement;
+    await waitFor(() => expect(create.disabled).toBe(false));
+    expect(create.dataset.variant).toBe("outline");
+    expect(row.previousElementSibling).toBe(screen.getByRole("group", { name: "Quiz" }));
+    expect(within(row).queryByRole("button", { name: "Øv nå" })).toBeNull();
+  });
+
+  it("FR-48: med spørsmål viser raden «12 spørsmål» og «Lag flere», men ikke «Øv nå»", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    freetextCount = 12;
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Fritekstspørsmål" });
+    expect(await within(row).findByText("12 spørsmål")).toBeTruthy();
+    expect(within(row).getByRole("button", { name: "Lag flere" })).toBeTruthy();
+    expect(within(row).queryByRole("button", { name: "Øv nå" })).toBeNull();
+    const { dialog } = await openFreetextDialog("Lag flere");
+    expect(within(dialog).getByText("Nye spørsmål legges til de 12 du har fra før.")).toBeTruthy();
+  });
+
+  it("AR-11: med FEATURE_FREETEXT av vises ikke raden", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    freetextFeature = false;
+    renderPage();
+    const quiz = await screen.findByRole("group", { name: "Quiz" });
+    await within(quiz).findByText("Ingen ennå");
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/config")).toBe(true));
+    expect(screen.queryByRole("group", { name: "Fritekstspørsmål" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Lag fritekstspørsmål" })).toBeNull();
+  });
+
+  it("FR-49, UX-DR24: dialogen med bare tastatur: «Kortsvar» og «Vanlig» valgt, Esc lukker uten jobb og fokus går tilbake", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    renderPage();
+    const { button, dialog } = await openFreetextDialog();
+    expect(within(dialog).getByRole("radio", { name: "Kortsvar" }).getAttribute("aria-checked")).toBe("true");
+    expect(within(dialog).getByRole("radio", { name: "Vanlig" }).getAttribute("aria-checked")).toBe("true");
+    expect(within(dialog).queryByRole("radiogroup", { name: "Vanskelighetsgrad" })).toBeNull();
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(button));
+    expect(posts()).toEqual([]);
+  });
+
+  it("FR-48, FR-49, UX-DR19: Langsvar og Rask sender question_kind og 5, de andre radene venter, så kommer spørsmålene", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    jobOutcome = { status: "done", created: 5, error_code: null };
+    holdJob = true;
+    renderPage();
+    const { dialog } = await openFreetextDialog();
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Langsvar" }));
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Rask" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Lag fritekstspørsmål" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(posts()).toEqual([{ kind: "freetext", params: { requested: 5, question_kind: "long" } }]);
+    expect(await within(freetextRow()).findByText("Lager fritekstspørsmål …", { selector: "p" })).toBeTruthy();
+    expect(within(freetextRow()).getByRole("status").textContent).toBe("Lager fritekstspørsmål …");
+
+    for (const [name, label] of [
+      ["Flashcards", "Lag flashcards"],
+      ["Quiz", "Lag quiz"],
+    ]) {
+      const other = screen.getByRole("group", { name });
+      const reason = await within(other).findByText("Venter til fritekstspørsmålene er ferdige");
+      const create = within(other).getByRole("button", { name: label }) as HTMLButtonElement;
+      expect(create.disabled).toBe(true);
+      expect(create.getAttribute("aria-describedby")).toBe(reason.id);
+    }
+
+    holdJob = false;
+    expect(await within(freetextRow()).findByText("5 spørsmål", {}, { timeout: 3000 })).toBeTruthy();
+    expect(within(freetextRow()).getByRole("status").textContent).toBe(
+      "Fritekstspørsmålene er ferdige: 5 spørsmål i Uke 38: Prising.",
+    );
+    expect(within(freetextRow()).getByRole("button", { name: "Lag flere" })).toBeTruthy();
+    expect(within(freetextRow()).queryByRole("button", { name: "Øv nå" })).toBeNull();
+  });
+
+  it("FR-48: «Lag flere» uten nye spørsmål gir «ingenting»-teksten", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    freetextCount = 7;
+    jobOutcome = { status: "done", created: 0, error_code: null };
+    renderPage();
+    const { dialog } = await openFreetextDialog("Lag flere");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Lag fritekstspørsmål" }));
+    const text = "Notatene ga ikke grunnlag for fritekstspørsmål. Ingenting er lagret.";
+    await waitFor(() => expect(within(freetextRow()).getByRole("status").textContent).toBe(text), { timeout: 3000 });
+    expect(within(freetextRow()).getByText(text, { selector: "p" })).toBeTruthy();
+    expect(within(freetextRow()).getByText("7 spørsmål")).toBeTruthy();
+  });
+
+  it("FR-48: færre enn valgt gir den godkjente teksten", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    freetextCount = 7;
+    otherJobs = [
+      job({
+        kind: "freetext",
+        params: { requested: 15, question_kind: "short" },
+        requested: 15,
+        status: "done",
+        created: 7,
+        discarded: 0,
+        finished_at: "2026-11-21T10:00:03Z",
+      }),
+    ];
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Fritekstspørsmål" });
+    expect(
+      await within(row).findByText("Det ble laget 7 av inntil 15 spørsmål. Notatene ga ikke grunnlag for flere."),
+    ).toBeTruthy();
+  });
+
+  it("FR-21: en feilet jobb gir feilteksten, og «Prøv igjen» sender samme type og omfang", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    otherJobs = [
+      job({
+        kind: "freetext",
+        params: { requested: 15, question_kind: "long" },
+        requested: 15,
+        status: "failed",
+        error_code: "GENERATION_FAILED",
+        finished_at: "2026-11-21T10:00:03Z",
+      }),
+    ];
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Fritekstspørsmål" });
+    expect((await within(row).findByRole("alert")).textContent).toBe(
+      "Vi klarte ikke å lage fritekstspørsmålene. Ingenting er lagret. Prøv igjen.",
+    );
+    fireEvent.click(within(row).getByRole("button", { name: "Prøv igjen" }));
+    await waitFor(() =>
+      expect(posts()).toEqual([{ kind: "freetext", params: { requested: 15, question_kind: "long" } }]),
+    );
   });
 });
 

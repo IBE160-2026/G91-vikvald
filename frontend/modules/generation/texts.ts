@@ -1,6 +1,7 @@
 // The texts for a generation job, per content type. The flashcards texts are
-// approved word for word in story 3.2, the quiz texts in story 4.1, and the
-// model-card texts in story 7.1 (except the done text, which follows the others).
+// approved word for word in story 3.2, the quiz texts in story 4.1, the
+// model-card texts in story 7.1 (except the done text, which follows the
+// others), and the free-text texts in story 8.1.
 
 import { messageWithDetails } from "@/lib/messages";
 
@@ -56,6 +57,15 @@ export const generationTexts: Record<JobKind, GenerationTexts> = {
     nothing: "Vi fant ingen modeller eller lister i denne forelesningen.",
     done: (created, lectureName) => `Modellkortene er ferdige: ${created} modellkort i ${lectureName}.`,
     waiting: "Venter til modellkortene er ferdige",
+  },
+  freetext: {
+    jobText: "Lager fritekstspørsmål …",
+    failed: failedText("fritekstspørsmålene"),
+    fewer: (created, requested) =>
+      `Det ble laget ${created} av inntil ${requested} spørsmål. Notatene ga ikke grunnlag for flere.`,
+    nothing: "Notatene ga ikke grunnlag for fritekstspørsmål. Ingenting er lagret.",
+    done: (created, lectureName) => `Fritekstspørsmålene er ferdige: ${created} spørsmål i ${lectureName}.`,
+    waiting: "Venter til fritekstspørsmålene er ferdige",
   },
 };
 

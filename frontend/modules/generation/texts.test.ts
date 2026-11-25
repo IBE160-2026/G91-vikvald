@@ -137,3 +137,33 @@ describe("tekstene for modellkort", () => {
     expect(finishedText(some, "Uke 37")).toBe("Modellkortene er ferdige: 2 modellkort i Uke 37.");
   });
 });
+
+describe("tekstene for fritekstspørsmål", () => {
+  const texts = generationTexts.freetext;
+
+  it("FR-48: jobbteksten, ventetekstene og ferdigmeldingen har de godkjente ordlydene", () => {
+    expect(texts.jobText).toBe("Lager fritekstspørsmål …");
+    expect(texts.waiting).toBe("Venter til fritekstspørsmålene er ferdige");
+    expect(texts.done(7, "Uke 37")).toBe("Fritekstspørsmålene er ferdige: 7 spørsmål i Uke 37.");
+  });
+
+  it("FR-48: færre enn valgt og ingenting har de godkjente ordlydene", () => {
+    const fewer = job({ kind: "freetext", params: { requested: 15, question_kind: "long" }, requested: 15, created: 7 });
+    expect(jobOutcome(fewer)).toEqual({
+      type: "fewer",
+      text: "Det ble laget 7 av inntil 15 spørsmål. Notatene ga ikke grunnlag for flere.",
+    });
+    const nothing = job({ kind: "freetext", params: { requested: 10, question_kind: "short" }, requested: 10, created: 0 });
+    expect(jobOutcome(nothing)).toEqual({
+      type: "nothing",
+      text: "Notatene ga ikke grunnlag for fritekstspørsmål. Ingenting er lagret.",
+    });
+    expect(finishedText(nothing, "Uke 37")).toBe("Notatene ga ikke grunnlag for fritekstspørsmål. Ingenting er lagret.");
+  });
+
+  it("FR-21: feil, tidsgrense og avbrutt gir feilteksten om fritekstspørsmålene", () => {
+    for (const code of ["GENERATION_FAILED", "GENERATION_TIMEOUT", "JOB_INTERRUPTED", null]) {
+      expect(texts.failed(code)).toBe("Vi klarte ikke å lage fritekstspørsmålene. Ingenting er lagret. Prøv igjen.");
+    }
+  });
+});
