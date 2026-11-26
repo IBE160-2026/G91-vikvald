@@ -1,8 +1,8 @@
 """Business logic for stored content: save generated flashcards, model cards,
 quiz questions, free-text questions and summaries, count them, list
-flashcards, quiz questions and free-text questions with their source, let the
-student edit or delete a flashcard and delete a quiz question, and delete a
-lecture's summary when one of its files goes."""
+flashcards, quiz questions and free-text questions with their source, read a
+lecture's summary, let the student edit or delete a flashcard and delete a
+quiz question, and delete a lecture's summary when one of its files goes."""
 
 import hashlib
 import uuid
@@ -34,6 +34,10 @@ from app.modules.content.schemas import (
     LectureRef,
     QuizQuestionOut,
     SubjectFlashcardOut,
+    SummaryFileOut,
+    SummaryOut,
+    SummaryPointOut,
+    SummaryThemeOut,
 )
 from app.modules.files.models import File
 from app.modules.subjects.models import Lecture, Subject
@@ -754,6 +758,49 @@ async def summary_point_count(session: AsyncSession, lecture_id: uuid.UUID) -> i
         .where(Summary.lecture_id == lecture_id)
     )
     return int(await session.scalar(statement) or 0)
+
+
+async def lecture_summary(session: AsyncSession, lecture_id: uuid.UUID) -> SummaryOut | None:
+    """The lecture's summary for reading (FR-54), or None without one. The
+    themes come in the order they first show up in the stored points, each
+    with its points in stored order. `files` are the files the points come
+    from, in upload order. Reads only: no session is saved and the lecture is
+    not marked as practised (FR-56)."""
+    summary = await session.scalar(select(Summary).where(Summary.lecture_id == lecture_id))
+    if summary is None:
+        return None
+    statement = (
+        select(SummaryPoint, File)
+        .join(File, SummaryPoint.file_id == File.id)
+        .where(SummaryPoint.summary_id == summary.id)
+        .order_by(SummaryPoint.position, SummaryPoint.id)
+    )
+    themes: dict[str, list[SummaryPointOut]] = {}
+    files: dict[uuid.UUID, File] = {}
+    for point, file in (await session.execute(statement)).all():
+        themes.setdefault(point.theme, []).append(
+            SummaryPointOut(
+                id=point.id,
+                text=point.text,
+                formula_flag=point.formula_flag,
+                source=FlashcardSource(file_id=file.id, file_name=file.original_name, page_no=point.page_no),
+            )
+        )
+        files[file.id] = file
+    ordered_files = sorted(files.values(), key=lambda file: (file.uploaded_at, str(file.id)))
+    # SQLite (pytest) gives back a naive time; it is stored in UTC.
+    created_at = summary.created_at
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=UTC)
+    return SummaryOut(
+        created_at=created_at,
+        point_count=sum(len(points) for points in themes.values()),
+        themes=[SummaryThemeOut(title=title, points=points) for title, points in themes.items()],
+        files=[
+            SummaryFileOut(file_id=file.id, file_name=file.original_name, page_count=file.page_count)
+            for file in ordered_files
+        ],
+    )
 
 
 def _lectures_of_files(file_ids: tuple[uuid.UUID, ...]) -> Select[tuple[uuid.UUID]]:
