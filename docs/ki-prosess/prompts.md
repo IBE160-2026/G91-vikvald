@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-26: Brukerreisetestene utvidet etter epic 9
+
+En subagent i den autonome kjøringen utvidet brukerreisetestene etter epic 9, slik avsnittet «Brukerreiser» i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) sier. Oppdraget var steg 11 i flyt 1 («Lag sammendrag» og sammendragssiden med kilde på hvert punkt), å sjekke om andre steg nevner sammendrag, og at alle stegene i alle fire flytene står som testet.
+
+**Resultat:** branchen `brukerreiser/epic-9`, testene i [`frontend/e2e/brukerreiser/`](../../frontend/e2e/brukerreiser/) og oversikten i [brukerreiser.md](../testing/brukerreiser.md).
+
 ## 2026-11-26: Story 9.2 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `9-2-les-sammendraget-og-lag-et-nytt`.
