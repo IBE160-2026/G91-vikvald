@@ -60,9 +60,9 @@ type Props = GenerationRowProps & {
   countText: (count: number) => string;
   // The count text without content (default «Ingen ennå»; «Ikke laget» for the summary).
   emptyText?: string;
-  // Whether the row shows «Lag flere» and «Øv nå» when it has content
-  // (default true). The summary row shows only its count (story 9.1).
-  contentActions?: boolean;
+  // With content, one primary button instead of «Lag flere» and «Øv nå»
+  // (story 9.2: «Les sammendrag» on the summary row).
+  contentAction?: { label: string; onClick: () => void };
   // «Lag flashcards», «Lag quiz».
   createLabel: string;
   // «Øv nå». Without it the button is shown but not active (a type without practice yet).
@@ -105,7 +105,7 @@ export function GenerationRow({
   kind,
   direct,
   emptyText = "Ingen ennå",
-  contentActions = true,
+  contentAction,
   extra,
   showExtra = true,
   title,
@@ -256,7 +256,7 @@ export function GenerationRow({
         title={title}
         countText={count > 0 ? countText(count) : emptyText}
         hasContent={count > 0}
-        contentActions={contentActions}
+        contentAction={contentAction}
         state={state}
         reason={reason}
         createLabel={createLabel}

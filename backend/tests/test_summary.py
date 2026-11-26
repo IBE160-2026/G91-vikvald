@@ -1,7 +1,7 @@
 """The summary as a content type (story 9.1): the mock rule (NFR-2a),
 validate_item (FR-38, FR-53), the invalid mock (SK-4), the job over HTTP with
 the smallest and largest number of points, replacing the old summary (FR-55),
-the feature switch (AR-11), the counts, delete preview, deleting and replacing
+the feature switch (AR-11), reading it (story 9.2: FR-54, FR-56), the counts, delete preview, deleting and replacing
 a file and the cascade (FR-12, FR-13, FR-14, AR-7, E15), the migration
 (AR-13), and the instructions and loose schema for the real model (AR-3)."""
 
@@ -24,6 +24,8 @@ from app.core.errors import ERROR_STATUS, ErrorCode
 from app.main import app
 from app.modules.content import registry as content_registry
 from app.modules.content.models import Summary, SummaryPoint
+from app.modules.content.service import NewSummaryPoint, replace_summary
+from app.modules.practice.models import PracticeSession
 from app.modules.generation import service, summary
 from app.modules.generation.mock import InvalidMockGenerator, MockGenerator
 from app.modules.generation.port import GenerationOptions, Page
@@ -44,6 +46,7 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 LECTURES = "/api/lectures"
 FILES = "/api/files"
 SUBJECTS = "/api/subjects"
+OVERVIEW = "/api/overview"
 SUMMARY = {"kind": "summary"}
 FILE_ID = uuid.UUID("00000000-0000-0000-0000-000000000009")
 OTHER_FILE_ID = uuid.UUID("00000000-0000-0000-0000-00000000000a")
@@ -480,6 +483,171 @@ async def test_ar11_bryteren_av_gir_404_feature_disabled(
     assert await _latest(client, lecture) == []
     # The other types still work.
     assert (await client.post(f"{LECTURES}/{lecture}/jobs", json={"kind": "flashcards"})).status_code == 202
+
+
+# --- Reading the summary (story 9.2: FR-54, FR-55, FR-56, AR-11) ------------
+
+
+async def _read(client: AsyncClient, lecture_id: str) -> Any:
+    return await client.get(f"{LECTURES}/{lecture_id}/summary")
+
+
+async def test_fr54_les_gir_temaer_punkter_kilde_og_filer(client: AsyncClient) -> None:
+    await _log_in_new_user(client)
+    lecture_id = await _new_lecture(client)
+    first = await _upload(client, lecture_id, pdf_with_pages(page_texts(3)), "a.pdf")
+    second = await _upload(client, lecture_id, pdf_with_pages(page_texts(4, 4)), "b.pdf")
+    first_id, second_id = first.json()["id"], second.json()["id"]
+
+    class Model:
+        async def generate(self, kind: str, pages: list[Page], options: GenerationOptions) -> list[dict[str, Any]]:
+            # 7 points in 3 themes from 2 files; theme "B" shows up first.
+            rows = [
+                (first_id, 1, "B"),
+                (first_id, 2, "A"),
+                (first_id, 3, "B"),
+                (second_id, 1, "C"),
+                (second_id, 2, "A"),
+                (second_id, 3, "C"),
+                (second_id, 4, "B"),
+            ]
+            return [
+                {"file_id": file_id, "page_no": page_no, "theme": theme, "text": f"{theme} {file_id[:4]} {page_no}."}
+                for file_id, page_no, theme in rows
+            ]
+
+    app.dependency_overrides[get_generator] = Model
+    await _start(client, lecture_id)
+    await _finish_jobs()
+
+    response = await _read(client, lecture_id)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["point_count"] == 7
+    assert body["created_at"].endswith(("Z", "+00:00"))
+    assert [theme["title"] for theme in body["themes"]] == ["B", "A", "C"]
+    assert [
+        [(point["source"]["file_name"], point["source"]["page_no"]) for point in theme["points"]]
+        for theme in body["themes"]
+    ] == [
+        [("a.pdf", 1), ("a.pdf", 3), ("b.pdf", 4)],
+        [("a.pdf", 2), ("b.pdf", 2)],
+        [("b.pdf", 1), ("b.pdf", 3)],
+    ]
+    point = body["themes"][0]["points"][0]
+    assert set(point) == {"id", "text", "formula_flag", "source"}
+    assert point["text"] == f"B {first_id[:4]} 1."
+    assert point["formula_flag"] is False
+    assert point["source"] == {"file_id": first_id, "file_name": "a.pdf", "page_no": 1}
+    assert body["files"] == [
+        {"file_id": first_id, "file_name": "a.pdf", "page_count": 3},
+        {"file_id": second_id, "file_name": "b.pdf", "page_count": 4},
+    ]
+
+
+async def test_fr54_filer_staar_i_opplastingsrekkefolge_ikke_punktenes(
+    client: AsyncClient, engine: AsyncEngine
+) -> None:
+    await _log_in_new_user(client)
+    lecture_id = await _new_lecture(client)
+    first = await _upload(client, lecture_id, pdf_with_pages(page_texts(3)), "a.pdf")
+    second = await _upload(client, lecture_id, pdf_with_pages(page_texts(3, 4)), "b.pdf")
+    first_id, second_id = uuid.UUID(first.json()["id"]), uuid.UUID(second.json()["id"])
+
+    # The job always stores the first-uploaded file's points first, so the
+    # summary is stored directly with a point from the second file first.
+    rows = [(second_id, 1, "B"), (second_id, 2, "B"), (first_id, 1, "A"), (first_id, 2, "A"), (second_id, 3, "B")]
+    async with async_sessionmaker(engine)() as session:
+        await replace_summary(
+            session,
+            uuid.UUID(lecture_id),
+            [NewSummaryPoint(file_id=file_id, page_no=page_no, theme=theme, text=f"{theme} {page_no}.")
+             for file_id, page_no, theme in rows],
+        )
+        await session.commit()
+
+    body = (await _read(client, lecture_id)).json()
+    assert body["themes"][0]["points"][0]["source"]["file_id"] == str(second_id)
+    assert [theme["title"] for theme in body["themes"]] == ["B", "A"]
+    assert [file["file_id"] for file in body["files"]] == [str(first_id), str(second_id)]
+
+
+async def test_fr54_filer_er_bare_de_punktene_kommer_fra(client: AsyncClient, lecture: str) -> None:
+    await _start(client, lecture)
+    await _finish_jobs()
+    # A file uploaded after the summary is not one of its sources.
+    assert (await _upload(client, lecture, pdf_with_pages(page_texts(2)), "ny.pdf")).status_code == 201
+    body = (await _read(client, lecture)).json()
+    assert [file["file_name"] for file in body["files"]] == ["a.pdf"]
+    assert body["point_count"] == 6
+    assert [theme["title"] for theme in body["themes"]] == ["a.pdf"]
+
+
+async def test_fr54_uten_sammendrag_gir_404_not_found(client: AsyncClient, lecture: str) -> None:
+    response = await _read(client, lecture)
+    assert response.status_code == 404
+    assert _code(response) == "NOT_FOUND"
+
+
+async def test_fr54_annens_og_ukjent_forelesning_gir_404_not_found(client: AsyncClient, lecture: str) -> None:
+    await _start(client, lecture)
+    await _finish_jobs()
+    assert (await _read(client, lecture)).status_code == 200
+    await _log_in_new_user(client, "annen@eksempel.no")
+    for lecture_id in (lecture, str(uuid.uuid4()), "ikke-en-id"):
+        response = await _read(client, lecture_id)
+        assert response.status_code == 404
+        assert _code(response) == "NOT_FOUND"
+
+
+async def test_ar11_les_med_bryteren_av_gir_feature_disabled_for_oppslag(
+    client: AsyncClient, lecture: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    await _start(client, lecture)
+    await _finish_jobs()
+    monkeypatch.setenv("FEATURE_SUMMARY", "false")
+    get_settings.cache_clear()
+    for lecture_id in (lecture, str(uuid.uuid4())):
+        response = await _read(client, lecture_id)
+        assert response.status_code == 404
+        assert _code(response) == "FEATURE_DISABLED"
+
+
+async def test_fr55_nytt_sammendrag_gir_nytt_svar(client: AsyncClient, lecture: str) -> None:
+    await _start(client, lecture)
+    await _finish_jobs()
+    old = (await _read(client, lecture)).json()
+
+    app.dependency_overrides[get_generator] = _model(
+        [{"theme": "Nytt", "text": f"Nytt punkt {n}.", "page_no": n} for n in range(1, 6)]
+    )
+    await _start(client, lecture)
+    await _finish_jobs()
+    new = (await _read(client, lecture)).json()
+    assert new["point_count"] == 5
+    assert [theme["title"] for theme in new["themes"]] == ["Nytt"]
+    assert [point["text"] for point in new["themes"][0]["points"]] == [f"Nytt punkt {n}." for n in range(1, 6)]
+    old_ids = {point["id"] for theme in old["themes"] for point in theme["points"]}
+    assert old_ids.isdisjoint(point["id"] for point in new["themes"][0]["points"])
+
+
+async def test_fr56_summary_not_session_lesing_lagrer_ingen_okt_og_gjor_ikke_ovd(
+    client: AsyncClient, lecture: str, engine: AsyncEngine
+) -> None:
+    await _start(client, lecture)
+    await _finish_jobs()
+    assert (await _read(client, lecture)).status_code == 200
+    assert (await _read(client, lecture)).status_code == 200
+
+    async with async_sessionmaker(engine)() as session:
+        assert int(await session.scalar(select(func.count()).select_from(PracticeSession)) or 0) == 0
+    subject_id = (await client.get(f"{LECTURES}/{lecture}")).json()["subject_id"]
+    overview = (await client.get(OVERVIEW)).json()
+    [subject] = [item for item in overview["subjects"] if item["id"] == subject_id]
+    [item] = subject["lectures"]
+    assert item["practiced"] is False
+    assert item["last_practiced_at"] is None
+    assert subject["last_session"] is None
 
 
 # --- Counts, delete preview, delete and replace (FR-12, FR-13, FR-14, AR-7, E15)

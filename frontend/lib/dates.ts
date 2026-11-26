@@ -30,3 +30,10 @@ export function weekdayName(iso: string): string {
   const [year, month, day] = iso.split("-").map(Number);
   return WEEKDAYS[new Date(year, month - 1, day).getDay()];
 }
+
+// An ISO 8601 time such as "2026-11-10T09:30:00Z" -> "10.11.2026" in the
+// student's local time (the summary page's «laget 10.11.2026», story 9.2).
+export function formatLocalDate(iso: string): string {
+  const date = new Date(iso);
+  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
+}

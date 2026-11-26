@@ -58,6 +58,41 @@ describe("CreateRow", () => {
     expect(onPractice).toHaveBeenCalledOnce();
   });
 
+  it("FR-54: med contentAction står bare omrissknappen «Les sammendrag» med samme bredde som «Øv nå» (bare «Øv nå» er fylt)", () => {
+    const onClick = vi.fn();
+    render(
+      <CreateRow
+        {...props({
+          title: "Sammendrag",
+          hasContent: true,
+          countText: "7 punkter",
+          contentAction: { label: "Les sammendrag", onClick },
+        })}
+      />,
+    );
+    const read = screen.getByRole("button", { name: "Les sammendrag" }) as HTMLButtonElement;
+    expect(read.dataset.variant).toBe("outline");
+    expect(read.className).toContain("min-w-[184px]");
+    expect(read.disabled).toBe(false);
+    fireEvent.click(read);
+    expect(onClick).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("button", { name: "Lag flere" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Øv nå" })).toBeNull();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+  });
+
+  it("FR-54: contentAction virker mens en annen rad har en jobb, og vises ikke uten innhold", () => {
+    const action = { label: "Les sammendrag", onClick: vi.fn() };
+    const { unmount } = render(
+      <CreateRow {...props({ hasContent: true, countText: "7 punkter", state: "waiting", contentAction: action })} />,
+    );
+    expect((screen.getByRole("button", { name: "Les sammendrag" }) as HTMLButtonElement).disabled).toBe(false);
+    unmount();
+    render(<CreateRow {...props({ contentAction: action })} />);
+    expect(screen.queryByRole("button", { name: "Les sammendrag" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Lag flashcards" })).toBeTruthy();
+  });
+
   it("UX-DR19: running viser job-status i stedet for knappene", () => {
     render(<CreateRow {...props({ state: "running" })} />);
     expect(screen.getByText("Lager flashcards …")).toBeTruthy();

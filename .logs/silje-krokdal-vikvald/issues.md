@@ -182,3 +182,5 @@
 - [ ] 2026-11-26 [brukerreiser-etter-epic-8](942-2026-11-26-00-55-11-brukerreiser-etter-epic-8.md) — følg med på om flyt 1 steg 8 feiler igjen; årsaken til #343 der er sannsynlig, men ikke bevist
 - [ ] 2026-11-26 [story-9-1-sammendrag](941-2026-11-26-02-00-59-story-9-1-sammendrag.md) — vurder kanttilfellene fra story 9.1 (#352–#358), særlig teksten i #357
 - [ ] 2026-11-26 [story-9-1-sammendrag](941-2026-11-26-02-00-59-story-9-1-sammendrag.md) — bare 3,2 GB disk er ledig etter kjøringen, under grensen på 5 GB for neste `--build`
+- [ ] 2026-11-26 [story-9-2-les-sammendraget](940-2026-11-26-05-56-02-story-9-2-les-sammendraget.md) — vurder kanttilfellene fra story 9.2 (#360–#364), særlig omrissknappen (#360) og KILDER (#361)
+- [ ] 2026-11-26 [story-9-2-les-sammendraget](940-2026-11-26-05-56-02-story-9-2-les-sammendraget.md) — kildeteksten under punktene mangler streken under fra skisse 13

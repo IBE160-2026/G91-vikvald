@@ -1,6 +1,6 @@
 """HTTP routes for the content module: GET /api/lectures/{id}/content-counts,
 GET /api/lectures/{id}/flashcards, GET /api/lectures/{id}/quiz-questions,
-GET /api/lectures/{id}/freetext-questions, GET /api/subjects/{id}/flashcards,
+GET /api/lectures/{id}/freetext-questions, GET /api/lectures/{id}/summary, GET /api/subjects/{id}/flashcards,
 GET /api/subjects/{id}/quiz-questions, GET /api/subjects/{id}/freetext-questions,
 PATCH and DELETE /api/flashcards/{id}, DELETE /api/quiz-questions/{id}, and
 DELETE /api/freetext-questions/{id}.
@@ -26,6 +26,7 @@ from app.modules.content.schemas import (
     FreetextQuestionOut,
     QuizQuestionOut,
     SubjectFlashcardOut,
+    SummaryOut,
 )
 from app.modules.content.service import (
     delete_flashcard,
@@ -36,6 +37,7 @@ from app.modules.content.service import (
     lecture_flashcards,
     lecture_freetext_questions,
     lecture_quiz_questions,
+    lecture_summary,
     model_card_count,
     quiz_question_count,
     subject_flashcards,
@@ -98,6 +100,21 @@ async def lecture_freetext_question_list(
         raise AppError(ErrorCode.FEATURE_DISABLED)
     lecture = await get_lecture(session, user.id, lecture_id)
     return await lecture_freetext_questions(session, lecture.id)
+
+
+# The summary is behind FEATURE_SUMMARY: with the switch off the route answers
+# 404 FEATURE_DISABLED before the lecture is looked up (AR-11). Someone else's
+# lecture and a lecture without a summary both give 404 NOT_FOUND. Reading
+# writes nothing (FR-56).
+@lectures_router.get("/{lecture_id}/summary")
+async def lecture_summary_read(lecture_id: str, user: CurrentUser, session: Session) -> SummaryOut:
+    if not get_settings().FEATURE_SUMMARY:
+        raise AppError(ErrorCode.FEATURE_DISABLED)
+    lecture = await get_lecture(session, user.id, lecture_id)
+    summary = await lecture_summary(session, lecture.id)
+    if summary is None:
+        raise AppError(ErrorCode.NOT_FOUND)
+    return summary
 
 
 @subjects_router.get("/{subject_id}/flashcards")

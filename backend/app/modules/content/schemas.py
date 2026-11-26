@@ -1,6 +1,7 @@
 """Response bodies for the content routes."""
 
 import uuid
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel
@@ -101,3 +102,35 @@ class FreetextQuestionOut(BaseModel):
     source: FlashcardSource
     # The lecture the question was made from (shown under the model answer).
     lecture: LectureRef
+
+
+class SummaryPointOut(BaseModel):
+    id: uuid.UUID
+    # Generated text, shown as plain text.
+    text: str
+    # As for FlashcardOut (FR-41).
+    formula_flag: bool = False
+    source: FlashcardSource
+
+
+class SummaryThemeOut(BaseModel):
+    # The short theme title (an h2 on the summary page).
+    title: str
+    # The theme's points in stored order.
+    points: list[SummaryPointOut]
+
+
+class SummaryFileOut(BaseModel):
+    file_id: uuid.UUID
+    file_name: str
+    page_count: int
+
+
+class SummaryOut(BaseModel):
+    created_at: datetime
+    point_count: int
+    # In the order each theme first shows up in the stored points.
+    themes: list[SummaryThemeOut]
+    # The files the points come from (not every file in the lecture), in
+    # upload order.
+    files: list[SummaryFileOut]
