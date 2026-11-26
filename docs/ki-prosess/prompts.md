@@ -2,6 +2,12 @@
 
 Nyeste først. Brukt med Claude Code. Prompts skrevet før 2026-11-05 er hentet tilbake fra øktene.
 
+## 2026-11-26: Story 9.2 bygd av den autonome kjøringen
+
+Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `9-2-les-sammendraget-og-lag-et-nytt`.
+
+**Resultat:** [spesifikasjonen](../../_bmad-output/implementation-artifacts/spec-9-2-les-sammendraget-og-lag-et-nytt.md), branchen `story/9-2` og kanttilfellene #360–#364.
+
 ## 2026-11-26: Story 9.1 bygd av den autonome kjøringen
 
 Storien ble bygd av en subagent i den autonome kjøringen, med story-prompten i [autonom-kjoring.md](../../_bmad-output/implementation-artifacts/autonom-kjoring.md) (avsnittet «Story-prompten») og nøkkelen `9-1-lag-sammendrag-av-en-forelesning`.
