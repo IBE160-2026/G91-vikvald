@@ -152,6 +152,39 @@ describe("JobWatcher", () => {
     expect(toastRegion().textContent).toBe("");
   });
 
+  it("FR-55: på sammendragssiden vises ingen melding for sammendraget til samme forelesning", async () => {
+    pathname = "/forelesninger/l1/sammendrag";
+    current = tracked({ kind: "summary", params: { requested: 15 }, requested: 15 });
+    ended = { status: "done", created: 7, discarded: 0, finished_at: "2026-11-21T10:00:03Z" };
+    const invalidate = renderWatcher();
+    await waitFor(() => expect(calls("/api/jobs/active")).toBe(1));
+    finish();
+    await waitFor(() => expect(invalidate).toHaveBeenCalledWith({ queryKey: ["lectures", "l1"] }), { timeout: 3000 });
+    expect(toastRegion().textContent).toBe("");
+  });
+
+  it("FR-55: på sammendragssiden vises meldingen for en annen type jobb", async () => {
+    pathname = "/forelesninger/l1/sammendrag";
+    renderWatcher();
+    await waitFor(() => expect(calls("/api/jobs/active")).toBe(1));
+    finish();
+    expect(
+      await screen.findByText("Flashcardene er ferdige: 18 kort i Uke 37: Merkevare.", {}, { timeout: 3000 }),
+    ).toBeTruthy();
+  });
+
+  it("FR-55: på sammendragssiden til en annen forelesning vises meldingen for sammendraget", async () => {
+    pathname = "/forelesninger/l9/sammendrag";
+    current = tracked({ kind: "summary", params: { requested: 15 }, requested: 15 });
+    ended = { status: "done", created: 7, discarded: 0, finished_at: "2026-11-21T10:00:03Z" };
+    renderWatcher();
+    await waitFor(() => expect(calls("/api/jobs/active")).toBe(1));
+    finish();
+    expect(
+      await screen.findByText("Sammendraget er ferdig: 7 punkter i Uke 37: Merkevare.", {}, { timeout: 3000 }),
+    ).toBeTruthy();
+  });
+
   it("AR-5: en jobb raden melder inn, følges selv om den ble ferdig før neste spørring", async () => {
     current = null;
     renderWatcher();

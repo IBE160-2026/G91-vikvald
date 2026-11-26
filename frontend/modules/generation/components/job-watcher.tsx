@@ -21,6 +21,15 @@ const TOAST_MS = 8000;
 
 type FollowJob = (jobId: string) => void;
 
+// Whether the page she is on reads the job's result out itself, so the
+// watcher shows no message: the lecture page (its row), and for a summary
+// job also that lecture's summary page (story 9.2).
+function reportsItself(pathname: string, job: { kind: string; lecture_id: string }): boolean {
+  const lecturePath = `/forelesninger/${job.lecture_id}`;
+  if (pathname === lecturePath) return true;
+  return job.kind === "summary" && pathname === `${lecturePath}/sammendrag`;
+}
+
 // Without a JobWatcher (e.g. a test of one page) following does nothing.
 const FollowJobContext = createContext<FollowJob>(() => {});
 
@@ -36,7 +45,8 @@ export function useFollowJob(): FollowJob {
 // job it sees there and every job a row hands it. When a followed job is no
 // longer running, it asks GET /api/jobs/{id} for the result, refreshes that
 // lecture's queries (so the row shows the new count and message), and, when
-// she is not on that lecture's page, shows the result as a short message
+// she is not on that lecture's page (or, for a summary, its summary page),
+// shows the result as a short message
 // (sonner, in a live region). The Toaster lives here too, so no message is
 // shown after logout. It is put straight in body, outside main: a dialog makes
 // everything but live regions inert, and main must still become inert.
@@ -103,7 +113,7 @@ export function JobWatcher({ children }: { children: ReactNode }) {
           predicate: (query) =>
             isSubjectPracticeQueryKey(query.queryKey) || isSubjectFileCountsQueryKey(query.queryKey),
         });
-        if (pathnameRef.current !== `/forelesninger/${job.lecture_id}`) {
+        if (!reportsItself(pathnameRef.current, job)) {
           toast(finishedText(job, job.lecture_name), { duration: TOAST_MS });
         }
       } catch (error) {
