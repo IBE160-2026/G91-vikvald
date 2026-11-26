@@ -3,11 +3,12 @@
 
 // models: model cards (epic 7, behind FEATURE_MNEMONICS), followed by the Flashcards row.
 // freetext: free-text questions (epic 8, behind FEATURE_FREETEXT), with a row of its own.
-export type JobKind = "flashcards" | "quiz" | "models" | "freetext";
+// summary: the lecture's summary (epic 9, behind FEATURE_SUMMARY), with a row of its own.
+export type JobKind = "flashcards" | "quiz" | "models" | "freetext" | "summary";
 // The kinds the student starts from the scope dialog («Lag flashcards», «Lag quiz»,
 // «Lag fritekstspørsmål»).
-// Model cards start directly, without a dialog.
-export type ScopedJobKind = Exclude<JobKind, "models">;
+// Model cards and the summary start directly, without a dialog.
+export type ScopedJobKind = Exclude<JobKind, "models" | "summary">;
 export type JobStatus = "running" | "done" | "failed";
 
 export type Job = {
@@ -22,7 +23,8 @@ export type Job = {
   // Empty until the job is done.
   created: number | null;
   discarded: number | null;
-  // An error code when the job failed: GENERATION_FAILED, GENERATION_TIMEOUT or JOB_INTERRUPTED.
+  // An error code when the job failed: GENERATION_FAILED, GENERATION_TIMEOUT or
+  // JOB_INTERRUPTED, and for a summary TOO_FEW_SUMMARY_POINTS.
   error_code: string | null;
   // ISO date-times in UTC.
   started_at: string;
@@ -57,4 +59,6 @@ export type ContentCounts = {
   model_cards: number;
   // Free-text questions (epic 8, short and long) made from the lecture's files.
   freetext_questions: number;
+  // The points in the lecture's summary (epic 9); 0 without a summary.
+  summary_points: number;
 };

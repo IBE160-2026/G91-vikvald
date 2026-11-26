@@ -66,6 +66,9 @@ let mnemonics = true;
 // Free-text questions in lecture l2 (story 8.1), and the FEATURE_FREETEXT switch.
 let freetextCount = 0;
 let freetextFeature = true;
+// Points in lecture l2's summary (story 9.1), and the FEATURE_SUMMARY switch.
+let summaryCount = 0;
+let summaryFeature = true;
 let latestJob: Job | null = null;
 // Latest jobs of other kinds in lecture l2 (shown with latestJob).
 let otherJobs: Job[] = [];
@@ -153,7 +156,7 @@ function respond() {
     }
     if (path === "/api/subjects/b/lectures") return jsonResponse(200, []);
     if (path === "/api/config") {
-      return jsonResponse(200, { demo_mode: demoMode, feature_mnemonics: mnemonics, feature_freetext: freetextFeature, feature_summary: true });
+      return jsonResponse(200, { demo_mode: demoMode, feature_mnemonics: mnemonics, feature_freetext: freetextFeature, feature_summary: summaryFeature });
     }
     if (path === "/api/lectures/l2/files") {
       if (init?.method === "POST") {
@@ -187,6 +190,8 @@ function respond() {
         if (jobOutcome.status === "done" && latestJob.kind === "quiz") quizCount += jobOutcome.created ?? 0;
         else if (jobOutcome.status === "done" && latestJob.kind === "models") modelCount += jobOutcome.created ?? 0;
         else if (jobOutcome.status === "done" && latestJob.kind === "freetext") freetextCount += jobOutcome.created ?? 0;
+        // A new summary replaces the old one.
+        else if (jobOutcome.status === "done" && latestJob.kind === "summary") summaryCount = jobOutcome.created ?? 0;
         else if (jobOutcome.status === "done") cardCount += jobOutcome.created ?? 0;
       }
       return jsonResponse(200, latestJob?.status === "running" ? [{ ...latestJob, lecture_name: "Uke 38: Prising" }] : []);
@@ -200,10 +205,11 @@ function respond() {
         quiz_questions: quizCount,
         model_cards: modelCount,
         freetext_questions: freetextCount,
+        summary_points: summaryCount,
       });
     }
     if (/^\/api\/lectures\/l1\/(jobs\/latest|content-counts)$/.test(path)) {
-      return jsonResponse(200, path.endsWith("latest") ? [] : { flashcards: 0, quiz_questions: 0, model_cards: 0, freetext_questions: 0 });
+      return jsonResponse(200, path.endsWith("latest") ? [] : { flashcards: 0, quiz_questions: 0, model_cards: 0, freetext_questions: 0, summary_points: 0 });
     }
     const filePreview = path.match(/^\/api\/files\/([^/]+)\/delete-preview$/);
     if (filePreview) {
@@ -285,6 +291,8 @@ beforeEach(() => {
   mnemonics = true;
   freetextCount = 0;
   freetextFeature = true;
+  summaryCount = 0;
+  summaryFeature = true;
   latestJob = null;
   otherJobs = [];
   jobOutcome = { status: "done", created: 20, error_code: null };
@@ -1321,9 +1329,16 @@ describe("Quiz-raden (story 4.1)", () => {
     const card = row.parentElement!;
     expect(card.className).toContain("divide-y");
     expect(card.className).toContain("divide-divider");
-    // With FEATURE_FREETEXT on, the Fritekstspørsmål row comes last (story 8.1).
+    // With FEATURE_FREETEXT and FEATURE_SUMMARY on, the Fritekstspørsmål row
+    // (story 8.1) and then the Sammendrag row (story 9.1) come last.
     const freetext = await screen.findByRole("group", { name: "Fritekstspørsmål" });
-    expect(Array.from(card.children)).toEqual([screen.getByRole("group", { name: "Flashcards" }), row, freetext]);
+    const summary = await screen.findByRole("group", { name: "Sammendrag" });
+    expect(Array.from(card.children)).toEqual([
+      screen.getByRole("group", { name: "Flashcards" }),
+      row,
+      freetext,
+      summary,
+    ]);
   });
 
   it("FR-28, FR-32: med spørsmål viser raden «15 spørsmål», «Lag flere» og «Øv nå», som åpner quizøkten", async () => {
@@ -1734,6 +1749,139 @@ describe("Fritekstspørsmål (story 8.1)", () => {
     await waitFor(() =>
       expect(posts()).toEqual([{ kind: "freetext", params: { requested: 15, question_kind: "long" } }]),
     );
+  });
+});
+
+describe("Sammendrag (story 9.1)", () => {
+  function summaryRow() {
+    return screen.getByRole("group", { name: "Sammendrag" });
+  }
+  function posts() {
+    return fetchMock.mock.calls
+      .filter(([url, init]) => String(url) === "/api/lectures/l2/jobs" && init?.method === "POST")
+      .map(([, init]) => JSON.parse(String(init!.body)));
+  }
+  async function createButton() {
+    const row = await screen.findByRole("group", { name: "Sammendrag" });
+    const button = (await within(row).findByRole("button", { name: "Lag sammendrag" })) as HTMLButtonElement;
+    await waitFor(() => expect(button.disabled).toBe(false));
+    return button;
+  }
+
+  it("FR-53, UX-DR18: raden står etter Fritekstspørsmål med «Ikke laget» og omrissknappen «Lag sammendrag»", async () => {
+    files = [uploadedFile("merkevare.pdf", 6)];
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Sammendrag" });
+    expect(within(row).getByRole("heading", { level: 3, name: "Sammendrag" })).toBeTruthy();
+    expect(await within(row).findByText("Ikke laget")).toBeTruthy();
+    const create = await createButton();
+    expect(create.dataset.variant).toBe("outline");
+    expect(row.previousElementSibling).toBe(screen.getByRole("group", { name: "Fritekstspørsmål" }));
+    expect(within(row).queryByRole("button", { name: "Øv nå" })).toBeNull();
+  });
+
+  it("FR-53: med sammendrag viser raden antallet punkter og ingen knapp", async () => {
+    files = [uploadedFile("merkevare.pdf", 6)];
+    summaryCount = 7;
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Sammendrag" });
+    expect(await within(row).findByText("7 punkter")).toBeTruthy();
+    expect(within(row).queryAllByRole("button")).toEqual([]);
+  });
+
+  it("FR-53: ett punkt står i entall", async () => {
+    files = [uploadedFile("merkevare.pdf", 6)];
+    summaryCount = 1;
+    renderPage();
+    expect(await within(await screen.findByRole("group", { name: "Sammendrag" })).findByText("1 punkt")).toBeTruthy();
+  });
+
+  it("AR-11: med FEATURE_SUMMARY av vises ikke raden", async () => {
+    files = [uploadedFile("merkevare.pdf", 6)];
+    summaryFeature = false;
+    renderPage();
+    await screen.findByRole("group", { name: "Fritekstspørsmål" });
+    expect(screen.queryByRole("group", { name: "Sammendrag" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Lag sammendrag" })).toBeNull();
+  });
+
+  it("FR-53: uten filer er «Lag sammendrag» ikke aktiv", async () => {
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Sammendrag" });
+    const create = (await within(row).findByRole("button", { name: "Lag sammendrag" })) as HTMLButtonElement;
+    await within(row).findByText("Last opp notater først.");
+    expect(create.disabled).toBe(true);
+  });
+
+  it("FR-53, UX-DR19: knappen starter jobben direkte uten dialog, de andre radene venter, så kommer punktene", async () => {
+    files = [uploadedFile("merkevare.pdf", 6)];
+    jobOutcome = { status: "done", created: 6, error_code: null };
+    holdJob = true;
+    renderPage();
+    const create = await createButton();
+    create.focus();
+    fireEvent.click(create);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await waitFor(() => expect(posts()).toEqual([{ kind: "summary", params: { requested: 15 } }]));
+    expect(await within(summaryRow()).findByText("Lager sammendrag …", { selector: "p" })).toBeTruthy();
+    expect(within(summaryRow()).getByRole("status").textContent).toBe("Lager sammendrag …");
+    // The button went away, so the row keeps the focus.
+    expect(document.activeElement).toBe(summaryRow());
+
+    for (const [name, label] of [
+      ["Flashcards", "Lag flashcards"],
+      ["Quiz", "Lag quiz"],
+      ["Fritekstspørsmål", "Lag fritekstspørsmål"],
+    ]) {
+      const other = screen.getByRole("group", { name });
+      const reason = await within(other).findByText("Venter til sammendraget er ferdig");
+      const button = within(other).getByRole("button", { name: label }) as HTMLButtonElement;
+      expect(button.disabled).toBe(true);
+      expect(button.getAttribute("aria-describedby")).toBe(reason.id);
+    }
+
+    holdJob = false;
+    expect(await within(summaryRow()).findByText("6 punkter", {}, { timeout: 3000 })).toBeTruthy();
+    expect(within(summaryRow()).getByRole("status").textContent).toBe(
+      "Sammendraget er ferdig: 6 punkter i Uke 38: Prising.",
+    );
+    expect(within(summaryRow()).queryAllByRole("button")).toEqual([]);
+  });
+
+  it("FR-53: for få punkter gir meldingen for TOO_FEW_SUMMARY_POINTS og «Prøv igjen»", async () => {
+    files = [uploadedFile("merkevare.pdf", 3)];
+    jobOutcome = { status: "failed", created: null, error_code: "TOO_FEW_SUMMARY_POINTS" };
+    renderPage();
+    fireEvent.click(await createButton());
+    const alert = await within(summaryRow()).findByRole("alert", {}, { timeout: 3000 });
+    expect(alert.textContent).toBe(
+      "Notatene ga ikke grunnlag for et sammendrag med minst 5 punkter. Det gamle sammendraget er beholdt.",
+    );
+    expect(alert.textContent).not.toContain("færre enn");
+    fireEvent.click(within(summaryRow()).getByRole("button", { name: "Prøv igjen" }));
+    await waitFor(() => expect(posts()).toHaveLength(2));
+    expect(posts()[1]).toEqual({ kind: "summary", params: { requested: 15 } });
+  });
+
+  it("FR-21: en feilet jobb gir feilteksten for sammendraget og «Prøv igjen»", async () => {
+    files = [uploadedFile("merkevare.pdf", 6)];
+    otherJobs = [
+      job({
+        kind: "summary",
+        params: { requested: 15 },
+        requested: 15,
+        status: "failed",
+        error_code: "GENERATION_TIMEOUT",
+        finished_at: "2026-11-21T10:00:03Z",
+      }),
+    ];
+    renderPage();
+    const row = await screen.findByRole("group", { name: "Sammendrag" });
+    expect((await within(row).findByRole("alert")).textContent).toBe(
+      "Vi klarte ikke å lage sammendraget. Ingenting er lagret. Prøv igjen.",
+    );
+    fireEvent.click(within(row).getByRole("button", { name: "Prøv igjen" }));
+    await waitFor(() => expect(posts()).toEqual([{ kind: "summary", params: { requested: 15 } }]));
   });
 });
 

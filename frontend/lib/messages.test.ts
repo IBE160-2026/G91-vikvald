@@ -115,6 +115,7 @@ describe("countNouns", () => {
       quiz_questions: { one: "quizspørsmål", other: "quizspørsmål" },
       model_cards: { one: "modellkort", other: "modellkort" },
       freetext_questions: { one: "fritekstspørsmål", other: "fritekstspørsmål" },
+      summaries: { one: "sammendrag", other: "sammendrag" },
     });
   });
 });

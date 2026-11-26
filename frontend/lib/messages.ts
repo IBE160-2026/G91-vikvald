@@ -44,6 +44,9 @@ export const messages = {
   GENERATION_FAILED: "Vi klarte ikke å lage {content}. Ingenting er lagret. Prøv igjen.",
   GENERATION_TIMEOUT: "Vi klarte ikke å lage {content}. Ingenting er lagret. Prøv igjen.",
   JOB_INTERRUPTED: "Vi klarte ikke å lage {content}. Ingenting er lagret. Prøv igjen.",
+  // A summary job with fewer than 5 valid points (story 9.1, FR-53).
+  TOO_FEW_SUMMARY_POINTS:
+    "Notatene ga ikke grunnlag for et sammendrag med minst 5 punkter. Det gamle sammendraget er beholdt.",
   // Editing a card (story 3.7): an empty question or answer.
   FLASHCARD_FRONT_REQUIRED: "Skriv inn spørsmålet.",
   FLASHCARD_BACK_REQUIRED: "Skriv inn svaret.",
@@ -69,6 +72,10 @@ export const countNouns: Record<string, { one: string; other: string }> = {
   quiz_questions: { one: "quizspørsmål", other: "quizspørsmål" },
   model_cards: { one: "modellkort", other: "modellkort" },
   freetext_questions: { one: "fritekstspørsmål", other: "fritekstspørsmål" },
+  // Summaries (story 9.1). The delete confirmation names them in its own way
+  // («sammendraget av forelesningen», lib/delete-text.ts); the account text
+  // uses «sammendrag».
+  summaries: { one: "sammendrag", other: "sammendrag" },
 };
 
 const PLACEHOLDER = /\{([a-z_]+)\}/g;

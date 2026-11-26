@@ -1,9 +1,9 @@
 // The texts for a generation job, per content type. The flashcards texts are
 // approved word for word in story 3.2, the quiz texts in story 4.1, the
 // model-card texts in story 7.1 (except the done text, which follows the
-// others), and the free-text texts in story 8.1.
+// others), the free-text texts in story 8.1, and the summary texts in story 9.1.
 
-import { messageWithDetails } from "@/lib/messages";
+import { messageFor, messageWithDetails } from "@/lib/messages";
 
 import type { Job, JobKind } from "./types";
 
@@ -13,7 +13,7 @@ export type GenerationTexts = {
   // A failed job, whatever the code (error, time limit, restart).
   failed: (code: string | null) => string;
   // Done with fewer than chosen. Missing for a type where the student chooses
-  // no scope (model cards): then fewer than requested is no message.
+  // no scope (model cards, the summary): then fewer than requested is no message.
   fewer?: (created: number, requested: number) => string;
   // Done with nothing made.
   nothing: string;
@@ -31,6 +31,10 @@ function failedText(content: string) {
   return (code: string | null) =>
     messageWithDetails(code && FAILED_CODES.has(code) ? code : "GENERATION_FAILED", { content });
 }
+
+// A summary job also fails with TOO_FEW_SUMMARY_POINTS (fewer than 5 valid
+// points), which has its own text in the message file.
+const summaryFailed = failedText("sammendraget");
 
 export const generationTexts: Record<JobKind, GenerationTexts> = {
   flashcards: {
@@ -66,6 +70,16 @@ export const generationTexts: Record<JobKind, GenerationTexts> = {
     nothing: "Notatene ga ikke grunnlag for fritekstspørsmål. Ingenting er lagret.",
     done: (created, lectureName) => `Fritekstspørsmålene er ferdige: ${created} spørsmål i ${lectureName}.`,
     waiting: "Venter til fritekstspørsmålene er ferdige",
+  },
+  summary: {
+    jobText: "Lager sammendrag …",
+    failed: (code) => (code === "TOO_FEW_SUMMARY_POINTS" ? messageFor(code) : summaryFailed(code)),
+    // A summary job is never done with nothing (fewer than 5 points fail it),
+    // so this only shows if the backend and the frontend disagree.
+    nothing: messageFor("TOO_FEW_SUMMARY_POINTS"),
+    done: (created, lectureName) =>
+      `Sammendraget er ferdig: ${created} ${created === 1 ? "punkt" : "punkter"} i ${lectureName}.`,
+    waiting: "Venter til sammendraget er ferdig",
   },
 };
 

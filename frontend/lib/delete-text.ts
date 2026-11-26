@@ -38,15 +38,36 @@ function countParts(counts: DeleteCount[]): string[] {
   return parts;
 }
 
+// The kind the delete preview counts summaries under (story 9.1). A summary
+// belongs to the lecture, not to a file, so it is named in its own way and
+// always last: «sammendraget av forelesningen» for a file or a lecture, where
+// it is clear which lecture, otherwise «sammendraget av 1 forelesning» or
+// «sammendragene av 2 forelesninger».
+const SUMMARIES = "summaries";
+
+function summariesPart(counts: DeleteCount[], target: DeleteTarget): string | null {
+  const count = counts.find((item) => item.kind === SUMMARIES)?.count ?? 0;
+  if (!(count > 0)) return null;
+  if (count > 1) return `sammendragene av ${count} forelesninger`;
+  const known = target === "file" || target === "lecture";
+  return known ? "sammendraget av forelesningen" : "sammendraget av 1 forelesning";
+}
+
 // «Dette sletter også 8 forelesninger og 11 filer.» Counts over 0 with a known
 // name, in the order given, singular for 1 and plural otherwise, joined with
-// «, » and «og» before the last. For a file, « laget fra fila» comes before the
-// full stop. Nothing left (everything 0 or unknown) gives null: never «0 …».
+// «, » and «og» before the last. For a file, « laget fra fila» comes after the
+// content made from it. The summary comes last, after « laget fra fila»
+// («… 18 flashcards laget fra fila og sammendraget av forelesningen.»).
+// Nothing left (everything 0 or unknown) gives null: never «0 …».
 export function alsoDeletedSentence(counts: DeleteCount[], target: DeleteTarget): string | null {
-  const parts = countParts(counts);
-  if (parts.length === 0) return null;
-  const suffix = target === "file" ? " laget fra fila" : "";
-  return `Dette sletter også ${joinNorwegian(parts)}${suffix}.`;
+  const parts = countParts(counts.filter((item) => item.kind !== SUMMARIES));
+  const summary = summariesPart(counts, target);
+  if (parts.length === 0 && !summary) return null;
+  if (target === "file" && parts.length > 0) {
+    const fromFile = `${joinNorwegian(parts)} laget fra fila`;
+    return `Dette sletter også ${summary ? `${fromFile} og ${summary}` : fromFile}.`;
+  }
+  return `Dette sletter også ${joinNorwegian(summary ? [...parts, summary] : parts)}.`;
 }
 
 // The account page (mockup 15): «Du har nå 3 emner, 15 forelesninger og 18
