@@ -31,11 +31,13 @@ import {
 } from "./felles";
 
 // Flow 1 in EXPERIENCE.md («Brukerreiser (Key Flows)»), UJ-1 in the PRD.
-// Only the steps that are built are tested; the rest (the summary, epic 9)
-// is listed as «ikke bygd ennå» in docs/testing/brukerreiser.md.
-// The notes have four definition sentences on three pages, so the mock model
-// makes four flashcards and four quiz questions, fewer than «Vanlig» (up to
-// 20). The mock model makes no quiz from fewer than four definitions.
+// Every step is built and tested, from logging in to the summary (step 11).
+// The notes have four definition sentences on the first three of five pages,
+// so the mock model makes four flashcards and four quiz questions, fewer than
+// «Vanlig» (up to 20). The mock model makes no quiz from fewer than four
+// definitions. It makes one summary point per page and no summary from fewer
+// than five, so the last two pages have a sentence each that is not a
+// definition: the summary gets five points and the cards stay four.
 // The steps share one browser context and run in order, like one visit by Klara.
 test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
   test.describe.configure({ mode: "serial" });
@@ -50,10 +52,13 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
   const QUIZ_DONE = "Quizspørsmålene er ferdige: 4 spørsmål i Uke 37: Merkevare.";
   const FAILED = "Vi klarte ikke å lage flashcardene. Ingenting er lagret. Prøv igjen.";
   const NOTHING_NEW = "Notatene ga ikke grunnlag for flashcards. Ingenting er lagret.";
+  const SUMMARY_DONE = "Sammendraget er ferdig: 5 punkter i Uke 37: Merkevare.";
   const NOTES = [
     "Merkevare er et navn som skiller et produkt fra andre.",
     "Posisjonering er plassen merket har i hodet til kunden.",
     "Lojalitet er at kunden velger merket igjen. Logo er merkets tegn.",
+    "Kunden husker merket gjennom hele livet.",
+    "Reklame bygger kjennskap til merket over tid.",
   ];
   const FRONTS = ["Merkevare", "Posisjonering", "Lojalitet", "Logo"];
   let context: BrowserContext;
@@ -100,6 +105,11 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await page.getByLabel("Passord").fill(PASSWORD);
     await page.getByRole("button", { name: "Logg inn" }).click();
     await expectOnHomePage(page);
+  }
+
+  // The row «Sammendrag» in «Lag og øv» on the lecture page (04).
+  function summaryRow(p: Page) {
+    return p.getByRole("region", { name: "Lag og øv" }).getByRole("group", { name: "Sammendrag" });
   }
 
   // The header line on the lecture page (04): date, number of files and pages.
@@ -234,8 +244,8 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
   test("Steg 5 (fila) – FR-8, UX-DR16: fila står i fillista med antall sider", async () => {
     await expect(fileRows(page)).toHaveCount(1);
     await expect(fileRows(page).first()).toContainText("merkevare-notater.pdf");
-    await expect(fileRows(page).first()).toContainText(`3 sider · lastet opp ${todayFull.slice(0, 5)}`);
-    await expect(lectureLine("1 fil", "3 sider")).toBeVisible();
+    await expect(fileRows(page).first()).toContainText(`5 sider · lastet opp ${todayFull.slice(0, 5)}`);
+    await expect(lectureLine("1 fil", "5 sider")).toBeVisible();
     await expectNoAxeViolations(page);
   });
 
@@ -267,7 +277,7 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await expect(sidebarLecture(page, "Uke 37: Merkevare")).toHaveAccessibleName("Uke 37: Merkevare Ikke øvd ennå");
     // The file from step 4 is still there.
     await expect(fileRows(page)).toHaveCount(1);
-    await expect(lectureLine("1 fil", "3 sider")).toBeVisible();
+    await expect(lectureLine("1 fil", "5 sider")).toBeVisible();
     await expectNoAxeViolations(page);
   });
 
@@ -278,7 +288,7 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
 
     const dialog = page.getByRole("dialog", { name: "Lag flashcards" });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText("Uke 37: Merkevare · 1 fil, 3 sider")).toBeVisible();
+    await expect(dialog.getByText("Uke 37: Merkevare · 1 fil, 5 sider")).toBeVisible();
     await expectNoAxeViolations(page);
     await dialog.getByRole("radio", { name: "Vanlig" }).check();
     await expect(dialog.getByRole("radio", { name: "Vanlig" })).toBeChecked();
@@ -344,7 +354,7 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
 
     const dialog = page.getByRole("dialog", { name: "Lag quiz" });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText("Uke 37: Merkevare · 1 fil, 3 sider")).toBeVisible();
+    await expect(dialog.getByText("Uke 37: Merkevare · 1 fil, 5 sider")).toBeVisible();
     await expectNoAxeViolations(page);
     await dialog.getByRole("radio", { name: "Vanlig" }).check();
     await dialog.getByRole("radio", { name: "Middels" }).check();
@@ -520,6 +530,95 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await expectNoAxeViolations(page);
   });
 
+  test("Steg 11 – FR-53, FR-54, FR-56, UX-DR18, UX-DR19, UX-DR38: til slutt trykker hun «Lag sammendrag», og når det er ferdig, leser hun det (13) med kilde på hvert punkt", async () => {
+    const saves: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === SAVE_PATH) saves.push(request.method());
+    });
+    const row = summaryRow(page);
+    await expect(row.getByRole("heading", { level: 3, name: "Sammendrag" })).toBeVisible();
+    await expect(row.getByText("Ikke laget")).toBeVisible();
+    const create = row.getByRole("button", { name: "Lag sammendrag" });
+    await expect(create).toBeEnabled();
+
+    // A demo job is over in about a second. The answers about running and
+    // finished jobs are held until the job status has been checked.
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    const activeUrl = "**/api/jobs/active";
+    await page.route(activeUrl, async (route) => {
+      await held;
+      await route.fallback();
+    });
+    const releaseResult = await holdJobResult();
+    const started = page.waitForResponse(
+      (response) => response.request().method() === "POST" && response.url().endsWith(`/api/lectures/${lectureId}/jobs`),
+    );
+    await create.click();
+    const response = await started;
+    expect(response.status()).toBe(202);
+    // No dialog: the job starts directly with the one scope there is.
+    expect(response.request().postDataJSON()).toEqual({ kind: "summary", params: { requested: 15 } });
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(row.getByText("Lager sammendrag …", { exact: true }).first()).toBeVisible();
+    await expect(row.getByText("Du kan bruke resten av appen imens.")).toBeVisible();
+    // The other rows wait, but «Øv nå» still works (practising needs no job).
+    for (const other of [createSection(page), quizRow(page)]) {
+      await expect(other.getByText("Venter til sammendraget er ferdig")).toBeVisible();
+      await expect(other.getByRole("button", { name: "Lag flere" })).toBeDisabled();
+      await expect(other.getByRole("button", { name: "Øv nå" })).toBeEnabled();
+    }
+    await expectNoAxeViolations(page);
+    release();
+    await releaseResult();
+    await page.unroute(activeUrl);
+
+    // One point per page: five pages give five points.
+    await expect(row.getByText("5 punkter", { exact: true })).toBeVisible({ timeout: 15_000 });
+    await expect(row.getByRole("status")).toHaveText(SUMMARY_DONE);
+    await expect(createSection(page).getByText("Venter til sammendraget er ferdig")).toHaveCount(0);
+    const read = row.getByRole("button", { name: "Les sammendrag" });
+    await expect(read).toBeVisible();
+    await expectNoAxeViolations(page);
+
+    // She reads it (13).
+    await read.click();
+    await expect(page).toHaveURL(`/forelesninger/${lectureId}/sammendrag`);
+    const main = page.locator("main");
+    await expect(main.locator("h1")).toHaveText("Sammendrag");
+    const crumbs = page.getByRole("navigation", { name: "Brødsmuler" });
+    await expect(crumbs.getByRole("link", { name: "Markedsføring" })).toBeVisible();
+    await expect(crumbs.getByRole("link", { name: "Uke 37: Merkevare" })).toHaveAttribute(
+      "href",
+      `/forelesninger/${lectureId}`,
+    );
+    await expect(main.getByText(/^5 punkter i 1 tema · laget \d{2}\.\d{2}\.\d{4} fra 1 fil$/)).toBeVisible();
+    const article = page.getByRole("article");
+    await expect(article.getByRole("heading", { level: 2 })).toHaveText(["merkevare-notater.pdf"]);
+    // Every point has its source: the file and the page it comes from.
+    const points = article.getByRole("listitem");
+    await expect(points).toHaveCount(NOTES.length);
+    for (const [index, notes] of NOTES.entries()) {
+      const point = points.nth(index);
+      await expect(point).toContainText(notes.split(". ")[0]);
+      await expect(point.locator('[data-slot="source-link"]')).toHaveText(`merkevare-notater.pdf, side ${index + 1}`);
+    }
+    const card = page.getByRole("complementary", { name: "Om sammendraget" });
+    await expect(card.getByText("5 sider", { exact: true })).toBeVisible();
+    await expect(card.getByRole("button", { name: "Lag nytt sammendrag" })).toBeVisible();
+    await expect(card.getByText("Sammendraget er laget av en språkmodell. Sjekk viktige punkter mot kilden.")).toBeVisible();
+    await expectNoAxeViolations(page);
+
+    // Reading is not a session (FR-56): nothing is saved.
+    expect(saves).toEqual([]);
+
+    // Back to the lecture for the error paths.
+    await crumbs.getByRole("link", { name: "Uke 37: Merkevare" }).click();
+    await expect(page).toHaveURL(`/forelesninger/${lectureId}`);
+    await expect(summaryRow(page).getByText("5 punkter", { exact: true })).toBeVisible();
+    await expectNoAxeViolations(page);
+  });
+
   test("Feilvei – FR-9, UX-DR42: hun drar inn en Word-fil, og den avvises med beskjed om å lagre som PDF", async () => {
     await dropFiles(page, [WORD_FILE]);
     const message = page.getByText(`merkevare-notater.docx: ${NOT_PDF}`);
@@ -528,7 +627,7 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     // The terms were accepted in step 4, so no dialog this time.
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(fileRows(page)).toHaveCount(1);
-    await expect(lectureLine("1 fil", "3 sider")).toBeVisible();
+    await expect(lectureLine("1 fil", "5 sider")).toBeVisible();
     await expectNoAxeViolations(page);
   });
 
@@ -546,7 +645,7 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await dropFiles(page, [pdfFile("hele-pensum.pdf", pages)]);
     await expect(page.getByText(`hele-pensum.pdf: ${TOO_MANY}`)).toBeVisible();
     await expect(fileRows(page)).toHaveCount(1);
-    await expect(lectureLine("1 fil", "3 sider")).toBeVisible();
+    await expect(lectureLine("1 fil", "5 sider")).toBeVisible();
     await expectNoAxeViolations(page);
   });
 
