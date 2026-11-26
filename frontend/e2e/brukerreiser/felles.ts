@@ -208,6 +208,41 @@ export async function quizQuestionsViaApi(
   return (await response.json()) as ApiQuestion[];
 }
 
+// Makes short-answer free-text questions from the lecture's files through the
+// API (story 8.1; the mock model makes one question «Forklar [begrep].» per
+// definition sentence, with the sentence as the model answer) and waits until
+// there are `expected`.
+export async function makeFreetextViaApi(page: Page, lectureId: string, requested: 5 | 10 | 15, expected: number) {
+  const response = await page.request.post(`/api/lectures/${lectureId}/jobs`, {
+    data: { kind: "freetext", params: { requested, question_kind: "short" } },
+  });
+  expect(response.status()).toBe(202);
+  await expect
+    .poll(
+      async () =>
+        (await (await page.request.get(`/api/lectures/${lectureId}/content-counts`)).json()).freetext_questions,
+      { timeout: 15_000 },
+    )
+    .toBe(expected);
+}
+
+// A free-text question as the API gives it, with the model answer (FR-49).
+export type ApiFreetextQuestion = {
+  id: string;
+  question: string;
+  model_answer: string;
+  formula_flag: boolean;
+  source: { file_name: string; page_no: number };
+  lecture: { name: string };
+};
+
+// The free-text questions of a subject (story 8.3).
+export async function freetextQuestionsViaApi(page: Page, subjectId: string): Promise<ApiFreetextQuestion[]> {
+  const response = await page.request.get(`/api/subjects/${subjectId}/freetext-questions`);
+  expect(response.status()).toBe(200);
+  return (await response.json()) as ApiFreetextQuestion[];
+}
+
 // The question in the quiz session (09).
 export function quizQuestion(page: Page): Locator {
   return page.locator('[data-slot="quiz-question"]');
@@ -285,6 +320,33 @@ export function semesterLineGraphic(page: Page): Locator {
 // The subject card on the front page (02, story 5.4).
 export function subjectCard(page: Page, name: string): Locator {
   return page.locator('[data-slot="subject-card"]').filter({ has: page.getByRole("heading", { level: 2, name }) });
+}
+
+// The overview (GET /api/overview, story 5.1) as the app gets it: «øvd» per lecture.
+export type ApiOverview = {
+  subjects: { id: string; lectures: { id: string; name: string; practiced: boolean }[] }[];
+};
+
+// The next GET /api/overview the page sends, parsed. Start waiting before the
+// step that makes the app fetch it (for example the link back from a session),
+// and check the sidebar or semester line only after the answer has come: «Øvd»
+// on the screen comes from this answer, however long it takes on a busy
+// machine (#343).
+export function nextOverview(page: Page): Promise<ApiOverview> {
+  return page
+    .waitForResponse(
+      (response) => response.request().method() === "GET" && new URL(response.url()).pathname === "/api/overview",
+    )
+    .then(async (response) => {
+      expect(response.status()).toBe(200);
+      return (await response.json()) as ApiOverview;
+    });
+}
+
+// Whether the lecture is practised in the overview.
+export function practicedIn(overview: ApiOverview, lectureId: string): boolean | undefined {
+  return overview.subjects.flatMap((subject) => subject.lectures).find((lecture) => lecture.id === lectureId)
+    ?.practiced;
 }
 
 // The lecture link in the sidebar, whose name ends with its status dot (story 5.1).

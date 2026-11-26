@@ -1,6 +1,7 @@
 import { expect, test, type BrowserContext, type Page, type Request } from "@playwright/test";
 
 import {
+  type ApiFreetextQuestion,
   type ApiQuestion,
   SAVE_PATH,
   answerQuizQuestion,
@@ -12,13 +13,18 @@ import {
   expectNoAxeViolations,
   expectFormulaFlagAboveSource,
   expectOnHomePage,
+  FORMULA_FLAG_TEXT,
   fileRows,
   flashcardCountViaApi,
   formulaFlag,
+  freetextQuestionsViaApi,
   makeFlashcardsViaApi,
+  makeFreetextViaApi,
   makeModelCardsViaApi,
   makeQuizViaApi,
+  nextOverview,
   pdfFile,
+  practicedIn,
   quizQuestion,
   quizQuestionsViaApi,
   registerWithTermsViaApi,
@@ -53,8 +59,10 @@ import {
 // AIDA-modellen.» with the points Attention, Interest, Desire, Action and the
 // mnemonic AIDA. Model cards are practised as flashcards (FR-56), so the
 // subject has 15 cards, and the session over the whole subject has it too.
-// Only the steps that are built are tested; the rest (free text) are listed as
-// «ikke bygd ennå» in docs/testing/brukerreiser.md.
+// Steps 5–7 are free text (epic 8): she has made short-answer free-text
+// questions from «Uke 36: Segmentering» and «Uke 38: Prising» before, one per
+// definition sentence, five in all. The one about margin comes from the page
+// with a formula, so it carries the flag too.
 // The steps share one browser context and run in order, like one visit by Klara.
 test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
   test.describe.configure({ mode: "serial" });
@@ -123,6 +131,8 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
   const PRACTISED_BEFORE = LECTURES.slice(0, 4).map(([name]) => name);
   // The lectures she has made a quiz from.
   const QUIZ_LECTURES = ["Uke 37: Merkevare", "Uke 38: Prising"];
+  // The lectures she has made free-text questions from (steps 5–7).
+  const FREETEXT_LECTURES = ["Uke 36: Segmentering", "Uke 38: Prising"];
   const slugOf = (name: string) => name.split(": ")[1].toLowerCase().replace(/\s+/g, "-");
   // The PDF each card comes from: the term before «er» -> the lecture's file.
   const FILE_OF_FRONT = new Map([
@@ -144,10 +154,14 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
   const saves: Request[] = [];
   // The subject's quiz questions with the answer key (step 3).
   let questions: ApiQuestion[];
+  // The subject's free-text questions with the model answers (steps 5–7).
+  let freetext: ApiFreetextQuestion[];
+  // Her own answers, which are never saved (FR-51).
+  const OWN_ANSWER = "Klaras eget svar fra hukommelsen";
 
   test.beforeAll(async ({ browser }, testInfo) => {
-    // Ten jobs with the mock model take a few seconds each.
-    testInfo.setTimeout(150_000);
+    // Twelve jobs with the mock model take a few seconds each.
+    testInfo.setTimeout(180_000);
     context = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
     page = await context.newPage();
     await registerWithTermsViaApi(page);
@@ -160,6 +174,7 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
       await uploadViaApi(page, lectureId, pdfFile(`${slugOf(name)}.pdf`, pages, formulaPages));
       await makeFlashcardsViaApi(page, lectureId, 10, definitions.length);
       if (QUIZ_LECTURES.includes(name)) await makeQuizViaApi(page, lectureId, 10, definitions.length);
+      if (FREETEXT_LECTURES.includes(name)) await makeFreetextViaApi(page, lectureId, 5, definitions.length);
       if (name === MODEL.lecture) await makeModelCardsViaApi(page, lectureId, 1);
       if (name === "Uke 37: Merkevare") merkevareId = lectureId;
       lectureIds.set(name, lectureId);
@@ -300,11 +315,16 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     });
     await expectNoAxeViolations(page);
 
+    // Back on the subject page the overview is fetched again (story 5.1). The
+    // test waits for that answer before it looks for «Øvd» (#343).
+    const overview = nextOverview(page);
     await page.getByRole("link", { name: "Tilbake til emnet" }).click();
     await expect(page).toHaveURL(`/emner/${subjectId}`);
     await expect(page.locator("main h1")).toHaveText("Markedsføring");
     // The session over the whole subject counts for every lecture with cards,
     // so all eight are now practised, without a reload (story 5.1, 5.2, 5.5).
+    const answer = await overview;
+    for (const id of lectureIds.values()) expect(practicedIn(answer, id)).toBe(true);
     await expect(semesterLineItems(page)).toHaveText([LINE_TEXT(8)]);
     for (let i = 0; i < LECTURES.length; i += 1) {
       await expect(page.locator("main tbody tr").nth(i).getByRole("cell").nth(5)).toHaveText(practisedToday);
@@ -316,8 +336,14 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
 
   test("Steg 3 (starter quizen på hele emnet) – FR-32, FR-34, UX-DR14, UX-DR29: etterpå tar hun quiz på hele emnet («Start», 09), og kilden ved spørsmålet viser hvilken forelesning det kommer fra", async () => {
     const practiceAll = page.getByRole("region", { name: "Øv på hele emnet" });
-    // Flashcards and Quiz, and SISTE ØKT since she has practised (story 5.1).
-    await expect(practiceAll.getByRole("heading", { level: 3 })).toHaveText(["Flashcards", "Quiz", "Siste økt"]);
+    // Flashcards, Quiz and Fritekstspørsmål (story 8.3), and SISTE ØKT since
+    // she has practised (story 5.1).
+    await expect(practiceAll.getByRole("heading", { level: 3 })).toHaveText([
+      "Flashcards",
+      "Quiz",
+      "Fritekstspørsmål",
+      "Siste økt",
+    ]);
     await expect(practiceAll.getByText("8 spørsmål fra 2 forelesninger")).toBeVisible();
     await expectNoAxeViolations(page);
     questions = await quizQuestionsViaApi(page, "subjects", subjectId);
@@ -407,8 +433,11 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     });
     await expectNoAxeViolations(page);
 
+    // SISTE ØKT comes from the overview, fetched again on the subject page (#343).
+    const overview = nextOverview(page);
     await page.getByRole("link", { name: "Tilbake til emnet" }).click();
     await expect(page).toHaveURL(`/emner/${subjectId}`);
+    await overview;
     const practiceAll = page.getByRole("region", { name: "Øv på hele emnet" });
     await expect(practiceAll.getByText("7 spørsmål fra 2 forelesninger")).toBeVisible();
     // SISTE ØKT now shows the quiz (story 5.1).
@@ -433,17 +462,24 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     // 0.5 while the session starts, which gives the order Merkevare, Image,
     // Logo, the model card, Slagord: the error paths for cards land on a plain
     // card, and the model card comes in the middle of the session, as in the flow.
+    // It is put back once the session shows its first card, that is, when the
+    // shuffle is done. A fixed timer (5 s, as before) ran out before the cards
+    // had loaded when the machine was busy, and the order became random (#343).
     await page.evaluate(() => {
-      const original = Math.random;
+      const holder = window as unknown as { __originalRandom?: () => number };
+      holder.__originalRandom = Math.random;
       Math.random = () => 0.5;
-      setTimeout(() => {
-        Math.random = original;
-      }, 5_000);
     });
     await createSection(page).getByRole("button", { name: "Øv nå" }).click();
     await expect(page).toHaveURL(`/forelesninger/${merkevareId}/flashcards`);
     await expect(sessionPanel(page).getByText("Uke 37: Merkevare")).toBeVisible();
     await expect(sessionPanel(page).getByText("/ 5")).toBeVisible();
+    await expect(cardFront(page)).toHaveText(MERKEVARE_FRONTS[0]);
+    await page.evaluate(() => {
+      const holder = window as unknown as { __originalRandom?: () => number };
+      if (holder.__originalRandom) Math.random = holder.__originalRandom;
+      delete holder.__originalRandom;
+    });
     expect(MERKEVARE_FRONTS).toContain(await cardFront(page).textContent());
     await page.keyboard.press(" ");
     await expect(page.getByText("SVAR", { exact: true })).toBeVisible();
@@ -588,6 +624,178 @@ test.describe("UJ-2 / flyt 2: Klara før eksamen", () => {
     await expect(page).toHaveURL(`/forelesninger/${merkevareId}`);
     await expect(createSection(page).getByText("4 kort", { exact: true })).toBeVisible();
     expect(saves).toHaveLength(before + 1);
+  });
+
+  test("Steg 5 – FR-48, FR-50, UX-DR14, UX-DR30: tilbake på emnesiden starter hun fritekstspørsmål for hele emnet (12), skriver svaret i tekstfeltet og trykker «Vis modellsvar»", async () => {
+    // Back to the subject page from the sidebar.
+    await page.getByRole("navigation", { name: "Emner" }).getByRole("link", { name: "Markedsføring", exact: true }).click();
+    await expect(page).toHaveURL(`/emner/${subjectId}`);
+    await expect(page.locator("main h1")).toHaveText("Markedsføring");
+    freetext = await freetextQuestionsViaApi(page, subjectId);
+    expect(freetext).toHaveLength(5);
+    expect(new Set(freetext.map((item) => item.lecture.name))).toEqual(new Set(FREETEXT_LECTURES));
+    // Only the question from the page with a formula is flagged (story 6.3).
+    expect(freetext.filter((item) => item.formula_flag).map((item) => `${item.source.file_name}, side ${item.source.page_no}`)).toEqual([
+      FORMULA_SOURCE,
+    ]);
+
+    const practiceAll = page.getByRole("region", { name: "Øv på hele emnet" });
+    await expect(practiceAll.getByRole("heading", { level: 3, name: "Fritekstspørsmål" })).toBeVisible();
+    await expect(practiceAll.getByText("5 spørsmål fra 2 forelesninger")).toBeVisible();
+    await expectNoAxeViolations(page);
+    await practiceAll.getByRole("link", { name: "Start fritekst på hele emnet" }).click();
+
+    await expect(page).toHaveURL(`/emner/${subjectId}/fritekst`);
+    await expect(page).toHaveTitle("Fritekst – Markedsføring – Studiekamerat");
+    const panel = page.getByRole("region", { name: "Fritekst" });
+    await expect(panel.getByText("Markedsføring, hele emnet")).toBeVisible();
+    await expect(panel.getByText("/ 5")).toBeVisible();
+    await expect(panel.getByText("Ingen vurdert ennå")).toBeVisible();
+    await expect(page.getByText("SPØRSMÅL 1 AV 5")).toBeVisible();
+    // The field is open; the model answer and the self-assessment are hidden.
+    const field = page.getByRole("textbox", { name: "Ditt svar" });
+    await expect(field).toBeFocused();
+    await expect(page.getByRole("button", { name: "Vis modellsvar" })).toBeDisabled();
+    await expect(page.locator('[data-slot="model-answer"]')).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 3, name: "Hvordan gikk det?" })).toHaveCount(0);
+    await expectNoAxeViolations(page);
+
+    await page.keyboard.type(OWN_ANSWER);
+    const reveal = page.getByRole("button", { name: "Vis modellsvar" });
+    await expect(reveal).toBeEnabled();
+    await reveal.click();
+    await expect(page.getByRole("heading", { level: 3, name: "Modellsvar" })).toBeFocused();
+    await expect(field).toHaveAttribute("readonly", "");
+    await expect(page.getByText("Levert · 5 ord", { exact: true })).toBeVisible();
+  });
+
+  // The question on screen in the free-text session, from the API list.
+  async function currentFreetext(): Promise<ApiFreetextQuestion> {
+    const text = await page.locator('[data-slot="freetext-question"] h2').textContent();
+    const question = freetext.find((item) => item.question === text);
+    expect(question).toBeDefined();
+    return question!;
+  }
+
+  // The model answer for `question`: the text, its source and lecture, and the
+  // formula flag only on the question about margin.
+  async function expectModelAnswer(question: ApiFreetextQuestion) {
+    const answer = page.locator('[data-slot="model-answer"]');
+    await expect(answer.getByRole("heading", { level: 3, name: "Modellsvar" })).toBeVisible();
+    await expect(answer.locator("p").first()).toHaveText(question.model_answer);
+    await expect(answer.locator('[data-slot="source-link"]')).toHaveText(
+      `${question.source.file_name}, side ${question.source.page_no}`,
+    );
+    await expect(answer.getByText(question.lecture.name, { exact: true })).toBeVisible();
+    if (question.formula_flag) await expect(formulaFlag(answer)).toHaveText(FORMULA_FLAG_TEXT);
+    else await expect(formulaFlag(answer)).toHaveCount(0);
+  }
+
+  test("Steg 6 – FR-49, FR-51, NFR-8, UX-DR8, UX-DR9: modellsvaret står under hennes eget svar, med kilde, hun trykker 2 for «Delvis riktig», og rutenettet i øktpanelet viser ◐", async () => {
+    const question = await currentFreetext();
+    await expectModelAnswer(question);
+    // Under her own answer: after the field in the page and lower on the screen.
+    const field = page.getByRole("textbox", { name: "Ditt svar" });
+    await expect(field).toHaveValue(OWN_ANSWER);
+    const answer = page.locator('[data-slot="model-answer"]');
+    const fieldBox = (await field.boundingBox())!;
+    const answerBox = (await answer.boundingBox())!;
+    expect(answerBox.y).toBeGreaterThanOrEqual(fieldBox.y + fieldBox.height);
+    // Feil, Delvis riktig and Riktig, none chosen in advance.
+    await expect(page.getByRole("heading", { level: 3, name: "Hvordan gikk det?" })).toBeVisible();
+    const assess = page.locator('[data-slot="self-assessment"]').getByRole("button");
+    await expect(assess).toHaveText(["Feil", "Delvis riktig", "Riktig"]);
+    await expect(page.locator('[data-slot="self-assessment"] [aria-pressed="true"]')).toHaveCount(0);
+    await expectNoAxeViolations(page);
+
+    // `2` for «Delvis riktig» (with focus on the model answer, not in the field).
+    await expect(page.getByRole("heading", { level: 3, name: "Modellsvar" })).toBeFocused();
+    await page.keyboard.press("2");
+    await expect(page.getByText("SPØRSMÅL 2 AV 5")).toBeVisible();
+    const panel = page.getByRole("region", { name: "Fritekst" });
+    await expect(panel.getByText("1 delvis riktig")).toBeVisible();
+    // ◐ in the grid: the cell is marked partial, with the half-filled circle and the text.
+    const cell = panel.locator('[data-mark="partial"]');
+    await expect(cell).toHaveCount(1);
+    await expect(cell.locator('svg[data-icon="partial"]')).toHaveCount(1);
+    await expect(panel.getByText("Spørsmål 1: delvis riktig")).toBeAttached();
+    // The next question starts with an empty field and focus in it.
+    await expect(field).toBeFocused();
+    await expect(field).toHaveValue("");
+    await expectNoAxeViolations(page);
+  });
+
+  test("Steg 7 – FR-51, FR-56, UX-DR14, UX-DR34: når økten er ferdig, ser hun hvor mange hun hadde riktig, delvis riktig og feil, og økten lagres for hele emnet", async () => {
+    const before = saves.length;
+    // Question 3 wrong, the rest right.
+    let missed: ApiFreetextQuestion | undefined;
+    const seen: string[] = [];
+    for (let number = 2; number <= 5; number += 1) {
+      await expect(page.getByText(`SPØRSMÅL ${number} AV 5`)).toBeVisible();
+      const field = page.getByRole("textbox", { name: "Ditt svar" });
+      await expect(field).toBeFocused();
+      await page.keyboard.type(OWN_ANSWER);
+      await page.getByRole("button", { name: "Vis modellsvar" }).click();
+      await expect(page.getByRole("heading", { level: 3, name: "Modellsvar" })).toBeFocused();
+      const question = await currentFreetext();
+      seen.push(question.question);
+      await expectModelAnswer(question);
+      if (number === 3) missed = question;
+      await page.keyboard.press(number === 3 ? "1" : "3");
+    }
+    // The first question (step 6) is the one she was partly right on.
+    const partial = freetext.find((item) => !seen.includes(item.question));
+    expect(new Set(seen).size).toBe(4);
+    expect(partial).toBeDefined();
+
+    await expect(page.getByRole("heading", { level: 2, name: "Du har gått gjennom alle 5 spørsmålene" })).toBeFocused();
+    await expect(page.locator('[data-slot="result-field"]')).toHaveText(["Riktig3", "Delvis riktig1", "Feil1"]);
+    // The questions she marked Feil or Delvis riktig, with model answer and
+    // source, and her own answer is not shown, since it is not saved.
+    const list = page.getByRole("region", { name: "Feil og delvis riktig" });
+    await expect(list.getByText("2 spørsmål")).toBeVisible();
+    const rows = list.getByRole("listitem");
+    await expect(rows).toHaveCount(2);
+    for (const question of [missed!, partial!]) {
+      const row = rows.filter({ hasText: question.question });
+      await expect(row).toHaveCount(1);
+      await expect(row).toContainText(question.model_answer);
+      await expect(row.locator('[data-slot="source-link"]')).toHaveText(
+        `${question.source.file_name}, side ${question.source.page_no}`,
+      );
+      await expect(row.locator('[data-slot="missed-lecture"]')).toHaveText(`Forelesning: ${question.lecture.name}`);
+    }
+    await expect(rows.filter({ hasText: missed!.question })).toContainText("Feil");
+    await expect(rows.filter({ hasText: partial!.question })).toContainText("Delvis riktig");
+    await expect(list).not.toContainText(OWN_ANSWER);
+    await expect(page.getByRole("region", { name: "Fritekst" }).getByText("Økten er ferdig og lagret")).toBeVisible();
+    await expectNoAxeViolations(page);
+
+    // Saved once, for the whole subject, with the three numbers and without her answers.
+    await expect.poll(() => saves.length).toBe(before + 1);
+    const body = saves.at(-1)!.postDataJSON();
+    expect(body).toMatchObject({
+      subject_id: subjectId,
+      lecture_id: null,
+      kind: "freetext",
+      aborted: false,
+      answered: 5,
+      correct: 3,
+      partial: 1,
+      wrong: 1,
+    });
+    expect(JSON.stringify(body)).not.toContain(OWN_ANSWER);
+
+    // Back on the subject page, SISTE ØKT shows the free-text session.
+    // SISTE ØKT comes from the overview, fetched again on the subject page (#343).
+    const overview = nextOverview(page);
+    await page.getByRole("link", { name: "Tilbake til emnet" }).click();
+    await expect(page).toHaveURL(`/emner/${subjectId}`);
+    await overview;
+    const practiceAll = page.getByRole("region", { name: "Øv på hele emnet" });
+    await expect(practiceAll.getByText("Fritekstspørsmål · Hele emnet", { exact: true })).toBeVisible();
+    await expect(practiceAll.getByText(`${dayFromToday(0).dayMonth} · 3 av 5 riktige`, { exact: true })).toBeVisible();
+    await expectNoAxeViolations(page);
   });
 
   test("Feilvei (formelmerke) – FR-40, FR-41, UX-DR37: et kort er merket «Inneholder formel – sjekk mot kilden», og hun slår opp i PDF-en på siden som står i kilden", async () => {

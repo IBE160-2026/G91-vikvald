@@ -21,6 +21,8 @@ import {
   semesterLineGraphic,
   semesterLineItems,
   sessionPanel,
+  nextOverview,
+  practicedIn,
   sidebarLecture,
   sidebarLectures,
   subjectCard,
@@ -431,12 +433,16 @@ test.describe("UJ-1 / flyt 1: Klara etter en forelesning", () => {
     await expect(sessionPanel(page).getByText("Økten er ferdig og lagret")).toBeVisible();
     await expectNoAxeViolations(page);
 
+    // Back on the lecture page the sidebar fetches the overview again (story
+    // 5.1). The test waits for that answer before it looks for «Øvd» (#343).
+    const overview = nextOverview(page);
     await page.getByRole("link", { name: "Tilbake til forelesningen" }).click();
     await expect(page).toHaveURL(`/forelesninger/${lectureId}`);
     await expect(page.locator("main h1")).toHaveText("Uke 37: Merkevare");
     await expect(createSection(page).getByText("4 kort", { exact: true })).toBeVisible();
     // The session is saved, so the server now counts the lecture as practised,
     // and the sidebar shows it without a reload (story 5.1).
+    expect(practicedIn(await overview, lectureId)).toBe(true);
     await expect(sidebarLecture(page, "Uke 37: Merkevare")).toHaveAccessibleName("Uke 37: Merkevare Øvd");
     await expectNoAxeViolations(page);
   });
