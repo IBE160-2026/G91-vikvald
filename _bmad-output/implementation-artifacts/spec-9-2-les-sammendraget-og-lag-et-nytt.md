@@ -2,7 +2,7 @@
 title: 'Story 9.2: Les sammendraget og lag et nytt'
 type: 'feature'
 created: '2026-11-26'
-status: 'in-progress'
+status: 'done'
 baseline_revision: '0de869f3a8456715952dedfa1b32f4b3a040d502'
 review_loop_iteration: 0
 followup_review_recommended: false
@@ -11,7 +11,14 @@ context:
   - '{project-root}/_bmad-output/implementation-artifacts/autonom-kjoring.md'
   - '{project-root}/_bmad-output/implementation-artifacts/spec-9-1-lag-sammendrag-av-en-forelesning.md'
 warnings: ['oversized']
-deferred: []
+deferred:
+  - summary: >-
+      Ruten /forelesninger/<id>/sammendrag sjekkes bare av Playwright, som CI ikke kjører.
+    evidence: |-
+      .github/workflows/ci.yml kjører bare pytest og vitest; Playwright kjøres for hånd før fletting.
+    location: >-
+      .github/workflows/ci.yml
+    severity: low
 ---
 
 <intent-contract>
@@ -99,6 +106,49 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-26 — Review pass
+- verdicts: 35 findings — high 0, medium 0, low 22, false 11, maybe-false 2
+- findings:
+  - Verification Gap
+    - `[low]` `[patch]` Sorteringen av `files` i opplastingsrekkefølge var ikke testet (første fil ga også første punkt) — ny `test_fr54_filer_staar_i_opplastingsrekkefolge_ikke_punktenes` (`631eb38`).
+    - `[low]` `[defer]` Ruten `/forelesninger/<id>/sammendrag` sjekkes bare av Playwright, som CI ikke kjører — gjelder hele repoet fra før; Playwright kjøres for hånd før fletting, og det nevnes i PR-en.
+  - Intent Alignment
+    - `[low]` `[reject]` (1) Undertekst med flere temaer vises i e2e bare med demodata (1 og 2 temaer) — demomodellen gir ett tema per fil (Siljes avgjørelse 2026-11-14); flere temaer er testet i vitest og backend.
+    - `[low]` `[reject]` (2) 568 px er sjekket som klasse, ikke målt — skjermbildene i 1280 og 768 px sammenlignes med skisse 13.
+    - `[low]` `[reject]` (3) Valgt forelesning i sidemenyen er ikke testet på siden — `SubjectSidebar` med `currentLectureId` er testet fra før og brukes likt som på forelesningssiden; synlig i skjermbildene.
+    - `[low]` `[reject]` (4) Formelmerket på et punkt er bare testet i vitest — demomodellen setter aldri merket; `FormulaFlag` er delt og testet.
+    - `[false]` `[reject]` (5) INNHOLD/KILDER — vist med store bokstaver gjennom CSS, som overlinjene ellers i appen; skjermlesere leser ordet.
+    - `[low]` `[reject]` (6) For få punkter er spilt av i nettleseren — mock gir alltid samme sammendrag, så ekte TOO_FEW etter et sammendrag går ikke; backend-testen dekker bevaringen. Ført i beslutninger.md.
+    - `[false]` `[reject]` (7) FR-56 «når hun forlater siden» — siden har ingen skrivende kall og ingen økt-lagrer; e2e teller kall til lagring av økt og sjekker øvd.
+    - `[low]` `[reject]` (8) 404 for annens forelesning og bryter av er bare testet i API og vitest — samme rute og samme `notFound` som tilfellet som er testet i nettleseren.
+    - `[false]` `[reject]` (9) Meldingen dempes på sammendragssiden — bevisst, så resultatet ikke leses opp to ganger; testet.
+    - `[false]` `[reject]` (10) Tillegg utover storien (brødsmuler, venting, feil etter innlasting) — følger skisse 13 og radens oppførsel; ingen motsier storien.
+    - `[low]` `[reject]` (11) Full tab-rekkefølge er ikke testet — DOM-rekkefølgen følger leserekkefølgen (testet), og e2e bruker tastaturet.
+    - `[false]` `[reject]` (12) Spesifikasjonen og `frontend/e2e-skjermbilder/` er utenfor diffen — med vilje.
+  - Blind Hunter
+    - `[low]` `[patch]` Blank side når forelesningen feiler med noe annet enn 404 mens sammendraget lastes — `loadError` regnes per spørring; vitest-test (`631eb38`).
+    - `[low]` `[reject]` Ingen lastetilstand — som forelesningssiden og de andre sidene; svaret kommer raskt.
+    - `[low]` `[reject]` Brødsmulen viser «Emnet» hvis emnet ikke lastes — sjelden, og lenken virker likevel.
+    - `[maybe-false]` `[reject]` Knappen er aktiv før `jobs/latest` er lastet — en start da gir 409 med norsk melding; ville bare vært lav, og krever en ekstra vakt.
+    - `[low]` `[reject]` En gammel feilet jobb vises over sammendraget — samme kilde som raden (valgt i spesifikasjonen), forsvinner ved neste jobb.
+    - `[low]` `[reject]` Sammendraget hentes to ganger når jobben er ferdig — ufarlig, og tilbakekallet sikrer oppdatering uten jobbvakt.
+    - `[low]` `[patch]` Hvert tema ble et eget landemerke — `aria-labelledby` fjernet (`631eb38`).
+    - `[low]` `[reject]` Formelmerket i lesesvaret er ikke testet i backend — feltet kopieres rett; FR-41 er testet i løpet fra 9.1.
+    - `[false]` `[reject]` Importrekkefølgen i testfila — `ruff check` er rent.
+    - `[false]` `[reject]` Lange linjer — `ruff check` er rent; ESLint finnes ikke i frontenden.
+    - `[low]` `[reject]` Egen `SummarySource`-type — strukturelt lik `Source`; TypeScript sjekker begge.
+    - `[false]` `[reject]` Avhengighet mellom modulene — forelesningssiden importerer `generation` og `subjects` på samme måte.
+    - `[low]` `[reject]` Tallet 9 i axe-testen — mock-regelen er fast (3 + 6 sider); en endring gir en tydelig feil i testen.
+    - `[false]` `[reject]` KI-sporet mangler — føres i samme økt etter gjennomgangen, før PR-en.
+    - `[false]` `[reject]` `frontend/e2e-skjermbilder/` — fantes fra før, skal ikke røres.
+  - Edge Case Hunter
+    - `[low]` `[patch]` Samme som første Blind Hunter-funn (blank side) — rettet i `631eb38`.
+    - `[false]` `[reject]` En ny henting som gir 404, viser «Fant ikke siden» — riktig: sammendraget finnes ikke lenger (f.eks. fila slettet i en annen fane).
+    - `[maybe-false]` `[reject]` Kappløp mellom `jobs/latest` og `setQueryData` — samme mønster som raden fra epic 3; verste utfall er en 409 med melding.
+    - `[low]` `[reject]` Fokus blir på området når startkallet feiler — området er fokuserbart og navngitt, og feilen leses av `role="alert"`.
+    - `[false]` `[reject]` Ugyldig dato gir NaN — backend sender alltid en gyldig tid.
+    - `[low]` `[reject]` Temaer som bare skiller seg i store bokstaver eller mellomrom — utenfor kontrollreglene i FR-53.
+
 ## Design Notes
 
 - **Kilder:** `files` er filene punktene kommer fra, ikke alle filene i forelesningen. En fil som lastes opp etter sammendraget, er ikke en kilde, og sletting eller erstatting av en fil sletter uansett sammendraget. Undertekstens «fra N filer» bruker samme tall.
@@ -110,3 +160,27 @@ deferred: []
 - `cd backend && uv run pytest && uv run ruff check .` -- expected: alle grønne.
 - `cd frontend && npm run test && npx tsc --noEmit` -- expected: alle grønne.
 - `cd frontend && npx playwright test` mot `docker compose up --build -d` -- expected: alle grønne.
+
+## Auto Run Result
+
+**Status:** done
+
+**Hva som er bygd:** `GET /api/lectures/{id}/summary` bak `FEATURE_SUMMARY` (temaer i rekkefølgen de først dukker opp, punktene i lagret rekkefølge med kilde, og filene punktene kommer fra). Raden har omrissknappen «Les sammendrag», som åpner `/forelesninger/<id>/sammendrag`. Siden har sidemeny, brødsmuler, h1 «Sammendrag», underteksten, artikkelen på høyst 568 px, innholdskortet (INNHOLD, KILDER, «Lag nytt sammendrag») og merknaden. «Lag nytt sammendrag» starter jobben. Det gamle sammendraget står mens jobben går, og en feilet jobb gir feilteksten og «Prøv igjen». Jobbvakten viser ikke den korte meldingen på sammendragssiden. Axe-testen krever sammendragssiden (#301).
+
+**Filer:**
+- `backend/app/modules/content/{schemas,service,router}.py` -- lesefunksjonen og ruten.
+- `backend/tests/test_summary.py` -- lesetestene (FR-54, FR-55, FR-56, AR-11).
+- `frontend/components/create-row.tsx` -- `contentAction` i stedet for `contentActions`.
+- `frontend/modules/generation/components/{generation-row,summary-row,summary-remake,job-watcher}.tsx` -- knappen, «Lag nytt sammendrag» og meldingen.
+- `frontend/modules/content/*`, `frontend/app/(app)/forelesninger/[lectureId]/sammendrag/page.tsx` -- siden.
+- `frontend/lib/dates.ts` -- `formatLocalDate`.
+- `frontend/e2e/sammendrag.spec.ts`, `universell-utforming.spec.ts` -- nettlesertestene og #301.
+- `docs/testplan.md` -- kravene.
+
+**Gjennomgang:** 35 funn. 3 rettet (alle lav: blank side ved feil i forelesningen, ett landemerke per tema, test av filrekkefølgen; `631eb38`), 1 utsatt (Playwright kjøres ikke i CI), resten avvist med grunn i loggen over. Etter gjennomgangen viste skjermbildene at «Les sammendrag» var fylt, mot Siljes avgjørelse om at bare «Øv nå» er fylt; rettet til omriss (`5e08fc9`).
+
+**followup_review_recommended:** false. Ingen høy eller middels retting; endringene er dekket av tester og en ny full kjøring.
+
+**Verifisering:** `uv run pytest` 1008 bestått, `ruff check .` rent; `npm run test` 1086 bestått, `npx tsc --noEmit` rent (før omriss-rettingen; de berørte filene 103 bestått etterpå); `npx playwright test` mot `docker compose up --build -d` etter alle rettinger: 211 bestått og 4 hoppet over (seed-testene); seed-testene med `E2E_REQUIRE_SEED=1` mot `sk-seedtest` med de samme bildene: 10 bestått.
+
+**Gjenstående risiko:** Kildeteksten har ikke strek under som i skisse 13 (delt komponent, med vilje uten lenke i MVP). Ruten testes bare av Playwright, som CI ikke kjører.
