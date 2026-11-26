@@ -18,10 +18,11 @@ export type CreateRowProps = {
   // «24 kort» or «Ingen ennå»
   countText: string;
   hasContent: boolean;
-  // Whether «Lag flere» and «Øv nå» are shown with content (default true).
-  // False: with content the row shows only its count and no buttons (the
-  // summary row in story 9.1, before «Les sammendrag» in story 9.2).
-  contentActions?: boolean;
+  // With content, this primary button replaces «Lag flere» and «Øv nå»,
+  // in the same place and width as «Øv nå» (the summary row's «Les
+  // sammendrag», story 9.2). Like «Øv nå» it needs no job, so it stays
+  // active while another row's job runs.
+  contentAction?: { label: string; onClick: () => void };
   state: CreateRowState;
   // Shown under the count in waiting and disabled, e.g. «Last opp notater først.».
   reason?: string;
@@ -53,7 +54,8 @@ export type CreateRowProps = {
 // create-row (DESIGN.md "Forelesning", mockup 04): one row in «Lag og øv»,
 // at least 96 px high. Title and count on the left, with a filled dot when the
 // type has content and a hollow one when it has none. Actions on the right:
-// with content the primary «Øv nå» and the text button «Lag flere» with a plus;
+// with content the primary «Øv nå» and the text button «Lag flere» with a plus
+// (or only the primary `contentAction`, e.g. «Les sammendrag»);
 // without, the outline button «Lag …». While a job runs, job-status stands in
 // place of the buttons. An always-mounted live region reads `announcement`.
 // Under the row: `message` on the note surface with the info icon, and
@@ -62,7 +64,7 @@ export function CreateRow({
   title,
   countText,
   hasContent,
-  contentActions = true,
+  contentAction,
   state,
   reason,
   createLabel,
@@ -111,7 +113,16 @@ export function CreateRow({
           ) : null}
           {state === "running" ? (
             <JobStatus text={jobText} />
-          ) : hasContent && !contentActions ? null : hasContent ? (
+          ) : hasContent && contentAction ? (
+            <Button
+              className="min-w-[184px]"
+              onClick={contentAction.onClick}
+              disabled={state === "disabled"}
+              aria-describedby={state === "disabled" ? describedBy : undefined}
+            >
+              {contentAction.label}
+            </Button>
+          ) : hasContent ? (
             <>
               <Button variant="text" onClick={onCreateMore} disabled={blocked} aria-describedby={describedBy}>
                 <Plus {...iconProps} />

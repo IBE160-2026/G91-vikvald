@@ -1752,7 +1752,7 @@ describe("Fritekstspørsmål (story 8.1)", () => {
   });
 });
 
-describe("Sammendrag (story 9.1)", () => {
+describe("Sammendrag (story 9.1 og 9.2)", () => {
   function summaryRow() {
     return screen.getByRole("group", { name: "Sammendrag" });
   }
@@ -1780,13 +1780,18 @@ describe("Sammendrag (story 9.1)", () => {
     expect(within(row).queryByRole("button", { name: "Øv nå" })).toBeNull();
   });
 
-  it("FR-53: med sammendrag viser raden antallet punkter og ingen knapp", async () => {
+  it("FR-53, FR-54: med sammendrag viser raden antallet punkter og hovedknappen «Les sammendrag», som åpner siden", async () => {
     files = [uploadedFile("merkevare.pdf", 6)];
     summaryCount = 7;
     renderPage();
     const row = await screen.findByRole("group", { name: "Sammendrag" });
     expect(await within(row).findByText("7 punkter")).toBeTruthy();
-    expect(within(row).queryAllByRole("button")).toEqual([]);
+    const read = within(row).getByRole("button", { name: "Les sammendrag" }) as HTMLButtonElement;
+    expect(read.dataset.variant).toBe("primary");
+    expect(read.className).toContain("min-w-[184px]");
+    expect(within(row).getAllByRole("button")).toEqual([read]);
+    fireEvent.click(read);
+    expect(push).toHaveBeenCalledWith("/forelesninger/l2/sammendrag");
   });
 
   it("FR-53: ett punkt står i entall", async () => {
@@ -1845,7 +1850,7 @@ describe("Sammendrag (story 9.1)", () => {
     expect(within(summaryRow()).getByRole("status").textContent).toBe(
       "Sammendraget er ferdig: 6 punkter i Uke 38: Prising.",
     );
-    expect(within(summaryRow()).queryAllByRole("button")).toEqual([]);
+    expect(within(summaryRow()).getByRole("button", { name: "Les sammendrag" })).toBeTruthy();
   });
 
   it("FR-53: for få punkter gir meldingen for TOO_FEW_SUMMARY_POINTS og «Prøv igjen»", async () => {
