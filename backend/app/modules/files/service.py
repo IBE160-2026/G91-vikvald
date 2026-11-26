@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import storage
 from app.core.errors import AppError, ErrorCode
 from app.modules.content.registry import check_delete_allowed
+from app.modules.content.service import delete_summaries_for_files
 from app.modules.files.pdf import PdfPage, render_pages_png
 from app.modules.files.models import ORIGINAL_NAME_MAX_LENGTH, File, FilePage
 from app.modules.identity.service import delete_user
@@ -51,6 +52,8 @@ async def store_file(
     and the answer is 404 NOT_FOUND. The caller removes the old PDF after this
     returns, that is after the commit."""
     if replaces is not None:
+        # The lecture's summary goes with the old file, in this transaction (E15).
+        await delete_summaries_for_files(session, (replaces,))
         result = await session.execute(
             delete(File).where(File.id == replaces, File.lecture_id == lecture_id)
         )
@@ -160,8 +163,11 @@ async def file_ids_by_lecture(
 
 
 async def delete_file(session: AsyncSession, file_id: uuid.UUID) -> None:
-    """Delete the file row in one statement; its pages go with ON DELETE CASCADE.
-    The caller commits and removes the PDF afterwards."""
+    """Delete the file row in one statement; its pages and the content made
+    from it go with ON DELETE CASCADE. The lecture's whole summary is deleted
+    first, in the same transaction (E15). The caller commits and removes the
+    PDF afterwards."""
+    await delete_summaries_for_files(session, (file_id,))
     await session.execute(delete(File).where(File.id == file_id))
 
 

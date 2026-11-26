@@ -44,6 +44,7 @@ class ErrorCode(StrEnum):
     GENERATION_FAILED = "GENERATION_FAILED"
     GENERATION_TIMEOUT = "GENERATION_TIMEOUT"
     JOB_INTERRUPTED = "JOB_INTERRUPTED"
+    TOO_FEW_SUMMARY_POINTS = "TOO_FEW_SUMMARY_POINTS"
     FLASHCARD_FRONT_REQUIRED = "FLASHCARD_FRONT_REQUIRED"
     FLASHCARD_BACK_REQUIRED = "FLASHCARD_BACK_REQUIRED"
 
@@ -79,6 +80,9 @@ ERROR_STATUS: dict[ErrorCode, int] = {
     ErrorCode.GENERATION_FAILED: 500,
     ErrorCode.GENERATION_TIMEOUT: 504,
     ErrorCode.JOB_INTERRUPTED: 500,
+    # Also stored on a failed job: fewer than 5 summary points passed the
+    # checks (FR-53), so nothing was stored and the old summary stays.
+    ErrorCode.TOO_FEW_SUMMARY_POINTS: 422,
     # A student edit of a card with an empty (or only blank) field.
     ErrorCode.FLASHCARD_FRONT_REQUIRED: 422,
     ErrorCode.FLASHCARD_BACK_REQUIRED: 422,
