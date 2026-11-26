@@ -184,3 +184,5 @@
 - [ ] 2026-11-26 [story-9-1-sammendrag](941-2026-11-26-02-00-59-story-9-1-sammendrag.md) — bare 3,2 GB disk er ledig etter kjøringen, under grensen på 5 GB for neste `--build`
 - [ ] 2026-11-26 [story-9-2-les-sammendraget](940-2026-11-26-05-56-02-story-9-2-les-sammendraget.md) — vurder kanttilfellene fra story 9.2 (#360–#364), særlig omrissknappen (#360) og KILDER (#361)
 - [ ] 2026-11-26 [story-9-2-les-sammendraget](940-2026-11-26-05-56-02-story-9-2-les-sammendraget.md) — kildeteksten under punktene mangler streken under fra skisse 13
+- [ ] 2026-11-26 [orkestrator-epic-5-til-9](938-2026-11-26-06-30-53-orkestrator-epic-5-til-9.md) — gå gjennom epic 5–9 i gjennomgangsissuene #266, #311, #328, #351 og #367
+- [ ] 2026-11-26 [orkestrator-epic-5-til-9](938-2026-11-26-06-30-53-orkestrator-epic-5-til-9.md) — frigjør 10–15 GB på disken; bare rundt 4 GB er ledig etter sluttsjekken
