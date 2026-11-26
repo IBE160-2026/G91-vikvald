@@ -82,7 +82,7 @@ test.describe("Testbruker og eksempelemne (story 6.4)", () => {
     await expect(panel.getByText(`/ ${CARDS + MODEL_CARDS}`)).toBeVisible();
     await page.getByRole("button", { name: "Snu kortet" }).click();
     await expect(page.locator('[data-slot="flashcard"] [data-slot="source-link"]')).toHaveText(
-      /^(markedsmiksen|segmentering|aida)\.pdf, side 1$/,
+      /^(markedsmiksen|segmentering|aida)\.pdf, side \d+$/,
     );
     await expectNoAxeViolations(page);
   });

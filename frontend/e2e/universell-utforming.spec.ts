@@ -278,7 +278,8 @@ test.describe("Universell utforming og skjermbredde på alle sider (story 6.6)",
   // instead of assuming an address, so the pages are checked as soon as they
   // are built. An entry that is built (`built`) must be there when its switch is
   // on (#301): «Lag modellkort» since story 7.1, the row «Fritekstspørsmål»
-  // (its «Lag fritekstspørsmål» dialog) since story 8.1. For the others, while a switch
+  // (its «Lag fritekstspørsmål» dialog) since story 8.1, and the row «Sammendrag»
+  // («Lag sammendrag», which starts the job directly) since story 9.1. For the others, while a switch
   // is on and the entry is not there, the test notes «ikke bygd ennå» and is green.
   test("NFR-13, NFR-14, SK-9: bør ha-sidene som er skrudd på i GET /api/config, i 1280 og 768 px", async ({ page }, testInfo) => {
     const configResponse = await page.request.get("/api/config");
@@ -306,6 +307,7 @@ test.describe("Universell utforming og skjermbredde på alle sider (story 6.6)",
         flag: "feature_summary",
         name: "Sammendrag",
         entry: makeAndPractise.getByRole("group", { name: "Sammendrag" }).getByRole("button").first(),
+        built: true,
       },
     ];
     for (const { flag, name, entry, built } of entries) {
