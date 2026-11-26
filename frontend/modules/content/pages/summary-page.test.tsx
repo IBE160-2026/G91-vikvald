@@ -147,7 +147,7 @@ beforeEach(() => {
   fetchMock.mockImplementation(async (url, init) => {
     const path = String(url);
     if (path === "/api/lectures/l1") {
-      if (lectureStatus !== 200) return errorResponse(lectureStatus, "NOT_FOUND");
+      if (lectureStatus !== 200) return errorResponse(lectureStatus, lectureStatus === 404 ? "NOT_FOUND" : "INTERNAL_ERROR");
       return jsonResponse(200, LECTURE);
     }
     if (path === "/api/subjects/s1") return jsonResponse(200, SUBJECT);
@@ -393,6 +393,13 @@ describe("SummaryPage", () => {
     await within(card()).findByRole("button", { name: "Lag nytt sammendrag" });
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes("practice-sessions"))).toBe(false);
     expect(fetchMock.mock.calls.every(([, init]) => !init?.method || init.method === "GET")).toBe(true);
+  });
+
+  it("en annen feil enn 404 for forelesningen gir feilmeldingen, også når sammendraget kom", async () => {
+    lectureStatus = 500;
+    renderPage();
+    expect((await screen.findByRole("alert")).textContent).toBe(FALLBACK_MESSAGE);
+    expect(notFound).not.toHaveBeenCalled();
   });
 
   it("andre feil enn 404 gir feilmeldingen", async () => {

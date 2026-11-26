@@ -80,8 +80,8 @@ export function SummaryPage({ lectureId }: { lectureId: string }) {
   if (lecture.error) notFoundWhenMissingOrOff(lecture.error);
   if (summary.error) notFoundWhenMissingOrOff(summary.error);
 
-  // Only while there is no summary to show: a failed refetch keeps the old one.
-  const loadError = (lecture.isError || summary.isError) && !summary.data;
+  // Per query, only while it has nothing to show: a failed refetch keeps the old data.
+  const loadError = (lecture.isError && !lecture.data) || (summary.isError && !summary.data);
 
   return (
     <div className="flex min-h-[calc(100vh-var(--spacing-topbar-height))]">
@@ -117,8 +117,9 @@ export function SummaryPage({ lectureId }: { lectureId: string }) {
 
               <article aria-label={`Sammendrag av ${lecture.data.name}`} className="mt-6 flex flex-col gap-6">
                 {summary.data.themes.map((theme, index) => (
-                  <section key={`${index}-${theme.title}`} aria-labelledby={`summary-theme-${index}`}>
-                    <h2 id={`summary-theme-${index}`} className="text-section-title break-words">
+                  // No aria-labelledby: a named section per theme would flood the landmark list.
+                  <section key={`${index}-${theme.title}`}>
+                    <h2 className="text-section-title break-words">
                       {theme.title}
                     </h2>
                     <ul className="mt-3 flex list-disc flex-col gap-4 pl-5 marker:text-ink-muted">

@@ -24,6 +24,7 @@ from app.core.errors import ERROR_STATUS, ErrorCode
 from app.main import app
 from app.modules.content import registry as content_registry
 from app.modules.content.models import Summary, SummaryPoint
+from app.modules.content.service import NewSummaryPoint, replace_summary
 from app.modules.practice.models import PracticeSession
 from app.modules.generation import service, summary
 from app.modules.generation.mock import InvalidMockGenerator, MockGenerator
@@ -542,6 +543,33 @@ async def test_fr54_les_gir_temaer_punkter_kilde_og_filer(client: AsyncClient) -
         {"file_id": first_id, "file_name": "a.pdf", "page_count": 3},
         {"file_id": second_id, "file_name": "b.pdf", "page_count": 4},
     ]
+
+
+async def test_fr54_filer_staar_i_opplastingsrekkefolge_ikke_punktenes(
+    client: AsyncClient, engine: AsyncEngine
+) -> None:
+    await _log_in_new_user(client)
+    lecture_id = await _new_lecture(client)
+    first = await _upload(client, lecture_id, pdf_with_pages(page_texts(3)), "a.pdf")
+    second = await _upload(client, lecture_id, pdf_with_pages(page_texts(3, 4)), "b.pdf")
+    first_id, second_id = uuid.UUID(first.json()["id"]), uuid.UUID(second.json()["id"])
+
+    # The job always stores the first-uploaded file's points first, so the
+    # summary is stored directly with a point from the second file first.
+    rows = [(second_id, 1, "B"), (second_id, 2, "B"), (first_id, 1, "A"), (first_id, 2, "A"), (second_id, 3, "B")]
+    async with async_sessionmaker(engine)() as session:
+        await replace_summary(
+            session,
+            uuid.UUID(lecture_id),
+            [NewSummaryPoint(file_id=file_id, page_no=page_no, theme=theme, text=f"{theme} {page_no}.")
+             for file_id, page_no, theme in rows],
+        )
+        await session.commit()
+
+    body = (await _read(client, lecture_id)).json()
+    assert body["themes"][0]["points"][0]["source"]["file_id"] == str(second_id)
+    assert [theme["title"] for theme in body["themes"]] == ["B", "A"]
+    assert [file["file_id"] for file in body["files"]] == [str(first_id), str(second_id)]
 
 
 async def test_fr54_filer_er_bare_de_punktene_kommer_fra(client: AsyncClient, lecture: str) -> None:
