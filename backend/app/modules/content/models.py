@@ -106,3 +106,43 @@ class FreetextQuestion(Base):
     # The order the row was made in within the batch it was saved with, as for
     # the other content tables.
     position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
+
+class Summary(Base):
+    """A lecture's summary (epic 9): at most one per lecture. A new summary
+    replaces the old one in one transaction (FR-55)."""
+
+    __tablename__ = "summaries"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    # The summary belongs to the lecture, not to a file. Deleting the lecture
+    # deletes it; deleting one of its files deletes it through the content module.
+    lecture_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("lectures.id", ondelete="CASCADE"), index=True, unique=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utc_now)
+
+
+class SummaryPoint(Base):
+    """One main point of a summary, with the file and page it comes from (FR-54)."""
+
+    __tablename__ = "summary_points"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    summary_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("summaries.id", ondelete="CASCADE"), index=True
+    )
+    # The short theme title the point is shown under.
+    theme: Mapped[str] = mapped_column(Text)
+    # The point's place in the summary (0, 1, ...), in the order it is shown.
+    position: Mapped[int] = mapped_column(Integer)
+    text: Mapped[str] = mapped_column(Text)
+    # The source only. A safety net: deleting a file deletes the whole summary
+    # first (content.service.delete_summaries_for_files).
+    file_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("files.id", ondelete="CASCADE"), index=True
+    )
+    # The PDF's own page number, starting at 1.
+    page_no: Mapped[int] = mapped_column(Integer)
+    # As for the other content (FR-41); set by the generation pipeline.
+    formula_flag: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())

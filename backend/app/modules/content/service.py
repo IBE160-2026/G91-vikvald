@@ -1,7 +1,8 @@
 """Business logic for stored content: save generated flashcards, model cards,
-quiz questions and free-text questions, count them, list flashcards, quiz
-questions and free-text questions with their source, and let the student edit or delete a flashcard
-and delete a quiz question."""
+quiz questions, free-text questions and summaries, count them, list
+flashcards, quiz questions and free-text questions with their source, let the
+student edit or delete a flashcard and delete a quiz question, and delete a
+lecture's summary when one of its files goes."""
 
 import hashlib
 import uuid
@@ -9,7 +10,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import cast
 
-from sqlalchemy import func, select
+from sqlalchemy import Select, delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError, ErrorCode
@@ -20,6 +21,8 @@ from app.modules.content.models import (
     Flashcard,
     FreetextQuestion,
     QuizQuestion,
+    Summary,
+    SummaryPoint,
 )
 from app.modules.content.registry import DeleteScope
 from app.modules.content.schemas import (
@@ -706,3 +709,79 @@ async def delete_freetext_question(session: AsyncSession, user_id: uuid.UUID, qu
     question = await get_freetext_question(session, user_id, question_id)
     await session.delete(question)
     await session.commit()
+
+
+@dataclass(frozen=True)
+class NewSummaryPoint:
+    file_id: uuid.UUID
+    page_no: int
+    # The short theme title the point is shown under.
+    theme: str
+    text: str
+    # As for NewFlashcard (FR-41).
+    formula_flag: bool = False
+
+
+async def replace_summary(session: AsyncSession, lecture_id: uuid.UUID, points: list[NewSummaryPoint]) -> None:
+    """Put a new summary in place of the lecture's old one (FR-55): the old
+    summary (and its points) is deleted and the new one added in the same
+    transaction, so there is never two or half a summary. position is each
+    point's place in the list. The caller commits (one transaction with the job)."""
+    # The old points go with ON DELETE CASCADE (summary_points.summary_id).
+    await session.execute(delete(Summary).where(Summary.lecture_id == lecture_id))
+    summary = Summary(id=uuid.uuid4(), lecture_id=lecture_id, created_at=datetime.now(UTC))
+    session.add(summary)
+    session.add_all(
+        SummaryPoint(
+            id=uuid.uuid4(),
+            summary_id=summary.id,
+            theme=point.theme,
+            position=position,
+            text=point.text,
+            file_id=point.file_id,
+            page_no=point.page_no,
+            formula_flag=point.formula_flag,
+        )
+        for position, point in enumerate(points)
+    )
+
+
+async def summary_point_count(session: AsyncSession, lecture_id: uuid.UUID) -> int:
+    """The number of points in the lecture's summary (0 without one)."""
+    statement = (
+        select(func.count(SummaryPoint.id))
+        .join(Summary, SummaryPoint.summary_id == Summary.id)
+        .where(Summary.lecture_id == lecture_id)
+    )
+    return int(await session.scalar(statement) or 0)
+
+
+def _lectures_of_files(file_ids: tuple[uuid.UUID, ...]) -> Select[tuple[uuid.UUID]]:
+    """The lectures the files belong to, as a subquery."""
+    return select(File.lecture_id).where(File.id.in_(file_ids))
+
+
+async def count_summaries(session: AsyncSession, scope: DeleteScope) -> int:
+    """The summaries that go with the delete (FR-12): those of the lectures
+    that have a file in file_ids (deleting one file deletes the whole summary)
+    or are deleted as a whole (lecture_ids)."""
+    conditions = []
+    if scope.file_ids:
+        conditions.append(Summary.lecture_id.in_(_lectures_of_files(scope.file_ids)))
+    if scope.lecture_ids:
+        conditions.append(Summary.lecture_id.in_(scope.lecture_ids))
+    if not conditions:
+        return 0
+    statement = select(func.count(Summary.id)).where(or_(*conditions))
+    return int(await session.scalar(statement) or 0)
+
+
+async def delete_summaries_for_files(session: AsyncSession, file_ids: tuple[uuid.UUID, ...]) -> None:
+    """Delete the whole summary of every lecture that has one of these files
+    (E15, FR-55): a summary belongs to the lecture, so it goes when any of its
+    files is deleted or replaced, also the points from the other files. Called
+    by `files` before the files are deleted, in the same transaction; the
+    caller commits."""
+    if not file_ids:
+        return
+    await session.execute(delete(Summary).where(Summary.lecture_id.in_(_lectures_of_files(file_ids))))

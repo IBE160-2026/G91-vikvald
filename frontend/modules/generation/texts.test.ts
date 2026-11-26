@@ -42,6 +42,34 @@ describe("tekstene for flashcards", () => {
   });
 });
 
+describe("tekstene for sammendraget (story 9.1)", () => {
+  const texts = generationTexts.summary;
+
+  it("FR-53: jobbteksten, ventingen og ferdigmeldingen", () => {
+    expect(texts.jobText).toBe("Lager sammendrag …");
+    expect(texts.waiting).toBe("Venter til sammendraget er ferdig");
+    expect(texts.done(7, "Uke 37: Merkevare")).toBe("Sammendraget er ferdig: 7 punkter i Uke 37: Merkevare.");
+  });
+
+  it("FR-21: feil, tidsgrense og avbrutt gir feilteksten for sammendraget", () => {
+    for (const code of ["GENERATION_FAILED", "GENERATION_TIMEOUT", "JOB_INTERRUPTED", null]) {
+      expect(texts.failed(code)).toBe("Vi klarte ikke å lage sammendraget. Ingenting er lagret. Prøv igjen.");
+    }
+  });
+
+  it("FR-53: for få punkter har sin egen melding, og aldri «færre enn valgt»", () => {
+    expect(texts.failed("TOO_FEW_SUMMARY_POINTS")).toBe(
+      "Notatene ga ikke grunnlag for et sammendrag med minst 5 punkter. Det gamle sammendraget er beholdt.",
+    );
+    expect(texts.fewer).toBeUndefined();
+    const done = job({ kind: "summary", params: { requested: 15 }, requested: 15, created: 6 });
+    expect(jobOutcome(done)).toEqual({ type: "complete" });
+    expect(finishedText(done, "Uke 37")).toBe("Sammendraget er ferdig: 6 punkter i Uke 37.");
+    const failed = job({ kind: "summary", status: "failed", created: null, error_code: "TOO_FEW_SUMMARY_POINTS" });
+    expect(finishedText(failed, "Uke 37")).toBe(texts.failed("TOO_FEW_SUMMARY_POINTS"));
+  });
+});
+
 describe("jobOutcome", () => {
   it("FR-21: en feilet jobb gir feilteksten", () => {
     expect(jobOutcome(job({ status: "failed", created: null, error_code: "GENERATION_TIMEOUT" }))).toEqual({

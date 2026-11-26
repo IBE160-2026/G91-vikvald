@@ -6,6 +6,8 @@ the keys of existing content -> the port -> validate_item per item (invalid
 items are thrown away and counted) -> the valid items in a fixed order (file,
 page) -> at most `requested` of them -> saved together with the finished job in
 one commit. If anything fails, nothing is stored and the job becomes failed.
+A type with min_items (the summary) fails with its own code when fewer valid
+items are left.
 The model call has a time limit (GENERATION_TIMEOUT_SECONDS); when it runs
 out, the job becomes failed with GENERATION_TIMEOUT.
 
@@ -53,6 +55,15 @@ MAX_PAGE_IMAGES = 20
 # would fail the whole job. Images are attached in page order while the total
 # stays within this; later pages are sent as text only, still flagged.
 MAX_PAGE_IMAGE_BYTES = 15 * 1024 * 1024
+
+
+class TooFewItemsError(Exception):
+    """Fewer valid items than the content type's min_items. The job fails with
+    the type's own code (e.g. TOO_FEW_SUMMARY_POINTS) and nothing is stored."""
+
+    def __init__(self, code: ErrorCode) -> None:
+        super().__init__(code.value)
+        self.code = code
 
 
 class GenerationTimeoutError(Exception):
@@ -172,6 +183,9 @@ async def run_job(
     except GenerationTimeoutError:
         logger.error("Generation job %s failed: %s", job_id, ErrorCode.GENERATION_TIMEOUT.value)
         await _mark_failed(job_id, sessionmaker, ErrorCode.GENERATION_TIMEOUT)
+    except TooFewItemsError as exc:
+        logger.warning("Generation job %s failed: %s", job_id, exc.code.value)
+        await _mark_failed(job_id, sessionmaker, exc.code)
     except Exception as exc:
         # Only ids and the kind of error: never page text or generated content.
         logger.error(
@@ -197,6 +211,7 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
         existing_keys=await content_type.existing_keys(session, job.lecture_id),
         difficulty=(job.params or {}).get("difficulty"),
         question_kind=(job.params or {}).get("question_kind"),
+        lecture_id=job.lecture_id,
     )
     # End the read transaction before the (possibly slow) page images and model call.
     await session.commit()
@@ -227,6 +242,11 @@ async def _generate_and_save(session: AsyncSession, job_id: uuid.UUID, generator
         ValidItem(checked, formula_flag(needs_image[(checked.file_id, checked.page_no)], checked))
         for checked in valid[: job.requested]
     ]
+    if content_type.surplus_discarded:
+        discarded += len(valid) - len(kept)
+    if len(kept) < content_type.min_items:
+        # Nothing is stored, so whatever the lecture had stays (the old summary).
+        raise TooFewItemsError(content_type.too_few_error or ErrorCode.GENERATION_FAILED)
 
     try:
         await content_type.save(session, kept, options)

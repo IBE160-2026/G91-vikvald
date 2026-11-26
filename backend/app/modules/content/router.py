@@ -41,6 +41,7 @@ from app.modules.content.service import (
     subject_flashcards,
     subject_freetext_questions,
     subject_quiz_questions,
+    summary_point_count,
     update_flashcard,
 )
 from app.modules.identity.dependencies import current_user
@@ -65,6 +66,7 @@ async def lecture_content_counts(lecture_id: str, user: CurrentUser, session: Se
         quiz_questions=await quiz_question_count(session, lecture.id),
         model_cards=await model_card_count(session, lecture.id),
         freetext_questions=await freetext_question_count(session, lecture.id),
+        summary_points=await summary_point_count(session, lecture.id),
     )
 
 

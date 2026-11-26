@@ -5,8 +5,8 @@ function that counts its rows made from a set of files and lectures. The delete
 preview asks the registry, so a new content type shows up in the confirmation
 without any change to the delete code. Flashcards and quiz questions are
 registered by this module itself (the first time the registry is used), so
-they always come first, in that order, followed by model cards and free-text
-questions.
+they always come first, in that order, followed by model cards, free-text
+questions and summaries.
 
 The module also keeps the delete guards (AR-7): a module that owns something
 that must stop a delete (generation's running jobs) registers a guard here, and
@@ -73,6 +73,7 @@ def _ensure_builtin_counters() -> None:
         count_freetext_questions,
         count_model_cards,
         count_quiz_questions,
+        count_summaries,
     )
 
     _counters["flashcards"] = count_flashcards
@@ -84,6 +85,10 @@ def _ensure_builtin_counters() -> None:
     # Free-text questions (epic 8), always registered for the same reason as
     # model cards (FEATURE_FREETEXT).
     _counters["freetext_questions"] = count_freetext_questions
+    # Summaries (epic 9), always registered for the same reason
+    # (FEATURE_SUMMARY). A summary belongs to the lecture, and deleting any of
+    # its files deletes it, so it is counted by lecture.
+    _counters["summaries"] = count_summaries
     # Set only once registered, so a failed import is tried again next time.
     _builtin_counters_registered = True
 

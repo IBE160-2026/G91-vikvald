@@ -18,6 +18,10 @@ export type CreateRowProps = {
   // «24 kort» or «Ingen ennå»
   countText: string;
   hasContent: boolean;
+  // Whether «Lag flere» and «Øv nå» are shown with content (default true).
+  // False: with content the row shows only its count and no buttons (the
+  // summary row in story 9.1, before «Les sammendrag» in story 9.2).
+  contentActions?: boolean;
   state: CreateRowState;
   // Shown under the count in waiting and disabled, e.g. «Last opp notater først.».
   reason?: string;
@@ -58,6 +62,7 @@ export function CreateRow({
   title,
   countText,
   hasContent,
+  contentActions = true,
   state,
   reason,
   createLabel,
@@ -106,7 +111,7 @@ export function CreateRow({
           ) : null}
           {state === "running" ? (
             <JobStatus text={jobText} />
-          ) : hasContent ? (
+          ) : hasContent && !contentActions ? null : hasContent ? (
             <>
               <Button variant="text" onClick={onCreateMore} disabled={blocked} aria-describedby={describedBy}>
                 <Plus {...iconProps} />

@@ -14,7 +14,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from app.core.config import Settings
-from app.modules.content.models import Flashcard, FreetextQuestion, QuizQuestion
+from app.modules.content.models import Flashcard, FreetextQuestion, QuizQuestion, Summary, SummaryPoint
 from app.modules.files.models import File
 from app.modules.generation import flashcards
 from app.modules.generation.flashcards import definition_term, normalise, sentences
@@ -35,7 +35,7 @@ from app.modules.practice.service import overview
 from app.modules.subjects.models import Lecture, Subject
 from app.seed import __main__ as seed_main
 from app.seed import service as seed_service
-from app.seed.build_notes import NOTES_DIR, build_pdf, is_note, note_sources, plain_text
+from app.seed.build_notes import NOTES_DIR, PAGE_BREAK, build_pdf, is_note, note_sources, plain_text
 from app.seed.service import LECTURES, SUBJECT_NAME, TEST_EMAIL, TEST_PASSWORD, seed_if_empty
 
 BACKEND = Path(__file__).resolve().parents[1]
@@ -76,7 +76,19 @@ async def _count(sessionmaker: async_sessionmaker[AsyncSession], model: Any) -> 
 
 
 async def _all_counts(sessionmaker: async_sessionmaker[AsyncSession]) -> dict[str, int]:
-    models = (User, Subject, Lecture, File, Job, Flashcard, QuizQuestion, FreetextQuestion, PracticeSession)
+    models = (
+        User,
+        Subject,
+        Lecture,
+        File,
+        Job,
+        Flashcard,
+        QuizQuestion,
+        FreetextQuestion,
+        Summary,
+        SummaryPoint,
+        PracticeSession,
+    )
     return {model.__tablename__: await _count(sessionmaker, model) for model in models}
 
 
@@ -134,7 +146,9 @@ async def test_nfr3_seed_creates_test_user_and_subject(
             )
             assert {question.kind for question in freetext} == {"short"}
             kinds = sorted(await session.scalars(select(Job.kind).where(Job.lecture_id == lecture.id)))
-            assert kinds == ["flashcards", "freetext", "models", "quiz"]
+            # Only the AIDA note has the 5 pages a summary needs (FR-53).
+            summary = ["summary"] if lecture.name == "AIDA-modellen" else []
+            assert kinds == sorted(["flashcards", "freetext", "models", "quiz", *summary])
     assert await _count(sessionmaker, PracticeSession) == 2
 
 
@@ -142,7 +156,9 @@ async def test_ar14_seed_jobs_all_done_none_failed(sessionmaker: async_sessionma
     await seed_if_empty(sessionmaker, _settings())
     async with sessionmaker() as session:
         jobs = list(await session.scalars(select(Job)))
-    assert len(jobs) == len(LECTURES) * len(enabled_content_types(_settings()))
+    # Every enabled type for every lecture, except the summary, which only
+    # «AIDA-modellen» gets.
+    assert len(jobs) == len(LECTURES) * len(enabled_content_types(_settings())) - (len(LECTURES) - 1)
     assert {job.status for job in jobs} == {JOB_DONE}
     assert all(job.error_code is None and job.discarded == 0 for job in jobs)
     # Made the same way as POST /api/lectures/{id}/jobs: quiz gets the default difficulty.
@@ -151,6 +167,7 @@ async def test_ar14_seed_jobs_all_done_none_failed(sessionmaker: async_sessionma
         "quiz": {"requested": 20, "difficulty": "medium"},
         "models": {"requested": 20},
         "freetext": {"requested": 10, "question_kind": "short"},
+        "summary": {"requested": 15},
     }
 
 
@@ -338,7 +355,7 @@ async def test_fr42_seed_makes_no_model_cards_with_switch_off(
         assert list(await session.scalars(select(Flashcard).where(Flashcard.kind == "model"))) == []
         assert list(await session.scalars(select(Job).where(Job.kind == "models"))) == []
         # The other content is made as before.
-        assert set(await session.scalars(select(Job.kind))) == {"flashcards", "quiz", "freetext"}
+        assert set(await session.scalars(select(Job.kind))) == {"flashcards", "quiz", "freetext", "summary"}
 
 
 async def test_nfr3_overview_shows_practised_and_not_practised(sessionmaker: async_sessionmaker[AsyncSession]) -> None:
@@ -508,4 +525,61 @@ async def test_fr48_seed_makes_no_freetext_questions_with_switch_off(
     async with sessionmaker() as session:
         assert list(await session.scalars(select(FreetextQuestion))) == []
         assert list(await session.scalars(select(Job).where(Job.kind == "freetext"))) == []
-        assert set(await session.scalars(select(Job.kind))) == {"flashcards", "quiz", "models"}
+        assert set(await session.scalars(select(Job.kind))) == {"flashcards", "quiz", "models", "summary"}
+
+
+# --- The summary (story 9.1: FR-53, NFR-3, AR-14) ----------------------------
+
+
+def test_nfr3_aida_note_has_at_least_five_pages() -> None:
+    from app.modules.files.pdf import read_pages
+
+    source = (NOTES_DIR / "aida.md").read_text(encoding="utf-8")
+    assert source.count(f"\n{PAGE_BREAK}\n") >= 4
+    pages = read_pages((NOTES_DIR / "aida.pdf").read_bytes())
+    assert len(pages) >= 5
+    assert all(sentences(page.text) for page in pages)
+
+
+@pytest.mark.parametrize("name", ["markedsmiksen", "segmentering"])
+def test_nfr3_other_notes_stay_one_page(name: str) -> None:
+    from app.modules.files.pdf import read_pages
+
+    assert PAGE_BREAK not in (NOTES_DIR / f"{name}.md").read_text(encoding="utf-8").splitlines()
+    assert len(read_pages((NOTES_DIR / f"{name}.pdf").read_bytes())) == 1
+
+
+def test_nfr3_page_break_line_is_not_in_the_text() -> None:
+    source = "# Tittel\nEn setning.\n---\nEn annen setning.\n"
+    assert plain_text(source) == "Tittel\nEn setning.\nEn annen setning."
+
+
+async def test_fr53_seed_makes_summary_for_aida_only_with_switch_on(
+    sessionmaker: async_sessionmaker[AsyncSession],
+) -> None:
+    assert await seed_if_empty(sessionmaker, _settings(FEATURE_SUMMARY=True)) is True
+    async with sessionmaker() as session:
+        rows = (
+            await session.execute(
+                select(Lecture.name, SummaryPoint)
+                .join(Summary, SummaryPoint.summary_id == Summary.id)
+                .join(Lecture, Summary.lecture_id == Lecture.id)
+                .order_by(SummaryPoint.position)
+            )
+        ).all()
+    assert {name for name, _point in rows} == {"AIDA-modellen"}
+    points = [point for _name, point in rows]
+    assert len(points) >= 5
+    # One point per page, the file name as theme (NFR-2a).
+    assert [point.page_no for point in points] == list(range(1, len(points) + 1))
+    assert {point.theme for point in points} == {"aida.pdf"}
+    assert points[1].text == "Oppmerksomhet er det første steget, der budskapet fanger kundens blikk."
+
+
+async def test_fr53_seed_makes_no_summary_with_switch_off(
+    sessionmaker: async_sessionmaker[AsyncSession],
+) -> None:
+    assert await seed_if_empty(sessionmaker, _settings(FEATURE_SUMMARY=False)) is True
+    async with sessionmaker() as session:
+        assert list(await session.scalars(select(Summary))) == []
+        assert list(await session.scalars(select(Job).where(Job.kind == "summary"))) == []

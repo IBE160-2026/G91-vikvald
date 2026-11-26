@@ -94,7 +94,7 @@ test.describe("Modellkort (story 7.1)", () => {
     // Only model cards: «Øv nå» is active, since they are practised as flashcards (story 7.2).
     await expect(row.getByRole("button", { name: "Øv nå" })).toBeEnabled();
     await expect(quizRow(page).getByText("Venter til modellkortene er ferdige")).toHaveCount(0);
-    expect(await contentCounts(page, lectureId)).toEqual({ flashcards: 0, quiz_questions: 0, model_cards: 2, freetext_questions: 0 });
+    expect(await contentCounts(page, lectureId)).toEqual({ flashcards: 0, quiz_questions: 0, model_cards: 2, freetext_questions: 0, summary_points: 0 });
     await expectNoAxeViolations(page);
   });
 

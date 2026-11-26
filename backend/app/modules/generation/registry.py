@@ -8,7 +8,9 @@ needs no change to the pipeline.
 A type that has a difficulty (quiz) says so with uses_difficulty, a type with
 a question type (free text) with uses_question_kind, the scopes a job may ask
 for with scopes and default_requested, and a type behind a feature switch
-(FEATURE_*) says so with feature.
+(FEATURE_*) says so with feature. A type that needs a smallest number of valid
+items (the summary: 5) says so with min_items and too_few_error, and one where
+valid items past `requested` count as discarded with surplus_discarded.
 """
 
 import uuid
@@ -21,6 +23,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
+from app.core.errors import ErrorCode
 from app.core.features import Feature
 from app.modules.generation.port import GenerationOptions, Page
 
@@ -77,6 +80,15 @@ class ContentType:
     # The feature switch the type belongs to (e.g. "summary" for FEATURE_SUMMARY),
     # or None for the must-have types (flashcards, quiz), which are always on.
     feature: Feature | None = None
+    # The fewest valid items the job must have to store anything (the summary:
+    # 5). With fewer, the job fails with too_few_error and nothing is stored.
+    # 0 (the default) means any number, also none.
+    min_items: int = 0
+    too_few_error: ErrorCode | None = None
+    # Whether valid items past `requested` count as discarded (the summary: 16
+    # valid points keep 15 and discard 1). The other types only keep the first
+    # `requested` without counting the rest.
+    surplus_discarded: bool = False
 
 
 _types: dict[str, ContentType] = {}
@@ -114,7 +126,7 @@ def enabled_content_types(settings: Settings | None = None) -> list[ContentType]
 # behind a switch in the order they were built. A module may import a type
 # module early (vertex.py imports freetext), so registration order alone is
 # not fixed. Other types (tests) come after, in registration order.
-_BUILTIN_ORDER = ("flashcards", "quiz", "models", "freetext")
+_BUILTIN_ORDER = ("flashcards", "quiz", "models", "freetext", "summary")
 
 
 def _order(content_type: ContentType) -> tuple[bool, int]:
@@ -140,3 +152,4 @@ def _ensure_builtin_types() -> None:
     from app.modules.generation import flashcards, quiz  # noqa: F401, I001
     from app.modules.generation import model_cards  # noqa: F401
     from app.modules.generation import freetext  # noqa: F401
+    from app.modules.generation import summary  # noqa: F401

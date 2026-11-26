@@ -34,6 +34,59 @@ describe("alsoDeletedSentence", () => {
     );
   });
 
+  it("FR-12, FR-53: sammendraget nevnes sist, etter «laget fra fila» for en fil", () => {
+    expect(
+      alsoDeletedSentence(
+        [
+          { kind: "flashcards", count: 18 },
+          { kind: "summaries", count: 1 },
+          { kind: "quiz_questions", count: 11 },
+        ],
+        "file",
+      ),
+    ).toBe("Dette sletter også 18 flashcards og 11 quizspørsmål laget fra fila og sammendraget av forelesningen.");
+    expect(alsoDeletedSentence([{ kind: "summaries", count: 1 }], "file")).toBe(
+      "Dette sletter også sammendraget av forelesningen.",
+    );
+  });
+
+  it("FR-14, FR-53: én forelesning gir «sammendraget av forelesningen», flere gir antallet", () => {
+    expect(
+      alsoDeletedSentence(
+        [
+          { kind: "files", count: 2 },
+          { kind: "flashcards", count: 10 },
+          { kind: "summaries", count: 1 },
+        ],
+        "lecture",
+      ),
+    ).toBe("Dette sletter også 2 filer, 10 flashcards og sammendraget av forelesningen.");
+    expect(
+      alsoDeletedSentence(
+        [
+          { kind: "lectures", count: 3 },
+          { kind: "summaries", count: 2 },
+          { kind: "files", count: 4 },
+        ],
+        "subject",
+      ),
+    ).toBe("Dette sletter også 3 forelesninger, 4 filer og sammendragene av 2 forelesninger.");
+    expect(alsoDeletedSentence([{ kind: "summaries", count: 0 }], "lecture")).toBeNull();
+  });
+
+  it("FR-14, FR-53: for et emne sier ett sammendrag «sammendraget av 1 forelesning»", () => {
+    expect(
+      alsoDeletedSentence(
+        [
+          { kind: "lectures", count: 3 },
+          { kind: "files", count: 4 },
+          { kind: "summaries", count: 1 },
+        ],
+        "subject",
+      ),
+    ).toBe("Dette sletter også 3 forelesninger, 4 filer og sammendraget av 1 forelesning.");
+  });
+
   it("UX-DR22: entall for 1", () => {
     expect(
       alsoDeletedSentence(
@@ -141,6 +194,11 @@ describe("accountDeletedText", () => {
     );
     expect(accountDeletedText(["flashcards", "quiz_questions", "model_cards", "freetext_questions"])).toBe(
       "Alle emner, filer og alt generert innhold slettes for godt: flashcards, quizspørsmål, modellkort og fritekstspørsmål.",
+    );
+    expect(
+      accountDeletedText(["flashcards", "quiz_questions", "model_cards", "freetext_questions", "summaries"]),
+    ).toBe(
+      "Alle emner, filer og alt generert innhold slettes for godt: flashcards, quizspørsmål, modellkort, fritekstspørsmål og sammendrag.",
     );
     expect(accountDeletedText(["ukjent", "toString"])).toBe(
       "Alle emner, filer og alt generert innhold slettes for godt.",

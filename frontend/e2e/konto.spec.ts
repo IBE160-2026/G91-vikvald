@@ -211,7 +211,7 @@ test.describe("Konto (story 2.7)", () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Avbryt" })).toBeFocused();
     await expect(dialog.getByText(email)).toBeVisible();
-    await expect(dialog.getByText("Alle emner, filer og alt generert innhold slettes for godt: flashcards, quizspørsmål, modellkort og fritekstspørsmål.")).toBeVisible();
+    await expect(dialog.getByText("Alle emner, filer og alt generert innhold slettes for godt: flashcards, quizspørsmål, modellkort, fritekstspørsmål og sammendrag.")).toBeVisible();
     await expect(dialog.getByText("Dette sletter også 2 emner, 3 forelesninger og 2 filer.")).toBeVisible();
     await expect(dialog.getByText("Det kan ikke angres.")).toBeVisible();
     await expectNoAxeViolations(page);

@@ -30,7 +30,13 @@ const SEVEN = [
 // Two definitions: two questions at most.
 const TWO = ["Merkevare er et navn. Pris er det kunden betaler."];
 
-type Counts = { flashcards: number; quiz_questions: number; model_cards: number; freetext_questions: number };
+type Counts = {
+  flashcards: number;
+  quiz_questions: number;
+  model_cards: number;
+  freetext_questions: number;
+  summary_points: number;
+};
 
 function freetextRow(page: Page): Locator {
   return page.getByRole("region", { name: "Lag og øv" }).getByRole("group", { name: "Fritekstspørsmål" });
@@ -181,6 +187,7 @@ test.describe("Fritekstspørsmål (story 8.1)", () => {
       quiz_questions: 0,
       model_cards: 0,
       freetext_questions: 5,
+      summary_points: 0,
     });
     await axeInBothWidths(page);
   });

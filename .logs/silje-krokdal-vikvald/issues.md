@@ -180,3 +180,5 @@
 - [ ] 2026-11-25 [story-8-3-fritekst-hele-emnet](943-2026-11-25-21-37-26-story-8-3-fritekst-hele-emnet.md) — sletting av alle spørsmålene fra en forelesnings første jobb kan gjøre at en tidligere emneøkt ikke lenger teller som «øvd» (regelen fra 5.1, #348)
 - [ ] 2026-11-26 [brukerreiser-etter-epic-8](942-2026-11-26-00-55-11-brukerreiser-etter-epic-8.md) — brukerreisetestene utvides med sammendrag (epic 9, steg 11 i flyt 1) når det er bygd
 - [ ] 2026-11-26 [brukerreiser-etter-epic-8](942-2026-11-26-00-55-11-brukerreiser-etter-epic-8.md) — følg med på om flyt 1 steg 8 feiler igjen; årsaken til #343 der er sannsynlig, men ikke bevist
+- [ ] 2026-11-26 [story-9-1-sammendrag](941-2026-11-26-02-00-59-story-9-1-sammendrag.md) — vurder kanttilfellene fra story 9.1 (#352–#358), særlig teksten i #357
+- [ ] 2026-11-26 [story-9-1-sammendrag](941-2026-11-26-02-00-59-story-9-1-sammendrag.md) — bare 3,2 GB disk er ledig etter kjøringen, under grensen på 5 GB for neste `--build`

@@ -34,8 +34,16 @@ export type ExtraJob = {
   requested: Requested;
 };
 
+function isScoped(kind: JobKind): kind is ScopedJobKind {
+  return kind !== "models" && kind !== "summary";
+}
+
 type Props = GenerationRowProps & {
-  kind: ScopedJobKind;
+  // A scoped kind opens the scope dialog; with `direct`, any kind may be given.
+  kind: JobKind;
+  // Start the job directly with this scope, without the dialog (story 9.1:
+  // «Lag sammendrag», whose only scope is 15).
+  direct?: Requested;
   // The extra kind, or undefined. The row follows its jobs whenever it is
   // given, also while the button is hidden (showExtra false: the feature
   // switch is off or the config has not loaded), so a running model-card job
@@ -50,6 +58,11 @@ type Props = GenerationRowProps & {
   countOf: (counts: ContentCounts) => number;
   // «24 kort», «15 spørsmål».
   countText: (count: number) => string;
+  // The count text without content (default «Ingen ennå»; «Ikke laget» for the summary).
+  emptyText?: string;
+  // Whether the row shows «Lag flere» and «Øv nå» when it has content
+  // (default true). The summary row shows only its count (story 9.1).
+  contentActions?: boolean;
   // «Lag flashcards», «Lag quiz».
   createLabel: string;
   // «Øv nå». Without it the button is shown but not active (a type without practice yet).
@@ -85,8 +98,14 @@ type Props = GenerationRowProps & {
 // and the extra kind, and shows that job's text, error or nothing message.
 // «Prøv igjen» starts the same kind again. The extra button starts its job
 // directly, without the dialog.
+//
+// With `direct`, «Lag …» starts the row's own job directly, without the
+// dialog (the summary row).
 export function GenerationRow({
   kind,
+  direct,
+  emptyText = "Ingen ennå",
+  contentActions = true,
   extra,
   showExtra = true,
   title,
@@ -194,6 +213,17 @@ export function GenerationRow({
     });
   }
 
+  function startDirect(requested: Requested) {
+    // The button goes away while the job runs, so the row keeps the focus.
+    rowRef.current?.focus();
+    void start(kind, { requested });
+  }
+
+  function openDialogOrStart() {
+    if (direct !== undefined) startDirect(direct);
+    else setDialogOpen(true);
+  }
+
   function startExtra() {
     if (!extra) return;
     // The button goes away while the job runs, so the row keeps the focus.
@@ -224,13 +254,14 @@ export function GenerationRow({
     <div ref={rowRef} tabIndex={-1} role="group" aria-label={title} data-testid={testId}>
       <CreateRow
         title={title}
-        countText={count > 0 ? countText(count) : "Ingen ennå"}
+        countText={count > 0 ? countText(count) : emptyText}
         hasContent={count > 0}
+        contentActions={contentActions}
         state={state}
         reason={reason}
         createLabel={createLabel}
-        onCreate={() => setDialogOpen(true)}
-        onCreateMore={() => setDialogOpen(true)}
+        onCreate={openDialogOrStart}
+        onCreateMore={openDialogOrStart}
         extraAction={extra && showExtra ? { label: extra.label, onClick: startExtra } : undefined}
         onPractice={count > 0 ? onPractice : undefined}
         jobText={generationTexts[starting ? startingKind : (job?.kind ?? kind)].jobText}
@@ -239,21 +270,23 @@ export function GenerationRow({
         error={startError ?? failed ?? loadError}
         onRetry={failedJob ? () => retry(failedJob) : undefined}
       />
-      <ScopeDialog
-        kind={kind}
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        onStart={startFromDialog}
-        lectureName={lectureName}
-        fileCount={fileCount ?? 0}
-        pageCount={pageCount ?? 0}
-        contentCount={count}
-        returnFocus={() => {
-          const target = startedFromDialog.current ? rowRef.current : null;
-          startedFromDialog.current = false;
-          return target;
-        }}
-      />
+      {direct === undefined && isScoped(kind) ? (
+        <ScopeDialog
+          kind={kind}
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          onStart={startFromDialog}
+          lectureName={lectureName}
+          fileCount={fileCount ?? 0}
+          pageCount={pageCount ?? 0}
+          contentCount={count}
+          returnFocus={() => {
+            const target = startedFromDialog.current ? rowRef.current : null;
+            startedFromDialog.current = false;
+            return target;
+          }}
+        />
+      ) : null}
     </div>
   );
 }

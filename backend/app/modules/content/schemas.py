@@ -16,6 +16,8 @@ class ContentCounts(BaseModel):
     model_cards: int
     # Free-text questions (short and long) made from the lecture's files.
     freetext_questions: int
+    # The points in the lecture's summary (epic 9); 0 without a summary.
+    summary_points: int
 
 
 class FlashcardSource(BaseModel):
