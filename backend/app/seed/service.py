@@ -3,7 +3,8 @@
 `seed_if_empty` runs in start.sh between the migrations and Uvicorn. When
 APP_ENV=local and there are no accounts, it makes the test user, the subject
 «Markedsføring» with three lectures, one sample PDF in each, content of every
-enabled content type made by the mock model, and two practice sessions on the
+enabled content type made by the mock model (a summary only for
+«AIDA-modellen», the one note with 5 pages), and two practice sessions on the
 first lecture (so the overview shows practised and not practised lectures).
 
 It only uses the modules' ordinary services, exactly as the routes do, and
@@ -52,13 +53,16 @@ class SampleLecture:
     days_ago: int
     # The PDF in notater/, uploaded under this name.
     file_name: str
+    # Content types the seed makes none of for this lecture. A summary needs
+    # at least 5 pages with text (FR-53), and only the AIDA note has them.
+    skip_kinds: frozenset[str] = frozenset({"summary"})
 
 
 # In date order. The first one gets the two practice sessions.
 LECTURES = (
     SampleLecture("Markedsmiksen", 21, "markedsmiksen.pdf"),
     SampleLecture("Segmentering og målgrupper", 14, "segmentering.pdf"),
-    SampleLecture("AIDA-modellen", 7, "aida.pdf"),
+    SampleLecture("AIDA-modellen", 7, "aida.pdf", skip_kinds=frozenset()),
 )
 # The practice sessions on the first lecture: kind and how long they took.
 SESSIONS = (("flashcards", 6 * 60), ("quiz", 4 * 60))
@@ -115,8 +119,10 @@ async def _fill(
             await store_file(session, user_id, lecture.id, sample.file_name, data, pages)
 
     created: dict[str, int] = {}
-    for lecture in lectures:
+    for lecture, sample in zip(lectures, LECTURES, strict=True):
         for content_type in enabled_content_types(settings):
+            if content_type.kind in sample.skip_kinds:
+                continue
             count = await _generate(sessionmaker, user_id, lecture.id, content_type.kind)
             if lecture.id == lectures[0].id:
                 created[content_type.kind] = count
