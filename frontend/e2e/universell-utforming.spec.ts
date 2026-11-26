@@ -279,13 +279,33 @@ test.describe("Universell utforming og skjermbredde på alle sider (story 6.6)",
   // are built. An entry that is built (`built`) must be there when its switch is
   // on (#301): «Lag modellkort» since story 7.1, the row «Fritekstspørsmål»
   // (its «Lag fritekstspørsmål» dialog) since story 8.1, and the row «Sammendrag»
-  // («Lag sammendrag», which starts the job directly) since story 9.1. For the others, while a switch
-  // is on and the entry is not there, the test notes «ikke bygd ennå» and is green.
+  // (with a summary made through the API: «Les sammendrag», which opens the summary page) since
+  // story 9.2. For the others, while a switch is on and the entry is not there, the test notes «ikke bygd ennå» and is green.
   test("NFR-13, NFR-14, SK-9: bør ha-sidene som er skrudd på i GET /api/config, i 1280 og 768 px", async ({ page }, testInfo) => {
     const configResponse = await page.request.get("/api/config");
     expect(configResponse.status()).toBe(200);
     const config = (await configResponse.json()) as Record<string, boolean>;
     const { lectureId } = await lectureWithContent(page);
+    if (config.feature_summary) {
+      // A summary needs at least 5 points, one per page with the mock model:
+      // 3 from the notes and 6 from this file.
+      await uploadViaApi(
+        page,
+        lectureId,
+        pdfFile("sammendrag.pdf", Array.from({ length: 6 }, (_, index) => `Punkt ${index + 1} står her.`)),
+      );
+      const started = await page.request.post(`/api/lectures/${lectureId}/jobs`, {
+        data: { kind: "summary", params: { requested: 15 } },
+      });
+      expect(started.status()).toBe(202);
+      await expect
+        .poll(
+          async () =>
+            (await (await page.request.get(`/api/lectures/${lectureId}/content-counts`)).json()).summary_points,
+          { timeout: 15_000 },
+        )
+        .toBe(9);
+    }
     await page.goto(`/forelesninger/${lectureId}`);
     await expect(createSection(page).getByText("4 kort", { exact: true })).toBeVisible();
 
@@ -305,8 +325,8 @@ test.describe("Universell utforming og skjermbredde på alle sider (story 6.6)",
       },
       {
         flag: "feature_summary",
-        name: "Sammendrag",
-        entry: makeAndPractise.getByRole("group", { name: "Sammendrag" }).getByRole("button").first(),
+        name: "Sammendrag («Les sammendrag» og sammendragssiden)",
+        entry: makeAndPractise.getByRole("group", { name: "Sammendrag" }).getByRole("button", { name: "Les sammendrag" }),
         built: true,
       },
     ];
@@ -323,6 +343,10 @@ test.describe("Universell utforming og skjermbredde på alle sider (story 6.6)",
         continue;
       }
       await entry.click();
+      if (flag === "feature_summary") {
+        await expect(page).toHaveURL(new RegExp(`/forelesninger/${lectureId}/sammendrag$`));
+        await expect(page.locator("main h1")).toHaveText("Sammendrag");
+      }
       await checkBothWidths(page, "app");
       testInfo.annotations.push({ type: name, description: "kontrollert med axe i 1280 og 768 px" });
       // Back to the lecture page for the next entry.
