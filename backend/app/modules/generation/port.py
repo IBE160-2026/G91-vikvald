@@ -43,6 +43,9 @@ class GenerationOptions:
     # The chosen question type ("short" or "long") for types that have one
     # (free text); None for the others. The mock rules ignore it.
     question_kind: str | None = None
+    # The lecture the job makes content for. A type that stores its content
+    # by lecture (the summary) needs it to save; the mock rules ignore it.
+    lecture_id: uuid.UUID | None = None
 
 
 class FormulaReport(BaseModel):
