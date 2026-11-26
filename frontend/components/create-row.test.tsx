@@ -58,7 +58,7 @@ describe("CreateRow", () => {
     expect(onPractice).toHaveBeenCalledOnce();
   });
 
-  it("FR-54: med contentAction står bare hovedknappen «Les sammendrag» med samme bredde som «Øv nå»", () => {
+  it("FR-54: med contentAction står bare omrissknappen «Les sammendrag» med samme bredde som «Øv nå» (bare «Øv nå» er fylt)", () => {
     const onClick = vi.fn();
     render(
       <CreateRow
@@ -71,7 +71,7 @@ describe("CreateRow", () => {
       />,
     );
     const read = screen.getByRole("button", { name: "Les sammendrag" }) as HTMLButtonElement;
-    expect(read.dataset.variant).toBe("primary");
+    expect(read.dataset.variant).toBe("outline");
     expect(read.className).toContain("min-w-[184px]");
     expect(read.disabled).toBe(false);
     fireEvent.click(read);
