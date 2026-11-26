@@ -58,7 +58,7 @@ async def test_fr37_slett_quizspormaal(client: AsyncClient, lecture: str, engine
     assert [item["id"] for item in await _quiz_questions(client, lecture)] == ids[1:]
     assert await _subject_question_ids(client, lecture) == ids[1:]
     counts = (await client.get(f"/api/lectures/{lecture}/content-counts")).json()
-    assert counts == {"flashcards": 0, "quiz_questions": 4, "model_cards": 0, "freetext_questions": 0}
+    assert counts == {"flashcards": 0, "quiz_questions": 4, "model_cards": 0, "freetext_questions": 0, "summary_points": 0}
     # Deleting it again: it is gone, so 404 (the frontend takes it out as well).
     again = await client.delete(f"{QUIZ_QUESTIONS}/{ids[0]}")
     assert again.status_code == 404
