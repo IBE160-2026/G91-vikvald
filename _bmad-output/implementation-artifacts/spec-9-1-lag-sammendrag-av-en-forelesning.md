@@ -2,8 +2,8 @@
 title: 'Story 9.1: Lag sammendrag av en forelesning'
 type: 'feature'
 created: '2026-11-26'
-status: 'ready-for-dev'
-baseline_revision: '3fa3cbc6ee99c22491e0b7278e8cdadf759490e7'
+status: 'done'
+baseline_revision: '0a581f5e65fa81ef1ef6882f2adad46f28d85ce4'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -105,6 +105,37 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-26 — Review pass
+- verdicts: 22 findings — high 0, medium 2, low 15, false 5, maybe-false 0
+- findings:
+  - Blind Hunter
+    - `[medium]` `[patch]` Løpet sorterer punktene etter fil og side, så punkter om samme tema fra sider som ikke står etter hverandre, blir splittet — `summary.by_theme` samler dem etter tema (temaene i rekkefølgen de først dukker opp) før lagring; `test_fr53_punktene_lagres_samlet_etter_tema`.
+    - `[false]` `[reject]` Over 15 punkter beholder bare de første etter side — Silje avgjorde 2026-11-14 at de 15 første beholdes.
+    - `[low]` `[reject]` TOO_FEW-meldingen sier «Det gamle sammendraget er beholdt» også første gang — teksten er godkjent ordrett av Silje (epics.md, «Avgjort av Silje 2026-11-14»); å endre den krever henne. Nevnt i PR-en.
+    - `[low]` `[reject]` Med sammendrag har raden ingen knapp, så det kan ikke erstattes fra appen — storien sier at lenken kommer i 9.2, og «Lag nytt sammendrag» er 9.2.
+    - `[medium]` `[patch]` Seedet sammendrag fikk et punkt fra kildelinja (siste side var bare «# Kilde») — AIDA-notatet har nå «Kilde» på samme side som lista, og «Oppmerksomhet» og «Interesse» på hver sin side; teksten er uendret. Plassholderpunktet på side 1 står, fordi plassholdermerket skal stå øverst (#13).
+    - `[low]` `[patch]` Sletteteksten «sammendraget av forelesningen» er uklar for emne og konto — gir nå «sammendraget av 1 forelesning» utenfor fil og forelesning; test i `delete-text.test.ts`.
+    - `[low]` `[reject]` Sammendraget merkes ikke som gammelt når en ny fil lastes opp — storien krever bare sletting ved sletting og erstatting; «Lag nytt sammendrag» kommer i 9.2.
+    - `[false]` `[reject]` KI-sporet mangler — føres i samme økt etter gjennomgangen, før PR-en.
+    - `[low]` `[patch]` Seed har en fast liste over typer per forelesning, og en docstring-linje var for lang — linja er brutt om; lista beholdes fordi den er tydelig og testet, og å lese `min_items` mot sidetall ville koble seed til mock-regelen.
+    - `[low]` `[reject]` Lista over typer uten dialog står både i `isScoped` og `ScopedJobKind` — tsc fanger en ny type som mangler i typen, og en felles kilde er omskriving uten feil å rette.
+    - `[low]` `[reject]` En TOO_FEW-jobb lagrer ikke antall forkastede — slik er alle feilede jobber; ingen visning bruker tallet.
+    - `[low]` `[reject]` Ingen unik regel på `(summary_id, position)` — bare `replace_summary` skriver, med `enumerate`; ny regel uten feil å rette.
+  - Edge Case Hunter
+    - `[medium]` `[patch]` Tema splittes når temaene går over sider som ikke står etter hverandre — samme rot som første funn; rettet med `by_theme`.
+    - `[low]` `[reject]` TOO_FEW-meldingen nevner et gammelt sammendrag som kanskje ikke finnes — samme som over; Siljes ordrette tekst.
+    - `[low]` `[reject]` Et notat med bare `---` gir et PDF-dokument uten sider og en uklar feil — gjelder bare utviklere som bygger notatene; ingen slik fil finnes.
+    - `[low]` `[reject]` Modellen kan gjenta samme punkt — som dublettene for de andre typene (ført i spec-8-1 og 7-1); ikke innført her.
+    - `[low]` `[reject]` Svært lange tematitler godtas — kontrollreglene i storien nevner bare tomt tema; en ny regel ville gå utover FR-53.
+    - `[low]` `[reject]` AIDA har akkurat 5 sider, så en endring kan få seed til å feile — `test_fr53_seed_makes_summary_for_aida_only_with_switch_on` feiler da i pytest før noe flettes.
+  - Intent Alignment
+    - `[medium]` `[patch]` (a) «Ordnet etter tema» holdt ikke for den ekte modellen — samme rot som første funn; rettet.
+    - `[false]` `[reject]` (b) Studenten ser bare antallet i 9.1 — akseptkriteriet sier at lenken til sammendragssiden kommer i 9.2.
+    - `[false]` `[reject]` (c) Erstatting kan bare nås gjennom API-et — «Lag nytt sammendrag» er 9.2; TOO_FEW-teksten er Siljes.
+    - `[false]` `[reject]` (d) Endringer utenfor selve sammendraget (sideskift i notatbyggeren, `side \d+`, nye felt i registeret) — nødvendige for seed-kriteriet og standardverdiene gir samme oppførsel for de andre typene (test).
+  - Verification Gap
+    - (ingen funn)
+
 ## Design Notes
 
 - **Minste antall i registeret:** `min_items` og `too_few_error` gjør regelen generell uten at løpet kjenner sammendrag. Løpet kaster `TooFewItemsError(code)` etter valideringen; `run_job` merker jobben med koden, akkurat som `GENERATION_TIMEOUT`.
@@ -117,3 +148,29 @@ deferred: []
 - `cd backend && uv run pytest && uv run ruff check . && uv run mypy app` -- expected: alle grønne.
 - `cd frontend && npm run test && npm run lint && npx tsc --noEmit` -- expected: alle grønne.
 - `cd frontend && npx playwright test` mot `docker compose up --build -d` -- expected: alle grønne.
+
+## Auto Run Result
+
+**Status:** done
+
+**Hva som er bygd:** innholdstypen `summary` i registeret, med mock-regel (første setning per side, filnavnet som tema), kontroll før lagring (tomt tema eller tekst, over 50 ord, side som ikke finnes), minst 5 og høyst 15 punkter, `TOO_FEW_SUMMARY_POINTS`, instruks for Gemini og bryteren `FEATURE_SUMMARY`. Sammendraget lagres i `summaries` og `summary_points` (migrering 0012) gjennom `content`, erstatter det gamle i én transaksjon, samles etter tema, slettes helt når en fil slettes eller erstattes, telles i slettebekreftelsen og i `content-counts`, og seed lager det for «AIDA-modellen». Forelesningssiden har raden «Sammendrag» som starter jobben uten dialog.
+
+**Filer:**
+- `backend/alembic/versions/0012_create_summaries.py` -- tabellene.
+- `backend/app/core/errors.py` -- `TOO_FEW_SUMMARY_POINTS`.
+- `backend/app/modules/content/*` -- modeller, `replace_summary`, tellinger, `delete_summaries_for_files`, `summary_points`.
+- `backend/app/modules/files/service.py` -- sletter sammendraget ved sletting og erstatting.
+- `backend/app/modules/generation/registry.py`, `port.py`, `service.py` -- `min_items`, `too_few_error`, `surplus_discarded`, `lecture_id`.
+- `backend/app/modules/generation/summary.py`, `instructions/summary.md` -- typen og instruksen.
+- `backend/app/seed/*` -- sideskift i notatbyggeren, AIDA over fem sider, sammendrag bare for AIDA.
+- `frontend/modules/generation/*`, `frontend/components/create-row.tsx`, `frontend/lib/*`, `frontend/modules/subjects/pages/lecture-page.tsx` -- raden, tekstene, sletteteksten.
+- `frontend/e2e/sammendrag.spec.ts`, `universell-utforming.spec.ts` (#301), `konto.spec.ts`, flyt 4, `testbruker.spec.ts`.
+- `README.md`, `docs/testplan.md`, `docs/testing/brukerreiser.md`.
+
+**Gjennomgang:** 22 funn. 4 rettet (2 medium, 2 lav: tema samlet, ingen kildelinje-punkt i seed, slettetekst for emne og konto, docstring), ingen utsatt, resten avvist med grunn i loggen over.
+
+**followup_review_recommended:** false. To medium-funn ble rettet; begge er dekket av nye tester (`test_fr53_punktene_lagres_samlet_etter_tema`, seed-testen) og en full kjøring etterpå. Ingen uverifisert risiko gjenstår.
+
+**Verifisering:** `uv run pytest` 1000 bestått, `ruff` rent; `npm run test` 1064 bestått, `npx tsc --noEmit` rent; `npx playwright test` mot `docker compose up --build -d` 208 bestått og 4 hoppet over (seed-testene); seed-testene med `E2E_REQUIRE_SEED=1` mot `sk-seedtest` 10 bestått. `mypy` er ikke en del av prosjektets avhengigheter og ble ikke kjørt; frontenden har ikke noe `lint`-skript.
+
+**Gjenstående risiko:** TOO_FEW-meldingen sier «Det gamle sammendraget er beholdt» også første gang (Siljes tekst, #357). Sammendraget kan ikke leses eller lages på nytt fra raden før story 9.2.
