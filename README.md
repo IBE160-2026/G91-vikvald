@@ -62,7 +62,7 @@ Første gang appen starter med tom database, lager backenden en ferdig testbruke
 - E-post: `test@studiekamerat.no`
 - Passord: `studiekamerat`
 
-Testbrukeren har godtatt vilkårene og har emnet «Markedsføring» med eksamen tre uker etter den dagen databasen ble fylt. Emnet har tre forelesninger fra de siste ukene (Markedsmiksen, Segmentering og målgrupper, AIDA-modellen), med ett kort PDF-notat hver, ferdige flashcards og quiz, og to lagrede økter på den første forelesningen. Oversikten viser derfor både øvde og ikke øvde forelesninger, og du kan øve med en gang.
+Testbrukeren har godtatt vilkårene og har emnet «Markedsføring» med eksamen tre uker etter den dagen databasen ble fylt. Emnet har tre forelesninger fra de siste ukene (Markedsmiksen, Segmentering og målgrupper, AIDA-modellen), med ett kort PDF-notat hver, ferdige flashcards og quiz, et sammendrag av «AIDA-modellen» når `FEATURE_SUMMARY` er på, og to lagrede økter på den første forelesningen. Oversikten viser derfor både øvde og ikke øvde forelesninger, og du kan øve med en gang.
 
 Innholdet er laget av demomodellen. Demoinnholdet er enkelt og mekanisk: det viser at funksjonene virker, ikke hvor godt en ekte språkmodell er.
 
@@ -89,7 +89,7 @@ Godt å vite:
   - Første linje er «PLASSHOLDER – skrives av Silje» så lenge notatet er en plassholder. Når Siljes egen tekst erstatter det, fjernes linja, og testen `test_nfr3_note_is_marked_placeholder` oppdateres.
   - Minst fire definisjonssetninger med «er» (for eksempel «Prisen er summen kunden betaler.»), og «er» ingen andre steder i teksten.
   - Minst én punktliste med tre eller flere linjer som begynner med «• ».
-  - Notatet får plass på én side.
+  - Hver side i notatet får plass på én PDF-side. En linje med bare `---` begynner en ny side. `aida.md` er delt over minst fem sider, slik at seed kan lage et sammendrag av den (story 9.1); de andre notatene har én side.
   - Krediteringen (`# Kilde`) står nederst.
   - `EXPECTED_FRONTS` i `backend/tests/test_seed.py` og `CARDS`/`QUESTIONS` i `frontend/e2e/testbruker.spec.ts` oppdateres til de nye kortene.
 - **Datoene settes én gang**, når databasen fylles. Etter `docker compose down -v` og en ny oppstart får emnet nye datoer.
@@ -312,7 +312,7 @@ Alle innstillingene har standardverdier, så `.env` er valgfri. Vil du endre noe
 | `VERTEX_THINKING` | `low` | Bare med `LLM_PROVIDER=vertex`. Hvor mye modellen tenker før den svarer: `minimal`, `low`, `medium` eller `high`. Mer tenking er tregere og dyrere. |
 | `FEATURE_MNEMONICS` | `true` | Slår huskeregler av (`false`) eller på (`true`). På: knappen «Lag modellkort» står på Flashcards-raden, og seed lager modellkort for eksempelforelesningene. Av: knappen er borte, `POST /api/lectures/{id}/jobs` med `kind: "models"` svarer `404` med koden `FEATURE_DISABLED`, og seed lager ingen modellkort. Modellkort som alt finnes, slettes fortsatt sammen med fila. |
 | `FEATURE_FREETEXT` | `true` | Slår fritekstspørsmål av (`false`) eller på (`true`). På: forelesningssiden har raden «Fritekstspørsmål» med dialogen «Lag fritekstspørsmål» (kortsvar eller langsvar, inntil 5, 10 eller 15 spørsmål), og seed lager fritekstspørsmål for eksempelforelesningene. Av: raden er borte, `POST /api/lectures/{id}/jobs` med `kind: "freetext"` svarer `404` med koden `FEATURE_DISABLED`, og seed lager ingen fritekstspørsmål. Fritekstspørsmål som alt finnes, slettes fortsatt sammen med fila. |
-| `FEATURE_SUMMARY` | `true` | Slår sammendrag av eller på, på samme måte. |
+| `FEATURE_SUMMARY` | `true` | Slår sammendrag av (`false`) eller på (`true`). På: forelesningssiden har raden «Sammendrag» med knappen «Lag sammendrag», som lager 5 til 15 hovedpunkter med kilde uten noen dialog og erstatter det gamle sammendraget, og seed lager et sammendrag for eksempelforelesningen «AIDA-modellen» (den eneste med minst 5 sider). Av: raden er borte, `POST /api/lectures/{id}/jobs` med `kind: "summary"` svarer `404` med koden `FEATURE_DISABLED`, og seed lager ikke sammendrag. Et sammendrag som alt finnes, slettes fortsatt når en av forelesningens filer slettes eller erstattes. |
 | `JWT_SECRET` | tom (innebygd lokal nøkkel) | Den hemmelige nøkkelen som signerer innloggingscookien `sk_session`. Med `APP_ENV=local` brukes en innebygd nøkkel som bare er ment for egen maskin. I alle andre miljøer må den settes til en lang, tilfeldig verdi (for eksempel fra `openssl rand -hex 32`), ellers stopper backenden ved oppstart med en logglinje som nevner `JWT_SECRET`. |
 | `UPLOAD_DIR` | `data/uploads` | Mappa der backenden lagrer opplastede PDF-er, som `<bruker-id>/<fil-id>.pdf`. En relativ sti regnes fra mappa backenden startes i. I Docker Compose er det `/app/data/uploads`, der volumet `uploads` er montert. Docker Compose sender ikke `UPLOAD_DIR` videre, så der gjelder innstillingen bare når backenden kjøres utenfor Docker. |
 | `MAX_UPLOAD_MB` | `20` | Største PDF som kan lastes opp, i MB (1 MB = 1024 × 1024 byte). Må være et positivt heltall. Større filer avvises med koden `FILE_TOO_LARGE`. |
